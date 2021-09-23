@@ -1,0 +1,10 @@
+
+(define (id e)
+  e)
+
+(let ((a 15))
+  (let* ((b 4))
+    (let1 (c 1)
+      (id (+ c (+ a b)))
+      )))
+
