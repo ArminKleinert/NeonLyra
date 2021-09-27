@@ -3,6 +3,10 @@ require_relative 'reader.rb'
 require_relative 'evaluate.rb'
 require_relative 'core.rb'
 
+puts list(1, 2, 3, 4, 5).to_cons_list
+puts [1, 2, 3, 4, 5].to_cons_list
+puts Hash[1,2,3,4,5,6].to_cons_list
+
 # Treat the first console argument as a filename,
 # read from the file and evaluate the result.
 begin

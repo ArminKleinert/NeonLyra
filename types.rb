@@ -118,7 +118,6 @@ end
 
 Box = Struct.new(:value)
 
-=begin
 NOT_FOUND_IN_LYRA_ENV = BasicObject.new
 
 class LyraEnv
@@ -199,7 +198,6 @@ class LyraEnvPair
     "{parent0: #{@e0.to_s}; parent1: #{@e1.to_s}}"
   end
 end
-=end
 
 # Convenience functions.
 def first(c); c.car; end
@@ -273,10 +271,6 @@ class CompoundFunc < LyraFn
     "<#{@ismacro ? "macro" : "function"} #{@name}>"
   end
   
-  def inspect
-    to_s
-  end
-  
   def native?
     false
   end
@@ -313,11 +307,21 @@ class NativeLyraFn
     "<function #{@name}>"
   end
   
-  def inspect
-    to_s
-  end
-  
   def native?
     true
   end
+end
+
+module Enumerable
+  def to_cons_list
+    if is_a?(List) || is_a?(EmptyList)
+      self
+    else
+      list(*to_a)
+    end
+  end
+end
+
+def atom?(x)
+  x.is_a?(Numeric) || x.is_a?(String) || x.is_a?(Symbol) || true == x || false == x
 end

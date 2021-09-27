@@ -1,18 +1,17 @@
 require_relative 'types.rb'
 require_relative 'reader.rb'
 require_relative 'core.rb'
-require_relative 'env.rb'
 
 # nil is not a valid pair but will be used as a separator between
 # local LYRA_ENV and global LYRA_ENV.
 unless Object.const_defined?(:LYRA_ENV)
-  LYRA_ENV = LyraEnv.global_env
+  LYRA_ENV = LyraEnv.new(nil)
   $lyra_call_stack = EmptyList.instance # Call stack starts as empty list.
   setup_core_functions
 end
 
 # Parses and evaluates a string as Lyra-source code.
-def evalstr(s, env=LYRA_ENV)
+def evalstr(s, env = LYRA_ENV)
   ast = make_ast(tokenize(s))
   eval_keep_last(ast, env)
 end
@@ -72,11 +71,12 @@ end
 # and return a new list.
 # TODO Potential candidate for optimization?
 def eval_list(expr_list, env)
-  if expr_list.empty?
-    list
-  else
-    List.create(eval_ly(first(expr_list), env, true), eval_list(rest(expr_list), env))
+  l = list
+  until expr_list.empty?
+    l = List.create(eval_ly(first(expr_list),env,true),l)
+    expr_list= rest(expr_list)
   end
+  l
 end
 
 # Similar to eval_list, but only returns the last evaluated value.
@@ -115,8 +115,8 @@ def ev_define(expr, env, is_macro)
   end
 
   # Add the entry to the global environment.
-  env.next_module_env.add(name, res)
-  
+  LYRA_ENV.add(name, res)
+
   name
 end
 
@@ -135,10 +135,10 @@ def ev_lambda(args_expr, body_expr, definition_env, is_macro = false)
     if varargs
       # Remove the `&` from the arguments.
       last = arg_arr[-1]
-      arg_arr = arg_arr[0 .. -3]
+      arg_arr = arg_arr[0..-3]
       arg_arr << last
       args_expr = list(*arg_arr)
-      
+
       # Set the new argument numbers for minimum
       # and maximum number of arguments.
       # -1 means infinite.
@@ -146,7 +146,7 @@ def ev_lambda(args_expr, body_expr, definition_env, is_macro = false)
       arg_count -= 2
     end
   end
-  
+
   CompoundFunc.new("", definition_env, is_macro, arg_count, max_args) do |args, environment|
     # Makes pairs of the argument names and given arguments and
     # adds these pairs to the local environment.
@@ -156,16 +156,12 @@ def ev_lambda(args_expr, body_expr, definition_env, is_macro = false)
       arg_pairs = pairs(args_expr, args)
     end
 
-=begin
     if definition_env.__id__ == LYRA_ENV.__id__
       env1 = LyraEnv.new(LYRA_ENV).add_pairs(arg_pairs)
-    else 
+    else
       env1 = LyraEnvPair.new(definition_env, environment).add_pairs(arg_pairs)
     end
-=end
-    env1 = LyraEnv.new(nil, definition_env.next_module_env, definition_env, environment)
-    env1.add_pairs arg_pairs
-    
+
     # Execute all commands in the body and return the last
     # value.
     eval_keep_last(body_expr, env1)
@@ -173,21 +169,29 @@ def ev_lambda(args_expr, body_expr, definition_env, is_macro = false)
 end
 
 # Evaluation function
-def eval_ly(expr, env, is_in_call_params=false)
+def eval_ly(expr, env, is_in_call_params = false)
   if expr.nil? || (expr.is_a?(List) && expr.empty?)
     list # nil evaluates to nil
   elsif expr.is_a?(Symbol)
     associated(expr, env) # Get associated value from env
+  elsif atom?(expr) || expr.is_a?(LyraFn)
+    expr
+  elsif expr.is_a? Array
+    if expr.all? { |x| !x.is_a?(Symbol) && atom?(x) }
+      expr
+    else
+      arr.map { |x| eval_ly x, env, true }
+    end
   elsif expr.is_a?(List)
     # The expression is a cons and probably starts with a symbol.
     # The evaluate function will try to treat the symbol as a function
     # and execute it.
-    # If the first expression in the cons is another cons, that one 
+    # If the first expression in the cons is another cons, that one
     # will be evaluated first and then run as a function too.
     #   Example: ((lambda (n) (+ n 1)) 15)
     # If the cons is empty or does not start with a symbol or another
     # cons, an error is thrown.
-    
+
     # Try to match the symbol.
     case first(expr)
     when :if
@@ -237,12 +241,12 @@ def eval_ly(expr, env, is_in_call_params=false)
 
       bindings = second(expr)
       body = rest(rest(expr))
-      env1 = LyraEnv.new(nil, env.next_module_env, env)
+      env1 = LyraEnv.new(env)
 
       bindings.each do |b|
         env1.add(b.car, eval_ly(b.cdr.car, env1))
       end
-      
+
       # Execute the body.
       eval_keep_last(body, env1)
     when :"let1"
@@ -257,7 +261,7 @@ def eval_ly(expr, env, is_in_call_params=false)
       # If the body is empty, returns nil.
       name = first(second(expr))
       val = eval_ly(second(second(expr)), env) # Evaluate the value.
-      env1 = LyraEnv.new(nil, env.next_module_env, env)
+      env1 = LyraEnv.new env
       env1.add(name, val)
       eval_keep_last(rest(rest(expr)), env1) # Evaluate the body.
     when :let
@@ -271,13 +275,13 @@ def eval_ly(expr, env, is_in_call_params=false)
 
       bindings = second(expr)
       body = rest(rest(expr))
-      env1 = LyraEnv.new(nil, env.next_module_env, env)
+      env1 = LyraEnv.new(env)
 
       # Evaluate bindings in order using the old environment.
       bindings.each do |b|
         env1.add(b.car, eval_ly(b.cdr.car, env))
       end
-      
+
       # Execute the body.
       eval_keep_last(body, env1)
     when :quote
@@ -313,17 +317,17 @@ def eval_ly(expr, env, is_in_call_params=false)
       # If the function is a macro, the arguments are not evaluated before
       # executing the macro. Otherwise, the arguments are evaluated and
       # the function is called.
-      
+
       # Find value of symbol in env and call it as a function
       func = eval_ly(first(expr), env)
-      
+
       # The arguments which will be passed to the function.
       args = rest(expr)
-      
+
       # If `expr` had the form `((...) ...)`, then the result of the
       # inner list must be executed too.
       func = eval_ly(func, env) if func.is_a?(List)
-      
+
       if func.native?
         $lyra_call_stack = List.create(func, $lyra_call_stack)
         args = eval_list(args, env)
@@ -352,25 +356,23 @@ def eval_ly(expr, env, is_in_call_params=false)
           # Tail call
           raise TailCall.new(args)
         else
-          $lyra_call_stack = List.create(func, $lyra_call_stack)          
-          
+          $lyra_call_stack = List.create(func, $lyra_call_stack)
+
           # Evaluate arguments that will be passed to the call.
           args = eval_list(args, env)
-          
+
           # Call the function with the new arguments
           r = func.call(args, env)
-    
+
           # Remove from the callstack.
           $lyra_call_stack = $lyra_call_stack.cdr
-          
+
           r
         end
       end
     end
   else
-    # The expr is not nil, not a list and not a symbol.
-    # Thus, it is an atom and evaluates to itself.
-    expr
+    raise "Unknown type. (Object is #{expr})"
   end
 end
 

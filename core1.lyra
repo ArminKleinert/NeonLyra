@@ -5,6 +5,11 @@
 (let ((a 15))
   (let* ((b 4))
     (let1 (c 1)
-      (id (+ c (+ a b)))
+      (println! (id (+ c (+ a b))))
       )))
 
+(println! (gensym))
+(println! (gensym))
+(println! (gensym))
+(println! (gensym))
+(println! (gensym))
