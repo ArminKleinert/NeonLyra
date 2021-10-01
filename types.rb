@@ -6,12 +6,16 @@ class LazyObj
     @expr, @env = expr, env
     @executed = false
   end
+  
+  # TODO Tests:
+  #  - Does this lead to problems with tail recursion in illegal places?
+  #  - Is the branch really deeply executed?
   def evaluate
     if @executed
       @expr
     else
       @executed = true
-      @expr = eval_ly(@expr, @env)
+      @expr = eval_ly(@expr, @env, true)
       @expr 
     end
   end

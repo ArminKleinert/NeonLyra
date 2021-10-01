@@ -89,10 +89,10 @@ end
 
 # Takes a List (list of expressions), calls eval_ly on each element
 # and return a new list.
-def eval_list(expr_list, env)
+def eval_list(expr_list, env, force_eval)
   l = []
   until expr_list.empty?
-    l << eval_ly(first(expr_list),env,true)
+    l << eval_ly(first(expr_list),env, force_eval,true)
     expr_list = rest(expr_list)
   end
   list(*l)
@@ -184,7 +184,7 @@ def ev_lambda(args_expr, body_expr, definition_env, is_macro = false)
 end
 
 # Evaluation function
-def eval_ly(expr, env, is_in_call_params = false)
+def eval_ly(expr, env, force_eval=false, is_in_call_params = false)
   if expr.nil? || (expr.is_a?(List) && expr.empty?)
     list # nil evaluates to nil
   elsif expr.is_a?(Symbol)
@@ -195,7 +195,7 @@ def eval_ly(expr, env, is_in_call_params = false)
     if expr.all? { |x| !x.is_a?(Symbol) && atom?(x) }
       expr
     else
-      expr.map { |x| eval_ly x, env, true }
+      expr.map { |x| eval_ly x, env, force_eval, true }
     end
   elsif expr.is_a?(List)
     # The expression is a cons and probably starts with a symbol.
@@ -214,22 +214,22 @@ def eval_ly(expr, env, is_in_call_params = false)
       # If the predicate holds true, the then-branch is executed.
       # Otherwise, the else-branch is executed.
       raise "if needs 3 arguments." if expr.size < 4 # includes the 'if
-      pres = eval_ly(second(expr), env)
+      pres = eval_ly(second(expr), env, force_eval)
       #uts "In if: " + pres.to_s
       if pres != false && pres != nil && !pres.is_a?(EmptyList)
         # The predicate was true
-        eval_ly(third(expr), env)
+        eval_ly(third(expr), env, force_eval)
       else
         # The predicate was not true
-        eval_ly(fourth(expr), env)
+        eval_ly(fourth(expr), env, force_eval)
       end
     when :cond
       clauses = rest(expr)
       result = nil
       until clauses.empty?
-        predicate = eval_ly(first(first(clauses)), env)
+        predicate = eval_ly(first(first(clauses)), env, force_eval)
         if predicate
-          result = eval_ly(second(first(clauses)), env)
+          result = eval_ly(second(first(clauses)), env, force_eval)
           break
         end
         clauses = rest(clauses)
@@ -259,7 +259,7 @@ def eval_ly(expr, env, is_in_call_params = false)
       env1 = Env.new(nil, env)
 
       bindings.each do |b|
-        env1.add(b.car, eval_ly(b.cdr.car, env1))
+        env1.add(b.car, eval_ly(b.cdr.car, env1, force_eval))
       end
 
       # Execute the body.
@@ -275,7 +275,7 @@ def eval_ly(expr, env, is_in_call_params = false)
       # last expression returned.
       # If the body is empty, returns nil.
       name = first(second(expr))
-      val = eval_ly(second(second(expr)), env) # Evaluate the value.
+      val = eval_ly(second(second(expr)), env, force_eval) # Evaluate the value.
       env1 = Env.new nil, env
       env1.add(name, val)
       eval_keep_last(rest(rest(expr)), env1) # Evaluate the body.
@@ -294,7 +294,7 @@ def eval_ly(expr, env, is_in_call_params = false)
 
       # Evaluate bindings in order using the old environment.
       bindings.each do |b|
-        env1.add(b.car, eval_ly(b.cdr.car, env))
+        env1.add(b.car, eval_ly(b.cdr.car, env, force_eval))
       end
 
       # Execute the body.
@@ -318,15 +318,15 @@ def eval_ly(expr, env, is_in_call_params = false)
       args = rest(rest(expr))
       args1 = nil
       until args.cdr.empty?
-        args1 = cons(eval_ly(args.car, env, true), args1)
+        args1 = cons(eval_ly(args.car, env, force_eval, true), args1)
         args = args.cdr
       end
       last_arg = args.car
       last_arg = eval_ly(list(:"->list", last_arg), env)
-      args = eval_list(last_arg, env)
+      args = eval_list(last_arg, env, force_eval)
       args1 = append(reverse(args1), args)
       expr = cons(fn, args1)
-      eval_ly(expr, env)
+      eval_ly(expr, env, force_eval)
     when :module
       ev_module expr, env
     else
@@ -339,18 +339,18 @@ def eval_ly(expr, env, is_in_call_params = false)
       # the function is called.
 
       # Find value of symbol in env and call it as a function
-      func = eval_ly(first(expr), env)
+      func = eval_ly(first(expr), env, force_eval)
 
       # The arguments which will be passed to the function.
       args = rest(expr)
 
       # If `expr` had the form `((...) ...)`, then the result of the
       # inner list must be executed too.
-      func = eval_ly(func, env) if func.is_a?(List)
+      func = eval_ly(func, env, force_eval) if func.is_a?(List)
 
       if func.native?
         $lyra_call_stack = cons(func, $lyra_call_stack)
-        args = eval_list(args, env)
+        args = eval_list(args, env, force_eval)
         r = func.call(args, env)
         $lyra_call_stack = $lyra_call_stack.cdr
         r
@@ -358,7 +358,7 @@ def eval_ly(expr, env, is_in_call_params = false)
         # The macro is first called and the resulting expression
         # is then executed.
         r1 = func.call(args, env)
-        eval_ly(r1, env)
+        eval_ly(r1, env, force_eval)
       else
         # Check whether a tailcall is possible
         # A tailcall is possible if the function is not natively implemented
@@ -372,14 +372,14 @@ def eval_ly(expr, env, is_in_call_params = false)
         # will also tail call.
         if !is_in_call_params && (!$lyra_call_stack.empty?) && (func == $lyra_call_stack.car)
           # Evaluate arguments that will be passed to the call.
-          args = eval_list(args, env)
+          args = eval_list(args, env, force_eval)
           # Tail call
           raise TailCall.new(args)
         else
           $lyra_call_stack = cons(func, $lyra_call_stack)
 
           # Evaluate arguments that will be passed to the call.
-          args = eval_list(args, env)
+          args = eval_list(args, env, force_eval)
 
           # Call the function with the new arguments
           r = func.call(args, env)

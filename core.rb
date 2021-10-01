@@ -16,6 +16,10 @@ def elem_to_s(e)
   end
 end
 
+def eager(x)
+  x.is_a?(LazyObj) ? x.evaluate : x
+end
+
 # Sets up the core functions and variables. The functions defined here are
 # of the type NativeLyraFn instead of LyraFn. They can not make use of tail-
 # recursion and are supposed to be very simple.
@@ -71,7 +75,7 @@ def setup_core_functions
   add_fn(:unwrap, 2) { |b| b.value } # Intended for use with any boxing type
   add_fn(:"box-set!", 2) { |b, x| b.value = x; b }
 
-  add_fn(:eager, 1) { |x| x.is_a?(LazyObj) ? x.evaluate : x }
+  add_fn(:eager, 1) { |x| eager x }
   add_fn_with_env(:lazy, 1) { |xs,env| LazyObj.new xs.car, env }
   add_fn(:partial, 1) { |x, *params| params.empty? ? x : PartialLyraFn.new(x,params.to_cons_list) }
 
