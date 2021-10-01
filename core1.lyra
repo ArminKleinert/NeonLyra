@@ -11,24 +11,41 @@
 
 (define (reverse xs)
   (foldl (lambda (a b) (cons b a)) '() xs))
-
-(define (lis7 a & b)
-  b)
-
-(println! (lis7 1 2 3 4 5))
-(println! (lis7 1 2))
-(println! (lis7 1))
-
-(module moduletest
-  ((f l))
-  (define (l x) (* x x))
-  )
-
-(println! (f 3))
  
 ;(println! (reverse '(1 2 3 4 5)))
 (define (list & xs) xs)
 
+(def-macro (def name val)
+  (list 'define name val))
+
+; FIXME
+(def-macro (defn name bindings & body)
+  (cons (cons 'define (cons name (->list bindings))) body))
+
+(module moduletest
+  ((f fl))
+  (define (fl f v xs)
+  (if (empty? xs)
+    v
+    (fl f (f v (car xs)) (cdr xs))))
+  )
+
 (println! (list 1 2 3 4 5))
+(println! (f + 0 (list 1 2 3 4 5)))
 (println! (foldl + 0 (list 1 2 3 4 5)))
 (println! (box 1))
+
+(def-type Test a b c)
+
+(let ((t (make-Test 1 2 3)))
+(println! t)
+(println! (Test? t))
+(println! (Test? 1))
+(println! (Test-a t))
+(println! (Test-b t))
+(println! (Test-c t))
+)
+
+(println! [1 2 3 4 5 6 7])
+(vector 1 2 3 4 5 6 7 8 9 0)
+

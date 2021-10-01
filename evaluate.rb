@@ -47,28 +47,24 @@ def pairs(cons0, cons1, expect_vargs = false, res = [])
   res
 end
 
-# Search environment for symbol
-def associated(x, env)
-  env.find(x)
-end
-
 def ev_module(expr,env)
-  name = expr.cdr.car
+  expr = expr.cdr
+  name = expr.car
   return name if IMPORTED_MODULES.include? name
   
   module_env = Env.createModuleEnv name
-  bindings = expr.cdr.cdr.car
-  forms = expr.cdr.cdr.cdr
-  
-  
+  expr = expr.cdr
+  bindings = expr.car
+  forms = expr.cdr
+
   eval_keep_last forms, module_env
-  
+
   global = Env.global_env
   bindings.each do |binding|
     #check_for_redef(binding.car, global)
     global.set! binding.car, eval_ly(binding.cdr.car, module_env)
   end
-  
+
   name
 end
 
@@ -78,14 +74,14 @@ def append(c0, c1)
   if c0.empty?
     c1
   else
-    List.create(first(c0), append(c0.cdr, c1))
+    cons(first(c0), append(c0.cdr, c1))
   end
 end
 
 def reverse(list)
   acc = list
   until list.empty?
-    acc = List.create(first(list), acc)
+    acc = cons(first(list), acc)
     list = rest(list)
   end
   acc
@@ -93,7 +89,6 @@ end
 
 # Takes a List (list of expressions), calls eval_ly on each element
 # and return a new list.
-# TODO Potential candidate for optimization?
 def eval_list(expr_list, env)
   l = []
   until expr_list.empty?
@@ -193,14 +188,14 @@ def eval_ly(expr, env, is_in_call_params = false)
   if expr.nil? || (expr.is_a?(List) && expr.empty?)
     list # nil evaluates to nil
   elsif expr.is_a?(Symbol)
-    associated(expr, env) # Get associated value from env
+    env.find expr  # Get associated value from env
   elsif atom?(expr) || expr.is_a?(LyraFn)
     expr
   elsif expr.is_a? Array
     if expr.all? { |x| !x.is_a?(Symbol) && atom?(x) }
       expr
     else
-      arr.map { |x| eval_ly x, env, true }
+      expr.map { |x| eval_ly x, env, true }
     end
   elsif expr.is_a?(List)
     # The expression is a cons and probably starts with a symbol.
@@ -218,7 +213,7 @@ def eval_ly(expr, env, is_in_call_params = false)
       # Form is `(if predicate then-branch else-branch)`.
       # If the predicate holds true, the then-branch is executed.
       # Otherwise, the else-branch is executed.
-      raise "if needs 3 arguments." if list_len(expr) < 4 # includes the 'if
+      raise "if needs 3 arguments." if expr.size < 4 # includes the 'if
       pres = eval_ly(second(expr), env)
       #uts "In if: " + pres.to_s
       if pres != false && pres != nil && !pres.is_a?(EmptyList)
@@ -304,6 +299,9 @@ def eval_ly(expr, env, is_in_call_params = false)
 
       # Execute the body.
       eval_keep_last(body, env1)
+    when :"def-type"
+      expr = expr.cdr
+      new_lyra_type(expr.car, expr.cdr, env.next_module_env)
     when :quote
       # Quotes a single expression so that it is not evaluated when
       # passed.
@@ -320,14 +318,14 @@ def eval_ly(expr, env, is_in_call_params = false)
       args = rest(rest(expr))
       args1 = nil
       until args.cdr.empty?
-        args1 = List.create(eval_ly(args.car, env, true), args1)
+        args1 = cons(eval_ly(args.car, env, true), args1)
         args = args.cdr
       end
       last_arg = args.car
       last_arg = eval_ly(list(:"->list", last_arg), env)
       args = eval_list(last_arg, env)
       args1 = append(reverse(args1), args)
-      expr = List.create(fn, args1)
+      expr = cons(fn, args1)
       eval_ly(expr, env)
     when :module
       ev_module expr, env
@@ -351,7 +349,7 @@ def eval_ly(expr, env, is_in_call_params = false)
       func = eval_ly(func, env) if func.is_a?(List)
 
       if func.native?
-        $lyra_call_stack = List.create(func, $lyra_call_stack)
+        $lyra_call_stack = cons(func, $lyra_call_stack)
         args = eval_list(args, env)
         r = func.call(args)
         $lyra_call_stack = $lyra_call_stack.cdr
@@ -378,7 +376,7 @@ def eval_ly(expr, env, is_in_call_params = false)
           # Tail call
           raise TailCall.new(args)
         else
-          $lyra_call_stack = List.create(func, $lyra_call_stack)
+          $lyra_call_stack = cons(func, $lyra_call_stack)
 
           # Evaluate arguments that will be passed to the call.
           args = eval_list(args, env)

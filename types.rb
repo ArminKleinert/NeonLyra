@@ -101,22 +101,11 @@ def cdr(e)
   e.is_a?(List) ? e.cdr : EmptyList.instance
 end
 
-# TODO Remove. This only serves to hide errors.
-def list_size(e)
-  e.is_a?(List) ? e.size : 0
+Box = Struct.new(:value) do
+  def to_s
+    "(box #{value.to_s})"
+  end
 end
-
-def list_empty?(e)
-  !(e.is_a?(List))
-end
-
-# Get the length of a list. Might be removed in the future.
-# TODO Remove
-def list_len(cons)
-  cons.is_a?(List) ? cons.size : 0
-end
-
-Box = Struct.new(:value)
 
 # Convenience functions.
 def first(c); c.car; end
@@ -124,17 +113,6 @@ def second(c); c.cdr.car; end
 def third(c); c.cdr.cdr.car; end
 def fourth(c); c.cdr.cdr.cdr.car; end
 def rest(c); c.cdr; end
-
-=begin
-# Creates a list of cons-cells from a Ruby-Array.
-def list(*args)
-  if args.empty?
-    nil
-  else
-    List.create(args[0], list(*args[1..-1]))
-  end
-end
-=end
 
 # Thrown when a tail-call should be done.
 class TailCall < StandardError
@@ -193,6 +171,11 @@ class CompoundFunc < LyraFn
   def native?
     false
   end
+  
+  def pure?
+    # TODO
+    false
+  end
 end
 
 class NativeLyraFn
@@ -229,6 +212,10 @@ class NativeLyraFn
   def native?
     true
   end
+  
+  def pure?
+    name.end_with? "!"
+  end
 end
 
 module Enumerable
@@ -243,4 +230,28 @@ end
 
 def atom?(x)
   x.is_a?(Numeric) || x.is_a?(String) || x.is_a?(Symbol) || true == x || false == x
+end
+
+LyraType = Struct.new(:type_id, :name, :attrs) do
+  def to_s
+    "#{attrs.inject("(#{name}") {|x,y| "#{x} #{elem_to_s(y)}"}})"
+  end
+end
+
+LYRA_TYPE_COUNTER = Box.new 0xEA7C0FFE
+
+def new_lyra_type(name, attrs, env)
+  attrs = attrs.to_a
+  counter = LYRA_TYPE_COUNTER.value
+  env.set! :"make-#{name}", NativeLyraFn.new(:"make-#{name}", attrs.size) { |attrs, _| LyraType.new(counter, name, attrs.to_a)  }
+  env.set! :"#{name}?", NativeLyraFn.new(:"#{name}?", 1) { |o, _| o.car.is_a?(LyraType) && o.car.type_id == counter }
+  
+  attrs.each_with_index do |attr, i|
+    fn_name = :"#{name}-#{attr}"
+    env.set! fn_name, NativeLyraFn.new(fn_name, 1) { |e, _| e.car.attrs[i] }
+  end
+  
+  LYRA_TYPE_COUNTER.value = LYRA_TYPE_COUNTER.value + 1
+  
+  name
 end

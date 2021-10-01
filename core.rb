@@ -1,25 +1,42 @@
 require_relative 'types.rb'
+require_relative 'env.rb'
 require 'set'
 
 LYRA_VERSION = "0_0_1"
+
+def elem_to_s(e)
+  if e == true
+    "#t"
+  elsif e == false
+    "#f"
+  elsif e.is_a? Array
+    "[#{e.inject{|x,y| "#{elem_to_s(x)} #{elem_to_s(y)}"}}]"
+  else
+    e.to_s
+  end
+end
 
 # Sets up the core functions and variables. The functions defined here are
 # of the type NativeLyraFn instead of LyraFn. They can not make use of tail-
 # recursion and are supposed to be very simple.
 def setup_core_functions
   def add_fn(name, min_args, max_args = min_args, &body)
-    #LYRA_ENV.add(name, NativeLyraFn.new(name, false, min_args, max_args, &body))
     fn = NativeLyraFn.new(name, min_args, max_args) do |args, env|
       body.call(*args.to_a)
     end
-    LYRA_ENV.add(name, fn)
+    Env.global_env.set!(name, fn)
+  end
+  
+  def add_fn_with_env(name, min_args, max_args = min_args, &body)
+    fn = NativeLyraFn.new(name, min_args, max_args, body)
+    Env.global_env.set!(name, fn)
   end
 
   def add_var(name, value)
-    LYRA_ENV.add(name, value)
+    Env.global_env.set!(name, value)
   end
   
-  add_fn(:cons, 2) { |x, y| List.create(x, y) }
+  add_fn(:cons, 2) { |x, y| cons(x, y) }
   add_fn(:car, 1) { |x| x.car }
   add_fn(:cdr, 1) { |x| x.cdr }
   
@@ -27,6 +44,8 @@ def setup_core_functions
   # Lyra as `=`, `<`, `>`, ... and can be extended there later on for
   # different types.
   add_fn(:"=", 2) { |x, y| x == y }
+  add_fn(:"/=", 2) { |x, y| x != y }
+  add_fn(:"ref=", 2) { |x, y| x.object_id == y.object_id }
   add_fn(:"<", 2) { |x, y| x < y }
   add_fn(:">", 2) { |x, y| x > y }
   add_fn(:"+", 2) { |x, y| x + y }
@@ -79,7 +98,7 @@ def setup_core_functions
   add_fn(:hash, 1) { |x| x.hash }
   add_fn(:"eq?", 2) { |x, y| x == y }
 
-  add_fn(:"symbol", 1) { |x| x.respond_to?(:to_sym) ? x.to_sym : nil }
+  add_fn(:symbol, 1) { |x| x.respond_to?(:to_sym) ? x.to_sym : nil }
   add_fn(:"->symbol", 1) { |x| x.respond_to?(:to_sym) ? x.to_sym : nil }
   add_fn(:"->int", 1) { |x|
     begin
@@ -93,8 +112,8 @@ def setup_core_functions
     rescue ArgumentError
       nil
     end }
-  add_fn(:"->string", 1) { |x| x.to_s }
-  add_fn(:"->bool", 1) { |x| !(x.nil? || x == false || x.is_a?(EmptyList)) }
+  add_fn(:"->string", 1) { |x| elem_to_s x }
+  add_fn(:"->bool", 1) { |x| !!x }
   add_fn(:"->list", 1) { |x| x.is_a?(Enumerable) ? x.to_cons_list : nil }
   add_fn(:"->vector", 1) { |x| x.is_a?(Enumerable) ? x.to_a : nil }
   add_fn(:"->char", 1) { |x| (x.is_a?(Integer)) ? x.chr : nil }
@@ -115,7 +134,11 @@ def setup_core_functions
   add_fn(:"map-keys", 1) { |m| m.keys }
   add_fn(:"map-merge", 2) { |m, m2| Hash[m].merge!(m2) }
 
-  add_fn(:"println!", 1) { |x| puts x }
+  add_fn(:"println!", 1) { |x| puts elem_to_s(x) }
+  
+  add_fn(:copy, 1) {|x| x.is_a?(Box) ? x.clone : x }
+
+  add_var(:Nothing, nil)
 
   true
 end

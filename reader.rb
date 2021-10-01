@@ -37,7 +37,7 @@ def make_ast(tokens, level=0, expected="", stop_after_1=false)
       return nil if root.size == 0
       return list(*root)
     when "["
-      root << list(:vector,  *make_ast(tokens,level,"]"))
+      root << make_ast(tokens,level+1,"]")
     when "]"
       raise "Unexpected ']'" if level == 0 || expected != "]"
       return root.to_a
