@@ -48,7 +48,7 @@ class EmptyList
     nil
   end
   def +(c)
-    c
+    c.to_cons_list
   end
 end
 
@@ -117,7 +117,8 @@ class List
       to_a[i].to_cons_list
     end
   end
-  
+
+  # TODO OPTIMIZE!
   def +(c)
     list(*(to_a + c.to_a))
   end

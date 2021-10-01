@@ -133,8 +133,8 @@ first                | 1   |  x  |  x  |
 rest                 | 1   |  x  |  x  | 
 last                 | 1   |  x  |  x  | 
 but-last             | 1   |  x  |  x  | 
-append               | 2   |  x  |     | 
-concat               | >=1 |  x  |     | Appends collections.
+append               | 2   |  x  |  x  | 
+concat               | >=1 |  x  |  x  | Appends collections.
 nth                  | 2   |  x  |  x  | 
 split                | 2   |  x  |     | Take spliterator and collection, split collection at each occurance of the spliterator.
 split-by             | 2   |  x  |     | 
@@ -155,10 +155,10 @@ remove-indexed       | 2   |  x  |     |
 foldl                | 3   |  x  |  x  | 
 foldl1               | 3   |  x  |     | 
 foldl-indexed        | 3   |  x  |     | 
-foldr                | 3   |  x  |     | 
+foldr                | 3   |  x  |  x  | 
 foldr1               | 3   |  x  |     | 
 foldr-indexed        | 3   |  x  |     | 
-reduce               | 3   |  x  |     | Alias for foldl.
+reduce               | 3   |  x  |  x  | Alias for foldl.
                      |     |     |     | 
 repeat               | 1   |  x  |     | 
 repeatedly           | 1   |  x  |     | 

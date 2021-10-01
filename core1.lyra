@@ -9,11 +9,16 @@
     v
     (f (car xs) (foldr f v (cdr xs)))))
 
+(define reduce foldl)
+
 (define (reverse xs)
   (foldl (lambda (a b) (cons b a)) '() xs))
  
 ;(println! (reverse '(1 2 3 4 5)))
 (define (list & xs) xs)
+
+(define (concat xs & ys)
+  (foldr append xs ys))
 
 (def-macro (def name val)
   (list 'define name val))
@@ -50,3 +55,5 @@
 (println! (vector 1 2 3 4 5 6 7 8 9 0))
 
 (println! (lazy (+ 5 16)))
+
+(println! (concat (list 1 2 3 4 5 6 7) (list 1 2 3 4 5 67) (list 1 2 3 45 6 6)))

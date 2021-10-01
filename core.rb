@@ -146,6 +146,8 @@ def setup_core_functions
   add_fn(:"but-last", 1) {|c| c.is_a?(Enumerable) ? c[0 .. -2] : nil }
   add_fn(:nth, 1) {|c,i| c.is_a?(Enumerable) ? c[i] : nil }
 
+  add_fn(:append, 2) {|x,y| x+y} # TODO Checks etc.
+
   add_fn(:"println!", 1) { |x| puts elem_to_s(x) }
   
   add_fn(:copy, 1) {|x| x.is_a?(Box) ? x.clone : x }
