@@ -1,11 +1,14 @@
 require_relative 'types.rb'
 require_relative 'reader.rb'
 require_relative 'core.rb'
+require_relative 'env.rb'
+
+IMPORTED_MODULES = []
 
 # nil is not a valid pair but will be used as a separator between
 # local LYRA_ENV and global LYRA_ENV.
 unless Object.const_defined?(:LYRA_ENV)
-  LYRA_ENV = LyraEnv.new(nil)
+  LYRA_ENV = Env.global_env
   $lyra_call_stack = EmptyList.instance # Call stack starts as empty list.
   setup_core_functions
 end
@@ -14,6 +17,10 @@ end
 def evalstr(s, env = LYRA_ENV)
   ast = make_ast(tokenize(s))
   eval_keep_last(ast, env)
+end
+
+def top_env(env)
+  env.next_module_env
 end
 
 # Turns 2 lists into a combined one.
@@ -26,26 +33,43 @@ end
 # to the environment. The latter case makes it easy to pass
 # variadic arguments.
 def pairs(cons0, cons1, expect_vargs = false, res = [])
-  if cons0.empty?
-    res
-  elsif cons1.empty?
-    res << List.create(first(cons0), list)
-    pairs(cons0.cdr, list, expect_vargs, res)
-  elsif expect_vargs && cons0.cdr.empty? && cons1.cdr.empty?
-    res << List.create(cons0.car, List.create(cons1.car, list))
-    res
-  elsif cons0.cdr.empty? && !(cons1.cdr.empty?)
-    res << List.create(first(cons0), cons1)
-    res
-  else
-    res << List.create(first(cons0), first(cons1))
-    pairs(cons0.cdr, cons1.cdr, expect_vargs, res)
+  res = []
+  until cons0.empty?
+    if expect_vargs && cons0.size == 1
+      res << list(cons0.car, cons1)
+    else
+      res << list(cons0.car, cons1.car)
+    end
+    cons0 = cons0.cdr
+    cons1 = cons1.cdr
   end
+  #puts res
+  res
 end
 
 # Search environment for symbol
 def associated(x, env)
   env.find(x)
+end
+
+def ev_module(expr,env)
+  name = expr.cdr.car
+  return name if IMPORTED_MODULES.include? name
+  
+  module_env = Env.createModuleEnv name
+  bindings = expr.cdr.cdr.car
+  forms = expr.cdr.cdr.cdr
+  
+  
+  eval_keep_last forms, module_env
+  
+  global = Env.global_env
+  bindings.each do |binding|
+    #check_for_redef(binding.car, global)
+    global.set! binding.car, eval_ly(binding.cdr.car, module_env)
+  end
+  
+  name
 end
 
 # Append two lists. Complexity depends on the first list.
@@ -71,12 +95,12 @@ end
 # and return a new list.
 # TODO Potential candidate for optimization?
 def eval_list(expr_list, env)
-  l = list
+  l = []
   until expr_list.empty?
-    l = List.create(eval_ly(first(expr_list),env,true),l)
-    expr_list= rest(expr_list)
+    l << eval_ly(first(expr_list),env,true)
+    expr_list = rest(expr_list)
   end
-  l
+  list(*l)
 end
 
 # Similar to eval_list, but only returns the last evaluated value.
@@ -115,7 +139,7 @@ def ev_define(expr, env, is_macro)
   end
 
   # Add the entry to the global environment.
-  LYRA_ENV.add(name, res)
+  top_env(env).set!(name, res)
 
   name
 end
@@ -156,11 +180,7 @@ def ev_lambda(args_expr, body_expr, definition_env, is_macro = false)
       arg_pairs = pairs(args_expr, args)
     end
 
-    if definition_env.__id__ == LYRA_ENV.__id__
-      env1 = LyraEnv.new(LYRA_ENV).add_pairs(arg_pairs)
-    else
-      env1 = LyraEnvPair.new(definition_env, environment).add_pairs(arg_pairs)
-    end
+    env1 = Env.new(nil, definition_env, environment).set_multi!(arg_pairs)
 
     # Execute all commands in the body and return the last
     # value.
@@ -241,7 +261,7 @@ def eval_ly(expr, env, is_in_call_params = false)
 
       bindings = second(expr)
       body = rest(rest(expr))
-      env1 = LyraEnv.new(env)
+      env1 = Env.new(nil, env)
 
       bindings.each do |b|
         env1.add(b.car, eval_ly(b.cdr.car, env1))
@@ -261,7 +281,7 @@ def eval_ly(expr, env, is_in_call_params = false)
       # If the body is empty, returns nil.
       name = first(second(expr))
       val = eval_ly(second(second(expr)), env) # Evaluate the value.
-      env1 = LyraEnv.new env
+      env1 = Env.new nil, env
       env1.add(name, val)
       eval_keep_last(rest(rest(expr)), env1) # Evaluate the body.
     when :let
@@ -275,7 +295,7 @@ def eval_ly(expr, env, is_in_call_params = false)
 
       bindings = second(expr)
       body = rest(rest(expr))
-      env1 = LyraEnv.new(env)
+      env1 = Env.new(nil, env)
 
       # Evaluate bindings in order using the old environment.
       bindings.each do |b|
@@ -309,6 +329,8 @@ def eval_ly(expr, env, is_in_call_params = false)
       args1 = append(reverse(args1), args)
       expr = List.create(fn, args1)
       eval_ly(expr, env)
+    when :module
+      ev_module expr, env
     else
       # Here, the expression will have a form like the following:
       # (func arg0 arg1 ...)

@@ -1,15 +1,34 @@
 
-(define (id e)
-  e)
+(define (foldl f v xs)
+  (if (empty? xs)
+    v
+    (foldl f (f v (car xs)) (cdr xs))))
 
-(let ((a 15))
-  (let* ((b 4))
-    (let1 (c 1)
-      (println! (id (+ c (+ a b))))
-      )))
+(define (foldr f v xs)
+  (if (empty? xs)
+    v
+    (f (car xs) (foldr f v (cdr xs)))))
 
-(println! (gensym))
-(println! (gensym))
-(println! (gensym))
-(println! (gensym))
-(println! (gensym))
+(define (reverse xs)
+  (foldl (lambda (a b) (cons b a)) '() xs))
+
+(define (lis7 a & b)
+  b)
+
+(println! (lis7 1 2 3 4 5))
+(println! (lis7 1 2))
+(println! (lis7 1))
+
+(module moduletest
+  ((f l))
+  (define (l x) (* x x))
+  )
+
+(println! (f 3))
+ 
+;(println! (reverse '(1 2 3 4 5)))
+(define (list & xs) xs)
+
+(println! (list 1 2 3 4 5))
+(println! (foldl + 0 (list 1 2 3 4 5)))
+(println! (box 1))

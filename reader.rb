@@ -6,7 +6,7 @@ require_relative 'types.rb'
 # "(?:\\.|[^\\"])*"? Matches 0 or 1 string
 # ;.* Matches comment and rest or line
 # '?[^\s\[\]{}('"`,;)]* Everything else with an optional ' at the beginning.
-LYRA_REGEX = /[\s,]*([()\[\]]|"(?:\\.|[^\\"])*"?|;.*|'?[^\s\[\]{}('"`,;)]*)/
+LYRA_REGEX = /[\s,]*([()\[\]]|"(?:\\.|[^\\"])*"?|;.*|'|[^\s\[\]{}('"`,;)]*)/
 
 # Scan the text using RE, remove empty tokens and remove comments.
 def tokenize(s)
@@ -69,11 +69,23 @@ def make_ast(tokens, level=0, expected="", stop_after_1=false)
       root << t.to_f
     when /^"(?:\\.|[^\\"])*"$/  then root << parse_str(t)
     else
-      if t.start_with?("'")
-        root << list(:quote, t[1..-1].to_sym)
-      else
-        root << t.to_sym
+      appl = []
+      while t.end_with?(".?") || t.end_with?(".!")
+        appl << (t.end_with?(".?") ? :unwrap : :eager)
+        t = t[0..-3]
       end
+      if t == "Nothing"
+        t = nil
+      elsif t.empty?
+        raise "Empty symbols are not allowed."
+      else
+        t = t.to_sym
+      end
+      appl.reverse_each do |a|
+        t = list(a, t)
+      end
+        
+      root << t
     end
     return root[0] if stop_after_1
   end

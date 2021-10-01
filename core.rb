@@ -10,7 +10,7 @@ def setup_core_functions
   def add_fn(name, min_args, max_args = min_args, &body)
     #LYRA_ENV.add(name, NativeLyraFn.new(name, false, min_args, max_args, &body))
     fn = NativeLyraFn.new(name, min_args, max_args) do |args, env|
-      body.call(args.to_a)
+      body.call(*args.to_a)
     end
     LYRA_ENV.add(name, fn)
   end
@@ -18,7 +18,11 @@ def setup_core_functions
   def add_var(name, value)
     LYRA_ENV.add(name, value)
   end
-
+  
+  add_fn(:cons, 2) { |x, y| List.create(x, y) }
+  add_fn(:car, 1) { |x| x.car }
+  add_fn(:cdr, 1) { |x| x.cdr }
+  
   # "Primitive" operators. They are overridden in the core library of
   # Lyra as `=`, `<`, `>`, ... and can be extended there later on for
   # different types.
