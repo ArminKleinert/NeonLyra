@@ -1,6 +1,18 @@
 
 require 'singleton'
 
+class LazyObj
+  def initialize(expr, env)
+    @expr, @env = expr, env
+  end
+  def evaluate
+    eval_ly(@expr, @env, true)
+  end
+  def to_s
+    elem_to_s(evaluate)
+  end
+end
+
 class EmptyList
   include Singleton, Enumerable
   
@@ -24,6 +36,9 @@ class EmptyList
   end
   def size
     0
+  end
+  def [](i)
+    nil
   end
 end
 
@@ -64,16 +79,33 @@ class List
   end
 
   def to_s
-    s = ""
-    each do |e|
-      s << e.to_s
-      s << " "
-    end
-    "(" + s[0 .. -2] + ")"
+    "(#{inject{|x,y| "#{elem_to_s(x)} #{elem_to_s(y)}"}})"
   end
   
   def inspect
     to_s
+  end
+  
+  def nthrest
+    c = self
+    while !c.empty? && i > 0
+      i -= 1
+      c = c.cdr
+    end
+    if c.empty?
+      nil
+    else
+      c.car
+    end
+  end
+  
+  def [](i)
+    if i.is_a? Integer
+      xs = nthrest i
+      xs ? xs.car : nil
+    else
+      to_a[i].to_cons_list
+    end
   end
 end
 
@@ -103,7 +135,7 @@ end
 
 Box = Struct.new(:value) do
   def to_s
-    "(box #{value.to_s})"
+    "(box #{elem_to_s(value)})"
   end
 end
 

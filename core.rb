@@ -28,7 +28,7 @@ def setup_core_functions
   end
   
   def add_fn_with_env(name, min_args, max_args = min_args, &body)
-    fn = NativeLyraFn.new(name, min_args, max_args, body)
+    fn = NativeLyraFn.new(name, min_args, max_args, &body)
     Env.global_env.set!(name, fn)
   end
 
@@ -70,6 +70,9 @@ def setup_core_functions
   add_fn(:unbox, 2) { |b| b.value }
   add_fn(:unwrap, 2) { |b| b.value } # Intended for use with any boxing type
   add_fn(:"box-set!", 2) { |b, x| b.value = x; b }
+  
+  add_fn(:eager, 1) { |x| x.is_a?(LazyObj) ? x.evaluate : x }
+  add_fn_with_env(:lazy, 1) { |xs,env| LazyObj.new xs.car, env }
 
   add_fn(:nothing, 0, -1) { |*_| nil }
 
