@@ -4,9 +4,16 @@ require 'singleton'
 class LazyObj
   def initialize(expr, env)
     @expr, @env = expr, env
+    @executed = false
   end
   def evaluate
-    eval_ly(@expr, @env, true)
+    if @executed
+      @expr
+    else
+      @executed = true
+      @expr = eval_ly(@expr, @env)
+      @expr 
+    end
   end
   def to_s
     elem_to_s(evaluate)
@@ -39,6 +46,9 @@ class EmptyList
   end
   def [](i)
     nil
+  end
+  def +(c)
+    c
   end
 end
 
@@ -106,6 +116,10 @@ class List
     else
       to_a[i].to_cons_list
     end
+  end
+  
+  def +(c)
+    list(*(to_a + c.to_a))
   end
 end
 
@@ -210,7 +224,7 @@ class CompoundFunc < LyraFn
   end
 end
 
-class NativeLyraFn
+class NativeLyraFn < LyraFn
   attr_reader :arg_counts # Range of (minimum .. maximum)
   attr_accessor :name # Symbol
   attr_reader :body # Executable (Any[] -> Any)
@@ -221,7 +235,7 @@ class NativeLyraFn
     @name = name
   end
   
-  def call(args)
+  def call(args, env)
     # Check argument counts
     args_given = args.size
     raise "#{@name}: Too few arguments. (Given #{args_given}, expected #{@arg_counts})" if args_given < @arg_counts.first
@@ -229,7 +243,7 @@ class NativeLyraFn
     
     begin
       # Execute the body and return
-      body.call(args)
+      body.call(args, env)
     rescue
       $stderr.puts "#{@name} failed with error: #{$!}"
       $stderr.puts "Arguments: #{args}"
@@ -247,6 +261,29 @@ class NativeLyraFn
   
   def pure?
     name.end_with? "!"
+  end
+end
+
+class PartialLyraFn < LyraFn
+  def initialize(func, args)
+    @func, @args = func, args
+    @name = func.name
+  end
+  
+  def call(args, env)
+    @func.call(@args + args, env)
+  end
+  
+  def to_s
+    cons(:partial, cons(@func, @args)).to_s
+  end
+  
+  def native?
+    @func.native?
+  end
+  
+  def pure?
+    @func.pure?
   end
 end
 

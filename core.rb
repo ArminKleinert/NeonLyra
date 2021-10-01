@@ -26,7 +26,7 @@ def setup_core_functions
     end
     Env.global_env.set!(name, fn)
   end
-  
+
   def add_fn_with_env(name, min_args, max_args = min_args, &body)
     fn = NativeLyraFn.new(name, min_args, max_args, &body)
     Env.global_env.set!(name, fn)
@@ -35,11 +35,11 @@ def setup_core_functions
   def add_var(name, value)
     Env.global_env.set!(name, value)
   end
-  
+
   add_fn(:cons, 2) { |x, y| cons(x, y) }
   add_fn(:car, 1) { |x| x.car }
   add_fn(:cdr, 1) { |x| x.cdr }
-  
+
   # "Primitive" operators. They are overridden in the core library of
   # Lyra as `=`, `<`, `>`, ... and can be extended there later on for
   # different types.
@@ -70,9 +70,10 @@ def setup_core_functions
   add_fn(:unbox, 2) { |b| b.value }
   add_fn(:unwrap, 2) { |b| b.value } # Intended for use with any boxing type
   add_fn(:"box-set!", 2) { |b, x| b.value = x; b }
-  
+
   add_fn(:eager, 1) { |x| x.is_a?(LazyObj) ? x.evaluate : x }
   add_fn_with_env(:lazy, 1) { |xs,env| LazyObj.new xs.car, env }
+  add_fn(:partial, 1) { |x, *params| params.empty? ? x : PartialLyraFn.new(x,params.to_cons_list) }
 
   add_fn(:nothing, 0, -1) { |*_| nil }
 

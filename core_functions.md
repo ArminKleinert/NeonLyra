@@ -24,7 +24,7 @@ seq                  | 1   |  x  |  x  | Returns a equence for all non-empty col
                      |     |     |     | 
 lazy                 | 1   |  x  |  x  | 
 eager                | 1   |  x  |  x  | 
-partial              | any |  x  |     | 
+partial              | >=1 |  x  |  x  | 
                      |     |     |     | 
 nothing              | any |  x  |  x  | Swallows any numer of arguments and returns the Nothing object.
 unwrap               | 1   |  x  |  x  | 
@@ -152,10 +152,12 @@ filter-indexed       | 2   |  x  |     |
 remove               | 2   |  x  |     | 
 remove-indexed       | 2   |  x  |     |  
                      |     |     |     | 
-fold-indexed         | 3   |  x  |     | 
 foldl                | 3   |  x  |  x  | 
 foldl1               | 3   |  x  |     | 
+foldl-indexed        | 3   |  x  |     | 
 foldr                | 3   |  x  |     | 
+foldr1               | 3   |  x  |     | 
+foldr-indexed        | 3   |  x  |     | 
 reduce               | 3   |  x  |     | Alias for foldl.
                      |     |     |     | 
 repeat               | 1   |  x  |     | 

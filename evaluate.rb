@@ -351,7 +351,7 @@ def eval_ly(expr, env, is_in_call_params = false)
       if func.native?
         $lyra_call_stack = cons(func, $lyra_call_stack)
         args = eval_list(args, env)
-        r = func.call(args)
+        r = func.call(args, env)
         $lyra_call_stack = $lyra_call_stack.cdr
         r
       elsif func.ismacro
