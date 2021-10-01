@@ -22,16 +22,16 @@ module               | >=1 |  x  |  x  |
 memoize              | 1   |  x  |     | 
 seq                  | 1   |  x  |  x  | Returns a equence for all non-empty collections, Nothing otherwise.
                      |     |     |     | 
-lazy                 | any |  x  |     | 
-eager                | 1   |  x  |     | 
+lazy                 | 1   |  x  |  x  | 
+eager                | 1   |  x  |  x  | 
 partial              | any |  x  |     | 
                      |     |     |     | 
-nothing              | any |  x  |     | Swallows any numer of arguments and returns the Nothing object.
-unwrap               | 1   |  x  |     | 
+nothing              | any |  x  |  x  | Swallows any numer of arguments and returns the Nothing object.
+unwrap               | 1   |  x  |  x  | 
                      |     |     |     | 
-box                  | 1   |  x  |     | 
-unbox                | 1   |  x  |     | 
-set-box!             | 2   |  x  |     | 
+box                  | 1   |  x  |  x  | 
+unbox                | 1   |  x  |  x  | 
+set-box!             | 2   |  x  |  x  | 
                      |     |     |     | 
 load!                | 1   |     |     | Load file (Can be implemented as (eval (read-string (slurp! file))))
 require!             | 1   |     |     | Alias for load!
@@ -61,36 +61,36 @@ bit-xor              | 2   |  x  |  x  |
 bit-shl              | 2   |  x  |  x  | 
 bit-shr              | 2   |  x  |  x  | 
                      |     |     |     | 
-nothing?             | 1   |  x  |     | True for the Nothing object
-null?                | 1   |  x  |     | True for both Nothing and '()
+nothing?             | 1   |  x  |  x  | True for the Nothing object
+null?                | 1   |  x  |  x  | True for both Nothing and '()
 collection?          | 1   |  x  |     | True for lists, vectors, maps and sets, false for others.
-sequence?            | 1   |  x  |     | True if the input is a list or vector.
-list?                | 1   |  x  |     | 
-vector?              | 1   |  x  |     | 
-int?                 | 1   |  x  |     | 
-float?               | 1   |  x  |     | 
-string?              | 1   |  x  |     | 
-symbol?              | 1   |  x  |     | 
-char?                | 1   |  x  |     | 
-boolean?             | 1   |  x  |     | 
-map?                 | 1   |  x  |     | 
-set?                 | 1   |  x  |     | 
-empty?               | 1   |  x  |     | 
+sequence?            | 1   |  x  |  x  | True if the input is a list or vector.
+list?                | 1   |  x  |  x  | 
+vector?              | 1   |  x  |  x  | 
+int?                 | 1   |  x  |  x  | 
+float?               | 1   |  x  |  x  | 
+string?              | 1   |  x  |  x  | 
+symbol?              | 1   |  x  |  x  | 
+char?                | 1   |  x  |  x  | 
+boolean?             | 1   |  x  |  x  | 
+map?                 | 1   |  x  |  x  | 
+set?                 | 1   |  x  |  x  | 
+empty?               | 1   |  x  |  x  | 
                      |     |     |     | 
 id                   | 1   |  x  |  x  | 
-id-fn                | 1   |  x  |     | Creates a function which always returns the object.
-hash                 | 1   |  x  |     | Returns the hash-code for an object (reference for Boxes)
-eq?                  | 2   |  x  |     | 
+id-fn                | 1   |  x  |  x  | Creates a function which always returns the object.
+hash                 | 1   |  x  |  x  | Returns the hash-code for an object (reference for Boxes)
+eq?                  | 2   |  x  |  x  | 
                      |     |     |     | 
-->int                | 1   |  x  |     | 
-->float              | 1   |  x  |     | 
-->string             | 1   |  x  |     | 
-->bool               | 1   |  x  |     | 
-->list               | 1   |  x  |     | 
-->vector             | 1   |  x  |     | 
-->char               | 1   |  x  |     | 
-->map                | 1   |  x  |     | 
-->set                | 1   |  x  |     | 
+->int                | 1   |  x  |  x  | 
+->float              | 1   |  x  |  x  | 
+->string             | 1   |  x  |  x  | 
+->bool               | 1   |  x  |  x  | 
+->list               | 1   |  x  |  x  | 
+->vector             | 1   |  x  |  x  | 
+->char               | 1   |  x  |  x  | 
+->map                | 1   |  x  |  x  | 
+->set                | 1   |  x  |  x  | 
                      |     |     |     | 
 list                 | any |  x  |  x  | 
 list-size            | 1   |  x  |  x  | 
@@ -98,20 +98,20 @@ car                  | 1   |  x  |  x  |
 cdr                  | 1   |  x  |  x  | 
 cons                 | 2   |  x  |  x  | 
                      |     |     |     | 
-vector               | any |  x  |     | 
-vector-size          | 1   |  x  |     | 
-vector-nth           | 2   |  x  |     | 
-vector-add           | 2   |  x  |     | 
-vector-append        | 2   |  x  |     | 
-vector-iterate       | 4   |  x  |     | 
+vector               | any |  x  |  x  | 
+vector-size          | 1   |  x  |  x  | 
+vector-nth           | 2   |  x  |  x  | 
+vector-add           | 2   |  x  |  x  | 
+vector-append        | 2   |  x  |  x  | 
+vector-iterate       | 4   |  x  |  x  | 
                      |     |     |     | 
-map-of               | any |  x  |     | 
-map-size             | 1   |  x  |     | 
-map-get              | 2   |  x  |     | 
-map-set              | 3   |  x  |     | 
-map-remove           | 2   |  x  |     | 
-map-keys             | 1   |  x  |     | 
-map-merge            | 2   |  x  |     | 
+map-of               | any |  x  |  x  | 
+map-size             | 1   |  x  |  x  | 
+map-get              | 2   |  x  |  x  | 
+map-set              | 3   |  x  |  x  | 
+map-remove           | 2   |  x  |  x  | 
+map-keys             | 1   |  x  |  x  | 
+map-merge            | 2   |  x  |  x  | 
                      |     |     |     | 
 set-of               | any |  x  |     | 
 set-size             | 1   |  x  |     | 
@@ -135,7 +135,7 @@ last                 | 1   |  x  |  x  |
 but-last             | 1   |  x  |  x  | 
 append               | 2   |  x  |     | 
 concat               | >=1 |  x  |     | Appends collections.
-nth                  | 2   |  x  |     | 
+nth                  | 2   |  x  |  x  | 
 split                | 2   |  x  |     | Take spliterator and collection, split collection at each occurance of the spliterator.
 split-by             | 2   |  x  |     | 
                      |     |     |     | 
@@ -169,7 +169,7 @@ drop-until           | 2   |  x  |     |
                      |     |     |     | 
                      |     |     |     | 
 print!               | 1   |     |     | 
-println!             | 1   |     |     | 
+println!             | 1   |     |  x  | 
 readln!              | 0   |     |     | 
 file-read!           | 1   |     |     | 
 file-write!          | 2   |     |     | 

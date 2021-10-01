@@ -136,6 +136,14 @@ def setup_core_functions
   add_fn(:"map-remove", 2) { |m, k| m.select { |k1, v| k != k1 } }
   add_fn(:"map-keys", 1) { |m| m.keys }
   add_fn(:"map-merge", 2) { |m, m2| Hash[m].merge!(m2) }
+  
+  add_fn(:size, 1) { |c| c.is_a?(Enumerable) ? c.size : nil }
+  
+  add_fn(:first, 1) {|c| c.is_a?(Enumerable) ? (c.is_a?(List) ? c.car : c[0]) : nil }
+  add_fn(:rest, 1) {|c| c.is_a?(Enumerable) ? (c.is_a?(List) ? c.cdr : c[1..-1]) : nil }
+  add_fn(:last, 1) {|c| c.is_a?(Enumerable) ? c[c.size-1] : nil }
+  add_fn(:"but-last", 1) {|c| c.is_a?(Enumerable) ? c[0 .. -2] : nil }
+  add_fn(:nth, 1) {|c,i| c.is_a?(Enumerable) ? c[i] : nil }
 
   add_fn(:"println!", 1) { |x| puts elem_to_s(x) }
   
