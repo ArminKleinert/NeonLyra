@@ -9,7 +9,7 @@ IMPORTED_MODULES = []
 # local LYRA_ENV and global LYRA_ENV.
 unless Object.const_defined?(:LYRA_ENV)
   LYRA_ENV = Env.global_env
-  $lyra_call_stack = EmptyList.instance # Call stack starts as empty list.
+  LYRA_CALL_STACK = [] # Call stack starts as empty list.
   setup_core_functions
 end
 
@@ -349,10 +349,10 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       func = eval_ly(func, env, force_eval) if func.is_a?(List)
 
       if func.native?
-        $lyra_call_stack = cons(func, $lyra_call_stack)
+        LYRA_CALL_STACK.push func
         args = eval_list(args, env, force_eval)
         r = func.call(args, env)
-        $lyra_call_stack = $lyra_call_stack.cdr
+        LYRA_CALL_STACK.pop
         r
       elsif func.is_macro
         # The macro is first called and the resulting expression
@@ -372,13 +372,13 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         # So `(define (do-times n f)
         #       (if (= 0 n) '() (begin (f) (do-times (dec n) f))))`
         # will also tail call.
-        if !is_in_call_params && (!$lyra_call_stack.empty?) && ((func == $lyra_call_stack.car) || func == RECUR_FUNC)
+        if !is_in_call_params && (!LYRA_CALL_STACK.empty?) && ((func == LYRA_CALL_STACK.last) || func == RECUR_FUNC)
           # Evaluate arguments that will be passed to the call.
           args = eval_list(args, env, force_eval)
           # Tail call
           raise TailCall.new(args)
         else
-          $lyra_call_stack = cons(func, $lyra_call_stack)
+          LYRA_CALL_STACK.push func
 
           # Evaluate arguments that will be passed to the call.
           args = eval_list(args, env, force_eval)
@@ -387,7 +387,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
           r = func.call(args, env)
 
           # Remove from the callstack.
-          $lyra_call_stack = $lyra_call_stack.cdr
+          LYRA_CALL_STACK.pop
 
           r
         end

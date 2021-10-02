@@ -11,10 +11,10 @@ begin
     elem_to_s(eval_str(IO.read(f)))
   end
 rescue SystemStackError
-  $stderr.puts "Internal call stack: #{$lyra_call_stack}"
+  $stderr.puts "Internal callstack: #{LYRA_CALL_STACK}"
   raise
 rescue
-  $stderr.puts "Internal callstack: " + $lyra_call_stack.to_s
+  $stderr.puts "Internal callstack: " + LYRA_CALL_STACK.to_s
   $stderr.puts "Error: " + $!.message
   #$stderr.puts LYRA_ENV.to_s
   raise
