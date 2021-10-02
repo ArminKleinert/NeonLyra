@@ -24,74 +24,10 @@ class LazyObj
   end
 end
 
-class EmptyList
-  include Singleton, Enumerable
-
-  def car
-    self
-  end
-
-  def cdr
-    self
-  end
-
-  def to_s
-    "()"
-  end
-
-  def each(&block)
-    self
-  end
-
-  def empty?
-    true
-  end
-
-  def inspect
-    to_s
-  end
-
-  def size
-    0
-  end
-
-  def [](i)
-    nil
-  end
-
-  def +(c)
-    c.to_cons_list
-  end
-end
-
-class List
+module List
   include Enumerable
 
-  attr_reader :size
-  attr_reader :car
-  attr_reader :cdr
-
-  def initialize(head, tail, size)
-    @car = head
-    @cdr = tail
-    @size = size
-  end
-
-  def self.create(head, tail)
-    List.send :new, head, (tail ? tail : EmptyList.instance), (tail ? tail.size : 0) + 1
-  end
-
-  private_class_method :new
-
-  def self.empty_list
-    EmptyList.instance
-  end
-
-  def empty?
-    false
-  end
-
-  def each(&block)
+  def each
     lst = self
     until lst.empty?
       yield lst.car
@@ -106,19 +42,6 @@ class List
 
   def inspect
     to_s
-  end
-
-  def nth_rest(i)
-    c = self
-    while !c.empty? && i > 0
-      i -= 1
-      c = c.cdr
-    end
-    if c.empty?
-      nil
-    else
-      c.car
-    end
   end
 
   def [](i)
@@ -136,8 +59,66 @@ class List
   end
 end
 
+class EmptyList
+  include Singleton, Enumerable, List
+
+  def car
+    self
+  end
+
+  def cdr
+    self
+  end
+
+  def empty?
+    true
+  end
+
+  def size
+    0
+  end
+end
+
+class NonEmptyList
+  include Enumerable, List
+
+  attr_reader :size
+  attr_reader :car
+  attr_reader :cdr
+
+  def initialize(head, tail, size)
+    @car = head
+    @cdr = tail
+    @size = size
+  end
+
+  def self.create(head, tail)
+    raise "Illegal cdr" unless tail.is_a? List
+    NonEmptyList.send :new, head, tail, tail.size + 1
+  end
+
+  private_class_method :new
+
+  def empty?
+    false
+  end
+
+  def nth_rest(i)
+    c = self
+    while !c.empty? && i > 0
+      i -= 1
+      c = c.cdr
+    end
+    if c.empty?
+      nil
+    else
+      c.car
+    end
+  end
+end
+
 def cons(e, l)
-  List.create(e, l ? l : EmptyList.instance)
+  NonEmptyList.create(e, l ? l : EmptyList.instance)
 end
 
 def list(*args)
@@ -360,7 +341,7 @@ end
 
 module Enumerable
   def to_cons_list
-    if is_a?(List) || is_a?(EmptyList)
+    if is_a?(List)
       self
     else
       list(*to_a)

@@ -84,7 +84,7 @@ def setup_core_functions
   add_fn(:"box?", 1) { |m| m.is_a? Box }
   add_fn(:"nothing?", 1) { |m| m.nil? || m.value.nil? }
   add_fn(:"nil?", 1) { |x| x.nil? }
-  add_fn(:"null?", 1) { |x| x.nil? || x.is_a?(EmptyList) }
+  add_fn(:"null?", 1) { |x| x.nil? || is_empty_list?(x) }
   add_fn(:"collection?", 1) { |x| x.is_a?(Enumerable) }
   add_fn(:"sequence?", 1) { |x| x.is_a?(List) || x.is_a?(Array) }
   add_fn(:"list?", 1) { |x| x.is_a? List }
