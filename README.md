@@ -2,7 +2,7 @@
 
 Lyra is a lisp I make for fun and learning. NeonLyra is an improved version.
 
-Current version: 0.0.1
+Current version: 0.0.4
 
 Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cub.
 
@@ -33,12 +33,13 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cub.
 - String  
 - List (car, cdr, size)  
 - Boolean (#t, #f)  
-- Nothing (Returned on failed type conversions or similar situations)
+- Nothing (Returned on failed type conversions or similar situations)  
 - Function  
-- Vector (not implemented)  
-- Map (not implemented)  
-- Lazy (not implemented)  
-- Box (The only mutable type) (not implemented)  
+- Vector  
+- Map  
+- Lazy  
+- Box (The only mutable type)  
+- Set (Not implemented)  
 
 ## Some friendly infos about the syntax 
 
@@ -66,7 +67,7 @@ Here are some differences to Clojure I could think of:
 - Bad performance. :(  
 - Box instead of `Atom`.  
 - Boxes are not synchronized.  
-- Creators for user-defined types should start with `make-` instead of `->`.
+- Creators for user-defined types should start with `make-` instead of `->`.  
 - Disallows overriding old defs.  
 - Functions and variables are created using scheme-style `define`. (though `def` and `defn` are available as aliases but discouraged)  
 - `nil` is called `Nothing` in reference to Haskell.  
@@ -85,7 +86,6 @@ Here are some differences to Clojure I could think of:
 - No transients.  
 - Only Boxes can be copied.  
 - Still going through a lot of changes.  
-- Scheme syntax for `define` instead of `def` and `defn`.  
 - Tail recursion. (`recur` will be available too)  
 - The empty list is a singleton and false.  
 - Type-conversion functions are always marked with `->`.  
@@ -93,13 +93,14 @@ Here are some differences to Clojure I could think of:
 - Type hints can only be used in function arguments.  
 - There are no type hints.  
 - User-defined types are not maps.  
-- `(lambda (...) ...)` instead of `(fn [...] ...)`.  
-- `#f`, `Nothing` and `'()` are all false
+- `(lambda (...) ...)` instead of `(fn [...] ...)`. (fn is available as an alias)  
+- `#f`, `Nothing` and `'()` are all false  
 - `false` is an alias for `#f`.  
 - `module` surrounds a list of expressions instead of being used at the top of a file only.  
 - `seq` returns `Nothing` for all types that aren't collections.  
 - modules (`module`) instead of namespaces (`ns`).  
 - `true` is an alias for `#t`.  
+- All impure functions end with the postfix `!` (like `load!`, `readln!`, ...).  
 
 ## Example
 
