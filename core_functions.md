@@ -5,21 +5,22 @@ Name                 |  #  | Pure|Impl?|
 ---------------------+-----+-----+----------------------------------------------------------------
 define               | >=2 |  x  |  x  | 
 def                  | 2   |  x  |  x  | Equivalent to value-define.
-defn                 | >=1 |  x  |     | Equivalent to function-define.
+defn                 | >=1 |  x  |  x  | Equivalent to function-define.
 def-macro            | >=1 |  x  |  x  | 
 def-type             | >=1 |  x  |  x  | 
 lambda               | >=2 |  x  |  x  | 
-fn                   | >=2 |  x  |     | Equivalent to lambda but uses vector-literal instead of a list for parameters.
+fn                   | >=2 |  x  |  x  | Equivalent to lambda but uses vector-literal instead of a list for parameters.
 cond                 | >=1 |  x  |  x  | 
 if                   | 3   |  x  |  x  | 
 let                  | >=1 |  x  |  x  | Sets variables for a scope. Works sequentially.
 let*                 | >=1 |  x  |  x  | Sets a single variable.
 apply                | >=1 |  x  |  x  | 
 quote                | 1   |  x  |  x  | 
-recur                | any |  x  |     | Explicit tail-recursion. Only valid in positions that can trigger implicit tail-recursion.
+recur                | any |  x  |  x  | Explicit tail-recursion. Only valid in positions that can trigger implicit tail-recursion.
 gensym               | 0   |  x  |  x  | 
 module               | >=1 |  x  |  x  | 
-memoize              | 1   |  x  |     | 
+memoize              | 1   |  x  |  x  | 
+define-memo          | >=1 |  x  |  x  | A macro which defines a function and memoizes it.
 seq                  | 1   |  x  |  x  | Returns a equence for all non-empty collections, Nothing otherwise.
                      |     |     |     | 
 lazy                 | 1   |  x  |  x  | 

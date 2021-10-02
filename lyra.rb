@@ -6,9 +6,9 @@ require_relative 'core.rb'
 # Treat the first console argument as a filename,
 # read from the file and evaluate the result.
 begin
-  puts elem_to_s(evalstr(IO.read("core1.lyra")))
+  puts elem_to_s(eval_str(IO.read("core1.lyra")))
   ARGV.each do |f|
-    elem_to_s(evalstr(IO.read(f)))
+    elem_to_s(eval_str(IO.read(f)))
   end
 rescue SystemStackError
   $stderr.puts "Internal call stack: #{$lyra_call_stack}"

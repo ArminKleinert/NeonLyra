@@ -36,7 +36,6 @@ def make_ast(tokens, level=0, expected="", stop_after_1=false)
       root << make_ast(tokens, level+1, ")")
     when ")"
       raise "Unexpected ')'" if level == 0 || expected != ")"
-      return nil if root.size == 0
       return list(*root)
     when "["
       root << make_ast(tokens,level+1,"]")

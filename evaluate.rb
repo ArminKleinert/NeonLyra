@@ -13,8 +13,13 @@ unless Object.const_defined?(:LYRA_ENV)
   setup_core_functions
 end
 
+RECUR_FUNC = CompoundFunc.new(:recur, Env.global_env, false, 0, -1) do |*_|
+  raise "Internal error: recur must not be called directly."
+end
+Env.global_env.set! :recur, RECUR_FUNC
+
 # Parses and evaluates a string as Lyra-source code.
-def evalstr(s, env = LYRA_ENV)
+def eval_str(s, env = LYRA_ENV)
   ast = make_ast(tokenize(s))
   eval_keep_last(ast, env)
 end
@@ -259,7 +264,7 @@ def eval_ly(expr, env, force_eval=false, is_in_call_params = false)
       env1 = Env.new(nil, env)
 
       bindings.each do |b|
-        env1.add(b.car, eval_ly(b.cdr.car, env1, force_eval))
+        env1.set!(b.car, eval_ly(b.cdr.car, env1, force_eval))
       end
 
       # Execute the body.
@@ -277,7 +282,7 @@ def eval_ly(expr, env, force_eval=false, is_in_call_params = false)
       name = first(second(expr))
       val = eval_ly(second(second(expr)), env, force_eval) # Evaluate the value.
       env1 = Env.new nil, env
-      env1.add(name, val)
+      env1.set!(name, val)
       eval_keep_last(rest(rest(expr)), env1) # Evaluate the body.
     when :let
       raise "let needs at least 1 argument." if expr.cdr.empty?
@@ -294,7 +299,7 @@ def eval_ly(expr, env, force_eval=false, is_in_call_params = false)
 
       # Evaluate bindings in order using the old environment.
       bindings.each do |b|
-        env1.add(b.car, eval_ly(b.cdr.car, env, force_eval))
+        env1.set!(b.car, eval_ly(b.cdr.car, env, force_eval))
       end
 
       # Execute the body.
@@ -354,10 +359,11 @@ def eval_ly(expr, env, force_eval=false, is_in_call_params = false)
         r = func.call(args, env)
         $lyra_call_stack = $lyra_call_stack.cdr
         r
-      elsif func.ismacro
+      elsif func.is_macro
         # The macro is first called and the resulting expression
         # is then executed.
         r1 = func.call(args, env)
+        # TODO Figure out how to do macro-expand here without setting car or cdr...
         eval_ly(r1, env, force_eval)
       else
         # Check whether a tailcall is possible
@@ -370,7 +376,7 @@ def eval_ly(expr, env, force_eval=false, is_in_call_params = false)
         # So `(define (dotimes n f)
         #       (if (= 0 n) '() (begin (f) (dotimes (dec n) f))))`
         # will also tail call.
-        if !is_in_call_params && (!$lyra_call_stack.empty?) && (func == $lyra_call_stack.car)
+        if !is_in_call_params && (!$lyra_call_stack.empty?) && ((func == $lyra_call_stack.car) || func == RECUR_FUNC)
           # Evaluate arguments that will be passed to the call.
           args = eval_list(args, env, force_eval)
           # Tail call

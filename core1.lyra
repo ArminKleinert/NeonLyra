@@ -11,11 +11,16 @@
 
 (define reduce foldl)
 
+(def-macro (define-memo name-bindings & body)
+  (list 'define (car name-bindings) (list 'memoize (cons 'lambda (cons (cdr name-bindings) body)))))
+
 (define (reverse xs)
   (foldl (lambda (a b) (cons b a)) '() xs))
- 
+
 ;(println! (reverse '(1 2 3 4 5)))
 (define (list & xs) xs)
+
+(def-macro (comment & exprs) (nothing))
 
 (define (concat xs & ys)
   (foldr append xs ys))
@@ -23,9 +28,11 @@
 (def-macro (def name val)
   (list 'define name val))
 
-; FIXME
 (def-macro (defn name bindings & body)
-  (cons (cons 'define (cons name (->list bindings))) body))
+  (cons 'define (cons (cons name (->list bindings)) body)))
+
+(def-macro (fn bindings & body)
+  (cons 'lambda (cons (->list bindings) body)))
 
 (module moduletest
   ((f fl))
@@ -43,12 +50,12 @@
 (def-type Test a b c)
 
 (let ((t (make-Test 1 2 3)))
-(println! t)
-(println! (Test? t))
-(println! (Test? 1))
-(println! (Test-a t))
-(println! (Test-b t))
-(println! (Test-c t))
+    (println! t)
+    (println! (Test? t))
+    (println! (Test? 1))
+    (println! (Test-a t))
+    (println! (Test-b t))
+    (println! (Test-c t))
 )
 
 (println! [1 2 3 4 5 6 7])
@@ -57,3 +64,16 @@
 (println! (lazy (+ 5 16)))
 
 (println! (concat (list 1 2 3 4 5 6 7) (list 1 2 3 4 5 67) (list 1 2 3 45 6 6)))
+
+(println! ((fn[n] (+ n 1)) 16))
+
+(define (foldrec f v xs)
+  (if (empty? xs)
+    v
+    (recur f (f v (car xs)) (cdr xs))))
+
+;(println! (foldl + 0 very-long-list))
+;(println! (foldrec + 0 very-long-list))
+
+(define-memo (test-memo n) (if (< n 2) n (+ (test-memo (- n 1)) (test-memo (- n 2)))))
+(println! (measure 1 (lambda()(test-memo 500))))

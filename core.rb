@@ -10,7 +10,7 @@ def elem_to_s(e)
   elsif e == false
     "#f"
   elsif e.is_a? Array
-    "[#{e.inject{|x,y| "#{elem_to_s(x)} #{elem_to_s(y)}"}}]"
+    "[#{e.inject { |x, y| "#{elem_to_s(x)} #{elem_to_s(y)}" }}]"
   else
     e.to_s
   end
@@ -76,8 +76,8 @@ def setup_core_functions
   add_fn(:"box-set!", 2) { |b, x| b.value = x; b }
 
   add_fn(:eager, 1) { |x| eager x }
-  add_fn_with_env(:lazy, 1) { |xs,env| LazyObj.new xs.car, env }
-  add_fn(:partial, 1) { |x, *params| params.empty? ? x : PartialLyraFn.new(x,params.to_cons_list) }
+  add_fn_with_env(:lazy, 1) { |xs, env| LazyObj.new xs.car, env }
+  add_fn(:partial, 1) { |x, *params| params.empty? ? x : PartialLyraFn.new(x, params.to_cons_list) }
 
   add_fn(:nothing, 0, -1) { |*_| nil }
 
@@ -141,22 +141,51 @@ def setup_core_functions
   add_fn(:"map-remove", 2) { |m, k| m.select { |k1, v| k != k1 } }
   add_fn(:"map-keys", 1) { |m| m.keys }
   add_fn(:"map-merge", 2) { |m, m2| Hash[m].merge!(m2) }
-  
-  add_fn(:size, 1) { |c| c.is_a?(Enumerable) ? c.size : nil }
-  
-  add_fn(:first, 1) {|c| c.is_a?(Enumerable) ? (c.is_a?(List) ? c.car : c[0]) : nil }
-  add_fn(:rest, 1) {|c| c.is_a?(Enumerable) ? (c.is_a?(List) ? c.cdr : c[1..-1]) : nil }
-  add_fn(:last, 1) {|c| c.is_a?(Enumerable) ? c[c.size-1] : nil }
-  add_fn(:"but-last", 1) {|c| c.is_a?(Enumerable) ? c[0 .. -2] : nil }
-  add_fn(:nth, 1) {|c,i| c.is_a?(Enumerable) ? c[i] : nil }
 
-  add_fn(:append, 2) {|x,y| x+y} # TODO Checks etc.
+  add_fn(:size, 1) { |c| c.is_a?(Enumerable) ? c.size : nil }
+
+  add_fn(:first, 1) { |c|
+    if c.is_a?(Enumerable)
+      c.is_a?(List) ? c.car : c[0]
+    else
+      nil
+    end }
+  add_fn(:rest, 1) { |c|
+    if c.is_a?(Enumerable)
+      c.is_a?(List) ? c.cdr : c[1..-1]
+    else
+      nil
+    end }
+  add_fn(:last, 1) { |c| c.is_a?(Enumerable) ? c[c.size - 1] : nil }
+  add_fn(:"but-last", 1) { |c| c.is_a?(Enumerable) ? c[0..-2] : nil }
+  add_fn(:nth, 1) { |c, i| c.is_a?(Enumerable) ? c[i] : nil }
+
+  add_fn(:append, 2) { |x, y| x + y } # TODO Checks etc.
 
   add_fn(:"println!", 1) { |x| puts elem_to_s(x) }
-  
-  add_fn(:copy, 1) {|x| x.is_a?(Box) ? x.clone : x }
+
+  add_fn(:copy, 1) { |x| x.is_a?(Box) ? x.clone : x }
+
+  add_fn(:memoize, 1) { |fn| MemoizedLyraFn.new fn }
 
   add_var(:Nothing, nil)
+  #add_var(:"very-long-list", (0..100_000).to_cons_list)
+
+  add_fn_with_env(:measure, 2) { |args, env|
+    median = lambda do |arr|
+      arr.sort!
+      len = arr.size
+      (arr[(len-1)/2]+arr[len / 2]) / 2
+    end
+
+    res = []
+    args.car.times do
+      t0 = Time.now
+      args.cdr.car.call(list(), env)
+      t1 = Time.now
+      res << (t1 - t0) * 1000.0
+    end
+    median.call(res) }
 
   true
 end

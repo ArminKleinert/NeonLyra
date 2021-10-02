@@ -100,7 +100,7 @@ class List
     to_s
   end
   
-  def nthrest
+  def nthrest(i)
     c = self
     while !c.empty? && i > 0
       i -= 1
@@ -183,14 +183,14 @@ class CompoundFunc < LyraFn
   attr_reader :arg_counts # Range of (minimum .. maximum)
   attr_reader :body # Executable ((List<Any>, Env) -> Any)
   attr_accessor :name # Symbol
-  attr_reader :ismacro # Boolean
+  attr_reader :is_macro # Boolean
   
   def initialize(name, definition_env, ismacro, min_args, max_args=min_args, &body)
     @definition_env = definition_env
     @arg_counts = (min_args .. max_args)
     @body = body
     @name = name
-    @ismacro = ismacro
+    @is_macro = ismacro
   end
   
   def call(args, env)
@@ -198,7 +198,7 @@ class CompoundFunc < LyraFn
     args_given = args.size
     raise "#{@name}: Too few arguments. (Given #{args_given}, expected #{@arg_counts})" if args_given < arg_counts.first
     raise "#{@name}: Too many arguments. (Given #{args_given}, expected #{@arg_counts})" if arg_counts.last >= 0 && args_given > arg_counts.last
-    
+
     begin
       # Execute the body and return
       body.call(args, env)
@@ -216,7 +216,11 @@ class CompoundFunc < LyraFn
   end
   
   def to_s
-    "<#{@ismacro ? "macro" : "function"} #{@name}>"
+    "<#{@is_macro ? "macro" : "function"} #{@name}>"
+  end
+
+  def inspect
+    to_s
   end
   
   def native?
@@ -289,6 +293,45 @@ class PartialLyraFn < LyraFn
   
   def pure?
     @func.pure?
+  end
+
+  def is_macro
+    @func.native? ? false : @func.is_macro
+  end
+end
+
+class MemoizedLyraFn < LyraFn
+  def initialize(func)
+    @func = func
+    @memory = {}
+  end
+
+  def call(args, env)
+    lookup = args.size == 1 ? args.car : args
+    prev = @memory[lookup]
+    if prev
+      prev
+    else
+      res = @func.call(args, env)
+      @memory[lookup] = res
+      res
+    end
+  end
+
+  def to_s
+    @func.to_s
+  end
+
+  def native?
+    @func.native?
+  end
+
+  def pure?
+    @func.pure?
+  end
+
+  def is_macro
+    @func.native? ? false : @func.is_macro
   end
 end
 

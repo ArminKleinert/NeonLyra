@@ -41,11 +41,11 @@ class Env
   
   def safe_find(sym, include_global=true)
     v = @inner[sym]
-    if NOT_FOUND_IN_LYRA_ENV == v && !@parents0.nil?
-      v = @parents0.safe_find(sym)
+    if NOT_FOUND_IN_LYRA_ENV == v && !@parent0.nil?
+      v = @parent0.safe_find(sym)
     end
-    if NOT_FOUND_IN_LYRA_ENV == v && !@parents1.nil?
-      v = @parents1.safe_find(sym)
+    if NOT_FOUND_IN_LYRA_ENV == v && !@parent1.nil?
+      v = @parent1.safe_find(sym)
     end
     if NOT_FOUND_IN_LYRA_ENV == v && self != @next_module_env
       v = @next_module_env.safe_find(sym)

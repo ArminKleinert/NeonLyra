@@ -120,3 +120,4 @@ Here are some differences to Clojure I could think of:
 ## Changelog
 
 0.0.1 The thing works but lacks functionality.  
+0.0.2 Macros, types, more functions, modules, @ prefix
