@@ -55,7 +55,7 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cub.
 - `#f` is literal false  
 - Numbers can start with the prefixes `0x` or `0b` for hexadecimal or binary literals.
 
-## Diferences to Clojure:
+## Differences to Clojure:
 
 Clojure influences Lyra a lot. Still, every language has things I love and things I hate.  
 Lyra is by design much less powerful than Clojure because it tries to be as functionally pure as it can. This forbids access to the host language as well as streams to files and sockets.  

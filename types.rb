@@ -6,21 +6,28 @@ class LazyObj
     @executed = false
   end
 
-  # TODO Tests:
-  #  - Does this lead to problems with tail recursion in illegal places?
-  #  - Is the branch really deeply executed?
   def evaluate
     if @executed
       @expr
     else
-      @executed = true
       @expr = eval_ly(@expr, @env, true)
+      @executed = true
       @expr
     end
   end
 
   def to_s
     elem_to_s(evaluate)
+  end
+end
+
+module Enumerable
+  def to_cons_list
+    if is_a?(List)
+      self
+    else
+      list(*to_a)
+    end
   end
 end
 
@@ -49,7 +56,7 @@ module List
       xs = nth_rest i
       xs ? xs.car : nil
     else
-      to_a[i].to_cons_list
+      list(*to_a[i])
     end
   end
 
@@ -189,12 +196,12 @@ class CompoundFunc < LyraFn
   attr_accessor :name # Symbol
   attr_reader :is_macro # Boolean
 
-  def initialize(name, definition_env, ismacro, min_args, max_args = min_args, &body)
+  def initialize(name, definition_env, is_macro, min_args, max_args = min_args, &body)
     @definition_env = definition_env
     @arg_counts = (min_args..max_args)
     @body = body
     @name = name
-    @is_macro = ismacro
+    @is_macro = is_macro
   end
 
   def call(args, env)
@@ -206,10 +213,10 @@ class CompoundFunc < LyraFn
     begin
       # Execute the body and return
       body.call(args, env)
-    rescue TailCall => tailcall
+    rescue TailCall => tail_call
       unless native?
         # Do a tail-call. (Thanks for providing `retry`, Ruby!)
-        args = tailcall.args
+        args = tail_call.args
         retry
       end
     rescue
@@ -339,18 +346,8 @@ class MemoizedLyraFn < LyraFn
   end
 end
 
-module Enumerable
-  def to_cons_list
-    if is_a?(List)
-      self
-    else
-      list(*to_a)
-    end
-  end
-end
-
 def atom?(x)
-  x.is_a?(Numeric) || x.is_a?(String) || x.is_a?(Symbol) || true == x || false == x
+  x.is_a?(Numeric) || x.is_a?(String) || x.is_a?(Symbol) || !!x == x
 end
 
 LyraType = Struct.new(:type_id, :name, :attrs) do
@@ -364,7 +361,7 @@ LYRA_TYPE_COUNTER = Box.new 0xEA7C0FFE
 def new_lyra_type(name, attrs, env)
   attrs = attrs.to_a
   counter = LYRA_TYPE_COUNTER.value
-  env.set! :"make-#{name}", NativeLyraFn.new(:"make-#{name}", attrs.size) { |attrs, _| LyraType.new(counter, name, attrs.to_a) }
+  env.set! :"make-#{name}", NativeLyraFn.new(:"make-#{name}", attrs.size) { |params, _| LyraType.new(counter, name, params.to_a) }
   env.set! :"#{name}?", NativeLyraFn.new(:"#{name}?", 1) { |o, _| o.car.is_a?(LyraType) && o.car.type_id == counter }
 
   attrs.each_with_index do |attr, i|

@@ -70,9 +70,9 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
       root << t.to_f
     when /^"(?:\\.|[^\\"])*"$/ then root << parse_str(t)
     else
-      appl = []
+      applications = []
       while t.end_with?(".?") || t.end_with?(".!")
-        appl << (t.end_with?(".?") ? :unwrap : :eager)
+        applications << (t.end_with?(".?") ? :unwrap : :eager)
         t = t[0..-3]
       end
       if t == "Nothing"
@@ -82,7 +82,7 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
       else
         t = t.to_sym
       end
-      appl.reverse_each do |a|
+      applications.reverse_each do |a|
         t = list(a, t)
       end
 

@@ -25,7 +25,7 @@ end
 # recursion and are supposed to be very simple.
 def setup_core_functions
   def add_fn(name, min_args, max_args = min_args, &body)
-    fn = NativeLyraFn.new(name, min_args, max_args) do |args, env|
+    fn = NativeLyraFn.new(name, min_args, max_args) do |args, _|
       body.call(*args.to_a)
     end
     Env.global_env.set!(name, fn)
@@ -63,12 +63,12 @@ def setup_core_functions
   add_fn(:"bit-shl", 2) { |x, y| x << y }
   add_fn(:"bit-shr", 2) { |x, y| x >> y }
 
-  gensym_counter = 0
-  add_fn(:gensym, 0) { "gensym_#{LYRA_VERSION}_#{gensym_counter += 1}".to_sym }
+  gen_sym_counter = 0
+  add_fn(:gensym, 0) { "gen_sym_#{LYRA_VERSION}_#{gen_sym_counter += 1}".to_sym }
   add_fn(:seq, 1) { |x| (!x.is_a?(Enumerable) || x.empty?) ? nil : x.to_cons_list }
 
-  add_fn(:"always-true", 0, -1) { |*xs| true }
-  add_fn(:"always-false", 0, -1) { |*xs| false }
+  add_fn(:"always-true", 0, -1) { |*_| true }
+  add_fn(:"always-false", 0, -1) { |*_| false }
 
   add_fn(:box, 1) { |x| Box.new(x) }
   add_fn(:unbox, 2) { |b| b.value }
@@ -84,7 +84,7 @@ def setup_core_functions
   add_fn(:"box?", 1) { |m| m.is_a? Box }
   add_fn(:"nothing?", 1) { |m| m.nil? || m.value.nil? }
   add_fn(:"nil?", 1) { |x| x.nil? }
-  add_fn(:"null?", 1) { |x| x.nil? || is_empty_list?(x) }
+  add_fn(:"null?", 1) { |x| x.nil? || x.is_a?(EmptyList) }
   add_fn(:"collection?", 1) { |x| x.is_a?(Enumerable) }
   add_fn(:"sequence?", 1) { |x| x.is_a?(List) || x.is_a?(Array) }
   add_fn(:"list?", 1) { |x| x.is_a? List }
@@ -138,7 +138,7 @@ def setup_core_functions
   add_fn(:"map-size", 1) { |m| m.size }
   add_fn(:"map-get", 2) { |m, k| m[k] }
   add_fn(:"map-set", 3) { |m, k, v| m2 = Hash[m]; m2[k, v]; m2 }
-  add_fn(:"map-remove", 2) { |m, k| m.select { |k1, v| k != k1 } }
+  add_fn(:"map-remove", 2) { |m, k| m.select { |k1, _| k != k1 } }
   add_fn(:"map-keys", 1) { |m| m.keys }
   add_fn(:"map-merge", 2) { |m, m2| Hash[m].merge!(m2) }
 

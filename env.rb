@@ -21,7 +21,7 @@ class Env
     end
   end
 
-  def self.createModuleEnv(module_name)
+  def self.create_module_env(module_name)
     e = Env.new(module_name, global_env, nil, nil, true)
     #e.next_module_env = e
     e
@@ -72,20 +72,6 @@ class Env
   def set_multi!(pairs)
     pairs.each do |b|
       set!(b.car, b.cdr.car)
-    end
-    self
-  end
-
-  # TODO Remove
-  def add(sym, val)
-    @inner[sym] = val
-    self
-  end
-
-  # TODO Remove
-  def add_pairs(pairs)
-    pairs.each do |p|
-      add(p.car, p.cdr.car)
     end
     self
   end

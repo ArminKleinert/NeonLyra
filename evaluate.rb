@@ -37,10 +37,10 @@ end
 # The intended use for this function is for adding function arguments
 # to the environment. The latter case makes it easy to pass
 # variadic arguments.
-def pairs(cons0, cons1, expect_vargs = false)
+def pairs(cons0, cons1, expect_v_args = false)
   res = []
   until cons0.empty?
-    if expect_vargs && cons0.size == 1
+    if expect_v_args && cons0.size == 1
       res << list(cons0.car, cons1)
     else
       res << list(cons0.car, cons1.car)
@@ -57,7 +57,7 @@ def ev_module(expr)
   name = expr.car
   return name if IMPORTED_MODULES.include? name
 
-  module_env = Env.createModuleEnv name
+  module_env = Env.create_module_env name
   expr = expr.cdr
   bindings = expr.car
   forms = expr.cdr
@@ -362,15 +362,15 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         # TODO Figure out how to do macro-expand here without setting car or cdr...
         eval_ly(r1, env, force_eval)
       else
-        # Check whether a tailcall is possible
-        # A tailcall is possible if the function is not natively implemented
+        # Check whether a tail-call is possible
+        # A tail-call is possible if the function is not natively implemented
         # and the same function is at the front of the call stack.
         # So `(define (crash n) (crash (inc n)))` will tail call,
         # but `(define (crash) (inc (crash)))` will not.
         # Notice that the special commands if, let* and let (and all macros
         # which boil down to them, like `begin`) do not go on the callstack.
-        # So `(define (dotimes n f)
-        #       (if (= 0 n) '() (begin (f) (dotimes (dec n) f))))`
+        # So `(define (do-times n f)
+        #       (if (= 0 n) '() (begin (f) (do-times (dec n) f))))`
         # will also tail call.
         if !is_in_call_params && (!$lyra_call_stack.empty?) && ((func == $lyra_call_stack.car) || func == RECUR_FUNC)
           # Evaluate arguments that will be passed to the call.
