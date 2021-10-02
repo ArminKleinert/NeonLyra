@@ -20,7 +20,7 @@ recur                | any |  x  |  x  | Explicit tail-recursion. Only valid in 
 gensym               | 0   |  x  |  x  | 
 module               | >=1 |  x  |  x  | 
 memoize              | 1   |  x  |  x  | 
-define-memo          | >=1 |  x  |  x  | A macro which defines a function and memoizes it.
+def-memo             | >=1 |  x  |  x  | A macro which defines a function and memoizes it.
 seq                  | 1   |  x  |  x  | Returns a equence for all non-empty collections, Nothing otherwise.
                      |     |     |     | 
 lazy                 | 1   |  x  |  x  | 
