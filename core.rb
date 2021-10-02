@@ -143,6 +143,7 @@ def setup_core_functions
   add_fn(:"map-merge", 2) { |m, m2| Hash[m].merge!(m2) }
 
   add_fn(:size, 1) { |c| c.is_a?(Enumerable) ? c.size : nil }
+  add_fn(:"contains?", 2) { |c, e| c.include? e }
 
   add_fn(:first, 1) { |c|
     if c.is_a?(Enumerable)
@@ -162,7 +163,12 @@ def setup_core_functions
 
   add_fn(:append, 2) { |x, y| x + y } # TODO Checks etc.
 
+  add_fn(:"print!", 1) { |x| print elem_to_s(x) }
   add_fn(:"println!", 1) { |x| puts elem_to_s(x) }
+  add_fn(:"readln!", 0) { gets }
+  add_fn(:"file-read!", 1) { |name| IO.read name }
+  add_fn(:"file-write!", 2) { |name, text| IO.write name, text }
+  add_fn(:"file-append!", 2) { |name, text| File.open(name, 'a') { |f| f.write(text) } }
 
   add_fn(:copy, 1) { |x| x.is_a?(Box) ? x.clone : x }
 
@@ -171,17 +177,17 @@ def setup_core_functions
   add_var(:Nothing, nil)
   #add_var(:"very-long-list", (0..100_000).to_cons_list)
 
-  add_fn_with_env(:measure, 2) { |args, env|
+  add_fn_with_env(:"measure!", 2) { |args, env|
     median = lambda do |arr|
       arr.sort!
       len = arr.size
-      (arr[(len-1)/2]+arr[len / 2]) / 2
+      (arr[(len - 1) / 2] + arr[len / 2]) / 2
     end
 
     res = []
     args.car.times do
       t0 = Time.now
-      args.cdr.car.call(list(), env)
+      args.cdr.car.call(list, env)
       t1 = Time.now
       res << (t1 - t0) * 1000.0
     end

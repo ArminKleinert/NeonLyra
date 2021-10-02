@@ -39,7 +39,7 @@ require!             | 1   |     |     | Alias for load!
 read-string          | 1   |  x  |     | Parses a string into code.
 eval                 | 1   |  x  |     | Executes an object as code.
                      |     |     |     | 
-measure!             | 2   |     |     | 
+measure!             | 2   |  x  |  x  | 
                      |     |     |     | 
 =                    | 2   |  x  |  x  | 
 <                    | 2   |  x  |  x  | 
@@ -64,7 +64,7 @@ bit-shr              | 2   |  x  |  x  |
                      |     |     |     | 
 nothing?             | 1   |  x  |  x  | True for the Nothing object
 null?                | 1   |  x  |  x  | True for both Nothing and '()
-collection?          | 1   |  x  |     | True for lists, vectors, maps and sets, false for others.
+collection?          | 1   |  x  |  x  | True for lists, vectors, maps and sets, false for others.
 sequence?            | 1   |  x  |  x  | True if the input is a list or vector.
 list?                | 1   |  x  |  x  | 
 vector?              | 1   |  x  |  x  | 
@@ -122,14 +122,14 @@ set-merge            | 2   |  x  |     |
 set-difference       | 2   |  x  |     | 
 set-merge            | 2   |  x  |     | 
                      |     |     |     | 
-begin                | any |  x  |     | 
-comment              | any |  x  |     | 
+begin                | any |  x  |  x  | 
+comment              | any |  x  |  x  | 
                      |     |     |     | 
 size                 | 1   |  x  |  x  | 
 count                | 1   |  x  |  x  | Alias for size.
 indices-of           | 2   |  x  |     | 
-contains?            | 2   |  x  |     | 
-includes?            | 2   |  x  |     | Alias for contains?.
+contains?            | 2   |  x  |  x  | 
+includes?            | 2   |  x  |  x  | Alias for contains?.
 first                | 1   |  x  |  x  | 
 rest                 | 1   |  x  |  x  | 
 last                 | 1   |  x  |  x  | 
@@ -170,13 +170,12 @@ drop                 | 2   |  x  |     |
 drop-while           | 2   |  x  |     | 
 drop-until           | 2   |  x  |     | 
                      |     |     |     | 
-                     |     |     |     | 
-print!               | 1   |     |     | 
+print!               | 1   |     |  x  | 
 println!             | 1   |     |  x  | 
-readln!              | 0   |     |     | 
-file-read!           | 1   |     |     | 
-file-write!          | 2   |     |     | 
-file-append!         | 2   |     |     | 
-slurp!               | 1   |     |     | Alias for file-read!
-spit!                | 2   |     |     | Alias for file-write!
+readln!              | 0   |     |  x  | 
+file-read!           | 1   |     |  x  | 
+file-write!          | 2   |     |  x  | 
+file-append!         | 2   |     |  x  | 
+slurp!               | 1   |     |  x  | Alias for file-read!
+spit!                | 2   |     |  x  | Alias for file-write!
 ```

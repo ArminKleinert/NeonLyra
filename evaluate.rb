@@ -37,7 +37,7 @@ end
 # The intended use for this function is for adding function arguments
 # to the environment. The latter case makes it easy to pass
 # variadic arguments.
-def pairs(cons0, cons1, expect_vargs = false, res = [])
+def pairs(cons0, cons1, expect_vargs = false)
   res = []
   until cons0.empty?
     if expect_vargs && cons0.size == 1
@@ -52,7 +52,7 @@ def pairs(cons0, cons1, expect_vargs = false, res = [])
   res
 end
 
-def ev_module(expr,env)
+def ev_module(expr)
   expr = expr.cdr
   name = expr.car
   return name if IMPORTED_MODULES.include? name
@@ -257,28 +257,24 @@ def eval_ly(expr, env, force_eval=false, is_in_call_params = false)
       ev_define(rest(expr), env, false)
     when :"let*"
       raise "let* needs at least 1 argument." if expr.cdr.empty?
-      raise "let* bindings must be a list." unless second(expr).is_a?(List)
-
       bindings = second(expr)
-      body = rest(rest(expr))
-      env1 = Env.new(nil, env)
+      raise "let bindings must be a list." unless bindings.is_a?(List) || bindings.is_a?(EmptyList)
 
-      bindings.each do |b|
-        env1.set!(b.car, eval_ly(b.cdr.car, env1, force_eval))
+      body = rest(rest(expr))
+      env1 = env
+      unless bindings.empty?
+        env1 = Env.new(nil, env)
+        bindings.each do |b|
+          env1.set!(b.car, eval_ly(b.cdr.car, env1, force_eval))
+        end
       end
 
       # Execute the body.
       eval_keep_last(body, env1)
     when :"let1"
       raise "let1 needs at least 1 argument." if expr.cdr.empty?
-      raise "let1 bindings must be a list." unless second(expr).is_a?(List)
+      raise "let1 bindings must be a non-empty list." unless second(expr).is_a?(List)
 
-      # `expr` has the following form:
-      # (let1 (name value) body...)
-      # The binding (name-value pair) is evaluated and added to the
-      # environment. Then the body is executed and the result of the
-      # last expression returned.
-      # If the body is empty, returns nil.
       name = first(second(expr))
       val = eval_ly(second(second(expr)), env, force_eval) # Evaluate the value.
       env1 = Env.new nil, env
@@ -286,20 +282,17 @@ def eval_ly(expr, env, force_eval=false, is_in_call_params = false)
       eval_keep_last(rest(rest(expr)), env1) # Evaluate the body.
     when :let
       raise "let needs at least 1 argument." if expr.cdr.empty?
-      raise "let bindings must be a list." unless second(expr).is_a?(List)
-
-      # 'expr' has the following form:
-      # (let ((sym0 val0) (sym1 val1) ...) body...)
-      # The bindings (sym-val pairs) are evaluated, added to the environment
-      # and then the body is evaluated. The last returned value is returned.
-
       bindings = second(expr)
-      body = rest(rest(expr))
-      env1 = Env.new(nil, env)
+      raise "let bindings must be a list." unless bindings.is_a?(List) || bindings.is_a?(EmptyList)
 
-      # Evaluate bindings in order using the old environment.
-      bindings.each do |b|
-        env1.set!(b.car, eval_ly(b.cdr.car, env, force_eval))
+      body = rest(rest(expr))
+      env1 = env
+      unless bindings.empty?
+        env1 = Env.new(nil, env)
+        # Evaluate bindings in order using the old environment.
+        bindings.each do |b|
+          env1.set!(b.car, eval_ly(b.cdr.car, env, force_eval))
+        end
       end
 
       # Execute the body.
@@ -315,25 +308,27 @@ def eval_ly(expr, env, force_eval=false, is_in_call_params = false)
       end
       second(expr)
     when :"def-macro"
-      # Same as define, but the 'ismacro' parameter is true.
+      # Same as define, but the 'is_macro' parameter is true.
       # Form: `(def-macro (name arg0 arg1 ...) body...)`
       ev_define(rest(expr), env, true)
     when :apply
+=begin
       fn = second(expr)
       args = rest(rest(expr))
       args1 = nil
       until args.cdr.empty?
-        args1 = cons(eval_ly(args.car, env, force_eval, true), args1)
+        #args1 = cons(eval_ly(args.car, env, force_eval, true), args1)
+        args1 = cons(args.car, args1)
         args = args.cdr
       end
       last_arg = args.car
-      last_arg = eval_ly(list(:"->list", last_arg), env)
-      args = eval_list(last_arg, env, force_eval)
-      args1 = append(reverse(args1), args)
+      args1 = reverse(args1) + last_arg.to_cons_list
       expr = cons(fn, args1)
       eval_ly(expr, env, force_eval)
+=end
+      raise "apply is not implemented."
     when :module
-      ev_module expr, env
+      ev_module expr
     else
       # Here, the expression will have a form like the following:
       # (func arg0 arg1 ...)
@@ -363,6 +358,7 @@ def eval_ly(expr, env, force_eval=false, is_in_call_params = false)
         # The macro is first called and the resulting expression
         # is then executed.
         r1 = func.call(args, env)
+        #puts r1
         # TODO Figure out how to do macro-expand here without setting car or cdr...
         eval_ly(r1, env, force_eval)
       else

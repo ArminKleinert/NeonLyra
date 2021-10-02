@@ -76,4 +76,14 @@
 ;(println! (foldrec + 0 very-long-list))
 
 (def-memo (test-memo n) (if (< n 2) n (+ (test-memo (- n 1)) (test-memo (- n 2)))))
-(println! (measure 1 (lambda()(test-memo 500))))
+(println! (measure! 1 (lambda()(test-memo 500))))
+
+; Makes any list of expressions into an let expression without bindings
+; (begin 1 2 3 4) => (let () 1 2 3 4)
+(def-macro (begin & exprs)
+  (cons 'let (cons '() exprs)))
+
+(define includes? contains?)
+
+(define slurp! file-read!)
+(define spit! file-write!)
