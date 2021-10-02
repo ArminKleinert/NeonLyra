@@ -56,7 +56,7 @@ def ev_module(expr)
   expr = expr.cdr
   name = expr.car
   return name if IMPORTED_MODULES.include? name
-  
+
   module_env = Env.createModuleEnv name
   expr = expr.cdr
   bindings = expr.car
@@ -97,7 +97,7 @@ end
 def eval_list(expr_list, env, force_eval)
   l = []
   until expr_list.empty?
-    l << eval_ly(first(expr_list),env, force_eval,true)
+    l << eval_ly(first(expr_list), env, force_eval, true)
     expr_list = rest(expr_list)
   end
   list(*l)
@@ -189,11 +189,11 @@ def ev_lambda(args_expr, body_expr, definition_env, is_macro = false)
 end
 
 # Evaluation function
-def eval_ly(expr, env, force_eval=false, is_in_call_params = false)
+def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
   if expr.nil? || (expr.is_a?(List) && expr.empty?)
     list # nil evaluates to nil
   elsif expr.is_a?(Symbol)
-    env.find expr  # Get associated value from env
+    env.find expr # Get associated value from env
   elsif atom?(expr) || expr.is_a?(LyraFn)
     expr
   elsif expr.is_a? Array

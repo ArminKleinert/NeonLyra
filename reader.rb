@@ -10,12 +10,12 @@ LYRA_REGEX = /[\s,]*([()\[\]]|"(?:\\.|[^\\"])*"?|;.*|@|'|[^\s\[\]{}('"`,;)]*)/
 
 # Scan the text using RE, remove empty tokens and remove comments.
 def tokenize(s)
-  s.scan(LYRA_REGEX).flatten.reject{|w| w.empty? || w.start_with?(";")}
+  s.scan(LYRA_REGEX).flatten.reject { |w| w.empty? || w.start_with?(";") }
 end
 
 # Un-escapes a string and removed the '"' from beginning and end..
 def parse_str(token)
-  token.gsub(/\\./, {"\\\\" => "\\", "\\n" => "\n", "\\\"" => '"'})[1..-2]
+  token.gsub(/\\./, { "\\\\" => "\\", "\\n" => "\n", "\\\"" => '"' })[1..-2]
 end
 
 # Builds the abstract syntax tree and converts all expressions into their
@@ -24,7 +24,7 @@ end
 # a bool, a string becomes a string, etc.
 # If an `(` is found, a cons is opened. It is closed when a `)` is 
 # encountered.
-def make_ast(tokens, level=0, expected="", stop_after_1=false)
+def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
   root = []
   while (t = tokens.shift) != nil
     case t
@@ -33,18 +33,18 @@ def make_ast(tokens, level=0, expected="", stop_after_1=false)
     when "@"
       root << list(:unbox, make_ast(tokens, level, "", true))
     when "("
-      root << make_ast(tokens, level+1, ")")
+      root << make_ast(tokens, level + 1, ")")
     when ")"
       raise "Unexpected ')'" if level == 0 || expected != ")"
       return list(*root)
     when "["
-      root << make_ast(tokens,level+1,"]")
+      root << make_ast(tokens, level + 1, "]")
     when "]"
       raise "Unexpected ']'" if level == 0 || expected != "]"
       return root.to_a
-    when '"'                    then raise "Unexpected '\"'"
-    when "#t"                   then root << true
-    when "#f"                   then root << false
+    when '"' then raise "Unexpected '\"'"
+    when "#t" then root << true
+    when "#f" then root << false
     when /^(-?0b[0-1]+|-?0x[0-9a-fA-F]+|-?[0-9]+)$/
       mult = 1
       base = 1
@@ -52,7 +52,7 @@ def make_ast(tokens, level=0, expected="", stop_after_1=false)
         mult = -1
         t = t[1..-1]
       end
-      
+
       case t[0..1]
       when "0x"
         t = t[2..-1]
@@ -68,7 +68,7 @@ def make_ast(tokens, level=0, expected="", stop_after_1=false)
       root << n
     when /^-?[0-9]+\.[0-9]+$/
       root << t.to_f
-    when /^"(?:\\.|[^\\"])*"$/  then root << parse_str(t)
+    when /^"(?:\\.|[^\\"])*"$/ then root << parse_str(t)
     else
       appl = []
       while t.end_with?(".?") || t.end_with?(".!")
@@ -85,7 +85,7 @@ def make_ast(tokens, level=0, expected="", stop_after_1=false)
       appl.reverse_each do |a|
         t = list(a, t)
       end
-        
+
       root << t
     end
     return root[0] if stop_after_1

@@ -1,4 +1,3 @@
-
 require 'singleton'
 
 class LazyObj
@@ -6,7 +5,7 @@ class LazyObj
     @expr, @env = expr, env
     @executed = false
   end
-  
+
   # TODO Tests:
   #  - Does this lead to problems with tail recursion in illegal places?
   #  - Is the branch really deeply executed?
@@ -16,9 +15,10 @@ class LazyObj
     else
       @executed = true
       @expr = eval_ly(@expr, @env, true)
-      @expr 
+      @expr
     end
   end
+
   def to_s
     elem_to_s(evaluate)
   end
@@ -26,31 +26,39 @@ end
 
 class EmptyList
   include Singleton, Enumerable
-  
+
   def car
     self
   end
+
   def cdr
     self
   end
+
   def to_s
     "()"
   end
+
   def each(&block)
     self
   end
+
   def empty?
     true
   end
+
   def inspect
     to_s
   end
+
   def size
     0
   end
+
   def [](i)
     nil
   end
+
   def +(c)
     c.to_cons_list
   end
@@ -68,21 +76,21 @@ class List
     @cdr = tail
     @size = size
   end
-  
-  def self.create(head,tail)
+
+  def self.create(head, tail)
     List.send :new, head, (tail ? tail : EmptyList.instance), (tail ? tail.size : 0) + 1
   end
-  
+
   private_class_method :new
-  
+
   def self.empty_list
     EmptyList.instance
   end
-  
+
   def empty?
     false
   end
-  
+
   def each(&block)
     lst = self
     until lst.empty?
@@ -93,14 +101,14 @@ class List
   end
 
   def to_s
-    "(#{inject{|x,y| "#{elem_to_s(x)} #{elem_to_s(y)}"}})"
+    "(#{inject { |x, y| "#{elem_to_s(x)} #{elem_to_s(y)}" }})"
   end
-  
+
   def inspect
     to_s
   end
-  
-  def nthrest(i)
+
+  def nth_rest(i)
     c = self
     while !c.empty? && i > 0
       i -= 1
@@ -112,10 +120,10 @@ class List
       c.car
     end
   end
-  
+
   def [](i)
     if i.is_a? Integer
-      xs = nthrest i
+      xs = nth_rest i
       xs ? xs.car : nil
     else
       to_a[i].to_cons_list
@@ -159,15 +167,30 @@ Box = Struct.new(:value) do
 end
 
 # Convenience functions.
-def first(c); c.car; end
-def second(c); c.cdr.car; end
-def third(c); c.cdr.cdr.car; end
-def fourth(c); c.cdr.cdr.cdr.car; end
-def rest(c); c.cdr; end
+def first(c)
+  ; c.car;
+end
+
+def second(c)
+  ; c.cdr.car;
+end
+
+def third(c)
+  ; c.cdr.cdr.car;
+end
+
+def fourth(c)
+  ; c.cdr.cdr.cdr.car;
+end
+
+def rest(c)
+  ; c.cdr;
+end
 
 # Thrown when a tail-call should be done.
 class TailCall < StandardError
   attr_reader :args
+
   def initialize(args)
     @args = args
   end
@@ -184,15 +207,15 @@ class CompoundFunc < LyraFn
   attr_reader :body # Executable ((List<Any>, Env) -> Any)
   attr_accessor :name # Symbol
   attr_reader :is_macro # Boolean
-  
-  def initialize(name, definition_env, ismacro, min_args, max_args=min_args, &body)
+
+  def initialize(name, definition_env, ismacro, min_args, max_args = min_args, &body)
     @definition_env = definition_env
-    @arg_counts = (min_args .. max_args)
+    @arg_counts = (min_args..max_args)
     @body = body
     @name = name
     @is_macro = ismacro
   end
-  
+
   def call(args, env)
     # Check argument counts
     args_given = args.size
@@ -214,7 +237,7 @@ class CompoundFunc < LyraFn
       raise
     end
   end
-  
+
   def to_s
     "<#{@is_macro ? "macro" : "function"} #{@name}>"
   end
@@ -222,11 +245,11 @@ class CompoundFunc < LyraFn
   def inspect
     to_s
   end
-  
+
   def native?
     false
   end
-  
+
   def pure?
     # TODO
     false
@@ -237,19 +260,19 @@ class NativeLyraFn < LyraFn
   attr_reader :arg_counts # Range of (minimum .. maximum)
   attr_accessor :name # Symbol
   attr_reader :body # Executable (Any[] -> Any)
-  
-  def initialize(name, min_args, max_args=min_args, &body)
-    @arg_counts = (min_args .. max_args)
+
+  def initialize(name, min_args, max_args = min_args, &body)
+    @arg_counts = (min_args..max_args)
     @body = body
     @name = name
   end
-  
+
   def call(args, env)
     # Check argument counts
     args_given = args.size
     raise "#{@name}: Too few arguments. (Given #{args_given}, expected #{@arg_counts})" if args_given < @arg_counts.first
     raise "#{@name}: Too many arguments. (Given #{args_given}, expected #{@arg_counts})" if @arg_counts.last >= 0 && args_given > @arg_counts.last
-    
+
     begin
       # Execute the body and return
       body.call(args, env)
@@ -259,15 +282,15 @@ class NativeLyraFn < LyraFn
       raise
     end
   end
-  
+
   def to_s
     "<function #{@name}>"
   end
-  
+
   def native?
     true
   end
-  
+
   def pure?
     name.end_with? "!"
   end
@@ -278,19 +301,19 @@ class PartialLyraFn < LyraFn
     @func, @args = func, args
     @name = func.name
   end
-  
+
   def call(args, env)
     @func.call(@args + args, env)
   end
-  
+
   def to_s
     cons(:partial, cons(@func, @args)).to_s
   end
-  
+
   def native?
     @func.native?
   end
-  
+
   def pure?
     @func.pure?
   end
@@ -351,7 +374,7 @@ end
 
 LyraType = Struct.new(:type_id, :name, :attrs) do
   def to_s
-    "#{attrs.inject("(#{name}") {|x,y| "#{x} #{elem_to_s(y)}"}})"
+    "#{attrs.inject("(#{name}") { |x, y| "#{x} #{elem_to_s(y)}" }})"
   end
 end
 
@@ -360,15 +383,15 @@ LYRA_TYPE_COUNTER = Box.new 0xEA7C0FFE
 def new_lyra_type(name, attrs, env)
   attrs = attrs.to_a
   counter = LYRA_TYPE_COUNTER.value
-  env.set! :"make-#{name}", NativeLyraFn.new(:"make-#{name}", attrs.size) { |attrs, _| LyraType.new(counter, name, attrs.to_a)  }
+  env.set! :"make-#{name}", NativeLyraFn.new(:"make-#{name}", attrs.size) { |attrs, _| LyraType.new(counter, name, attrs.to_a) }
   env.set! :"#{name}?", NativeLyraFn.new(:"#{name}?", 1) { |o, _| o.car.is_a?(LyraType) && o.car.type_id == counter }
-  
+
   attrs.each_with_index do |attr, i|
     fn_name = :"#{name}-#{attr}"
     env.set! fn_name, NativeLyraFn.new(fn_name, 1) { |e, _| e.car.attrs[i] }
   end
-  
+
   LYRA_TYPE_COUNTER.value = LYRA_TYPE_COUNTER.value + 1
-  
+
   name
 end
