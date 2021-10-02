@@ -20,8 +20,6 @@
 ;(println! (reverse '(1 2 3 4 5)))
 (define (list & xs) xs)
 
-(def-macro (comment & exprs) (nothing))
-
 (define (concat xs & ys)
   (foldr append xs ys))
 
@@ -87,3 +85,7 @@
 
 (define slurp! file-read!)
 (define spit! file-write!)
+
+(define require! load!)
+
+(gensym)

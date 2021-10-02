@@ -3,6 +3,8 @@ require_relative 'reader.rb'
 require_relative 'evaluate.rb'
 require_relative 'core.rb'
 
+LYRA_VERSION = "0_0_4"
+
 # Treat the first console argument as a filename,
 # read from the file and evaluate the result.
 begin
@@ -14,8 +16,7 @@ rescue SystemStackError
   $stderr.puts "Internal callstack: #{LYRA_CALL_STACK}"
   raise
 rescue
-  $stderr.puts "Internal callstack: " + LYRA_CALL_STACK.to_s
+  $stderr.puts "Internal callstack: #{LYRA_CALL_STACK}"
   $stderr.puts "Error: " + $!.message
-  #$stderr.puts LYRA_ENV.to_s
   raise
 end

@@ -3,6 +3,8 @@ require_relative 'reader.rb'
 require_relative 'core.rb'
 require_relative 'env.rb'
 
+$enable_aggressive_optimizations = false
+
 IMPORTED_MODULES = []
 
 # nil is not a valid pair but will be used as a separator between
@@ -73,16 +75,6 @@ def ev_module(expr)
   name
 end
 
-# Append two lists. Complexity depends on the first list.
-# TODO Potential candidate for optimization?
-def append(c0, c1)
-  if c0.empty?
-    c1
-  else
-    cons(first(c0), append(c0.cdr, c1))
-  end
-end
-
 def reverse(list)
   acc = list
   until list.empty?
@@ -103,20 +95,55 @@ def eval_list(expr_list, env, force_eval)
   list(*l)
 end
 
-# Similar to eval_list, but only returns the last evaluated value.
-# TODO Potential candidate for optimization?
-def eval_keep_last(expr_list, env)
-  if expr_list.empty?
-    # No expressions in the list -> Just return nil
-    list
-  elsif rest(expr_list).empty?
-    # Only one expression left -> Execute it and return.
-    eval_ly(first(expr_list), env)
+# Completely removes atoms and nil from the ast if they are not needed.
+def optimize_cdr(expr_list, env)
+  this_cdr = expr_list.cdr
+  if this_cdr.cdr.empty?
+    # Do not remove the last element in the list!
+    false
+  elsif this_cdr.car.is_a? Symbol
+    # If it's a symbol, try to find it and then remove it
+    eval_ly this_cdr.car, env
+    expr_list.set_cdr! this_cdr.cdr
+    true
+  elsif atom?(this_cdr.car) || this_cdr.car.nil?
+    # If it's any atomic type or nil, remove it
+    expr_list.set_cdr! this_cdr.cdr
+    true
   else
-    # At least 2 expressions left -> Execute the first and recurse
-    eval_ly(first(expr_list), env, true)
-    eval_keep_last(rest(expr_list), env)
+    # If it can't be easily deleted, remove it anyways.
+    false
   end
+end
+
+# Similar to eval_list, but only returns the last evaluated value.
+def eval_keep_last(expr_list, env)
+  return list if expr_list.empty?
+
+  until expr_list.cdr.empty?
+    if $enable_aggressive_optimizations
+      # Try to optimize pure function-call.
+      # This even removes impure arguments in the call, so be careful.
+      # Example:
+      #   (->string 1) becomes nil
+      #   (->string (readln!)) also becomes nil without ever executing the function
+      if expr_list.car.is_a?(List) && expr_list.car.car.is_a?(Symbol)
+        fn = env.safe_find expr_list.car.car
+        unless fn == NOT_FOUND_IN_LYRA_ENV
+          if fn.pure?
+            expr_list.set_car! nil
+          end
+        end
+      end
+
+      optimize_cdr(expr_list, env)
+    end
+
+    eval_ly expr_list.car, env, false, true
+    expr_list = expr_list.cdr
+  end
+
+  eval_ly expr_list.car, env
 end
 
 # Defines a new function or variable and puts it into the global LYRA_ENV.
@@ -358,8 +385,8 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         # The macro is first called and the resulting expression
         # is then executed.
         r1 = func.call(args, env)
-        #puts r1
-        # TODO Figure out how to do macro-expand here without setting car or cdr...
+        expr.set_car! :id
+        expr.set_cdr! list(r1)
         eval_ly(r1, env, force_eval)
       else
         # Check whether a tail-call is possible

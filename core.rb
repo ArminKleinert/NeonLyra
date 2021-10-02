@@ -2,8 +2,6 @@ require_relative 'types.rb'
 require_relative 'env.rb'
 require 'set'
 
-LYRA_VERSION = "0_0_1"
-
 def elem_to_s(e)
   if e == true
     "#t"
@@ -81,6 +79,7 @@ def setup_core_functions
 
   add_fn(:nothing, 0, -1) { |*_| nil }
 
+  add_fn_with_env(:"defined?", 1) { |x, env| env.safe_find(x.car) != NOT_FOUND_IN_LYRA_ENV }
   add_fn(:"box?", 1) { |m| m.is_a? Box }
   add_fn(:"nothing?", 1) { |m| m.nil? || m.value.nil? }
   add_fn(:"nil?", 1) { |x| x.nil? }
@@ -175,6 +174,11 @@ def setup_core_functions
   add_fn(:memoize, 1) { |fn| MemoizedLyraFn.new fn }
 
   add_var(:Nothing, nil)
+
+  add_fn(:load!, 1) { |file| eval_str(IO.read(file), Env.global_env) }
+  add_fn(:"read-string", 1) { |s| make_ast(tokenize(s)) }
+  add_fn_with_env(:"eval!", 1) { |x, env| eval_ly x, env }
+
   #add_var(:"very-long-list", (0..100_000).to_cons_list)
 
   add_fn_with_env(:"measure!", 2) { |args, env|
@@ -192,6 +196,9 @@ def setup_core_functions
       res << (t1 - t0) * 1000.0
     end
     median.call(res) }
+
+  # This is here to register it as a function and make it possible to remove it later.
+  add_fn(:quote, 1) { |_| raise "quote must not be called as a function." }
 
   true
 end

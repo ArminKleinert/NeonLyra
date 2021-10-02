@@ -34,10 +34,10 @@ box                  | 1   |  x  |  x  |
 unbox                | 1   |  x  |  x  | 
 set-box!             | 2   |  x  |  x  | 
                      |     |     |     | 
-load!                | 1   |     |     | Load file (Can be implemented as (eval (read-string (slurp! file))))
-require!             | 1   |     |     | Alias for load!
-read-string          | 1   |  x  |     | Parses a string into code.
-eval                 | 1   |  x  |     | Executes an object as code.
+load!                | 1   |     |  x  | Load file. Attention: load! always uses the global environment, not the local one.
+require!             | 1   |     |  x  | Alias for load!
+read-string          | 1   |  x  |  x  | Parses a string into code.
+eval!                | 1   |  x  |  x  | Executes an object as code.
                      |     |     |     | 
 measure!             | 2   |  x  |  x  | 
                      |     |     |     | 
@@ -62,6 +62,7 @@ bit-xor              | 2   |  x  |  x  |
 bit-shl              | 2   |  x  |  x  | 
 bit-shr              | 2   |  x  |  x  | 
                      |     |     |     | 
+defined?             | 1   |  x  |  x  | Checks whether or not a symbol is defined.
 nothing?             | 1   |  x  |  x  | True for the Nothing object
 null?                | 1   |  x  |  x  | True for both Nothing and '()
 collection?          | 1   |  x  |  x  | True for lists, vectors, maps and sets, false for others.

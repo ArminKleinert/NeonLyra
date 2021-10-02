@@ -89,14 +89,33 @@ end
 class NonEmptyList
   include Enumerable, List
 
-  attr_reader :size
-  attr_reader :car
-  attr_reader :cdr
-
   def initialize(head, tail, size)
     @car = head
     @cdr = tail
     @size = size
+  end
+
+  def car
+    @car
+  end
+
+  def cdr
+    @cdr
+  end
+
+  def size
+    @size
+  end
+
+  # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
+  def set_car!(c)
+    @car = c
+  end
+
+  # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
+  def set_cdr!(tail)
+    @cdr = tail
+    @size = tail.size + 1
   end
 
   def self.create(head, tail)
@@ -280,7 +299,7 @@ class NativeLyraFn < LyraFn
   end
 
   def pure?
-    name.end_with? "!"
+    !name.end_with?("!")
   end
 end
 
