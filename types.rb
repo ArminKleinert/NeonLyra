@@ -382,6 +382,7 @@ def new_lyra_type(name, attrs, env)
   counter = LYRA_TYPE_COUNTER.value
   env.set! :"make-#{name}", NativeLyraFn.new(:"make-#{name}", attrs.size) { |params, _| LyraType.new(counter, name, params.to_a) }
   env.set! :"#{name}?", NativeLyraFn.new(:"#{name}?", 1) { |o, _| o.car.is_a?(LyraType) && o.car.type_id == counter }
+  env.set! :"unwrap-#{name}", NativeLyraFn.new(:"unwrap-#{name}", 1) { |o, _| o.attrs }
 
   attrs.each_with_index do |attr, i|
     fn_name = :"#{name}-#{attr}"

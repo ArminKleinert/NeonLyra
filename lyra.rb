@@ -8,7 +8,7 @@ LYRA_VERSION = "0_0_4"
 # Treat the first console argument as a filename,
 # read from the file and evaluate the result.
 begin
-  puts elem_to_s(eval_str(IO.read("core1.lyra")))
+  puts elem_to_s(eval_str(IO.read("core.lyra")))
   ARGV.each do |f|
     elem_to_s(eval_str(IO.read(f)))
   end

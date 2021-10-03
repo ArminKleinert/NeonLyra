@@ -75,7 +75,7 @@ def setup_core_functions
 
   add_fn(:eager, 1) { |x| eager x }
   add_fn_with_env(:lazy, 1) { |xs, env| LazyObj.new xs.car, env }
-  add_fn(:partial, 1) { |x, *params| params.empty? ? x : PartialLyraFn.new(x, params.to_cons_list) }
+  add_fn(:partial, 1, -1) { |x, *params| params.empty? ? x : PartialLyraFn.new(x, params.to_cons_list) }
 
   add_fn(:nothing, 0, -1) { |*_| nil }
 
