@@ -200,5 +200,12 @@ def setup_core_functions
   # This is here to register it as a function and make it possible to remove it later.
   add_fn(:quote, 1) { |_| raise "quote must not be called as a function." }
 
+  add_fn(:typename, 1) { |x|
+    if x.nil?
+      "::Nothing"
+    else
+      ":: "+(x.is_a?(LyraType) ? x.name : x.class.to_s)
+    end }
+
   true
 end
