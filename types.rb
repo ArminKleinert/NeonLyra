@@ -1,3 +1,6 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
 require 'singleton'
 
 class LazyObj
@@ -174,25 +177,27 @@ Box = Struct.new(:value) do
   end
 end
 
+
+
 # Convenience functions.
 def first(c)
-  ; c.car;
+  c.car
 end
 
 def second(c)
-  ; c.cdr.car;
+  c.cdr.car
 end
 
 def third(c)
-  ; c.cdr.cdr.car;
+  c.cdr.cdr.car
 end
 
 def fourth(c)
-  ; c.cdr.cdr.cdr.car;
+  c.cdr.cdr.cdr.car
 end
 
 def rest(c)
-  ; c.cdr;
+  c.cdr
 end
 
 # Thrown when a tail-call should be done.
@@ -370,9 +375,10 @@ def atom?(x)
   x.is_a?(Numeric) || x.is_a?(String) || x.is_a?(Symbol) || !!x == x
 end
 
-LyraType = Struct.new(:type_id, :name, :attrs) do
-  def to_s
-    "#{attrs.inject("(#{name}") { |x, y| "#{x} #{elem_to_s(y)}" }})"
+class LyraType
+  attr_reader :name,:type_id,:attrs
+  def initialize(type_id,name,attrs)
+    @type_id,@name,@attrs = type_id,name,attrs
   end
 end
 

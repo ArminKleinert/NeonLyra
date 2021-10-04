@@ -1,3 +1,6 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
 require_relative 'types.rb'
 require_relative 'reader.rb'
 require_relative 'core.rb'

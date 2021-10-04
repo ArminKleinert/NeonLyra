@@ -1,3 +1,6 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
 require_relative 'types.rb'
 require_relative 'env.rb'
 require 'set'
@@ -202,12 +205,22 @@ def setup_core_functions
   # This is here to register it as a function and make it possible to remove it later.
   add_fn(:quote, 1) { |_| raise "quote must not be called as a function." }
 
-  add_fn(:typename, 1) { |x|
-    if x.nil?
-      "::Nothing"
+  def type_name_of (x)
+    case x.class
+    when NilClass
+      "::nothing"
+    when TrueClass,FalseClass
+      "::bool"
+    when LyraType
+      "::" + x.name
+    when Array
+      "::vector"
     else
-      ":: " + (x.is_a?(LyraType) ? x.name : x.class.to_s)
-    end }
+      "::" + x.class.to_s.downcase
+    end
+  end
+
+  add_fn(:typename, 1){|x| type_name_of(x)}
 
   true
 end

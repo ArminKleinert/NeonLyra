@@ -1,3 +1,6 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
 NOT_FOUND_IN_LYRA_ENV = BasicObject.new
 
 Boxed = Struct.new :val
