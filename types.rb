@@ -265,7 +265,7 @@ class CompoundFunc < LyraFn
 
   def pure?
     # TODO
-    false
+    !name.end_with?("!")
   end
 end
 
@@ -372,7 +372,7 @@ class MemoizedLyraFn < LyraFn
 end
 
 def atom?(x)
-  x.is_a?(Numeric) || x.is_a?(String) || x.is_a?(Symbol) || !!x == x
+  x.is_a?(Numeric) || x.is_a?(String) || x.is_a?(Symbol) || !!x == x || x.is_a?(LyraType) || x.is_a?(Box) || x.is_a?(LazyObj)
 end
 
 class LyraType

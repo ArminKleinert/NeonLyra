@@ -110,12 +110,12 @@ def setup_core_functions
   add_fn(:"always-false", 0, -1) { |*_| false }
 
   add_fn(:box, 1) { |x| Box.new(x) }
-  add_fn(:unbox, 2) { |b| b.value }
-  add_fn(:unwrap, 2) { |b| b.value } # Intended for use with any boxing type
+  add_fn(:unbox, 1) { |b| b.value }
+  add_fn(:unwrap, 1) { |b| b.value } # Intended for use with any boxing type
   add_fn(:"box-set!", 2) { |b, x| b.value = x; b }
 
   add_fn(:eager, 1) { |x| eager x }
-  add_fn_with_env(:lazy, 1) { |xs, env| LazyObj.new xs.car, env }
+  #add_fn_with_env(:lazy, 1) { |xs, env| LazyObj.new xs.car, env }
   add_fn(:partial, 1, -1) { |x, *params| params.empty? ? x : PartialLyraFn.new(x, params.to_cons_list) }
 
   add_fn(:nothing, 0, -1) { |*_| nil }
@@ -256,7 +256,9 @@ def setup_core_functions
     end
   end
 
-  add_fn(:typename, 1){|x| type_name_of(x)}
+  add_fn(:typename, 1) { |x| type_name_of(x)}
+  
+  add_fn(:ljust, 2) { |x, n| elem_to_s(x).ljust(n)}
 
   true
 end

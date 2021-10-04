@@ -10,12 +10,12 @@
 (define (foldl f v xs)
   (if (empty? xs)
     v
-    (foldl f (f v (car xs)) (cdr xs))))
+    (foldl f (f v (first xs)) (rest xs))))
 
 (define (foldr f v xs)
   (if (empty? xs)
     v
-    (f (car xs) (foldr f v (cdr xs)))))
+    (f (first xs) (foldr f v (rest xs)))))
 
 ; Function composition
 (define (compose f g)
@@ -79,6 +79,20 @@
   (cond ((empty? xs) '())
         ((p (first xs)) xs)
         (#t (drop-until p (rest xs)))))
+
+(define (all? p xs)
+  (= (size (drop-while p xs)) 0))
+(define (none? p xs)
+  (= (size (drop-until p xs)) 0))
+(define (any? p xs)
+  (cond ((empty? xs) #f)
+        ((p (first xs)) #t)
+        (#t (any? p (rest xs)))))
+
+; Variadic variants for all?, none? and any?
+(define (va-all? p & xs) (all? p xs))
+(define (va-none? p & xs) (none? p xs))
+(define (va-any? p & xs) (any? p xs))
 
 ;;; List and Vector stuff
 

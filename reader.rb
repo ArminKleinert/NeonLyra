@@ -72,6 +72,12 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
     when /^-?[0-9]+\.[0-9]+$/
       root << t.to_f
     when /^"(?:\\.|[^\\"])*"$/ then root << parse_str(t)
+    when ".?"
+      raise ".? on empty AST." if root.empty?
+      root[-1] = list(:unwrap, root[-1])
+    when ".!"
+      raise ".! on empty AST." if root.empty?
+      root[-1] = list(:eager, root[-1])
     else
       applications = []
       while t.end_with?(".?") || t.end_with?(".!")

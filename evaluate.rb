@@ -239,6 +239,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
   elsif expr.is_a?(Symbol)
     env.find expr # Get associated value from env
   elsif atom?(expr) || expr.is_a?(LyraFn)
+    #force_eval ? eager(expr) : expr
     expr
   elsif expr.is_a? Array
     if expr.all? { |x| !x.is_a?(Symbol) && atom?(x) }
@@ -384,6 +385,8 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       raise "apply is not implemented."
     when :module
       ev_module expr
+    when :lazy
+      LazyObj.new expr.cdr.car, env
     else
       # Here, the expression will have a form like the following:
       # (func arg0 arg1 ...)
@@ -402,6 +405,11 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       # If `expr` had the form `((...) ...)`, then the result of the
       # inner list must be executed too.
       func = eval_ly(func, env, force_eval) if func.is_a?(ConsList)
+      
+      raise "Runtime error: Expected a function, got #{elem_to_s(func)}" unless func.is_a?(LyraFn)
+
+      # If the function is not pure, force evaluation.
+      force_eval = true unless func.pure?
 
       if func.native?
         LYRA_CALL_STACK.push func

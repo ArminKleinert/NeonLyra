@@ -1,0 +1,86 @@
+(define (test-lazy)
+  ;((lambda (x y) (lazy (/ x y))) 0 0) ; If this does not crash, then we know that the expression was not evaluated.
+  (lazy (/ 0 0)) ; If this does not crash, then we know that the expression was not evaluated.)
+  )
+
+(define (test-lazy-2)
+  (va-all? id
+    (lazy #f)
+    (lazy #t)
+    (lazy #t).!))
+
+(define (test-partial)
+  (va-all? id
+    (= ((partial + 0) 5) (+ 0 5))
+    (= ((partial foldl + 0) (list 1 2 3 4 5)) (foldl + 0 (list 1 2 3 4 5)))))
+
+(define (test-seq)
+  (va-all? id
+    (nothing? (seq 1))
+    (nothing? (seq 'a))
+    (nothing? (seq "abc"))
+    (nothing? (seq 99.5))
+    (nothing? (seq (lazy 6)))
+    (nothing? (seq '()))
+    (sequence? (seq (list 1 2 3 4 5)))
+    (sequence? (seq (vector 1 2 3 4 5)))))
+
+(define (test-nothing)
+  (va-all? id
+    (nothing? (nothing 1))
+    (nothing? (nothing 'a))
+    (nothing? (nothing "abc"))
+    (nothing? (nothing 99.5))
+    (nothing? (nothing (lazy 6)))
+    (nothing? (nothing '()))
+    (nothing? (nothing (list 1 2 3 4 5)))
+    (nothing? (nothing (vector 1 2 3 4 5)))))
+
+(define (test-box)
+  (let1 (b (box 5))
+    (va-all? id
+      (box? b)
+      (= b.? 5)
+      (= (unbox b) 5)
+      (int? b.?)
+      (always-true (box-set! b 16))
+      (box? b)
+      (= b.? 16)
+      (= (unbox b) 16)
+      (int? b.?))))
+
+(define (run-test! name test-fn)
+  (let1 (res (test-fn))
+    (println!
+      (append
+        (ljust name 25) 
+        (if res "Success!" "Failure!")))))
+
+(test-lazy) ; If the test fails, the program will crash.
+(run-test! 'lazy test-lazy-2)
+(run-test! 'partial test-partial)
+(run-test! 'seq test-seq)
+(run-test! 'nothing test-nothing)
+(run-test! 'box test-box)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
