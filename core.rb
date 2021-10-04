@@ -7,6 +7,8 @@ def elem_to_s(e)
     "#t"
   elsif e == false
     "#f"
+  elsif e.nil?
+    ""
   elsif e.is_a? Array
     "[#{e.inject { |x, y| "#{elem_to_s(x)} #{elem_to_s(y)}" }}]"
   else
@@ -81,12 +83,12 @@ def setup_core_functions
 
   add_fn_with_env(:"defined?", 1) { |x, env| env.safe_find(x.car) != NOT_FOUND_IN_LYRA_ENV }
   add_fn(:"box?", 1) { |m| m.is_a? Box }
-  add_fn(:"nothing?", 1) { |m| m.nil? || m.value.nil? }
+  add_fn(:"nothing?", 1) { |m| m.nil? }
   add_fn(:"nil?", 1) { |x| x.nil? }
   add_fn(:"null?", 1) { |x| x.nil? || x.is_a?(EmptyList) }
   add_fn(:"collection?", 1) { |x| x.is_a?(Enumerable) }
-  add_fn(:"sequence?", 1) { |x| x.is_a?(List) || x.is_a?(Array) }
-  add_fn(:"list?", 1) { |x| x.is_a? List }
+  add_fn(:"sequence?", 1) { |x| x.is_a?(ConsList) || x.is_a?(Array) }
+  add_fn(:"list?", 1) { |x| x.is_a? ConsList }
   add_fn(:"vector?", 1) { |x| x.is_a? Array }
   add_fn(:"int?", 1) { |x| x.is_a? Integer }
   add_fn(:"float?", 1) { |x| x.is_a? Float }
@@ -146,13 +148,13 @@ def setup_core_functions
 
   add_fn(:first, 1) { |c|
     if c.is_a?(Enumerable)
-      c.is_a?(List) ? c.car : c[0]
+      c.is_a?(ConsList) ? c.car : c[0]
     else
       nil
     end }
   add_fn(:rest, 1) { |c|
     if c.is_a?(Enumerable)
-      c.is_a?(List) ? c.cdr : c[1..-1]
+      c.is_a?(ConsList) ? c.cdr : c[1..-1]
     else
       nil
     end }
@@ -204,7 +206,7 @@ def setup_core_functions
     if x.nil?
       "::Nothing"
     else
-      ":: "+(x.is_a?(LyraType) ? x.name : x.class.to_s)
+      ":: " + (x.is_a?(LyraType) ? x.name : x.class.to_s)
     end }
 
   true

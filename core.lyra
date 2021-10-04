@@ -3,6 +3,10 @@
 (define (list & xs)
   xs)
 
+(define (not x) (if x #f #t))
+(def-macro (and x y) (list 'if x y #f))
+(def-macro (or x y) (list 'let1 (list 'x0 x) (list 'if 'x0 'x0 y)))
+
 (define (foldl f v xs)
   (if (empty? xs)
     v
@@ -17,6 +21,18 @@
 (define (compose f g)
   (lambda (x) (f (g x))))
 
+; Function composition
+(define (compose-or f g)
+  (lambda (x) (or (f x) (g x))))
+
+; Function composition
+(define (compose-and f g)
+  (lambda (x) (and (f x) (g x))))
+
+; Function complement
+(define (complement p)
+  (lambda (x) (p x)))
+
 (def-macro (begin & exprs)
   (cons 'let (cons '() exprs)))
 
@@ -24,6 +40,45 @@
   (list 'define (car name-bindings) (list 'memoize (cons 'lambda (cons (cdr name-bindings) body)))))
 
 (define (map f xs) (foldr (lambda (x v) (cons (f x) v)) '() xs))
+(define (filter p xs) (foldr (lambda (x v) (if (p x) (cons x v) v)) '() xs))
+(define (remove p xs) (filter (complement p) xs))
+
+(define (fmap f p xs)
+ (foldr
+  (lambda (x v)
+    (if (p x) (cons (f x) v) v))
+  '() xs))
+(define (mapf f p xs)
+ (foldr
+  (lambda (x v)
+    (let1 (z (f x)) (if (p z) (cons z v) v)))
+  '() xs))
+
+(define (take n xs)
+  (cond ((= n 0) '())
+        ((empty? xs) '())
+        (#t (cons (first xs) (take (- n 1) (rest xs))))))
+(define (take-while p xs)
+  (cond ((empty? xs) '())
+        ((p (first xs)) (cons (first xs) (take-while p (rest xs))))
+        (#t '())))
+(define (take-until p xs)
+  (cond ((empty? xs) '())
+        ((p (first xs)) '())
+        (#t (cons (first xs) (take-until p (rest xs))))))
+
+(define (drop n xs)
+  (cond ((= n 0) xs)
+        ((empty? xs) '())
+        (#t (drop (- n 1) (rest xs)))))
+(define (drop-while p xs)
+  (cond ((empty? xs) '())
+        ((p (first xs)) (drop-while p (rest xs)))
+        (#t xs)))
+(define (drop-until p xs)
+  (cond ((empty? xs) '())
+        ((p (first xs)) xs)
+        (#t (drop-until p (rest xs)))))
 
 ;;; List and Vector stuff
 
@@ -42,6 +97,9 @@
 (define reduce foldl)
 
 ;;; Aliases for Clojure devs.
+
+(def-macro (when p & body)
+  (list 'if p (cons 'begin (cons Nothing body)) (nothing)))
 
 (def-macro (def name val)
   (list 'define name val))

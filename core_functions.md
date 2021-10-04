@@ -53,6 +53,7 @@ measure!             | 2   |  x  |  x  |
 /                    | 2   |  x  |  x  | 
 rem                  | 2   |  x  |  x  | 
                      |     |     |     | 
+not                  | 1   |  x  |  x  | 
 and                  | 2   |  x  |  x  | 
 or                   | 2   |  x  |  x  | 
                      |     |     |     | 
@@ -78,6 +79,11 @@ boolean?             | 1   |  x  |  x  |
 map?                 | 1   |  x  |  x  | 
 set?                 | 1   |  x  |  x  | 
 empty?               | 1   |  x  |  x  | 
+                     |     |     |     | 
+compose              | 2   |  x  |  x  | Given 2 functions f and g, makes a new function for (f (g x))
+compose-and          | 2   |  x  |  x  | Given 2 functions f and g, makes a new function for checking (and (f x) (g x))
+compose-or           | 2   |  x  |  x  | Given 2 functions f and g, makes a new function for checking (or (f x) (g x))
+complement           | 1   |  x  |  x  | Returns given a function p, returns a function which checks (not (p x))
                      |     |     |     | 
 id                   | 1   |  x  |  x  | 
 id-fn                | 1   |  x  |  x  | Creates a function which always returns the object.

@@ -127,7 +127,7 @@ def eval_keep_last(expr_list, env)
       # Example:
       #   (->string 1) becomes nil
       #   (->string (readln!)) also becomes nil without ever executing the function
-      if expr_list.car.is_a?(List) && expr_list.car.car.is_a?(Symbol)
+      if expr_list.car.is_a?(ConsList) && expr_list.car.car.is_a?(Symbol)
         fn = env.safe_find expr_list.car.car
         unless fn == NOT_FOUND_IN_LYRA_ENV
           if fn.pure?
@@ -149,7 +149,7 @@ end
 # Defines a new function or variable and puts it into the global LYRA_ENV.
 # If `is_macro` is true, the function will not evaluate its arguments right away.
 def ev_define(expr, env, is_macro)
-  if first(expr).is_a?(List)
+  if first(expr).is_a?(ConsList)
     # Form is `(define (...) ...)` (Function definition)
     name = first(first(expr))
     args_expr = rest(first(expr))
@@ -217,8 +217,8 @@ end
 
 # Evaluation function
 def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
-  if expr.nil? || (expr.is_a?(List) && expr.empty?)
-    list # nil evaluates to nil
+  if expr.nil? || (expr.is_a?(ConsList) && expr.empty?)
+    expr
   elsif expr.is_a?(Symbol)
     env.find expr # Get associated value from env
   elsif atom?(expr) || expr.is_a?(LyraFn)
@@ -229,7 +229,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
     else
       expr.map { |x| eval_ly x, env, force_eval, true }
     end
-  elsif expr.is_a?(List)
+  elsif expr.is_a?(ConsList)
     # The expression is a cons and probably starts with a symbol.
     # The evaluate function will try to treat the symbol as a function
     # and execute it.
@@ -285,7 +285,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
     when :"let*"
       raise "let* needs at least 1 argument." if expr.cdr.empty?
       bindings = second(expr)
-      raise "let bindings must be a list." unless bindings.is_a?(List) || bindings.is_a?(EmptyList)
+      raise "let bindings must be a list." unless bindings.is_a?(ConsList) || bindings.is_a?(EmptyList)
 
       body = rest(rest(expr))
       env1 = env
@@ -300,7 +300,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       eval_keep_last(body, env1)
     when :"let1"
       raise "let1 needs at least 1 argument." if expr.cdr.empty?
-      raise "let1 bindings must be a non-empty list." unless second(expr).is_a?(List)
+      raise "let1 bindings must be a non-empty list." unless second(expr).is_a?(ConsList)
 
       name = first(second(expr))
       val = eval_ly(second(second(expr)), env, force_eval) # Evaluate the value.
@@ -310,7 +310,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
     when :let
       raise "let needs at least 1 argument." if expr.cdr.empty?
       bindings = second(expr)
-      raise "let bindings must be a list." unless bindings.is_a?(List) || bindings.is_a?(EmptyList)
+      raise "let bindings must be a list." unless bindings.is_a?(ConsList) || bindings.is_a?(EmptyList)
 
       body = rest(rest(expr))
       env1 = env
@@ -373,7 +373,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
 
       # If `expr` had the form `((...) ...)`, then the result of the
       # inner list must be executed too.
-      func = eval_ly(func, env, force_eval) if func.is_a?(List)
+      func = eval_ly(func, env, force_eval) if func.is_a?(ConsList)
 
       if func.native?
         LYRA_CALL_STACK.push func
@@ -385,6 +385,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         # The macro is first called and the resulting expression
         # is then executed.
         r1 = func.call(args, env)
+        #puts r1
         expr.set_car! :id
         expr.set_cdr! list(r1)
         eval_ly(r1, env, force_eval)

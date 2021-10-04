@@ -100,7 +100,7 @@ Here are some differences to Clojure I could think of:
 - `seq` returns `Nothing` for all types that aren't collections.  
 - modules (`module`) instead of namespaces (`ns`).  
 - `true` is an alias for `#t`.  
-- All impure functions end with the postfix `!` (like `load!`, `readln!`, ...).  
+- All impure functions end with the postfix `!` (like `load!`, `readln!`, ...).
 
 ## Example
 
@@ -108,19 +108,54 @@ Here are some differences to Clojure I could think of:
 ; sum using normal recursion
 (define (sum xs) (if (empty? xs) 0 (+ (first xs) (sum (rest xs)))))
 
-; sum using tail-recursion and default value (not implemented yet)
-(define (sum xs (res 0)) (if (empty? xs) res (sum (rest xs) (+ (first xs) res))))
-
 ; sum using foldl
 (define (sum xs) (foldl + 0 xs))
 
 ; sum using a partial function
 (define sum (partial + 0))
+
+; Example macro for a Clojure-like 'when'
+(def-macro (when p & body) (list 'if p (cons 'begin body) Nothing))
+
+; Becomes (if #t (begin (println! 5) 66) Nothing)
+; This expression is then evaluated, prints 5 and returns 66
+(when #t (println! 5) 66))
+
+; Becomes (if #f (begin (println! 5) 66) Nothing)
+; This expression just returns Nothing
+(when #t (println! 5) 66))
+```
+
+## Example of a user-defined type
+
+```
+; Registers a new type 'pair'.
+; This automatically generates the functions in the current module
+;   make-pair x y
+;   pair? p
+;   unwrap-pair p
+;   pair-x p
+;   pair-y p
+(def-type pair x y)
+
+(let1 (p (make-pair 1 2)) ; Creates a new pair
+  (pair? p) ; #t
+  (pair? 5) ; #f
+  (unwrap-pair p) ; [1 2]
+  (pair-x p) ; 1
+  (pair-y p)) ; 1
+
+; The name 'pair' can still be safely used.
+(define (pair x y) (make-pair x y))
 ```
 
 ## Changelog
 
 - 0.0.1 The thing works but lacks functionality.  
 - 0.0.2 Macros, types, more functions, modules, @ prefix  
-- 0.0.3 measure, memoize, def-memo, fixed lookup bug in lambdas  
-- 0.0.4 Loading of other source-files, more functions, aggressive optimizer (currently turned off)  
+- 0.0.3 measure, memoize, def-memo, fixed lookup bug in lambdas
+- 0.0.4 Loading of other source-files, more functions, aggressive optimizer (currently turned off)
+- 0.0.5 
+  - and, or, complement, composition, take and drop (and their variants)
+  - fixed a bug with nil
+  - renamed List to ConsList and NonEmptyList to List

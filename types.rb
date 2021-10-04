@@ -23,7 +23,7 @@ end
 
 module Enumerable
   def to_cons_list
-    if is_a?(List)
+    if is_a?(ConsList)
       self
     else
       list(*to_a)
@@ -31,7 +31,7 @@ module Enumerable
   end
 end
 
-module List
+module ConsList
   include Enumerable
 
   def each
@@ -67,7 +67,7 @@ module List
 end
 
 class EmptyList
-  include Singleton, Enumerable, List
+  include Singleton, Enumerable, ConsList
 
   def car
     self
@@ -86,8 +86,8 @@ class EmptyList
   end
 end
 
-class NonEmptyList
-  include Enumerable, List
+class List
+  include Enumerable, ConsList
 
   def initialize(head, tail, size)
     @car = head
@@ -119,8 +119,8 @@ class NonEmptyList
   end
 
   def self.create(head, tail)
-    raise "Illegal cdr" unless tail.is_a? List
-    NonEmptyList.send :new, head, tail, tail.size + 1
+    raise "Illegal cdr" unless tail.is_a? ConsList
+    List.send :new, head, tail, tail.size + 1
   end
 
   private_class_method :new
@@ -144,7 +144,8 @@ class NonEmptyList
 end
 
 def cons(e, l)
-  NonEmptyList.create(e, l ? l : EmptyList.instance)
+  raise "Tail must be a list." unless l.is_a?(ConsList)
+  List.create(e, l)
 end
 
 def list(*args)
@@ -160,11 +161,11 @@ def list(*args)
 end
 
 def car(e)
-  e.is_a?(List) ? e.car : EmptyList.instance
+  e.is_a?(ConsList) ? e.car : EmptyList.instance
 end
 
 def cdr(e)
-  e.is_a?(List) ? e.cdr : EmptyList.instance
+  e.is_a?(ConsList) ? e.cdr : EmptyList.instance
 end
 
 Box = Struct.new(:value) do
