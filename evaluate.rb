@@ -60,12 +60,17 @@ end
 def ev_module(expr)
   expr = expr.cdr
   name = expr.car
+
+  raise "Syntax error: Module name must be a symbol but is #{name}." unless name.is_a?(Symbol)
+
   return name if IMPORTED_MODULES.include? name
 
   module_env = Env.create_module_env name
   expr = expr.cdr
   bindings = expr.car
   forms = expr.cdr
+  raise "Syntax error: Module bindings must be a list." unless bindings.is_a?(ConsList)
+  raise "Syntax error: Module forms must be a list." unless bindings.is_a?(ConsList)
 
   eval_keep_last forms, module_env
 
@@ -78,18 +83,10 @@ def ev_module(expr)
   name
 end
 
-def reverse(list)
-  acc = list
-  until list.empty?
-    acc = cons(first(list), acc)
-    list = rest(list)
-  end
-  acc
-end
-
 # Takes a List (list of expressions), calls eval_ly on each element
 # and return a new list.
 def eval_list(expr_list, env, force_eval)
+  raise "Syntax error: Expression must be a list." unless expr_list.is_a?(ConsList)
   l = []
   until expr_list.empty?
     l << eval_ly(first(expr_list), env, force_eval, true)
@@ -121,6 +118,8 @@ end
 
 # Similar to eval_list, but only returns the last evaluated value.
 def eval_keep_last(expr_list, env)
+  raise "Syntax error: Expression must be a list." unless expr_list.is_a?(ConsList)
+
   return list if expr_list.empty?
 
   until expr_list.cdr.empty?
@@ -152,7 +151,18 @@ end
 # Defines a new function or variable and puts it into the global LYRA_ENV.
 # If `is_macro` is true, the function will not evaluate its arguments right away.
 def ev_define(expr, env, is_macro)
-  if first(expr).is_a?(ConsList)
+  unless expr.is_a?(List) && !expr.empty?
+    raise "Syntax error: No name and no body for define or def-macro."
+  end
+  unless first(expr).is_a?(List) || first(expr).is_a?(Symbol)
+  raise "Syntax error: First element in define or def-macro must be a list or symbol."
+  end
+
+  if first(expr).is_a?(List)
+    unless first(first(expr)).is_a?(Symbol)
+      raise "Syntax error: Name of function in define must be a symbol."
+    end
+
     # Form is `(define (...) ...)` (Function definition)
     name = first(first(expr))
     args_expr = rest(first(expr))
@@ -180,6 +190,10 @@ def ev_lambda(args_expr, body_expr, definition_env, is_macro = false)
   arg_arr = args_expr.to_a
   arg_count = arg_arr.size
   max_args = arg_count
+
+  unless arg_arr.all?{|x| x.is_a? Symbol}
+    raise "Syntax error: Arguments for lambda must be symbols."
+  end
 
   # Check for variadic arguments.
   # The arguments of a function are variadic if the second to last
@@ -228,6 +242,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
     expr
   elsif expr.is_a? Array
     if expr.all? { |x| !x.is_a?(Symbol) && atom?(x) }
+      # Nothing to evaluate.
       expr
     else
       expr.map { |x| eval_ly x, env, force_eval, true }
@@ -262,6 +277,9 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       clauses = rest(expr)
       result = nil
       until clauses.empty?
+        unless first(clauses).size == 2
+          raise "Syntax error: Clause in cond must have exactly 2 bindings."
+        end
         predicate = eval_ly(first(first(clauses)), env, force_eval)
         if predicate
           result = eval_ly(second(first(clauses)), env, force_eval)
@@ -271,7 +289,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       end
       result
     when :lambda
-      raise "lambda must take at least 1 argument." if expr.cdr.empty?
+      raise "lambda without bindings." if expr.cdr.empty?
 
       # Defines an anonymous function.
       # Form: `(lambda (arg0 arg1 ...) body...)`
@@ -286,15 +304,17 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       # If the body is empty, the function returns nil.
       ev_define(rest(expr), env, false)
     when :"let*"
-      raise "let* needs at least 1 argument." if expr.cdr.empty?
+      raise "Syntax error: let* needs at least 1 argument." if expr.cdr.empty?
       bindings = second(expr)
-      raise "let bindings must be a list." unless bindings.is_a?(ConsList) || bindings.is_a?(EmptyList)
+      raise "Syntax error: let bindings must be a list." unless bindings.is_a?(ConsList) || bindings.is_a?(EmptyList)
 
       body = rest(rest(expr))
       env1 = env
       unless bindings.empty?
         env1 = Env.new(nil, env)
         bindings.each do |b|
+          raise "Syntax error: Binding in let* must have 2 parts." unless b.size == 2
+          raise "Syntax error: Name of binding in let* must be a symbol." unless b.car.is_a? Symbol
           env1.set!(b.car, eval_ly(b.cdr.car, env1, force_eval))
         end
       end
@@ -302,8 +322,10 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       # Execute the body.
       eval_keep_last(body, env1)
     when :"let1"
-      raise "let1 needs at least 1 argument." if expr.cdr.empty?
-      raise "let1 bindings must be a non-empty list." unless second(expr).is_a?(ConsList)
+      raise "Syntax error: let1 needs at least 1 argument." if expr.cdr.empty?
+      raise "Syntax error: let1 bindings must be a non-empty list." unless second(expr).is_a?(ConsList)
+
+      raise "Syntax error: Binding in let* must have 2 parts." unless first(second(expr)).is_a? Symbol
 
       name = first(second(expr))
       val = eval_ly(second(second(expr)), env, force_eval) # Evaluate the value.
@@ -311,13 +333,15 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       env1.set!(name, val)
       eval_keep_last(rest(rest(expr)), env1) # Evaluate the body.
     when :let
-      raise "let needs at least 1 argument." if expr.cdr.empty?
+      raise "Syntax error: let needs at least 1 argument." if expr.cdr.empty?
       bindings = second(expr)
-      raise "let bindings must be a list." unless bindings.is_a?(ConsList) || bindings.is_a?(EmptyList)
+      raise "Syntax error: let bindings must be a list." unless bindings.is_a?(ConsList) || bindings.is_a?(EmptyList)
 
       body = rest(rest(expr))
       env1 = env
       unless bindings.empty?
+        raise "Syntax error: Binding in let must have 2 parts." unless b.size == 2
+        raise "Syntax error: Name of binding in let must be a symbol." unless b.car.is_a? Symbol
         env1 = Env.new(nil, env)
         # Evaluate bindings in order using the old environment.
         bindings.each do |b|
@@ -329,12 +353,13 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       eval_keep_last(body, env1)
     when :"def-type"
       expr = expr.cdr
+      raise "Syntax error: def-type without a name." if expr.empty?
       new_lyra_type(expr.car, expr.cdr, env.next_module_env)
     when :quote
       # Quotes a single expression so that it is not evaluated when
       # passed.
       if rest(expr).empty? || !(rest(rest(expr)).empty?)
-        raise "quote takes exactly 1 argument"
+        raise "Syntax error: quote takes exactly 1 argument"
       end
       second(expr)
     when :"def-macro"

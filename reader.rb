@@ -16,9 +16,9 @@ def tokenize(s)
   s.scan(LYRA_REGEX).flatten.reject { |w| w.empty? || w.start_with?(";") }
 end
 
-# Un-escapes a string and removed the '"' from beginning and end..
+# Un-escapes a string and removed the '"' from beginning and end.
 def parse_str(token)
-  token.gsub(/\\./, { "\\\\" => "\\", "\\n" => "\n", "\\\"" => '"' })[1..-2]
+  token.gsub(/\\./, { "\\\\" => "\\", "\\n" => "\n", "\\\"" => '"' })[1..-2].freeze
 end
 
 # Builds the abstract syntax tree and converts all expressions into their

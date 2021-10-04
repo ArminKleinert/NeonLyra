@@ -5,6 +5,42 @@ require_relative 'types.rb'
 require_relative 'env.rb'
 require 'set'
 
+=begin
+FUNC_MAP = {}
+FuncMapEntry = Struct.new :fallback, :inner
+
+def find_fn(func_name, type_name)
+  f = FUNC_MAP[func_name]
+  if f.nil?
+    raise "Function not found: #{f}"
+  else
+    specific = f.inner[type_name]
+    if specific.nil?
+      raise "No candidate on function #{f} with type #{type_name}." unless f.fallback
+      f.fallback
+    else
+      specific
+    end
+  end
+end
+
+def add_fn(func_name, type_name, implementation)
+  entry = FUNC_MAP[func_name]
+  unless entry
+    entry = FuncMapEntry.new nil, {}
+    FUNC_MAP[func_name] = FuncMapEntry.new nil, {}
+  end
+
+  entry.inner[type_name] = implementation
+end
+
+def def_generic_fn(func_name, fallback)
+  entry = FuncMapEntry.new fallback,{}
+  raise "Function #{func_name} is already defined." if FUNC_MAP.include? func_name
+  FUNC_MAP[func_name] = entry
+end
+=end
+
 def elem_to_s(e)
   if e == true
     "#t"
