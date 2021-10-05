@@ -67,6 +67,23 @@ module ConsList
   def +(c)
     list(*(to_a + c.to_a))
   end
+  
+  def ==(c)
+    if c.is_a? ConsList
+      c0 = self
+      until c0.empty? || c.empty?
+        return false if c0.car != c.car
+        c0 = c0.cdr
+        c = c.cdr
+      end
+      # If both lists are empty and all elements were equal to far, then the lists must be equal
+      c0.empty? && c.empty?
+      #    elsif c.is_a? Enumerable
+      #self == c.to_cons_list
+    else
+      false
+    end
+  end
 end
 
 class EmptyList
@@ -379,6 +396,7 @@ class LyraType
   attr_reader :name,:type_id,:attrs
   def initialize(type_id,name,attrs)
     @type_id,@name,@attrs = type_id,name,attrs
+    @attrs.freeze
   end
 end
 

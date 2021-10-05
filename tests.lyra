@@ -63,6 +63,16 @@
 (run-test! 'nothing test-nothing)
 (run-test! 'box test-box)
 
+(println! (eq? (list 1 2 3 4 5) (list 1 2 3 4 5)))
+(println! (eq? (list 1 2 3 4 5) (vector 1 2 3 4 5)))
+(println! (eq? (list 1 2 3 4 5) (set-of 1 2 3 4 5)))
+(println! (eq? (vector 1 2 3 4 5) (list 1 2 3 4 5)))
+(println! (eq? (vector 1 2 3 4 5) (vector 1 2 3 4 5)))
+(println! (eq? (vector 1 2 3 4 5) (set-of 1 2 3 4 5)))
+(println! (eq? (set-of 1 2 3 4 5) (list 1 2 3 4 5)))
+(println! (eq? (set-of 1 2 3 4 5) (vector 1 2 3 4 5)))
+(println! (eq? (set-of 1 2 3 4 5) (set-of 1 2 3 4 5)))
+
 
 
 

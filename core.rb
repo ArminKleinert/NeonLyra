@@ -41,6 +41,24 @@ def def_generic_fn(func_name, fallback)
 end
 =end
 
+def lyra_eq?(x, y)
+  if atom?(x) && atom?(y)
+    x == y
+  elsif x.is_a?(Enumerable)
+    if y.is_a?(Enumerable)
+      x.to_a == y.to_a
+    elsif y.is_a?(LyraType)
+      x.to_a == y.attrs
+    else
+      false
+    end
+  elsif y.is_a?(Enumerable)
+    lyra_eq?(y,x)
+  else
+    x == y
+  end
+end
+
 def elem_to_s(e)
   if e == true
     "#t"
@@ -49,7 +67,11 @@ def elem_to_s(e)
   elsif e.nil?
     ""
   elsif e.is_a? Array
-    "[#{e.inject { |x, y| "#{elem_to_s(x)} #{elem_to_s(y)}" }}]"
+    "[#{e.map { |x| elem_to_s(x)}.join("")}]"
+  elsif e.is_a? Hash
+    "Map[" + e.map{|k,v| "#{elem_to_s(k)} #{elem_to_s(v)}"}.join("") + "]"
+  elsif e.is_a? Set
+    "Set[#{e.map { |x| elem_to_s(x)}.join("")}]"
   else
     e.to_s
   end
@@ -144,7 +166,7 @@ def setup_core_functions
   add_fn(:id, 1) { |x| x }
   add_fn(:"id-fn", 1) { |x| NativeLyraFn.new("", 0) { x } }
   add_fn(:hash, 1) { |x| x.hash }
-  add_fn(:"eq?", 2) { |x, y| x == y }
+  add_fn(:"eq?", 2) { |x, y| lyra_eq?(x, y) }
 
   add_fn(:symbol, 1) { |x| x.respond_to?(:to_sym) ? x.to_sym : nil }
   add_fn(:"->symbol", 1) { |x| x.respond_to?(:to_sym) ? x.to_sym : nil }
@@ -173,6 +195,7 @@ def setup_core_functions
   add_fn(:"vector-nth", 2) { |xs, i| xs[i] }
   add_fn(:"vector-add", 2) { |xs, y| xs + [y] }
   add_fn(:"vector-append", 2) { |xs, ys| xs + ys }
+  add_fn(:"vector-includes?", 2) { |xs, ys| xs.include? ys }
 
   add_fn(:"map-of", 0, -1) { |*xs| xs.to_h }
   add_fn(:"map-size", 1) { |m| m.size }
@@ -181,6 +204,21 @@ def setup_core_functions
   add_fn(:"map-remove", 2) { |m, k| m.select { |k1, _| k != k1 } }
   add_fn(:"map-keys", 1) { |m| m.keys }
   add_fn(:"map-merge", 2) { |m, m2| Hash[m].merge!(m2) }
+  add_fn(:"map-has-key?",2){|m,k| m.has_key? k}
+  add_fn(:"map-has-value?",2){|m,v| m.has_value? v}
+  add_fn(:"map-entries",1){|m| m.to_a}
+
+  add_fn(:"set-of", 0,-1) {|*xs| xs.to_set}
+  add_fn(:"set-size",1) {|s| s.size}
+  add_fn(:"set-add", 2){|s, e| s.add e }
+  add_fn(:"set-union",2){|s0,s1| s0 | s1}
+  add_fn(:"set-difference",2){|s0,s1| s0 - s1}
+  add_fn(:"set-intersection",2){|s0,s1| s0 & s1}
+  add_fn(:"set-includes?", 2){|s, e| s.include? e }
+  add_fn(:"set-subset?", 2){|s0, s1| s0 <= s1 }
+  add_fn(:"set-true-subset?", 2){|s0, s1| s0 < s1 }
+  add_fn(:"set-superset?", 2){|s0, s1| s0 >= s1 }
+  add_fn(:"set-true-superset?", 2){|s0, s1| s0 > s1 }
 
   add_fn(:size, 1) { |c| c.is_a?(Enumerable) ? c.size : nil }
   add_fn(:"contains?", 2) { |c, e| c.include? e }
@@ -245,7 +283,7 @@ def setup_core_functions
     case x.class
     when NilClass
       "::nothing"
-    when TrueClass,FalseClass
+    when TrueClass, FalseClass
       "::bool"
     when LyraType
       "::" + x.name
@@ -256,9 +294,9 @@ def setup_core_functions
     end
   end
 
-  add_fn(:typename, 1) { |x| type_name_of(x)}
-  
-  add_fn(:ljust, 2) { |x, n| elem_to_s(x).ljust(n)}
+  add_fn(:typename, 1) { |x| type_name_of(x) }
+
+  add_fn(:ljust, 2) { |x, n| elem_to_s(x).ljust(n) }
 
   true
 end
