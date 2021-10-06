@@ -16,10 +16,20 @@
     v
     (foldl f (f v (first xs)) (rest xs))))
 
+(define (foldl1 f xs)
+  (cond ((empty? xs) Nothing)
+        ((= (size xs) 1) (first xs))
+        (else (foldl f (first xs) (rest xs)))))
+
 (define (foldr f v xs)
   (if (empty? xs)
     v
     (f (first xs) (foldr f v (rest xs)))))
+
+(define (foldr1 f xs)
+  (cond ((empty? xs) Nothing)
+        ((= (size xs) 1) (first xs))
+        (else (foldr f (first xs) (rest xs)))))
 
 ; Function composition
 (define (compose f g)
@@ -143,6 +153,8 @@
 
 (define (min n m) (if (< n m) n m))
 (define (max n m) (if (< n m) m n))
+(define (minimum xs) (foldl1 min xs))
+(define (maximum xs) (foldl1 max xs))
 
 (define (range from to)
   (if (> from to)
@@ -189,4 +201,9 @@
 (define spit! file-write!)
 
 'ok
+
+
+
+
+
 

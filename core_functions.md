@@ -48,10 +48,16 @@ measure!             | 2   |  x  |  x  |
 >=                   | 2   |  x  |  x  | 
                      |     |     |     | 
 +                    | 2   |  x  |  x  | 
+v+                   | >=1 |  x  |  x  | Variadic +
 -                    | 2   |  x  |  x  | 
 *                    | 2   |  x  |  x  | 
 /                    | 2   |  x  |  x  | 
 rem                  | 2   |  x  |  x  | 
+                     |     |     |     | 
+inc                  | 1   |  x  |  x  | Increases a number by 1.
+dec                  | 1   |  x  |  x  | Decreases a number by 1.
+min                  | 2   |  x  |  x  | Get minimum of 2 objects.
+max                  | 2   |  x  |  x  | Get maximum of 2 objects.
                      |     |     |     | 
 not                  | 1   |  x  |  x  | 
 and                  | 2   |  x  |  x  | 
@@ -187,6 +193,13 @@ any?                 | 2   |  x  |  x  | Checks whether a predicate is true for 
 va-all?              | >=1 |  x  |  x  | Variadic version of all?
 va-none?             | >=1 |  x  |  x  | Variadic version of none?
 va-any?              | >=1 |  x  |  x  | Variadic version of any?
+                     |     |     |     | 
+reverse              | 1   |  x  |  x  | Reverse a list
+sum                  | 1   |  x  |  x  | Sums the elements of a list.
+minimum              | 1   |  x  |  x  | Get minimum of a list.
+maximum              | 1   |  x  |  x  | Get maximum of a list.
+                     |     |     |     | 
+bubblesort           | 1   |  x  |  x  | Sort a list using bubblesort.
                      |     |     |     | 
 print!               | 1   |     |  x  | 
 println!             | 1   |     |  x  | 
