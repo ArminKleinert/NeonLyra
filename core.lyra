@@ -2,6 +2,8 @@
 
 (def-macro (comment & xs) (nothing))
 
+(define else #t)
+
 (define (list & xs)
   xs)
 
@@ -59,28 +61,28 @@
 (define (take n xs)
   (cond ((= n 0) '())
         ((empty? xs) '())
-        (#t (cons (first xs) (take (- n 1) (rest xs))))))
+        (else (cons (first xs) (take (- n 1) (rest xs))))))
 (define (take-while p xs)
   (cond ((empty? xs) '())
         ((p (first xs)) (cons (first xs) (take-while p (rest xs))))
-        (#t '())))
+        (else '())))
 (define (take-until p xs)
   (cond ((empty? xs) '())
         ((p (first xs)) '())
-        (#t (cons (first xs) (take-until p (rest xs))))))
+        (else (cons (first xs) (take-until p (rest xs))))))
 
 (define (drop n xs)
   (cond ((= n 0) xs)
         ((empty? xs) '())
-        (#t (drop (- n 1) (rest xs)))))
+        (else (drop (- n 1) (rest xs)))))
 (define (drop-while p xs)
   (cond ((empty? xs) '())
         ((p (first xs)) (drop-while p (rest xs)))
-        (#t xs)))
+        (else xs)))
 (define (drop-until p xs)
   (cond ((empty? xs) '())
         ((p (first xs)) xs)
-        (#t (drop-until p (rest xs)))))
+        (else (drop-until p (rest xs)))))
 
 (define (all? p xs)
   (= (size (drop-while p xs)) 0))
@@ -89,12 +91,16 @@
 (define (any? p xs)
   (cond ((empty? xs) #f)
         ((p (first xs)) #t)
-        (#t (any? p (rest xs)))))
+        (else (any? p (rest xs)))))
 
 ; Variadic variants for all?, none? and any?
 (define (va-all? p & xs) (all? p xs))
 (define (va-none? p & xs) (none? p xs))
 (define (va-any? p & xs) (any? p xs))
+
+(define (concat & xs) (foldr append '() xs))
+
+(define (v+ & xs) (foldl + 0 xs))
 
 ;;; List and Vector stuff
 
@@ -143,17 +149,17 @@
     '()
     (cons from (range (inc from) to))))
 
-(define (bubble-up L)
-    (if (empty? (cdr L))   
-        L    
-        (if (< (car L) (cadr L))
-            (cons (car L) (bubble-up (cdr L)))   
-            (cons (cadr L) (bubble-up (cons (car L) (cddr L)))))))
+(define (bubble-up xs)
+    (if (empty? (cdr xs))   
+        xs
+        (if (< (car xs) (cadr xs))
+            (cons (car xs) (bubble-up (cdr xs)))   
+            (cons (cadr xs) (bubble-up (cons (car xs) (cddr xs)))))))
 
-(define (bubble-sort-aux N L)    
-  (let1 (xs (->list L))
-    (cond ((= N 1) (bubble-up xs))   
-          (#t (bubble-sort-aux (- N 1) (bubble-up xs))))))
+(define (bubble-sort-aux n xs)    
+  (let ((xs (->list xs)))
+    (cond ((= n 1) (bubble-up xs))   
+          (else (bubble-sort-aux (- n 1) (bubble-up xs))))))
 
 (define (bubblesort xs)
   (bubble-sort-aux (size xs) xs))
@@ -184,4 +190,3 @@
 
 'ok
 
-;(println! (bubblesort [6 4 3 2 1 7]))
