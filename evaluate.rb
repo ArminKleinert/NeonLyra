@@ -339,13 +339,12 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       raise "Syntax error: let bindings must be a list." unless bindings.is_a?(ConsList) || bindings.is_a?(EmptyList)
 
       body = rest(rest(expr))
-      env1 = env
+      env1 = Env.new(nil, env)
       unless bindings.empty?
-        raise "Syntax error: Binding in let must have 2 parts." unless b.size == 2
-        raise "Syntax error: Name of binding in let must be a symbol." unless b.car.is_a? Symbol
-        env1 = Env.new(nil, env)
         # Evaluate bindings in order using the old environment.
         bindings.each do |b|
+          raise "Syntax error: Binding in let must have 2 parts." unless b.size == 2
+          raise "Syntax error: Name of binding in let must be a symbol." unless b.car.is_a? Symbol
           env1.set!(b.car, eval_ly(b.cdr.car, env, force_eval))
         end
       end

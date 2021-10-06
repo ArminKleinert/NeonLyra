@@ -1,5 +1,7 @@
 ;;; Some core things
 
+(def-macro (comment & xs) (nothing))
+
 (define (list & xs)
   xs)
 
@@ -96,6 +98,35 @@
 
 ;;; List and Vector stuff
 
+(define (caar x) (car (car x)))
+(define (cadr x) (car (cdr x)))
+(define (cdar x) (cdr (car x)))
+(define (cddr x) (cdr (cdr x)))
+(define (caaar x) (car (car (car x))))
+(define (caadr x) (car (car (cdr x))))
+(define (cadar x) (car (cdr (car x))))
+(define (caddr x) (car (cdr (cdr x))))
+(define (cdaar x) (cdr (car (car x))))
+(define (cdadr x) (cdr (car (cdr x))))
+(define (cddar x) (cdr (cdr (car x))))
+(define (cdddr x) (cdr (cdr (cdr x))))
+(define (caaaar x) (car (car (car (car x)))))
+(define (caaadr x) (car (car (car (cdr x)))))
+(define (caadar x) (car (car (cdr (car x)))))
+(define (caaddr x) (car (car (cdr (cdr x)))))
+(define (cadaar x) (car (cdr (car (car x)))))
+(define (cadadr x) (car (cdr (car (cdr x)))))
+(define (caddar x) (car (cdr (cdr (car x)))))
+(define (cadddr x) (car (cdr (cdr (cdr x)))))
+(define (cdaaar x) (cdr (car (car (car x)))))
+(define (cdaadr x) (cdr (car (car (cdr x)))))
+(define (cdadar x) (cdr (car (cdr (car x)))))
+(define (cdaddr x) (cdr (car (cdr (cdr x)))))
+(define (cddaar x) (cdr (cdr (car (car x)))))
+(define (cddadr x) (cdr (cdr (car (cdr x)))))
+(define (cdddar x) (cdr (cdr (cdr (car x)))))
+(define (cddddr x) (cdr (cdr (cdr (cdr x)))))
+
 (define (reverse xs)
   (foldl (lambda (a b) (cons b a)) '() xs))
 
@@ -103,6 +134,29 @@
 
 (define (inc n) (+ n 1))
 (define (dec n) (- n 1))
+
+(define (min n m) (if (< n m) n m))
+(define (max n m) (if (< n m) m n))
+
+(define (range from to)
+  (if (> from to)
+    '()
+    (cons from (range (inc from) to))))
+
+(define (bubble-up L)
+    (if (empty? (cdr L))   
+        L    
+        (if (< (car L) (cadr L))
+            (cons (car L) (bubble-up (cdr L)))   
+            (cons (cadr L) (bubble-up (cons (car L) (cddr L)))))))
+
+(define (bubble-sort-aux N L)    
+  (let1 (xs (->list L))
+    (cond ((= N 1) (bubble-up xs))   
+          (#t (bubble-sort-aux (- N 1) (bubble-up xs))))))
+
+(define (bubblesort xs)
+  (bubble-sort-aux (size xs) xs))
 
 ;;; Aliases
 (define includes? contains?)
@@ -129,3 +183,5 @@
 (define spit! file-write!)
 
 'ok
+
+;(println! (bubblesort [6 4 3 2 1 7]))

@@ -67,11 +67,11 @@ def elem_to_s(e)
   elsif e.nil?
     ""
   elsif e.is_a? Array
-    "[#{e.map { |x| elem_to_s(x)}.join("")}]"
+    "[#{e.map { |x| elem_to_s(x)}.join(" ")}]"
   elsif e.is_a? Hash
     "Map[" + e.map{|k,v| "#{elem_to_s(k)} #{elem_to_s(v)}"}.join("") + "]"
   elsif e.is_a? Set
-    "Set[#{e.map { |x| elem_to_s(x)}.join("")}]"
+    "Set[#{e.map { |x| elem_to_s(x)}.join(" ")}]"
   else
     e.to_s
   end
@@ -113,6 +113,8 @@ def setup_core_functions
   add_fn(:"ref=", 2) { |x, y| x.object_id == y.object_id }
   add_fn(:"<", 2) { |x, y| x < y }
   add_fn(:">", 2) { |x, y| x > y }
+  add_fn(:"<=", 2) { |x, y| x <= y }
+  add_fn(:">=", 2) { |x, y| x >= y }
   add_fn(:"+", 2) { |x, y| x + y }
   add_fn(:"-", 2) { |x, y| x - y }
   add_fn(:"*", 2) { |x, y| x * y }
@@ -225,13 +227,13 @@ def setup_core_functions
 
   add_fn(:first, 1) { |c|
     if c.is_a?(Enumerable)
-      c.is_a?(ConsList) ? c.car : c[0]
+      c.is_a?(List) ? c.car : c[0]
     else
       nil
     end }
   add_fn(:rest, 1) { |c|
     if c.is_a?(Enumerable)
-      c.is_a?(ConsList) ? c.cdr : c[1..-1]
+      c.is_a?(List) ? c.cdr : c[1..-1]
     else
       nil
     end }
