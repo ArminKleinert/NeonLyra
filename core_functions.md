@@ -37,7 +37,7 @@ set-box!             | 2   |  x  |  x  |
 load!                | 1   |     |  x  | Load file. Attention: load! always uses the global environment, not the local one.
 require!             | 1   |     |  x  | Alias for load!
 read-string          | 1   |  x  |  x  | Parses a string into code.
-eval!                | 1   |  x  |  x  | Executes an object as code.
+eval!                | 1   |     |  x  | Executes an object as code.
                      |     |     |     | 
 measure!             | 2   |  x  |  x  | 
                      |     |     |     | 
@@ -121,13 +121,17 @@ map-remove           | 2   |  x  |  x  |
 map-keys             | 1   |  x  |  x  | 
 map-merge            | 2   |  x  |  x  | 
                      |     |     |     | 
-set-of               | any |  x  |     | 
-set-size             | 1   |  x  |     | 
-set-add              | 2   |  x  |     | 
-set-remove           | 2   |  x  |     | 
-set-merge            | 2   |  x  |     | 
-set-difference       | 2   |  x  |     | 
-set-merge            | 2   |  x  |     | 
+set-of               | any |  x  |  x  | 
+set-size             | 1   |  x  |  x  | 
+set-add              | 2   |  x  |  x  | 
+set-union            | 2   |  x  |  x  | 
+set-difference       | 2   |  x  |  x  | 
+set-intersection     | 2   |  x  |  x  | 
+set-includes?        | 2   |  x  |  x  | 
+set-subset?          | 2   |  x  |  x  | 
+set-true-subset?     | 2   |  x  |  x  | 
+set-superset?        | 2   |  x  |  x  | 
+set-true-superset?   | 2   |  x  |  x  | 
                      |     |     |     | 
 begin                | any |  x  |  x  | 
 comment              | any |  x  |  x  | 
@@ -147,17 +151,17 @@ nth                  | 2   |  x  |  x  |
 split                | 2   |  x  |     | Take spliterator and collection, split collection at each occurance of the spliterator.
 split-by             | 2   |  x  |     | 
                      |     |     |     | 
-map                  | 2   |  x  |     | 
+map                  | 2   |  x  |  x  | 
 map-indexed          | 2   |  x  |     | 
-fmap                 | 3   |  x  |     | filter, then map
-mapf                 | 3   |  x  |     | map, then filter 
+fmap                 | 3   |  x  |  x  | filter, then map
+mapf                 | 3   |  x  |  x  | map, then filter 
 mapcat               | 2   |  x  |     | 
 map-while            | 3   |  x  |     | 
 map-until            | 3   |  x  |     | 
                      |     |     |     | 
-filter               | 2   |  x  |     | 
+filter               | 2   |  x  |  x  | 
 filter-indexed       | 2   |  x  |     | 
-remove               | 2   |  x  |     | 
+remove               | 2   |  x  |  x  | 
 remove-indexed       | 2   |  x  |     |  
                      |     |     |     | 
 foldl                | 3   |  x  |  x  | 
@@ -170,12 +174,19 @@ reduce               | 3   |  x  |  x  | Alias for foldl.
                      |     |     |     | 
 repeat               | 1   |  x  |     | 
 repeatedly           | 1   |  x  |     | 
-take                 | 2   |  x  |     | 
-take-while           | 2   |  x  |     | 
-take-until           | 2   |  x  |     | 
-drop                 | 2   |  x  |     | 
-drop-while           | 2   |  x  |     | 
-drop-until           | 2   |  x  |     | 
+take                 | 2   |  x  |  x  | 
+take-while           | 2   |  x  |  x  | 
+take-until           | 2   |  x  |  x  | 
+drop                 | 2   |  x  |  x  | 
+drop-while           | 2   |  x  |  x  | 
+drop-until           | 2   |  x  |  x  | 
+                     |     |     |     | 
+all?                 | 2   |  x  |  x  | Checks whether a predicate is true for all elements in a list.
+none?                | 2   |  x  |  x  | Checks whether a predicate is true for no element in a list.
+any?                 | 2   |  x  |  x  | Checks whether a predicate is true for at least 1 element in a list.
+va-all?              | >=1 |  x  |  x  | Variadic version of all?
+va-none?             | >=1 |  x  |  x  | Variadic version of none?
+va-any?              | >=1 |  x  |  x  | Variadic version of any?
                      |     |     |     | 
 print!               | 1   |     |  x  | 
 println!             | 1   |     |  x  | 
@@ -185,4 +196,17 @@ file-write!          | 2   |     |  x  |
 file-append!         | 2   |     |  x  | 
 slurp!               | 1   |     |  x  | Alias for file-read!
 spit!                | 2   |     |  x  | Alias for file-write!
+                     |     |     |     | 
+type-name            | 1   |  x  |  x  | Returns the name of the type of a variable.
+                     |     |     |     | 
+ljust                | 2   |  x  |  x  | Takes a string and a number. The string is then resized to at least n characters by inserting spaces on the right side.
+```
+
+```
+Name                 | 
+---------------------+----------------------------------------------------------------------------
+#t                   | Boolean true
+#f                   | Boolean false
+else                 | alias for #t
+Nothing              | 
 ```
