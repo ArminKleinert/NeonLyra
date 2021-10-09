@@ -3,11 +3,15 @@
 ```
 Name                 |  #  | Pure|Impl?| 
 ---------------------+-----+-----+----------------------------------------------------------------
-define               | >=2 |  x  |  x  | 
+define               | >=2 |  x  |  x  | Different formats:
+                     |     |     |     | (define sym val) Sets the value for sym to val in the module environment. (value-define)
+                     |     |     |     | (define (sig) & bodx) Defines a function. (function-define)
+                     |     |     |     | (define type genfunc impl) Adds an implementation for the generic function genfunc.
+def-generic          | 3   |  x  |  x  | Defines a generic function. It takes a symbol, function signature and a fallback function.
 def                  | 2   |  x  |  x  | Equivalent to value-define.
 defn                 | >=1 |  x  |  x  | Equivalent to function-define.
-def-macro            | >=1 |  x  |  x  | 
-def-type             | >=1 |  x  |  x  | 
+def-macro            | >=1 |  x  |  x  | Defines a macro. (See redme)
+def-type             | >=1 |  x  |  x  | Defines a new type. This adds a couple of other functions automatically. (See redme)
 lambda               | >=2 |  x  |  x  | 
 fn                   | >=2 |  x  |  x  | Equivalent to lambda but uses vector-literal instead of a list for parameters.
 cond                 | >=1 |  x  |  x  | 

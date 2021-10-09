@@ -123,7 +123,21 @@ Here are some differences to Clojure I could think of:
 
 ; Becomes (if #f (begin (println! 5) 66) Nothing)
 ; This expression just returns Nothing
-(when #t (println! 5) 66))
+(when #f (println! 5) 66))
+
+; Generic function which gets the firsst element of an object called xs.
+; If no implementation is provided for the type of xs, the id function
+; is used as a fallback.
+; Below that are implementation of this function for the list, vector and
+; string types.
+; (first (list 11 12 13))   => 11
+; (first (vector 21 22 23)) => 21
+; (first "abc")             => "a"
+; (first 123)               => 123 (No implementation found, so id is used.
+(def-generic xs (first xs) id)
+(define ::list first car)
+(define ::vector first (lambda (v) (vector-get v 0)))
+(define ::string first (lambda (s) (first (chars s))))
 ```
 
 ## Example of a user-defined type
@@ -147,6 +161,10 @@ Here are some differences to Clojure I could think of:
 
 ; The name 'pair' can still be safely used.
 (define (pair x y) (make-pair x y))
+
+; Implementations for the generic functions first and second
+(define ::pair first pair-x)
+(define ::pair second pair-y)
 ```
 
 ## Changelog
