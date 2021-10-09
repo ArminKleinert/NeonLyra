@@ -5,7 +5,6 @@ require_relative 'types.rb'
 require_relative 'env.rb'
 require 'set'
 
-=begin
 FUNC_MAP = {}
 FuncMapEntry = Struct.new :fallback, :inner
 
@@ -39,7 +38,21 @@ def def_generic_fn(func_name, fallback)
   raise "Function #{func_name} is already defined." if FUNC_MAP.include? func_name
   FUNC_MAP[func_name] = entry
 end
-=end
+
+def type_name_of (x)
+  case x.class
+  when NilClass
+    "::nothing"
+  when TrueClass, FalseClass
+    "::bool"
+  when LyraType
+    "::" + x.name
+  when Array
+    "::vector"
+  else
+    "::" + x.class.to_s.downcase
+  end
+end
 
 def lyra_eq?(x, y)
   if atom?(x) && atom?(y)
@@ -280,21 +293,6 @@ def setup_core_functions
 
   # This is here to register it as a function and make it possible to remove it later.
   add_fn(:quote, 1) { |_| raise "quote must not be called as a function." }
-
-  def type_name_of (x)
-    case x.class
-    when NilClass
-      "::nothing"
-    when TrueClass, FalseClass
-      "::bool"
-    when LyraType
-      "::" + x.name
-    when Array
-      "::vector"
-    else
-      "::" + x.class.to_s.downcase
-    end
-  end
 
   add_fn(:typename, 1) { |x| type_name_of(x) }
 

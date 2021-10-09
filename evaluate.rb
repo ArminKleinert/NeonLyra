@@ -148,40 +148,110 @@ def eval_keep_last(expr_list, env)
   eval_ly expr_list.car, env
 end
 
-# Defines a new function or variable and puts it into the global LYRA_ENV.
-# If `is_macro` is true, the function will not evaluate its arguments right away.
-def ev_define(expr, env, is_macro)
-  unless expr.is_a?(List) && !expr.empty?
-    raise "Syntax error: No name and no body for define or def-macro."
-  end
-  unless first(expr).is_a?(List) || first(expr).is_a?(Symbol)
-  raise "Syntax error: First element in define or def-macro must be a list or symbol."
+def ev_define_fn(expr, env, is_macro)
+  unless first(first(expr)).is_a?(Symbol)
+    raise "Syntax error: Name of function in define must be a symbol."
   end
 
-  if first(expr).is_a?(List)
-    unless first(first(expr)).is_a?(Symbol)
-      raise "Syntax error: Name of function in define must be a symbol."
-    end
+  name = first(first(expr))
+  args_expr = rest(first(expr))
+  body = rest(expr)
 
-    # Form is `(define (...) ...)` (Function definition)
-    name = first(first(expr))
-    args_expr = rest(first(expr))
-    body = rest(expr)
-
-    # Create the function
-    res = ev_lambda(args_expr, body, env, is_macro)
-    res.name = name
-  else
-    # Form is `(define .. ...)` (Variable definition)
-    name = first(expr) # Get the name
-    val = second(expr)
-    res = eval_ly(val, env) # Get and evaluate the value.
-  end
+  # Create the function
+  res = ev_lambda(args_expr, body, env, is_macro)
+  res.name = name
 
   # Add the entry to the global environment.
   top_env(env).set!(name, res)
 
   name
+end
+
+def ev_define_generic(expr, env)
+  if expr.size != 3
+    raise "Syntax error: Invalid format of def-generic."
+  end
+  
+  ref_arg = first(expr)
+  unless ref_arg.is_a? Symbol
+    raise "Syntax error: Generic function reference argument must be a symbol."
+  end
+  
+  args_expr = second(expr)
+  unless args_expr.is_a?(List)
+    raise "Syntax error: Signature of generic function must be a list."
+  end
+  
+  name = first(args_expr)
+  unless name.is_a?(Symbol)
+    raise "Syntax error: Name of generic function in define must be a symbol."
+  end
+
+  args = rest(args_expr)
+  anchor_idx = args.to_a.index(ref_arg)
+  unless anchor_idx
+    raise "Syntax error: Argument #{ref_arg} not found for generic function #{name}."
+  end
+  
+  fallback = eval_ly(third(expr), env)
+  unless fallback.is_a?(LyraFn)
+    raise "Syntax error: Fallback for generic function #{name} must be a function."
+  end
+
+  res = GenericFn.new name, args.size, anchor_idx, fallback
+  top_env(env).set!(name, res)
+
+  name
+end
+
+def ev_define_with_type(expr, env, is_macro)
+  if is_macro || !second(expr).is_a?(Symbol) || expr.size < 3
+    raise "Syntax error: Generic function implementation must have the format (define ::type global_name impl) and must not be a macro."
+  end
+  global_name = second(expr)
+  impl_name = third(expr)
+  impl = eval_ly(impl_name, env)
+  
+  fn = eval_ly(global_name, env)
+  unless fn.is_a? GenericFn
+    raise "Syntax error: No generic function #{global_name} found."
+  end
+  
+  unless impl.is_a? LyraFn
+    raise "Syntax error: Implementation of function #{global_name} must be a function."
+  end
+
+  fn.add_implementation! first(expr).to_sym, impl
+
+  third(expr)
+end
+
+# Defines a new function or variable and puts it into the global LYRA_ENV.
+# If `is_macro` is true, the function will not evaluate its arguments right away.
+def ev_define(expr, env, is_macro)
+  unless expr.size >= 2
+    raise "Syntax error: No name and no body for define or def-macro."
+  end
+  unless first(expr).is_a?(List) || first(expr).is_a?(Symbol) || first(expr).is_a?(TypeName)
+    raise "Syntax error: First element in define or def-macro must be a list or symbol."
+  end
+
+  if first(expr).is_a?(List)
+    # Form is `(define (...) ...)` (Function definition)
+    ev_define_fn(expr, env, is_macro)
+  elsif first(expr).is_a?(TypeName)
+    # Form is `(define .. (...) ...)` (Generic function definition)
+    ev_define_with_type(expr, env, is_macro)
+  else
+    # Form is `(define .. ...)` (Variable definition)
+    name = first(expr) # Get the name
+    val = second(expr)
+    res = eval_ly(val, env) # Get and evaluate the value.
+    
+    # Add the entry to the global environment.
+    top_env(env).set!(name, res)
+    name
+  end
 end
 
 # args_expr has the format `(args...)`
@@ -304,6 +374,8 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       #    or `(define (name arg0 arg1 ...) body...)` (For functions)
       # If the body is empty, the function returns nil.
       ev_define(rest(expr), env, false)
+    when :"def-generic"
+      ev_define_generic(rest(expr), env)
     when :"let*"
       raise "Syntax error: let* needs at least 1 argument." if expr.cdr.empty?
       bindings = second(expr)

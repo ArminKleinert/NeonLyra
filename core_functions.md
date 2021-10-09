@@ -12,8 +12,9 @@ lambda               | >=2 |  x  |  x  |
 fn                   | >=2 |  x  |  x  | Equivalent to lambda but uses vector-literal instead of a list for parameters.
 cond                 | >=1 |  x  |  x  | 
 if                   | 3   |  x  |  x  | 
-let                  | >=1 |  x  |  x  | Sets variables for a scope. Works sequentially.
-let*                 | >=1 |  x  |  x  | Sets a single variable.
+let                  | >=1 |  x  |  x  | Sets variables for a scope. References are looked up from the old environment.
+let*                 | >=1 |  x  |  x  | Sets variables for a scope. Works sequentially.
+let1                 | 2   |  x  |  x  | Sets a single variable.
 apply                | >=1 |  x  |  x  | 
 quote                | 1   |  x  |  x  | 
 recur                | any |  x  |  x  | Explicit tail-recursion. Only valid in positions that can trigger implicit tail-recursion.

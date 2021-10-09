@@ -56,10 +56,23 @@ module ConsList
 
   def [](i)
     if i.is_a? Integer
-      xs = nth_rest i
+      xs = nth_rest(i)
       xs ? xs.car : nil
     else
       list(*to_a[i])
+    end
+  end
+
+  def nth_rest(i)
+    c = self
+    while !c.empty? && i > 0
+      i -= 1
+      c = c.cdr
+    end
+    if c.empty?
+      nil
+    else
+      c
     end
   end
 
@@ -147,19 +160,6 @@ class List
 
   def empty?
     false
-  end
-
-  def nth_rest(i)
-    c = self
-    while !c.empty? && i > 0
-      i -= 1
-      c = c.cdr
-    end
-    if c.empty?
-      nil
-    else
-      c.car
-    end
   end
 end
 
@@ -282,7 +282,7 @@ class CompoundFunc < LyraFn
 
   def pure?
     # TODO
-    !name.end_with?("!")
+    !@name.end_with?("!")
   end
 end
 
@@ -385,6 +385,55 @@ class MemoizedLyraFn < LyraFn
 
   def is_macro
     @func.native? ? false : @func.is_macro
+  end
+end
+
+class GenericFn < LyraFn
+  def initialize(name, args, anchor_idx, fallback)
+    @implementations = Hash.new fallback
+    @name, @anchor_idx = name, anchor_idx
+  end
+
+  def call(args, env)
+    type = type_name_of(args[@anchor_idx])
+    fn = @implementations[type.to_sym]
+    puts "#{@anchor_idx} #{@implementations.keys} #{args.map{|e|type_name_of(e)}} #{type.to_sym} #{@implementations.has_key?(type.to_sym)}"
+    fn.call args, env
+  end
+
+  def to_s
+    "<function #{@name}>"
+  end
+
+  def native?
+    false
+  end
+
+  def pure?
+    !@name.end_with?("!")
+  end
+
+  def is_macro
+    false
+  end
+  
+  def add_implementation!(type, impl)
+    # TODO Check redifinition
+    @implementations[type] = impl
+  end
+end
+
+class TypeName
+  attr_reader :name
+  def initialize(name)
+    @name = name
+    @name.freeze
+  end
+  def to_s
+    @name
+  end
+  def to_sym
+    @name.to_sym
   end
 end
 

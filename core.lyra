@@ -182,6 +182,10 @@
 (define fold foldr)
 (define reduce foldl)
 
+(def-generic x (foo x y) +)
+(define ::integer foo -)
+(define ::float foo *)
+
 ;;; Aliases for Clojure devs.
 
 (def-macro (when p & body)
@@ -199,6 +203,12 @@
 (define do begin)
 (define slurp! file-read!)
 (define spit! file-write!)
+
+(println! foo)
+(println! (foo "1" "20"))
+(println! (foo 1 20))
+(println! (foo 2 20.5))
+(println! (foo 2.8 20))
 
 'ok
 
