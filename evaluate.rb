@@ -469,6 +469,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
 
       # Find value of symbol in env and call it as a function
       func = eval_ly(first(expr), env, force_eval)
+      func = eval_ly(func, env, force_eval) while func.is_a?(Symbol)
 
       # The arguments which will be passed to the function.
       args = rest(expr)

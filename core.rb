@@ -172,7 +172,7 @@ def setup_core_functions
   add_fn(:"string?", 1) { |x| x.is_a? String }
   add_fn(:"symbol?", 1) { |x| x.is_a? Symbol }
   add_fn(:"char?", 1) { |x| x.is_a?(String) && x.size == 1 }
-  add_fn(:"boolean?", 1) { |x| x == true || x == false }
+  add_fn(:"boolean?", 1) { |x| (!!x) == x }
   add_fn(:"map?", 1) { |x| x.is_a? Hash }
   add_fn(:"set?", 1) { |x| x.is_a? Set }
   add_fn(:"empty?", 1) { |x| x.is_a?(Enumerable) && x.empty? }
@@ -269,8 +269,16 @@ def setup_core_functions
 
   add_var(:Nothing, nil)
 
-  add_fn(:load!, 1) { |file| eval_str(IO.read(file), Env.global_env) }
-  add_fn(:"read-string", 1) { |s| make_ast(tokenize(s)) }
+  add_fn(:load!, 1) { |file| eval_file(file, Env.global_env) }
+  add_fn(:"read-string", 1) do |s|
+    tokens = tokenize(s)
+    ast = make_ast(tokens)
+    if tokens[0] == "(" && ast.size > 1
+      ast
+    else
+      ast[0]
+    end
+  end
   add_fn_with_env(:"eval!", 1) { |x, env| eval_ly x, env }
 
   #add_var(:"very-long-list", (0..100_000).to_cons_list)

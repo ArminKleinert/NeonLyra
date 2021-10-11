@@ -204,11 +204,6 @@
 (define slurp! file-read!)
 (define spit! file-write!)
 
-(println! foo)
-(println! (foo "1" "20"))
-(println! (foo 1 20))
-(println! (foo 2 20.5))
-(println! (foo 2.8 20))
 
 'ok
 

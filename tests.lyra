@@ -49,20 +49,35 @@
       (= (unbox b) 16)
       (int? b.?))))
 
-(define (run-test! name test-fn)
+(define (test-read-string)
+  (va-all? id
+    (nothing? (read-string "Nothing"))
+    (list? (read-string "(a c b)"))
+    (all? symbol? (read-string "(a c b)"))
+    (vector? (read-string "[1 2 3 4 5 6]"))
+    (boolean? (read-string "#t"))
+    (boolean? (read-string "#f"))
+    (int? (read-string "1"))
+    (float? (read-string "0.7"))))
+
+
+;;;; Function which runs a test
+(define (run-test! test-fn)
   (let1 (res (test-fn))
     (println!
       (append
-        (ljust name 25) 
+        (ljust test-fn 25) 
         (if res "Success!" "Failure!")))))
 
 (test-lazy) ; If the test fails, the program will crash.
-(run-test! 'lazy test-lazy-2)
-(run-test! 'partial test-partial)
-(run-test! 'seq test-seq)
-(run-test! 'nothing test-nothing)
-(run-test! 'box test-box)
+(run-test! 'test-lazy-2)
+(run-test! 'test-partial)
+(run-test! 'test-seq)
+(run-test! 'test-nothing)
+(run-test! 'test-box)
+(run-test! 'test-read-string)
 
+(comment
 (println! (eq? (list 1 2 3 4 5) (list 1 2 3 4 5)))
 (println! (eq? (list 1 2 3 4 5) (vector 1 2 3 4 5)))
 (println! (eq? (list 1 2 3 4 5) (set-of 1 2 3 4 5)))
@@ -72,7 +87,7 @@
 (println! (eq? (set-of 1 2 3 4 5) (list 1 2 3 4 5)))
 (println! (eq? (set-of 1 2 3 4 5) (vector 1 2 3 4 5)))
 (println! (eq? (set-of 1 2 3 4 5) (set-of 1 2 3 4 5)))
-
+)
 
 
 
