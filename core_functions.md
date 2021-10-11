@@ -57,6 +57,7 @@ eval!                | 1   |     |  x  | Executes an object as code.
 measure!             | 2   |  x  |  x  | 
                      |     |     |     | 
 =                    | 2   |  x  |  x  | 
+/=                   | 2   |  x  |  x  | 
 <                    | 2   |  x  |  x  | 
 >                    | 2   |  x  |  x  | 
 <=                   | 2   |  x  |  x  | 
