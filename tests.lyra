@@ -145,8 +145,8 @@
     (list? (read-string "(a c b)"))
     (all? symbol? (read-string "(a c b)"))
     (vector? (read-string "[1 2 3 4 5 6]"))
-    (boolean? (read-string "#t"))
-    (boolean? (read-string "#f"))
+    (set? (read-string "#t"))
+    (set? (read-string "#f"))
     (int? (read-string "1"))
     (float? (read-string "0.7"))))
 
@@ -162,240 +162,636 @@
   (float? (measure! 10 (lambda () #f))))
 
 (define (test-=)
-  (= 1 1)
-  (not (= 1 100))
-  (= #t #t)
-  (not (= #t 100))
-  (= #f #f)
-  (not (= #f 100))
-  (= '() '())
-  (not (= '() 100))
-  (= [] [])
-  (not (= [] 100))
-  (= "a" "a")
-  (not (= "a" 100))
-  (= 's 's)
-  (not (= 's 100))
-  (= = =)
-  (not (= = 100)))
+  (va-all? id
+    (= 1 1)
+    (not (= 1 100))
+    (= #t #t)
+    (not (= #t 100))
+    (= #f #f)
+    (not (= #f 100))
+    (= '() '())
+    (not (= '() 100))
+    (= [] [])
+    (not (= [] 100))
+    (= "a" "a")
+    (not (= "a" 100))
+    (= 's 's)
+    (not (= 's 100))
+    (= = =)
+    (not (= = 100))))
 
 (define (test-/=)
-  (/= 1 100)
-  (not (/= 1 1))
-  (/= #t 100)
-  (not (/= #t #t))
-  (/= #f 100)
-  (not (/= #f #f))
-  (/= '() 100)
-  (not (/= '() '()))
-  (/= [] 100)
-  (not (/= [] []))
-  (/= "a" 100)
-  (not (/= "a" "a"))
-  (/= 's 100)
-  (not (/= 's 's))
-  (/= = 100)
-  (not (/= = =)))
+  (va-all? id
+    (/= 1 100)
+    (not (/= 1 1))
+    (/= #t 100)
+    (not (/= #t #t))
+    (/= #f 100)
+    (not (/= #f #f))
+    (/= '() 100)
+    (not (/= '() '()))
+    (/= [] 100)
+    (not (/= [] []))
+    (/= "a" 100)
+    (not (/= "a" "a"))
+    (/= 's 100)
+    (not (/= 's 's))
+    (/= = 100)
+    (not (/= = =))))
 
 (define (test-<)
-  'TODO
-  )
+  (va-all? id
+    (< 1 2)
+    (< -1 0)
+    (< "" "a")
+    (< 0.5 1.2)
+    (not (< 2 1))
+    (not (< 0 -1))
+    (not (< "a" ""))
+    (not (< 1.2 0.5))
+    (not (< 1 1))
+    (not (< "" ""))))
 
 (define (test->)
-  'TODO
-  )
+  (va-all? id
+    (> 2 1)
+    (> 0 -1)
+    (> "a" "")
+    (> 1.2 0.5)
+    (not (> 1 2))
+    (not (> -1 0))
+    (not (> "" "a"))
+    (not (> 0.5 1.2))
+    (not (> 1 1))
+    (not (> "" ""))))
 
 (define (test-<=)
-  'TODO
-  )
+  (va-all? id
+    (<= 1 2)
+    (<= -1 0)
+    (<= "" "a")
+    (<= 0.5 1.2)
+    (not (<= 2 1))
+    (not (<= 0 -1))
+    (not (<= "a" ""))
+    (not (<= 1.2 0.5))
+    (<= 1 1)
+    (<= "" "")))
 
 (define (test->=)
-  'TODO
-  )
+  (va-all? id
+    (>= 2 1)
+    (>= 0 -1)
+    (>= "a" "")
+    (>= 1.2 0.5)
+    (not (>= 1 2))
+    (not (>= -1 0))
+    (not (>= "" "a"))
+    (not (>= 0.5 1.2))
+    (>= 1 1)
+    (>= "" "")))
 
 (define (test-+)
-  'TODO
-  )
+  (va-all? id
+    (= 2 (+ 1 1))
+    (= 3 (+ 2 1))
+    (= 5 (+ 2 3))
+    (= 1 (+ 0.5 0.5))
+    (= 1.5 (+ 0.5 1))))
 
 (define (test-v+)
-  'TODO
-  )
+  (va-all? id
+    (= 2 (v+ 1 1))
+    (= 3 (v+ 2 1))
+    (= 5 (v+ 2 3))
+    (= 1 (v+ 0.5 0.5))
+    (= 1.5 (v+ 0.5 1))))
 
 (define (test--)
-  'TODO
-  )
+  (va-all? id
+    (= 0 (- 1 1))
+    (= 1 (- 2 1))
+    (= -1 (- 2 3))
+    (= 0 (- 0.5 0.5))
+    (= -0.5 (- 0.5 1))))
 
 (define (test-*)
-  'TODO
-  )
+  (va-all? id
+    (= 1 (* 1 1))
+    (= 2 (* 2 1))
+    (= 6 (* 2 3))
+    (= 0.25 (* 0.5 0.5))
+    (= 0.5 (* 0.5 1))))
 
 (define (test-/)
-  'TODO
-  )
+  (va-all? id
+    (= 2 (/ 4 2))
+    (= 0 (/ 1 10))
+    (= 0.1 (/ 1 10.0))
+    (= 2 (/ 1 0.5))
+    (= 4 (/ 1 0.25))))
 
 (define (test-rem)
-  'TODO
-  )
+  (va-all? id
+    (= 0 (rem 4 2))
+    (= 1 (rem 1 10))
+    (= 1 (rem 1 10.0))
+    (= 0 (rem 1 0.5))
+    (= 0 (rem 1 0.25))))
 
 (define (test-inc)
-  'TODO
-  )
+  (va-all? id
+    (= -1 (inc -2))
+    (= 0 (inc -1))
+    (= 1 (inc 0))
+    (= 2 (inc 1))
+    (= 3 (inc 2))))
 
 (define (test-dec)
-  'TODO
-  )
+  (va-all? id
+    (= -3 (dec -2))
+    (= -2 (dec -1))
+    (= -1 (dec 0))
+    (= 0 (dec 1))
+    (= 1 (dec 2))))
 
 (define (test-min)
-  'TODO
-  )
+  (va-all? id
+    (= 0 (min 0 1))
+    (= 0 (min 1 0))
+    (= 1 (min 1 1))
+    (= 0 (min 0 0))
+    (= 0 (min 0 1.5))
+    (= 0.5 (min 1 0.5))
+    (= 1 (min 1 1.5))
+    (= 0 (min 0 0.5))
+    (= "0" (min "0" "1"))
+    (= "0" (min "1" "0"))
+    (= "1" (min "1" "1"))
+    (= "0" (min "0" "0"))
+    ))
 
 (define (test-max)
-  'TODO
-  )
+  (va-all? id
+    (= 1 (max 0 1))
+    (= 1 (max 1 0))
+    (= 1 (max 1 1))
+    (= 0 (max 0 0))
+    (= 1.5 (max 0 1.5))
+    (= 1 (max 1 0.5))
+    (= 1.5 (max 1 1.5))
+    (= 0.5 (max 0 0.5))
+    (= "1" (max "0" "1"))
+    (= "1" (max "1" "0"))
+    (= "1" (max "1" "1"))
+    (= "0" (max "0" "0"))))
 
 (define (test-not)
-  'TODO
-  )
+  (va-all? id
+    (not #f)
+    (not (not #t))
+    (not (not 1))
+    (not (not ""))
+    (not (= 1 0))))
 
 (define (test-and)
-  'TODO
-  )
+  (va-all? id
+    (not (and #f #f))
+    (not (and #f #t))
+    (not (and #t #f))
+    (and #t #t)
+    (not (and #f (crash!)))))
 
 (define (test-or)
-  'TODO
-    )
+  (va-all? id
+    (not (or #f #f))
+    (or #f #t)
+    (or #t #f)
+    (or #t #t)
+    (or #t (crash!))))
 
 (define (test-bit-and)
-  'TODO
-    )
+  (va-all? id
+    (= 0 (bit-and 0 0))
+    (= 0 (bit-and 0 255))
+    (= 0 (bit-and 255 0))
+    (= 255 (bit-and 255 255))))
 
 (define (test-bit-or)
-  'TODO
-    )
+  (va-all? id
+    (= 0 (bit-or 0 0))
+    (= 255 (bit-or 0 255))
+    (= 255 (bit-or 255 0))
+    (= 255 (bit-or 255 255))))
 
 (define (test-bit-xor)
-  'TODO
-    )
+  (va-all? id
+    (= 0 (bit-xor 0 0))
+    (= 255 (bit-xor 0 255))
+    (= 255 (bit-xor 255 0))
+    (= 0 (bit-xor 255 255))))
 
 (define (test-bit-shl)
-  'TODO
-    )
+  (va-all? id
+    (= 1 (bit-shl 1 0))
+    (= 0 (bit-shl 0 1))
+    (= 256 (bit-shl 1 8))
+    (= 512 (bit-shl 1 9))
+    (= 510 (bit-shl 255 1))
+    (= 1020 (bit-shl 255 2))))
 
 (define (test-bit-shr)
-  'TODO
-    )
+  (va-all? id
+    (= 1 (bit-shr 1 0))
+    (= 0 (bit-shr 0 1))
+    (= 0 (bit-shr 255 8))
+    (= 0 (bit-shr 255 255))
+    (= 63 (bit-shr 255 2))
+    (= 127 (bit-shr 255 1))
+    (= 255 (bit-shr 255 0))))
 
 (define (test-defined?)
-  'TODO
-    )
+  (va-all? id
+    (defined? '=)
+    (defined? 'foldr1)
+    (not (defined? '!!!=!!!))
+    (not (defined? 'foldr629))
+    (not (defined? =))
+    (not (defined? foldr1))))
 
 (define (test-nothing?)
-  'TODO
-    )
+  (va-all? id
+    (nothing? Nothing)
+    (nothing? (nothing))
+    (nothing? (nothing 1 2 3))
+    (not (nothing? '(nothing 1 2 3)))
+    (not (nothing? 1))
+    (not (nothing? "1"))
+    (not (nothing? 'a))
+    (not (nothing? '()))
+    (not (nothing? (car '())))
+    (not (nothing? (cdr '())))
+    (not (nothing? '(1 2 3)))))
 
 (define (test-null?)
-  'TODO
-    )
+  (va-all? id
+    (null? Nothing)
+    (null? (nothing))
+    (null? (nothing 1 2 3))
+    (not (null? '(nothing 1 2 3)))
+    (not (null? 1))
+    (not (null? "1"))
+    (not (null? 'a))
+    (null? '())
+    (null? (car '()))
+    (null? (cdr '()))
+    (not (null? '(1 2 3)))))
 
 (define (test-collection?)
-  'TODO
-    )
+  (va-all? id
+    (not (collection? 1))
+    (not (collection? 1.5))
+    (not (collection? #t))
+    (not (collection? #f))
+    (not (collection? 'a))
+    (not (collection? ""))
+    (collection? '())
+    (collection? '(1))
+    (collection? (list))
+    (collection? (list 1))
+    (collection? [])
+    (collection? [1])
+    (collection? (vector))
+    (collection? (vector 1))
+    (collection? (set-of))
+    (collection? (set-of 1))
+    (collection? (map-of))
+    (collection? (map-of [1 2]))))
 
 (define (test-sequence?)
-  'TODO
-    )
+  (va-all? id
+    (not (sequence? 1))
+    (not (sequence? 1.5))
+    (not (sequence? #t))
+    (not (sequence? #f))
+    (not (sequence? 'a))
+    (not (sequence? ""))
+    (sequence? '())
+    (sequence? '(1))
+    (sequence? (list))
+    (sequence? (list 1))
+    (sequence? [])
+    (sequence? [1])
+    (sequence? (vector))
+    (sequence? (vector 1))
+    (not (sequence? (set-of)))
+    (not (sequence? (set-of 1)))
+    (not (sequence? (map-of)))
+    (not (sequence? (map-of [1 2])))))
 
 (define (test-list?)
-  'TODO
-    )
+  (va-all? id
+    (not (list? 1))
+    (not (list? 1.5))
+    (not (list? #t))
+    (not (list? #f))
+    (not (list? 'a))
+    (not (list? ""))
+    (list? '())
+    (list? '(1))
+    (list? (list))
+    (list? (list 1))
+    (not (list? []))
+    (not (list? [1]))
+    (not (list? (vector)))
+    (not (list? (vector 1)))
+    (not (list? (set-of)))
+    (not (list? (set-of 1)))
+    (not (list? (map-of)))
+    (not (list? (map-of [1 2])))))
 
 (define (test-vector?)
-  'TODO
-    )
+  (va-all? id
+    (not (vector? 1))
+    (not (vector? 1.5))
+    (not (vector? #t))
+    (not (vector? #f))
+    (not (vector? 'a))
+    (not (vector? ""))
+    (not (vector? '()))
+    (not (vector? '(1)))
+    (not (vector? (list)))
+    (not (vector? (list 1)))
+    (vector? [])
+    (vector? [1])
+    (vector? (vector))
+    (vector? (vector 1))
+    (not (vector? (set-of)))
+    (not (vector? (set-of 1)))
+    (not (vector? (map-of)))
+    (not (vector? (map-of [1 2])))))
 
 (define (test-int?)
-  'TODO
-    )
+  (va-all? id
+    (int? 1)
+    (not (int? 1.5))
+    (not (int? #t))
+    (not (int? #f))
+    (not (int? 'a))
+    (not (int? ""))
+    (not (int? '()))
+    (not (int? '(1)))
+    (not (int? (list)))
+    (not (int? (list 1)))
+    (not (int? []))
+    (not (int? [1]))
+    (not (int? (vector)))
+    (not (int? (vector 1)))
+    (not (int? (set-of)))
+    (not (int? (set-of 1)))
+    (not (int? (map-of)))
+    (not (int? (map-of [1 2])))))
 
 (define (test-float?)
-  'TODO
-    )
+  (va-all? id
+    (not (float? 1))
+    (float? 1.5)
+    (not (float? #t))
+    (not (float? #f))
+    (not (float? 'a))
+    (not (float? ""))
+    (not (float? '()))
+    (not (float? '(1)))
+    (not (float? (list)))
+    (not (float? (list 1)))
+    (not (float? []))
+    (not (float? [1]))
+    (not (float? (vector)))
+    (not (float? (vector 1)))
+    (not (float? (set-of)))
+    (not (float? (set-of 1)))
+    (not (float? (map-of)))
+    (not (float? (map-of [1 2])))))
 
 (define (test-string?)
-  'TODO
-    )
+  (va-all? id
+    (not (string? 1))
+    (not (string? 1.5))
+    (not (string? #t))
+    (not (string? #f))
+    (not (string? 'a))
+    (string? "")
+    (string? "1")
+    (not (string? '()))
+    (not (string? '(1)))
+    (not (string? (list)))
+    (not (string? (list 1)))
+    (not (string? []))
+    (not (string? [1]))
+    (not (string? (vector)))
+    (not (string? (vector 1)))
+    (not (string? (set-of)))
+    (not (string? (set-of 1)))
+    (not (string? (map-of)))
+    (not (string? (map-of [1 2])))))
 
 (define (test-symbol?)
-  'TODO
-    )
+  (va-all? id
+    (not (symbol? 1))
+    (not (symbol? 1.5))
+    (not (symbol? #t))
+    (not (symbol? #f))
+    (symbol? 'a)
+    (not (symbol? ""))
+    (not (symbol? '()))
+    (not (symbol? '(1)))
+    (not (symbol? (list)))
+    (not (symbol? (list 1)))
+    (not (symbol? []))
+    (not (symbol? [1]))
+    (not (symbol? (vector)))
+    (not (symbol? (vector 1)))
+    (not (symbol? (set-of)))
+    (not (symbol? (set-of 1)))
+    (not (symbol? (map-of)))
+    (not (symbol? (map-of [1 2])))))
 
 (define (test-char?)
-  'TODO
-    )
+  (va-all? id
+    (not (char? 1))
+    (not (char? 1.5))
+    (not (char? #t))
+    (not (char? #f))
+    (not (char? 'a))
+    (not (char? ""))
+    (char? "1")
+    (not (char? '()))
+    (not (char? '(1)))
+    (not (char? (list)))
+    (not (char? (list 1)))
+    (not (char? []))
+    (not (char? [1]))
+    (not (char? (vector)))
+    (not (char? (vector 1)))
+    (not (char? (set-of)))
+    (not (char? (set-of 1)))
+    (not (char? (map-of)))
+    (not (char? (map-of [1 2])))))
 
 (define (test-boolean?)
-  'TODO
-    )
+  (va-all? id
+    (not (boolean? 1))
+    (not (boolean? 1.5))
+    (boolean? #t)
+    (boolean? #f)
+    (not (boolean? 'a))
+    (not (boolean? ""))
+    (not (boolean? "1"))
+    (not (boolean? '()))
+    (not (boolean? '(1)))
+    (not (boolean? (list)))
+    (not (boolean? (list 1)))
+    (not (boolean? []))
+    (not (boolean? [1]))
+    (not (boolean? (vector)))
+    (not (boolean? (vector 1)))
+    (not (boolean? (set-of)))
+    (not (boolean? (set-of 1)))
+    (not (boolean? (map-of)))
+    (not (boolean? (map-of [1 2])))))
 
 (define (test-map?)
-  'TODO
-    )
+  (va-all? id
+    (not (map? 1))
+    (not (map? 1.5))
+    (not (map? #t))
+    (not (map? #f))
+    (not (map? 'a))
+    (not (map? ""))
+    (not (map? "1"))
+    (not (map? '()))
+    (not (map? '(1)))
+    (not (map? (list)))
+    (not (map? (list 1)))
+    (not (map? []))
+    (not (map? [1]))
+    (not (map? (vector)))
+    (not (map? (vector 1)))
+    (not (map? (set-of)))
+    (not (map? (set-of 1)))
+    (map? (map-of))
+    (map? (map-of [1 2]))))
 
 (define (test-set?)
-  'TODO
-    )
+  (va-all? id
+    (not (set? 1))
+    (not (set? 1.5))
+    (not (set? #t))
+    (not (set? #f))
+    (not (set? 'a))
+    (not (set? ""))
+    (not (set? "1"))
+    (not (set? '()))
+    (not (set? '(1)))
+    (not (set? (list)))
+    (not (set? (list 1)))
+    (not (set? []))
+    (not (set? [1]))
+    (not (set? (vector)))
+    (not (set? (vector 1)))
+    (set? (set-of))
+    (set? (set-of 1))
+    (not (set? (map-of)))
+    (not (set? (map-of [1 2])))))
 
 (define (test-empty?)
-  'TODO
-    )
+  (va-all? id
+    (not (empty? 1))
+    (not (empty? 1.5))
+    (not (empty? #t))
+    (not (empty? #f))
+    (not (empty? 'a))
+    (not (empty? ""))
+    (not (empty? "1"))
+    (empty? '())
+    (not (empty? '(1)))
+    (empty? (list))
+    (not (empty? (list 1)))
+    (empty? [])
+    (not (empty? [1]))
+    (empty? (vector))
+    (not (empty? (vector 1)))
+    (empty? (set-of))
+    (not (empty? (set-of 1)))
+    (empty? (map-of))
+    (not (empty? (map-of [1 2])))))
 
 (define (test-compose)
   'TODO
-    )
+  )
 
 (define (test-compose-and)
   'TODO
-    )
+  )
 
 (define (test-compose-or)
   'TODO
-    )
+  )
 
 (define (test-complement)
   'TODO
-    )
+  )
 
 (define (test-id)
-  'TODO
-    )
+  (va-all? id
+    (all?
+      (lambda (e) (= e (id e)))
+      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))
+    (all?
+      (lambda (e) (= (id e) (id e)))
+      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))))
 
 (define (test-id-fn)
-  'TODO
-    )
+  (va-all? id
+    (all?
+      (lambda (e) (= e ((id-fn e))))
+      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))
+    (all?
+      (lambda (e) (= (id e) ((id-fn e))))
+      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))
+    (all?
+      (lambda (e) (= ((id-fn e)) ((id-fn e))))
+      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))))
 
 (define (test-hash)
-  'TODO
-    )
+  (va-all? id
+    (all?
+      (lambda (e) (int? (hash e)))
+      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))
+    (all?
+      (lambda (e) (= (hash e) (hash e)))
+      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))))
 
 (define (test-eq?)
-  'TODO
-    )
+  (all?
+    (lambda (e) (eq? e e))
+    '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) +)))
 
 (define (test-->int)
   'TODO
-    )
+  )
 
 (define (test-->float)
   'TODO
-    )
+  )
 
 (define (test-->string)
   'TODO
-    )
+  )
 
 (define (test-->bool)
   'TODO
-    )
+  )
 
 (define (test-->list)
   (va-all? id
@@ -404,351 +800,351 @@
 
 (define (test-->vector)
   'TODO
-    )
+  )
 
 (define (test-->char)
   'TODO
-    )
+  )
 
 (define (test-->map)
   'TODO
-    )
+  )
 
 (define (test-->set)
   'TODO
-    )
+  )
 
 (define (test-list)
   'TODO
-    )
+  )
 
 (define (test-list-size)
   'TODO
-    )
+  )
 
 (define (test-car)
   'TODO
-    )
+  )
 
 (define (test-cdr)
   'TODO
-    )
+  )
 
 (define (test-cons)
   'TODO
-    )
+  )
 
 (define (test-vector)
   'TODO
-    )
+  )
 
 (define (test-vector-size)
   'TODO
-    )
+  )
 
 (define (test-vector-nth)
   'TODO
-    )
+  )
 
 (define (test-vector-add)
   'TODO
-    )
+  )
 
 (define (test-vector-append)
   'TODO
-    )
+  )
 
 (define (test-vector-iterate)
   'TODO
-    )
+  )
 
 (define (test-map-of)
   'TODO
-    )
+  )
 
 (define (test-map-size)
   'TODO
-    )
+  )
 
 (define (test-map-get)
   'TODO
-    )
+  )
 
 (define (test-map-set)
   'TODO
-    )
+  )
 
 (define (test-map-remove)
   'TODO
-    )
+  )
 
 (define (test-map-keys)
   'TODO
-    )
+  )
 
 (define (test-map-merge)
   'TODO
-    )
+  )
 
 (define (test-set-of)
   'TODO
-    )
+  )
 
 (define (test-set-size)
   'TODO
-    )
+  )
 
 (define (test-set-add)
   'TODO
-    )
+  )
 
 (define (test-set-union)
   'TODO
-    )
+  )
 
 (define (test-set-difference)
   'TODO
-    )
+  )
 
 (define (test-set-intersection)
   'TODO
-    )
+  )
 
 (define (test-set-includes?)
   'TODO
-    )
+  )
 
 (define (test-set-subset?)
   'TODO
-    )
+  )
 
 (define (test-set-true-subset?)
   'TODO
-    )
+  )
 
 (define (test-set-superset?)
   'TODO
-    )
+  )
 
 (define (test-set-true-superset?)
   'TODO
-    )
+  )
 
 (define (test-begin)
   'TODO
-    )
+  )
 
 (define (test-comment)
   'TODO
-    )
+  )
 
 (define (test-size)
   'TODO
-    )
+  )
 
 (define (test-count)
   'TODO
-    )
+  )
 
 (define (test-indices-of)
   'TODO
-    )
+  )
 
 (define (test-contains?)
   'TODO
-    )
+  )
 
 (define (test-includes?)
   'TODO
-    )
+  )
 
 (define (test-first)
   'TODO
-    )
+  )
 
 (define (test-rest)
   'TODO
-    )
+  )
 
 (define (test-last)
   'TODO
-    )
+  )
 
 (define (test-but-last)
   'TODO
-    )
+  )
 
 (define (test-append)
   'TODO
-    )
+  )
 
 (define (test-concat)
   'TODO
-    )
+  )
 
 (define (test-nth)
   'TODO
-    )
-
+  )
+   
 (define (test-split)
   'TODO
-    )
+  )
 
 (define (test-split-by)
   'TODO
-    )
+  )
 
 (define (test-map)
   'TODO
-    )
+  )
 
 (define (test-map-indexed)
   'TODO
-    )
+  )
 
 (define (test-fmap)
   'TODO
-    )
+  )
 
 (define (test-mapf)
   'TODO
-    )
+  )
 
 (define (test-mapcat)
   'TODO
-    )
+  )
 
 (define (test-map-while)
   'TODO
-    )
+  )
 
 (define (test-map-until)
   'TODO
-    )
+  )
 
 (define (test-filter)
   'TODO
-    )
+  )
 
 (define (test-filter-indexed)
   'TODO
-    )
+  )
 
 (define (test-remove)
   'TODO
-    )
+  )
 
 (define (test-remove-indexed)
   'TODO
-    )
+  )
 
 (define (test-foldl)
   'TODO
-    )
+  )
 
 (define (test-foldl1)
   'TODO
-    )
+  )
 
 (define (test-foldl-indexed)
   'TODO
-    )
+  )
 
 (define (test-foldr)
   'TODO
-    )
+  )
 
 (define (test-foldr1)
   'TODO
-    )
+  )
 
 (define (test-foldr-indexed)
   'TODO
-    )
+  )
 
 (define (test-reduce)
   'TODO
-    )
+  )
 
 (define (test-repeat)
   'TODO
-    )
+  )
 
 (define (test-repeatedly)
   'TODO
-    )
+  )
 
 (define (test-take)
   'TODO
-    )
+  )
 
 (define (test-take-while)
   'TODO
-    )
+  )
 
 (define (test-take-until)
   'TODO
-    )
+  )
 
 (define (test-drop)
   'TODO
-    )
+  )
 
 (define (test-drop-while)
   'TODO
-    )
+  )
 
 (define (test-drop-until)
   'TODO
-    )
+  )
 
 (define (test-all?)
   'TODO
-    )
+  )
 
 (define (test-none?)
   'TODO
-    )
+  )
 
 (define (test-any?)
   'TODO
-    )
+  )
 
 (define (test-va-all?)
   'TODO
-    )
+  )
 
 (define (test-va-none?)
   'TODO
-    )
+  )
 
 (define (test-va-any?)
   'TODO
-    )
+  )
 
 (define (test-reverse)
   'TODO
-    )
+  )
 
 (define (test-sum)
   'TODO
-    )
+  )
 
 (define (test-minimum)
   'TODO
-    )
+  )
 
 (define (test-maximum)
   'TODO
-    )
+  )
 
 (define (test-bubblesort)
   'TODO
-    )
+  )
 
 (define (test-type-name)
   'TODO
-    )
+  )
 
 
 
@@ -819,7 +1215,7 @@
 (run-test! 'test-string?)
 (run-test! 'test-symbol?)
 (run-test! 'test-char?)
-(run-test! 'test-boolean?)
+(run-test! 'test-set?)
 (run-test! 'test-map?)
 (run-test! 'test-set?)
 (run-test! 'test-empty?)
