@@ -1,18 +1,46 @@
-(define (test-lazy)
-  ;((lambda (x y) (lazy (/ x y))) 0 0) ; If this does not crash, then we know that the expression was not evaluated.
-  (lazy (/ 0 0)) ; If this does not crash, then we know that the expression was not evaluated.)
-  )
+(define TODO #t)
 
-(define (test-lazy-2)
-  (va-all? id
-    (lazy #f)
-    (lazy #t)
-    (lazy #t).!))
+(define (crash!)
+  (/ 0 0))
 
-(define (test-partial)
+(define (test-lambda)
+  (let* ((f (lambda (n) n))
+          (fr (f 6)))
+    (va-all? id
+      (= 2 ((lambda (n) (+ n n)) 1))
+      (< 2 ((lambda (n) (+ n n)) 2))
+      (= 2 ((lambda (n) n) 2))
+      ((lambda (n) #t) 2)
+      (= (f 2) 2) 
+      (= (f 2) 2) 
+      (= (f 2) 2)
+      (= fr 6)
+      )))
+
+(define (test-cond)
   (va-all? id
-    (= ((partial + 0) 5) (+ 0 5))
-    (= ((partial foldl + 0) (list 1 2 3 4 5)) (foldl + 0 (list 1 2 3 4 5)))))
+    TODO
+    ))
+
+(define (test-if)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-apply)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-quote)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-gensym)
+  (va-all? id
+    TODO
+    ))
 
 (define (test-seq)
   (va-all? id
@@ -25,6 +53,27 @@
     (sequence? (seq (list 1 2 3 4 5)))
     (sequence? (seq (vector 1 2 3 4 5)))))
 
+(define (test-lazy-crash)
+  ;((lambda (x y) (lazy (/ x y))) 0 0) ; If this does not crash, then we know that the expression was not evaluated.
+  (lazy (crash!)) ; If this does not crash, then we know that the expression was not evaluated.)
+  )
+
+(define (test-lazy)
+  (va-all? id
+    (lazy #f)
+    (lazy #t)
+    (lazy #t).!))
+
+(define (test-eager)
+  (va-all? id
+    
+    ))
+
+(define (test-partial)
+  (va-all? id
+    (= ((partial + 0) 5) (+ 0 5))
+    (= ((partial foldl + 0) (list 1 2 3 4 5)) (foldl + 0 (list 1 2 3 4 5)))))
+
 (define (test-nothing)
   (va-all? id
     (nothing? (nothing 1))
@@ -36,7 +85,38 @@
     (nothing? (nothing (list 1 2 3 4 5)))
     (nothing? (nothing (vector 1 2 3 4 5)))))
 
+(define (test-unwrap)
+  (va-all? id
+    TODO
+    ))
+
 (define (test-box)
+  (let1 (b (box 5))
+    (va-all? id
+      (box? b)
+      (= b.? 5)
+      (= (unbox b) 5)
+      (int? b.?)
+      (always-true (box-set! b 16))
+      (box? b)
+      (= b.? 16)
+      (= (unbox b) 16)
+      (int? b.?))))
+
+(define (test-unbox)
+  (let1 (b (box 5))
+    (va-all? id
+      (box? b)
+      (= b.? 5)
+      (= (unbox b) 5)
+      (int? b.?)
+      (always-true (box-set! b 16))
+      (box? b)
+      (= b.? 16)
+      (= (unbox b) 16)
+      (int? b.?))))
+
+(define (test-set-box)
   (let1 (b (box 5))
     (va-all? id
       (box? b)
@@ -60,6 +140,712 @@
     (int? (read-string "1"))
     (float? (read-string "0.7"))))
 
+(define (test-eval)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-measure)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-=)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-<)
+  (va-all? id
+    TODO
+    ))
+
+(define (test->)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-<=)
+  (va-all? id
+    TODO
+    ))
+
+(define (test->=)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-+)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-v+)
+  (va-all? id
+    TODO
+    ))
+
+(define (test--)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-*)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-/)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-rem)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-inc)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-dec)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-min)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-max)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-not)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-and)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-or)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-bit-and)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-bit-or)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-bit-xor)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-bit-shl)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-bit-shr)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-defined?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-nothing?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-null?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-collection?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-sequence?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-list?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-vector?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-int?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-float?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-string?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-symbol?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-char?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-boolean?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-map?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-set?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-empty?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-compose)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-compose-and)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-compose-or)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-complement)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-id)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-id-fn)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-hash)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-eq?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-->int)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-->float)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-->string)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-->bool)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-->list)
+  (va-all? id
+    
+    ))
+
+(define (test-->vector)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-->char)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-->map)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-->set)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-list)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-list-size)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-car)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-cdr)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-cons)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-vector)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-vector-size)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-vector-nth)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-vector-add)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-vector-append)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-vector-iterate)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-map-of)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-map-size)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-map-get)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-map-set)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-map-remove)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-map-keys)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-map-merge)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-set-of)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-set-size)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-set-add)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-set-union)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-set-difference)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-set-intersection)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-set-includes?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-set-subset?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-set-true-subset?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-set-superset?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-set-true-superset?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-begin)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-comment)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-size)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-count)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-indices-of)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-contains?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-includes?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-first)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-rest)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-last)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-but-last)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-append)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-concat)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-nth)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-split)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-split-by)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-map)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-map-indexed)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-fmap)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-mapf)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-mapcat)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-map-while)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-map-until)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-filter)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-filter-indexed)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-remove)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-remove-indexed)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-foldl)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-foldl1)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-foldl-indexed)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-foldr)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-foldr1)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-foldr-indexed)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-reduce)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-repeat)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-repeatedly)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-take)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-take-while)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-take-until)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-drop)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-drop-while)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-drop-until)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-all?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-none?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-any?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-va-all?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-va-none?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-va-any?)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-reverse)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-sum)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-minimum)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-maximum)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-bubblesort)
+  (va-all? id
+    TODO
+    ))
+
+(define (test-type-name)
+  (va-all? id
+    TODO
+    ))
+
+
 
 ;;;; Function which runs a test
 (define (run-test! test-fn)
@@ -70,12 +856,164 @@
         (if res "Success!" "Failure!")))))
 
 (test-lazy) ; If the test fails, the program will crash.
-(run-test! 'test-lazy-2)
-(run-test! 'test-partial)
+(run-test! 'test-lambda)
+(run-test! 'test-cond)
+(run-test! 'test-if)
+(run-test! 'test-apply)
+(run-test! 'test-quote)
+(run-test! 'test-gensym)
 (run-test! 'test-seq)
+(run-test! 'test-lazy-crash)
+(run-test! 'test-lazy)
+(run-test! 'test-eager)
+(run-test! 'test-partial)
 (run-test! 'test-nothing)
+(run-test! 'test-unwrap)
 (run-test! 'test-box)
+(run-test! 'test-unbox)
+(run-test! 'test-set-box)
 (run-test! 'test-read-string)
+(run-test! 'test-eval)
+(run-test! 'test-measure)
+(run-test! 'test-=)
+(run-test! 'test-<)
+(run-test! 'test->)
+(run-test! 'test-<=)
+(run-test! 'test->=)
+(run-test! 'test-+)
+(run-test! 'test-v+)
+(run-test! 'test--)
+(run-test! 'test-*)
+(run-test! 'test-/)
+(run-test! 'test-rem)
+(run-test! 'test-inc)
+(run-test! 'test-dec)
+(run-test! 'test-min)
+(run-test! 'test-max)
+(run-test! 'test-not)
+(run-test! 'test-and)
+(run-test! 'test-or)
+(run-test! 'test-bit-and)
+(run-test! 'test-bit-or)
+(run-test! 'test-bit-xor)
+(run-test! 'test-bit-shl)
+(run-test! 'test-bit-shr)
+(run-test! 'test-defined?)
+(run-test! 'test-nothing?)
+(run-test! 'test-null?)
+(run-test! 'test-collection?)
+(run-test! 'test-sequence?)
+(run-test! 'test-list?)
+(run-test! 'test-vector?)
+(run-test! 'test-int?)
+(run-test! 'test-float?)
+(run-test! 'test-string?)
+(run-test! 'test-symbol?)
+(run-test! 'test-char?)
+(run-test! 'test-boolean?)
+(run-test! 'test-map?)
+(run-test! 'test-set?)
+(run-test! 'test-empty?)
+(run-test! 'test-compose)
+(run-test! 'test-compose-and)
+(run-test! 'test-compose-or)
+(run-test! 'test-complement)
+(run-test! 'test-id)
+(run-test! 'test-id-fn)
+(run-test! 'test-hash)
+(run-test! 'test-eq?)
+(run-test! 'test-->int)
+(run-test! 'test-->float)
+(run-test! 'test-->string)
+(run-test! 'test-->bool)
+(run-test! 'test-->list)
+(run-test! 'test-->vector)
+(run-test! 'test-->char)
+(run-test! 'test-->map)
+(run-test! 'test-->set)
+(run-test! 'test-list)
+(run-test! 'test-list-size)
+(run-test! 'test-car)
+(run-test! 'test-cdr)
+(run-test! 'test-cons)
+(run-test! 'test-vector)
+(run-test! 'test-vector-size)
+(run-test! 'test-vector-nth)
+(run-test! 'test-vector-add)
+(run-test! 'test-vector-append)
+(run-test! 'test-vector-iterate)
+(run-test! 'test-map-of)
+(run-test! 'test-map-size)
+(run-test! 'test-map-get)
+(run-test! 'test-map-set)
+(run-test! 'test-map-remove)
+(run-test! 'test-map-keys)
+(run-test! 'test-map-merge)
+(run-test! 'test-set-of)
+(run-test! 'test-set-size)
+(run-test! 'test-set-add)
+(run-test! 'test-set-union)
+(run-test! 'test-set-difference)
+(run-test! 'test-set-intersection)
+(run-test! 'test-set-includes?)
+(run-test! 'test-set-subset?)
+(run-test! 'test-set-true-subset?)
+(run-test! 'test-set-superset?)
+(run-test! 'test-set-true-superset?)
+(run-test! 'test-begin)
+(run-test! 'test-comment)
+(run-test! 'test-size)
+(run-test! 'test-count)
+(run-test! 'test-indices-of)
+(run-test! 'test-contains?)
+(run-test! 'test-includes?)
+(run-test! 'test-first)
+(run-test! 'test-rest)
+(run-test! 'test-last)
+(run-test! 'test-but-last)
+(run-test! 'test-append)
+(run-test! 'test-concat)
+(run-test! 'test-nth)
+(run-test! 'test-split)
+(run-test! 'test-split-by)
+(run-test! 'test-map)
+(run-test! 'test-map-indexed)
+(run-test! 'test-fmap)
+(run-test! 'test-mapf)
+(run-test! 'test-mapcat)
+(run-test! 'test-map-while)
+(run-test! 'test-map-until)
+(run-test! 'test-filter)
+(run-test! 'test-filter-indexed)
+(run-test! 'test-remove)
+(run-test! 'test-remove-indexed)
+(run-test! 'test-foldl)
+(run-test! 'test-foldl1)
+(run-test! 'test-foldl-indexed)
+(run-test! 'test-foldr)
+(run-test! 'test-foldr1)
+(run-test! 'test-foldr-indexed)
+(run-test! 'test-reduce)
+(run-test! 'test-repeat)
+(run-test! 'test-repeatedly)
+(run-test! 'test-take)
+(run-test! 'test-take-while)
+(run-test! 'test-take-until)
+(run-test! 'test-drop)
+(run-test! 'test-drop-while)
+(run-test! 'test-drop-until)
+(run-test! 'test-all?)
+(run-test! 'test-none?)
+(run-test! 'test-any?)
+(run-test! 'test-va-all?)
+(run-test! 'test-va-none?)
+(run-test! 'test-va-any?)
+(run-test! 'test-reverse)
+(run-test! 'test-sum)
+(run-test! 'test-minimum)
+(run-test! 'test-maximum)
+(run-test! 'test-bubblesort)
+(run-test! 'test-type-name)
 
 (comment
 (println! (eq? (list 1 2 3 4 5) (list 1 2 3 4 5)))

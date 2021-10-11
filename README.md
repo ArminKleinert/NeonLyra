@@ -2,7 +2,7 @@
 
 Lyra is a lisp I make for fun and learning. NeonLyra is an improved version.
 
-Current version: 0.0.4
+Current version: 0.0.6
 
 Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cub.
 
@@ -39,7 +39,7 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cub.
 - Map  
 - Lazy  
 - Box (The only mutable type)  
-- Set (Not implemented)  
+- Set  
 
 ## Some friendly infos about the syntax 
 
@@ -119,11 +119,11 @@ Here are some differences to Clojure I could think of:
 
 ; Becomes (if #t (begin (println! 5) 66) Nothing)
 ; This expression is then evaluated, prints 5 and returns 66
-(when #t (println! 5) 66))
+(when #t (println! 5) 66)
 
 ; Becomes (if #f (begin (println! 5) 66) Nothing)
 ; This expression just returns Nothing
-(when #f (println! 5) 66))
+(when #f (println! 5) 66)
 
 ; Generic function which gets the firsst element of an object called xs.
 ; If no implementation is provided for the type of xs, the id function
@@ -169,11 +169,21 @@ Here are some differences to Clojure I could think of:
 
 ## Changelog
 
-- 0.0.1 The thing works but lacks functionality.  
-- 0.0.2 Macros, types, more functions, modules, @ prefix  
-- 0.0.3 measure, memoize, def-memo, fixed lookup bug in lambdas
-- 0.0.4 Loading of other source-files, more functions, aggressive optimizer (currently turned off)
-- 0.0.5 
-  - and, or, complement, composition, take and drop (and their variants)
-  - fixed a bug with nil
-  - renamed List to ConsList and NonEmptyList to List
+- 0.0.1  
+  - The thing works but lacks functionality.  
+- 0.0.2  
+  - Macros, types, more functions, modules, @ prefix  
+- 0.0.3  
+  - measure, memoize, def-memo, fixed lookup bug in lambdas  
+- 0.0.4  
+  - Loading of other source-files, more functions, aggressive optimizer (currently turned off)  
+- 0.0.5  
+  - and, or, complement, composition, take and drop (and their variants)  
+  - fixed a bug with nil  
+  - renamed List to ConsList and NonEmptyList to List  
+- 0.0.6  
+  - User-defined types  
+  - Generic fuctions  
+  - Some other bug fixes.  
+
+
