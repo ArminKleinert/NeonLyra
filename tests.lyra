@@ -144,8 +144,8 @@
     (list? (read-string "(a c b)"))
     (all? symbol? (read-string "(a c b)"))
     (vector? (read-string "[1 2 3 4 5 6]"))
-    (set? (read-string "#t"))
-    (set? (read-string "#f"))
+    (boolean? (read-string "#t"))
+    (boolean? (read-string "#f"))
     (int? (read-string "1"))
     (float? (read-string "0.7"))))
 
