@@ -114,6 +114,7 @@ def setup_core_functions
     Env.global_env.set!(name, value)
   end
 
+  add_fn(:"list-size", 1){ |x| x.size }
   add_fn(:cons, 2) { |x, y| cons(x, y) }
   add_fn(:car, 1) { |x| x.car }
   add_fn(:cdr, 1) { |x| x.cdr }
@@ -202,8 +203,8 @@ def setup_core_functions
   add_fn(:"->list", 1) { |x| x.is_a?(Enumerable) ? x.to_cons_list : nil }
   add_fn(:"->vector", 1) { |x| x.is_a?(Enumerable) ? x.to_a : nil }
   add_fn(:"->char", 1) { |x| (x.is_a?(Integer)) ? x.chr : nil }
-  add_fn(:"->map", 1) { |x| Hash[*x] }
-  add_fn(:"->set", 1) { |x| Set[*x] }
+  add_fn(:"->map", 1) { |x| x.is_a?(Enumerable) ? Hash[*x] : nil }
+  add_fn(:"->set", 1) { |x| x.is_a?(Enumerable) ? Set[*x] : nil }
 
   add_fn(:"vector", 0, -1) { |*xs| xs }
   add_fn(:"vector-size", 1) { |xs| xs.size }

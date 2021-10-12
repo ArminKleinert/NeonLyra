@@ -428,7 +428,7 @@
     (not (nothing? "1"))
     (not (nothing? 'a))
     (not (nothing? '()))
-    (not (nothing? (car '())))
+    (nothing? (car '()))
     (not (nothing? (cdr '())))
     (not (nothing? '(1 2 3)))))
 
@@ -823,12 +823,22 @@
     ))
 
 (define (test-->list)
-  'TODO
-  )
+  (va-all? id
+    (all? nothing?
+      (map ->list (list 1 0.5 'a "a")))
+    (all? (lambda (e) (and (empty? e) (list? e)))
+      (map ->list (list '() [] (set-of) (map-of))))
+    (all? (lambda (e) (and (list? e) (eq? '(1) e)))
+      (map ->list (list '(1) [1] (set-of 1))))))
 
 (define (test-->vector)
-  'TODO
-  )
+  (va-all? id
+    (all? nothing?
+      (map ->vector (list 1 0.5 'a "a")))
+    (all? (lambda (e) (and (empty? e) (vector? e)))
+      (map ->vector (list '() [] (set-of) (map-of))))
+    (all? (lambda (e) (and (vector? e) (eq? [1] e)))
+      (map ->vector (list '(1) [1] (set-of 1))))))
 
 (define (test-->char)
   'TODO
@@ -839,20 +849,34 @@
   )
 
 (define (test-->set)
-  'TODO
-  )
+  (va-all? id
+    (all? nothing?
+      (map ->set (list 1 0.5 'a "a")))
+    (all? (lambda (e) (and (empty? e) (set? e)))
+      (map ->set (list '() [] (set-of) (map-of))))
+    (all? (lambda (e) (and (set? e) (eq? (set-of 1) e)))
+      (map ->set (list '(1) [1] (set-of 1))))))
 
 (define (test-list)
-  'TODO
-  )
+  (va-all? id
+    (empty? (list))
+    (eq? (list 1 2 3) (list 1 2 3))
+    (list? (list 1 2 3))
+    (= 3 (list-size (list 1 2 3)))))
 
 (define (test-list-size)
-  'TODO
-  )
+  (va-all? id
+    (= 0 (list-size (list)))
+    (= 1 (list-size (list 1)))
+    (= 2 (list-size (list 1 2)))))
 
 (define (test-car)
-  'TODO
-  )
+  (va-all? id
+    (nothing? (car '()))
+    (= 1 (car '(1)))
+    (= 1 (car (list 1 2 3)))
+    (eq? (list 1) (car (list (list 1))))
+    (eq? 1 (car (car (list (list 1)))))))
 
 (define (test-cdr)
   'TODO

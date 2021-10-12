@@ -1,11 +1,14 @@
 ;;; Some core things
 
-(def-macro (comment & xs) (nothing))
-
-(define else #t)
-
 (define (list & xs)
   xs)
+
+(def-macro (comment & xs) (nothing))
+
+(def-macro (λ bindings & body)
+  (cons 'lambda (cons bindings body)))
+
+(define else #t)
 
 (define (not x) (if x #f #t))
 (def-macro (and x y) (list 'if x y #f))

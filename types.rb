@@ -103,7 +103,7 @@ class EmptyList
   include Singleton, Enumerable, ConsList
 
   def car
-    self
+    nil
   end
 
   def cdr
