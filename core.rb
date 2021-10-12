@@ -188,17 +188,17 @@ def setup_core_functions
   add_fn(:"->int", 1) { |x|
     begin
       Integer(x || "");
-    rescue ArgumentError
+    rescue ArgumentError, TypeError
       nil
     end }
   add_fn(:"->float", 1) { |x|
     begin
       Float(x || "");
-    rescue ArgumentError
+    rescue ArgumentError, TypeError
       nil
     end }
   add_fn(:"->string", 1) { |x| elem_to_s x }
-  add_fn(:"->bool", 1) { |x| !!x }
+  add_fn(:"->bool", 1) { |x| !(x.nil? || x == false || (x.is_a?(EmptyList))) }
   add_fn(:"->list", 1) { |x| x.is_a?(Enumerable) ? x.to_cons_list : nil }
   add_fn(:"->vector", 1) { |x| x.is_a?(Enumerable) ? x.to_a : nil }
   add_fn(:"->char", 1) { |x| (x.is_a?(Integer)) ? x.chr : nil }

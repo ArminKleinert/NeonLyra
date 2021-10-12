@@ -1,4 +1,3 @@
-(define TODO 7)
 
 (define (crash!)
   (/ 0 0))
@@ -746,57 +745,86 @@
   (va-all? id
     (all?
       (lambda (e) (= e (id e)))
-      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))
+      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))
     (all?
       (lambda (e) (= (id e) (id e)))
-      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))))
+      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))))
 
 (define (test-id-fn)
   (va-all? id
     (all?
       (lambda (e) (= e ((id-fn e))))
-      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))
+      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))
     (all?
       (lambda (e) (= (id e) ((id-fn e))))
-      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))
+      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))
     (all?
       (lambda (e) (= ((id-fn e)) ((id-fn e))))
-      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))))
+      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))))
 
 (define (test-hash)
   (va-all? id
     (all?
       (lambda (e) (int? (hash e)))
-      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))
+      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))
     (all?
       (lambda (e) (= (hash e) (hash e)))
-      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))))
+      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))))
 
 (define (test-eq?)
   (all?
     (lambda (e) (eq? e e))
-    '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) +)))
+    '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1")))
 
 (define (test-->int)
-  'TODO
-  )
+  (va-all? id
+    (int? (->int 1))
+    (= 1 (->int 1))
+    (int? (->int 2.5))
+    (= 2 (->int 2.5))
+    (int? (->int "3"))
+    (= 3 (->int "3"))
+    (all?
+      (lambda (e) (nothing? (->int e)))
+      '('a "" "4.5" '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))))
 
 (define (test-->float)
-  'TODO
-  )
+  (va-all? id
+    (float? (->float 1))
+    (= 1.0 (->float 1))
+    (float? (->float 2.5))
+    (= 2.5 (->float 2.5))
+    (float? (->float "3"))
+    (= 3.0 (->float "3"))
+    (float? (->float "4.5"))
+    (= 4.5 (->float "4.5"))
+    (all?
+      (lambda (e) (nothing? (->float e)))
+      '('a "" '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))))
 
 (define (test-->string)
-  'TODO
-  )
+  (va-all? id
+    (= "" (->string ""))
+    (= "" (->string Nothing))
+    (= "()" (->string '()))
+    (= "(1 2)" (->string '(1 2)))
+    (= "[]" (->string []))
+    (= "[1 2]" (->string [1 2]))
+    (all?
+      (lambda (e) (= (->string e) (->string e)))
+      '('a "" '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))))
 
 (define (test-->bool)
-  'TODO
-  )
+  (and
+    (all? ->bool
+    (list #t 'a 1 0.5 '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))
+    (none? ->bool
+    (list #f '() Nothing))
+    ))
 
 (define (test-->list)
-  (va-all? id
-    
-    ))
+  'TODO
+  )
 
 (define (test-->vector)
   'TODO
@@ -1145,8 +1173,6 @@
 (define (test-type-name)
   'TODO
   )
-
-
 
 ;;;; Function which runs a test
 (define (run-test! test-fn)
