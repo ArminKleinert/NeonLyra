@@ -104,12 +104,14 @@ empty?               | 1   |  x  |  x  |
                      |     |     |     | 
 compose              | 2   |  x  |  x  | Given 2 functions f and g, makes a new function for
                      |     |     |     | (f (g x))
+⋅                    | 2   |  x  |  x  | Alias for compose.
 compose-and          | 2   |  x  |  x  | Given 2 functions f and g, makes a new function for
                      |     |     |     | checking (and (f x) (g x))
 compose-or           | 2   |  x  |  x  | Given 2 functions f and g, makes a new function for
                      |     |     |     | checking (or (f x) (g x))
 complement           | 1   |  x  |  x  | Returns given a function p, returns a function which
                      |     |     |     | checks (not (p x))
+~                    | 1   |  x  |  x  | Alias for complement.
                      |     |     |     | 
 id                   | 1   |  x  |  x  | 
 id-fn                | 1   |  x  |  x  | Creates a function which always returns the object.
@@ -230,11 +232,14 @@ none?                | 2   |  x  |  x  | Checks whether a predicate is true for 
                      |     |     |     | list.
 any?                 | 2   |  x  |  x  | Checks whether a predicate is true for at least 1 element
                      |     |     |     | in a list.
+∀                    | 2   |  x  |  x  | Alias for all?.
+∃                    | 2   |  x  |  x  | Alias for any?.
+∄                    | 2   |  x  |  x  | Alias for none?.
 va-all?              | >=1 |  x  |  x  | Variadic version of all?
 va-none?             | >=1 |  x  |  x  | Variadic version of none?
 va-any?              | >=1 |  x  |  x  | Variadic version of any?
                      |     |     |     | 
-reverse              | 1   |  x  |  x  | Reverse a list
+reverse              | 1   |  x  |  x  | Reverse a list.
 sum                  | 1   |  x  |  x  | Sums the elements of a list.
 minimum              | 1   |  x  |  x  | Get minimum of a list.
 maximum              | 1   |  x  |  x  | Get maximum of a list.
@@ -256,7 +261,11 @@ ljust                | 2   |  x  |  x  | Takes a string and a number. The string
                      |     |     |     | at least n characters by inserting spaces on the right
                      |     |     |     | side.
 ```
-
+(define ~ complement)
+(define ⋅ compose)
+(define ∀ all?)
+(define ∃ any?)
+(define ∄ none?)
 ```
 Name                 | 
 ---------------------+----------------------------------------------------------------------------

@@ -1233,8 +1233,35 @@
     (eq? [99 2 1] (but-last [99 2 1 1]))))
 
 (define (test-append)
-  'TODO
-  )
+  (all-true?
+    ; Appending strings
+    (= "" (append "" ""))
+    (= "1" (append "" "1"))
+    (= "21" (append "2" "1"))
+    
+    ; Appending to string transforms the 2. element into a string
+    (= "1" (append "" 1))
+    (= "11" (append "" 11))
+    (= "21" (append "2" 1))
+    
+    ; Appending empty sequences
+    (empty? (append '() '()))
+    (empty? (append [] []))
+    (empty? (append '() []))
+    (empty? (append [] '()))
+
+    ; Appending sequences
+    (eq? '(1 2 1 2) (append '(1 2) '(1 2)))
+    (eq? [1 2 1 2] (append [1 2] [1 2]))
+    (eq? '(1 2 1 2) (append '(1 2) [1 2]))
+    (eq? [1 2 1 2] (append [1 2] '(1 2)))
+    
+    ; Appending any atom type will return Nothing
+    (nothing? (append '(1 2) 88))
+    (nothing? (append [1 2] 88))
+    (nothing? (append 88 '(1 2)))
+    (nothing? (append 88 [1 2]))
+    (nothing? (append 88 88))))
 
 (define (test-concat)
   'TODO

@@ -14,6 +14,9 @@
 (def-macro (and x y) (list 'if x y #f))
 (def-macro (or x y) (list 'let1 (list 'x0 x) (list 'if 'x0 'x0 y)))
 
+(define (odd? n) (= 1 (rem (->int n) 2)))
+(define (even? n) (= 0 (rem (->int n) 2)))
+
 (define (foldl f v xs)
   (if (empty? xs)
     v
@@ -72,8 +75,14 @@
 
 (define (map f xs) (foldr (lambda (x v) (cons (f x) v)) '() xs))
 (define (map-indexed f xs) (foldr-indexed (lambda (x v i) (cons (f x i) v)) '() xs))
+
 (define (filter p xs) (foldr (lambda (x v) (if (p x) (cons x v) v)) '() xs))
 (define (remove p xs) (filter (complement p) xs))
+
+(define (filter-indexed p xs)
+  (foldr-indexed (lambda (x v i) (if (p x i) (cons x v) v)) '() xs))
+(define (remove-indexed p xs)
+  (filter-indexed (lambda (x i) (not (p x i))) xs))
 
 (define (fmap f p xs)
  (foldr

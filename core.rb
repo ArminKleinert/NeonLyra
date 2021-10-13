@@ -279,7 +279,19 @@ def setup_core_functions
   add_fn(:"but-last", 1) { |c| c.is_a?(Enumerable) ? c[0..-2] : nil }
   add_fn(:nth, 1) { |c, i| c.is_a?(Enumerable) ? c[i] : nil }
 
-  add_fn(:append, 2) { |x, y| x + y } # TODO Checks etc.
+  add_fn(:append, 2) do |x, y|
+    if x.is_a? String
+      x + elem_to_s(y)
+    elsif !x.is_a?(Enumerable) || !y.is_a?(Enumerable)
+      nil
+    elsif x.is_a? List
+      x + y
+    elsif x.is_a? Array
+      x + y.to_a
+    else
+      x.to_cons_list + y.to_cons_list
+    end
+  end
 
   add_fn(:"print!", 1) { |x| print elem_to_s(x) }
   add_fn(:"println!", 1) { |x| puts elem_to_s(x) }
