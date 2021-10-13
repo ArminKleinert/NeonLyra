@@ -74,7 +74,11 @@
   (list 'define (car name-bindings) (list 'memoize (cons 'lambda (cons (cdr name-bindings) body)))))
 
 (define (map f xs) (foldr (lambda (x v) (cons (f x) v)) '() xs))
+(define (mapcat f xs & ys) (foldr append '() (map f xs)))
 (define (map-indexed f xs) (foldr-indexed (lambda (x v i) (cons (f x i) v)) '() xs))
+
+(define (map-while f p xs) (map f (take-while p xs)))
+(define (map-until f p xs) (map f (take-until p xs)))
 
 (define (filter p xs) (foldr (lambda (x v) (if (p x) (cons x v) v)) '() xs))
 (define (remove p xs) (filter (complement p) xs))
@@ -160,9 +164,16 @@
 (define (va-none? p & xs) (none? p xs))
 (define (va-any? p & xs) (any? p xs))
 
-(define (concat & xs) (foldr append '() xs))
+(define (concat & xs)
+  (cond ((empty? xs) '())
+        ((list? (first xs)) (foldr append '() xs))
+        ((null? (first xs)) (foldr append '() xs))
+        (else (foldl1 append xs))))
 
 (define (v+ & xs) (foldl + 0 xs))
+
+(define (fs x y) x)
+(define (rs x y) y)
 
 ;;; List and Vector stuff
 
@@ -231,7 +242,9 @@
           (else (bubble-sort-aux (- n 1) (bubble-up xs))))))
 
 (define (bubblesort xs)
-  (bubble-sort-aux (size xs) xs))
+  (if (or (empty? xs) (= 1 (size xs)))
+    xs
+    (bubble-sort-aux (size xs) xs)))
 
 ;;; Aliases
 (define includes? contains?)

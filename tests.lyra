@@ -1264,8 +1264,47 @@
     (nothing? (append 88 88))))
 
 (define (test-concat)
-  'TODO
-  )
+  (all-true?
+    ; Appending strings
+    (= "" (concat "" ""))
+    (= "1" (concat "" "1"))
+    (= "21" (concat "2" "1"))
+    (= "" (concat "" "" ""))
+    (= "1" (concat "" "1" ""))
+    (= "321" (concat "3" "2" "1"))
+    
+    ; Appending to string transforms the 2. element into a string
+    (= "19" (concat "" 1 9))
+    (= "11a" (concat "" 11 'a))
+    (= "21" (concat "2" 1 ""))
+    
+    ; Appending empty sequences
+    (empty? (concat '() '()))
+    (empty? (concat [] []))
+    (empty? (concat '() []))
+    (empty? (concat [] '()))
+    (empty? (concat '() '() '()))
+    (empty? (concat [] [] []))
+    (empty? (concat '() [] '()))
+    (empty? (concat [] '() []))
+
+    ; Appending sequences
+    (eq? '(1 2 2 3) (concat '(1 2) '(2 3)))
+    (eq? [1 2 2 3] (concat [1 2] [2 3]))
+    (eq? '(1 2 2 3) (concat '(1 2) [2 3]))
+    (eq? [1 2 2 3] (concat [1 2] '(2 3)))
+    (eq? '(1 2 2 3 3 4) (concat '(1 2) '(2 3) '(3 4)))
+    (eq? [1 2 2 3 3 4] (concat '(1 2) '(2 3) [3 4]))
+    (eq? '(1 2 2 3 3 4) (concat '(1 2) [2 3] '(3 4)))
+    (eq? [1 2 2 3 3 4] (concat [1 2] [2 3] [3 4]))
+    
+    ; Appending any atom type will return Nothing
+    (nothing? (concat '(1 2) 88 0))
+    (nothing? (concat 0 [1 2] 88))
+    (nothing? (concat 88 []  '(1 2)))
+    (nothing? (concat '() 88 [1 2]))
+    (nothing? (concat 88 88 0))
+    (nothing? (concat 88 0))))
 
 (define (test-nth)
   'TODO
@@ -1280,74 +1319,162 @@
   )
 
 (define (test-map)
-  'TODO
-  )
+  (all-true?
+    (eq? (list) (map ->string (list)))
+    (eq? (list 1 4 9 16 25) (map (lambda (n) (* n n)) (list 1 2 3 4 5)))
+    (eq? (list "1" "2" "3") (map ->string (list 1 2 3)))
+    (eq? (list "a" "b" "c") (map ->string (list "a" "b" "c")))
+    
+    (eq? [] (map ->string []))
+    (eq? [1 4 9 16 25] (map (lambda (n) (* n n)) [1 2 3 4 5]))
+    (eq? ["1" "2" "3"] (map ->string [1 2 3]))
+    (eq? ["a" "b" "c"] (map ->string ["a" "b" "c"]))))
 
 (define (test-map-indexed)
-  'TODO
-  )
+  (all-true?
+    (eq? (list) (map-indexed (lambda (e i) (->string e)) (list)))
+    (eq? (list 1 4 9 16 25) (map-indexed (lambda (n i) (* n n)) (list 1 2 3 4 5)))
+    (eq? (list "1" "2" "3") (map-indexed (lambda (e i) (->string e)) (list 1 2 3)))
+    (eq? (list "a" "b" "c") (map-indexed (lambda (e i) (->string e)) (list "a" "b" "c")))
+    (eq? (list 1 2 3 4 5) (map-indexed (lambda (e i) e) (list 1 2 3 4 5)))
+    (eq? (list 0 1 2 3 4) (map-indexed (lambda (e i) i) (list 1 2 3 4 5)))
+    
+    (eq? [] (map-indexed (lambda (e i) (->string e)) []))
+    (eq? [1 4 9 16 25] (map-indexed (lambda (n i) (* n n)) [1 2 3 4 5]))
+    (eq? ["1" "2" "3"] (map-indexed (lambda (e i) (->string e)) [1 2 3]))
+    (eq? ["a" "b" "c"] (map-indexed (lambda (e i) (->string e)) ["a" "b" "c"]))
+    (eq? [1 2 3 4 5] (map-indexed (lambda (e i) e) [1 2 3 4 5]))
+    (eq? [0 1 2 3 4] (map-indexed (lambda (e i) i) [1 2 3 4 5]))))
 
 (define (test-fmap)
-  'TODO
-  )
+  (all-true?
+    (eq? (list)
+      (fmap ->string (lambda (e) #t) (list)))
+    (eq? (list 1 4 9 16 25)
+      (fmap (lambda (n) (* n n)) (lambda (e) #t) (list 1 2 3 4 5)))
+    (eq? (list 1 2 3 #t)
+      (fmap id id (list 1 #f 2 #f 3 #t #f Nothing)))
+    (eq? (list 1 9 25)
+      (fmap (lambda (n) (* n n)) odd? (list 1 2 3 4 5 6)))
+    
+    (eq? []
+      (fmap ->string (lambda (e) #t) []))
+    (eq? [1 4 9 16 25]
+      (fmap (lambda (n) (* n n)) (lambda (e) #t) [1 2 3 4 5]))
+    (eq? [1 2 3 #t]
+      (fmap id id [1 #f 2 #f 3 #t #f Nothing]))
+    (eq? [1 9 25]
+      (fmap (lambda (n) (* n n)) odd? [1 2 3 4 5 6]))))
 
 (define (test-mapf)
-  'TODO
-  )
+  (all-true?
+    (eq? (list)
+      (mapf ->string (lambda (e) #t) (list)))
+    (eq? (list 1 4 9 16 25)
+      (mapf (lambda (n) (* n n)) (lambda (e) #t) (list 1 2 3 4 5)))
+    (eq? (list 1 2 3 #t)
+      (mapf id id (list 1 #f 2 #f 3 #t #f Nothing)))
+    (eq? (list 1 9 25)
+      (mapf (lambda (n) (* n n)) odd? (list 1 2 3 4 5 6)))
+    
+    (eq? []
+      (mapf ->string (lambda (e) #t) []))
+    (eq? [1 4 9 16 25]
+      (mapf (lambda (n) (* n n)) (lambda (e) #t) [1 2 3 4 5]))
+    (eq? [1 2 3 #t]
+      (mapf id id [1 #f 2 #f 3 #t #f Nothing]))
+    (eq? [1 9 25]
+      (mapf (lambda (n) (* n n)) odd? [1 2 3 4 5 6]))))
 
 (define (test-mapcat)
   'TODO
   )
 
 (define (test-map-while)
-  'TODO
-  )
+  (all-true?
+    (empty? (map-while inc (partial > 5) '()))
+    (eq? '(2 3 4) (map-while inc (partial > 4) '(1 2 3 4 5 6 7)))
+    (empty? (map-while inc (partial > 5) []))
+    (eq? [2 3 4] (map-while inc (partial > 4) [1 2 3 4 5 6 7]))))
 
 (define (test-map-until)
-  'TODO
-  )
+  (all-true?
+    (empty? (map-until inc (partial > 5) '()))
+    (eq? '(2 3 4 5) (map-until inc (partial < 4) '(1 2 3 4 5 6 7)))
+    (empty? (map-until inc (partial > 5) []))
+    (eq? [2 3 4 5] (map-until inc (partial < 4) [1 2 3 4 5 6 7]))))
 
 (define (test-filter)
-  'TODO
-  )
+  (all-true?
+    (empty? (filter odd? '()))
+    (eq? '() (filter odd? '(2 4 6 8)))
+    (eq? '(1 3 5 7) (filter odd? '(1 2 3 4 5 6 7 8)))
+    (empty? (filter odd? []))
+    (eq? [] (filter odd? [2 4 6 8]))
+    (eq? [1 3 5 7] (filter odd? [1 2 3 4 5 6 7 8]))))
 
 (define (test-filter-indexed)
   'TODO
   )
 
 (define (test-remove)
-  'TODO
-  )
+  (all-true?
+    (empty? (remove even? '()))
+    (eq? '() (remove even? '(2 4 6 8)))
+    (eq? '(1 3 5 7) (remove even? '(1 2 3 4 5 6 7 8)))
+    (empty? (remove even? []))
+    (eq? [] (remove even? [2 4 6 8]))
+    (eq? [1 3 5 7] (remove even? [1 2 3 4 5 6 7 8]))))
 
 (define (test-remove-indexed)
   'TODO
   )
 
 (define (test-foldl)
-  'TODO
-  )
+  (all-true?
+    (= 0 (foldl + 0 '()))
+    (= 1 (foldl + 0 '(1)))
+    (= 15 (foldl + 0 '(1 2 3 4 5)))
+    (= 20 (foldl + 5 '(1 2 3 4 5)))
+    (= 0 (foldl + 0 []))
+    (= 1 (foldl + 0 [1]))
+    (= 15 (foldl + 0 [1 2 3 4 5]))
+    (= 20 (foldl + 5 [1 2 3 4 5]))))
 
 (define (test-foldl1)
-  'TODO
-  )
+  (all-true?
+    (nothing? (foldl1 + '()))
+    (= 1 (foldl1 + '(1)))
+    (= 15 (foldl1 + '(1 2 3 4 5)))
+    (nothing? (foldl1 + []))
+    (= 1 (foldl1 + [1]))
+    (= 15 (foldl1 + [1 2 3 4 5]))))
 
 (define (test-foldl-indexed)
   'TODO
   )
 
 (define (test-foldr)
-  'TODO
-  )
+  (all-true?
+    (= 0 (foldr + 0 '()))
+    (= 1 (foldr + 0 '(1)))
+    (= 15 (foldr + 0 '(1 2 3 4 5)))
+    (= 20 (foldr + 5 '(1 2 3 4 5)))
+    (= 0 (foldr + 0 []))
+    (= 1 (foldr + 0 [1]))
+    (= 15 (foldr + 0 [1 2 3 4 5]))
+    (= 20 (foldr + 5 [1 2 3 4 5]))))
 
 (define (test-foldr1)
-  'TODO
-  )
+  (all-true?
+    (nothing? (foldr1 + '()))
+    (= 1 (foldr1 + '(1)))
+    (= 15 (foldr1 + '(1 2 3 4 5)))
+    (nothing? (foldr1 + []))
+    (= 1 (foldr1 + [1]))
+    (= 15 (foldr1 + [1 2 3 4 5]))))
 
 (define (test-foldr-indexed)
-  'TODO
-  )
-
-(define (test-reduce)
   'TODO
   )
 
@@ -1360,8 +1487,15 @@
   )
 
 (define (test-take)
-  'TODO
-  )
+  (all-true?
+    (empty? (take 1 '()))
+    (empty? (take 0 '(1 2 3 4 5)))
+    (eq? '(1 2 3) (take 3 '(1 2 3 4 5)))
+    (eq? '(1 2 3 4 5) (take 15 '(1 2 3 4 5)))
+    (empty? (take 1 []))
+    (empty? (take 0 [1 2 3 4 5]))
+    (eq? [1 2 3] (take 3 [1 2 3 4 5]))
+    (eq? [1 2 3 4 5] (take 15 [1 2 3 4 5]))))
 
 (define (test-take-while)
   'TODO
@@ -1372,8 +1506,15 @@
   )
 
 (define (test-drop)
-  'TODO
-  )
+  (all-true?
+    (empty? (drop 1 '()))
+    (empty? (drop 15 '(1 2 3 4 5)))
+    (eq? '(3 4 5) (drop 2 '(1 2 3 4 5)))
+    (eq? '(1 2 3 4 5) (drop 0 '(1 2 3 4 5)))
+    (empty? (drop 1 []))
+    (empty? (drop 15 [1 2 3 4 5]))
+    (eq? [3 4 5] (drop 2 [1 2 3 4 5]))
+    (eq? [1 2 3 4 5] (drop 0 [1 2 3 4 5]))))
 
 (define (test-drop-while)
   'TODO
@@ -1384,8 +1525,13 @@
   )
   
 (define (test-take-drop)
-  'TODO
-  )
+  (all-true?
+    (eq? '(() ()) (take-drop 1 '()))
+    (eq? '((1) (2)) (take-drop 1 '(1 2)))
+    (eq? '((1 2) ()) (take-drop 2 '(1 2)))
+    (eq? '((1 2) ()) (take-drop 3 '(1 2)))
+    (eq? '(() (1 2)) (take-drop 0 '(1 2)))
+    (eq? '((1 2) (3 4 5)) (take-drop 2 '(1 2 3 4 5)))))
 
 (define (test-take-drop-while)
   'TODO
@@ -1396,56 +1542,118 @@
   )
 
 (define (test-zip)
-  'TODO
-  )
+  (all-true?
+    (empty? (zip '() '()))
+    (empty? (zip '() '(1 2 3)))
+    (empty? (zip '(1 2 3) '()))
+    (eq? '((1 4) (2 5)) (zip '(1 2) '(4 5 6)))
+    (eq? '((1 4) (2 5)) (zip '(1 2 3) '(4 5)))
+    (eq? '((1 4) (2 5) (3 6)) (zip '(1 2 3) '(4 5 6)))
+    
+    (empty? (zip [] []))
+    (empty? (zip [] [1 2 3]))
+    (empty? (zip [1 2 3] []))
+    (eq? '((1 4) (2 5)) (zip [1 2] [4 5 6]))
+    (eq? '((1 4) (2 5)) (zip [1 2 3] [4 5]))
+    (eq? '((1 4) (2 5) (3 6)) (zip [1 2 3] [4 5 6]))))
 
 (define (test-zip-with)
-  'TODO
-  )
+  (all-true?
+    (empty? (zip-with list '() '()))
+    (empty? (zip-with list '() '(1 2 3)))
+    (empty? (zip-with list '(1 2 3) '()))
+    (empty? (zip-with list [] []))
+    (empty? (zip-with list [] [1 2 3]))
+    (empty? (zip-with list [1 2 3] []))
+
+    (eq? '((1 4) (2 5)) (zip-with list '(1 2) '(4 5 6)))
+    (eq? '((1 4) (2 5)) (zip-with list '(1 2 3) '(4 5)))
+    (eq? '((1 4) (2 5) (3 6)) (zip-with list '(1 2 3) '(4 5 6)))
+    (eq? '((1 4) (2 5)) (zip-with list [1 2] [4 5 6]))
+    (eq? '((1 4) (2 5)) (zip-with list [1 2 3] [4 5]))
+    (eq? '((1 4) (2 5) (3 6)) (zip-with list [1 2 3] [4 5 6]))
+    
+    (eq? '(5 7) (zip-with + '(1 2) '(4 5 6)))
+    (eq? '(5 7) (zip-with + '(1 2 3) '(4 5)))
+    (eq? '(5 7 9) (zip-with + '(1 2 3) '(4 5 6)))
+    (eq? '(5 7) (zip-with + [1 2] [4 5 6]))
+    (eq? '(5 7) (zip-with + [1 2 3] [4 5]))
+    (eq? '(5 7 9) (zip-with + [1 2 3] [4 5 6]))))
 
 (define (test-all?)
-  'TODO
-  )
+  (all-true?
+    (all? (partial > 5) '())
+    (all? (partial > 6) '(1 2 3 4 5))
+    (not (all? (partial > 3) '(1 2 3 4 5)))
+    (not (all? (partial < 6) '(1 2 3 4 5)))))
 
 (define (test-none?)
-  'TODO
-  )
+  (all-true?
+    (none? (partial > 5) '())
+    (not (none? (partial > 6) '(1 2 3 4 5)))
+    (not (none? (partial > 3) '(1 2 3 4 5)))
+    (none? (partial < 6) '(1 2 3 4 5))))
 
 (define (test-any?)
-  'TODO
-  )
+  (all-true?
+    (not (any? (partial > 5) '()))
+    (any? (partial > 6) '(1 2 3 4 5))
+    (any? (partial > 3) '(1 2 3 4 5))
+    (not (any? (partial < 6) '(1 2 3 4 5)))))
 
 (define (test-va-all?)
-  'TODO
-  )
+  (all-true?
+    (va-all? (partial > 5))
+    (va-all? (partial > 6) 1 2 3 4 5)
+    (not (va-all? (partial > 3) 1 2 3 4 5))
+    (not (va-all? (partial < 6) 1 2 3 4 5))))
 
 (define (test-va-none?)
-  'TODO
-  )
+  (all-true?
+    (va-none? (partial > 5))
+    (not (va-none? (partial > 6) 1 2 3 4 5))
+    (not (va-none? (partial > 3) 1 2 3 4 5))
+    (va-none? (partial < 6) 1 2 3 4 5)))
 
 (define (test-va-any?)
-  'TODO
-  )
+  (all-true?
+    (not (va-any? (partial > 5)))
+    (va-any? (partial > 6) 1 2 3 4 5)
+    (va-any? (partial > 3) 1 2 3 4 5)
+    (not (va-any? (partial < 6) 1 2 3 4 5))))
 
 (define (test-reverse)
-  'TODO
-  )
+  (all-true?
+    (empty? (reverse '()))
+    (eq? '(1) (reverse '(1)))
+    (eq? '(3 2 1) (reverse '(1 2 3)))
+    (eq? '(3 (2 4) (1)) (reverse '((1) (2 4) 3)))))
 
 (define (test-sum)
-  'TODO
-  )
+  (all-true?
+    (= 0 (sum '()))
+    (= 1 (sum '(1)))
+    (= 15 (sum '(1 2 3 4 5)))
+    (= 15.5 (sum '(1 2 0.5 3 4 5)))))
 
 (define (test-minimum)
-  'TODO
-  )
+  (all-true?
+    (nothing? (minimum '()))
+    (= 1 (minimum '(1)))
+    (= 1 (minimum '(2 1 3)))))
 
 (define (test-maximum)
-  'TODO
-  )
+  (all-true?
+    (nothing? (maximum '()))
+    (= 1 (maximum '(1)))
+    (= 3 (maximum '(2 1 3)))))
 
 (define (test-bubblesort)
-  'TODO
-  )
+  (all-true?
+    (empty? (bubblesort '()))
+    (eq? '(1) (bubblesort '(1)))
+    (eq? '(1 2 3) (bubblesort '(2 1 3)))
+    (eq? '(0 1 2 3 4 5) (bubblesort '(5 2 1 3 4 0)))))
 
 (define (test-type-name)
   'TODO
@@ -1600,7 +1808,6 @@
 (run-test! 'test-foldr)
 (run-test! 'test-foldr1)
 (run-test! 'test-foldr-indexed)
-(run-test! 'test-reduce)
 (run-test! 'test-repeat)
 (run-test! 'test-repeatedly)
 (run-test! 'test-take)
