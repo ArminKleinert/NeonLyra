@@ -307,6 +307,7 @@ def setup_core_functions
   add_var(:Nothing, nil)
 
   add_fn(:load!, 1) { |file| eval_file(file, Env.global_env) }
+
   add_fn(:"read-string", 1) do |s|
     tokens = tokenize(s)
     ast = make_ast(tokens)
@@ -316,6 +317,7 @@ def setup_core_functions
       ast[0]
     end
   end
+
   add_fn_with_env(:"eval!", 1) { |x, env| eval_ly first(x), env }
 
   add_var(:"very-long-list", (0...5).to_a)
