@@ -137,6 +137,14 @@
         ((p (first xs)) #t)
         (else (any? p (rest xs)))))
 
+(define (zip-with f l0 l1)
+  (if (or (empty? l0) (empty? l1))
+    '()
+    (cons (f (first l0) (first l1)) (zip-with f (rest l0) (rest l1)))))
+
+(define (zip l0 l1)
+  (zip-with list l0 l1))
+
 ; Variadic variants for all?, none? and any?
 (define (va-all? p & xs) (all? p xs))
 (define (va-none? p & xs) (none? p xs))

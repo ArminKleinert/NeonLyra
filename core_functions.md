@@ -222,6 +222,9 @@ take-drop-while      | 2   |  x  |  x  | Creates a list equal to
 take-drop-until      | 2   |  x  |  x  | Creates a list equal to
                      |     |     |     |   (list (take-until p xs) (drop-until p xs))
                      |     |     |     | 
+zip-with             | 3   |  x  |  x  | 
+zip                  | 2   |  x  |  x  | (zip l0 l1) is equal to (zip-with list l0 l1)
+                     |     |     |     | 
 all?                 | 2   |  x  |  x  | Checks whether a predicate is true for all elements in a 
                      |     |     |     | list.
 none?                | 2   |  x  |  x  | Checks whether a predicate is true for no element in a 

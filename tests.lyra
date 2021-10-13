@@ -1247,6 +1247,26 @@
 (define (test-drop-until)
   'TODO
   )
+  
+(define (test-take-drop)
+  'TODO
+  )
+
+(define (test-take-drop-while)
+  'TODO
+  )
+
+(define (test-take-drop-until)
+  'TODO
+  )
+
+(define (test-zip)
+  'TODO
+  )
+
+(define (test-zip-with)
+  'TODO
+  )
 
 (define (test-all?)
   'TODO
@@ -1458,6 +1478,8 @@
 (run-test! 'test-take-drop)
 (run-test! 'test-take-drop-while)
 (run-test! 'test-take-drop-until)
+(run-test! 'test-zip)
+(run-test! 'test-zip-with)
 (run-test! 'test-all?)
 (run-test! 'test-none?)
 (run-test! 'test-any?)
@@ -1471,23 +1493,4 @@
 (run-test! 'test-bubblesort)
 (run-test! 'test-type-name)
 
-(println! (take-drop 5 '()))
-(println! (take-drop 5 '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
-(println! (take-drop 17 '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
-(println! (take-drop 0 '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
-(println! "")
-(println! (take-drop-while (λ (_) #t) '()))
-(println! (take-drop-while (λ (_) #t) '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
-(println! (take-drop-while (λ (_) #f) '()))
-(println! (take-drop-while (λ (_) #f) '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
-(println! (take-drop-while (λ (n) (< n 5)) '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
-(println! (take-drop-while (λ (n) (< n 50)) '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
-(println! (take-drop-while (λ (n) (< n 1)) '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
-(println! "")
-(println! (take-drop-until (λ (_) #t) '()))
-(println! (take-drop-until (λ (_) #t) '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
-(println! (take-drop-until (λ (_) #f) '()))
-(println! (take-drop-until (λ (_) #f) '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
-(println! (take-drop-until (λ (n) (> n 5)) '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
-(println! (take-drop-until (λ (n) (> n 50)) '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
-(println! (take-drop-until (λ (n) (< n 1)) '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
+
