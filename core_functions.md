@@ -215,6 +215,12 @@ take-until           | 2   |  x  |  x  |
 drop                 | 2   |  x  |  x  | 
 drop-while           | 2   |  x  |  x  | 
 drop-until           | 2   |  x  |  x  | 
+take-drop            | 2   |  x  |  x  | Creates a list equal to
+                     |     |     |     |   (list (take n xs) (drop n xs))
+take-drop-while      | 2   |  x  |  x  | Creates a list equal to
+                     |     |     |     |   (list (take-while p xs) (drop-while p xs))
+take-drop-until      | 2   |  x  |  x  | Creates a list equal to
+                     |     |     |     |   (list (take-until p xs) (drop-until p xs))
                      |     |     |     | 
 all?                 | 2   |  x  |  x  | Checks whether a predicate is true for all elements in a 
                      |     |     |     | list.

@@ -62,7 +62,7 @@
 
 ; Function complement
 (define (complement p)
-  (lambda (x) (p x)))
+  (lambda (x) (not (p x))))
 
 (def-macro (begin & exprs)
   (cons 'let (cons '() exprs)))
@@ -84,6 +84,23 @@
   (lambda (x v)
     (let1 (z (f x)) (if (p z) (cons z v) v)))
   '() xs))
+
+(define (take-drop-h n st en)
+  (if (or (= n 0) (empty? en))
+    (list (->list st) en)
+    (take-drop-h (dec n) (vector-add st (first en)) (rest en))))
+(define (take-drop n xs)
+  (take-drop-h n [] xs))
+  
+(define (take-drop-until-h p st en)
+  (if (or (empty? en) (p (first en)))
+    (list (->list st) en)
+    (take-drop-until-h p (vector-add st (first en)) (rest en))))
+(define (take-drop-until p xs)
+  (take-drop-until-h p [] xs))
+
+(define (take-drop-while p xs)
+  (take-drop-until-h (complement p) [] xs))
 
 (define (take n xs)
   (cond ((= n 0) '())

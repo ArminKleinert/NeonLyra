@@ -975,9 +975,9 @@
                 (lambda (acc e i) (append acc (->string e)))
                 "" '(1 2 3))))
 
+    ; Early break after 6 elements.
     (= 21 (iterate-seq-p (lambda (acc e i) (< i 6)) (lambda (acc e i) (+ acc e))
-           0 '(1 2 3 4 5 6 7 8 9 10)))
-    )
+           0 '(1 2 3 4 5 6 7 8 9 10))))
 
 (define (test-map-of)
   'TODO
@@ -1008,32 +1008,62 @@
   )
 
 (define (test-set-of)
-  'TODO
-  )
+  (va-all? id
+    (empty? (set-of))
+    (eq? (set-of) (set-of))
+    (eq? (set-of 1) (set-of 1 1 1 1))
+    (eq? (set-of 1 2 3) (set-of 3 2 1))
+    (= 0 (size (set-of)))
+    (= 1 (size (set-of 1)))
+    (= 1 (size (set-of 1 1 1 1)))
+    (= 3 (size (set-of 1 2 3)))))
 
 (define (test-set-size)
-  'TODO
-  )
+  (va-all? id
+    (= 0 (size (set-of)))
+    (= 1 (size (set-of 1)))
+    (= 1 (size (set-of 1 1 1 1)))
+    (= 3 (size (set-of 1 2 3)))))
 
 (define (test-set-add)
   'TODO
   )
 
 (define (test-set-union)
-  'TODO
-  )
+  (va-all? id
+    (eq? (set-of) (set-union (set-of) (set-of)))
+    (eq? (set-of 1) (set-union (set-of 1 1 1) (set-of 1)))
+    (eq? (set-of 1 2 3 4) (set-union (set-of 1 3) (set-of 2 4)))
+    (eq? (set-of 66) (set-union (set-of 66) (set-of)))
+    (eq? (set-of 66) (set-union (set-of) (set-of 66)))))
 
 (define (test-set-difference)
-  'TODO
-  )
+  (va-all? id
+    (eq? (set-of) (set-difference (set-of) (set-of)))
+    (eq? (set-of) (set-difference (set-of 1 1 1) (set-of 1)))
+    (eq? (set-of 1 3) (set-difference (set-of 1 3) (set-of 2 4)))
+    (eq? (set-of 66) (set-difference (set-of 66) (set-of)))
+    (eq? (set-of) (set-difference (set-of) (set-of 66)))))
 
 (define (test-set-intersection)
-  'TODO
-  )
+  (va-all? id
+    (eq? (set-of) (set-intersection (set-of) (set-of)))
+    (eq? (set-of 1) (set-intersection (set-of 1 1 1) (set-of 1)))
+    (eq? (set-of) (set-intersection (set-of 1 3) (set-of 2 4)))
+    (eq? (set-of 1 2 3 4) (set-intersection (set-of 1 2 3 4 6) (set-of 1 2 3 4 5)))
+    (eq? (set-of) (set-intersection (set-of 66) (set-of)))
+    (eq? (set-of) (set-intersection (set-of) (set-of 66)))))
 
 (define (test-set-includes?)
-  'TODO
-  )
+  (va-all? id
+    (not (includes? (set-of) 1))
+    (includes? (set-of 1 1 1) 1)
+    (includes? (set-of 1 3) 3)
+    (includes? (set-of 1 2 3 4 6) 1)
+    (includes? (set-of 1 2 3 4 6) 4)
+    (not (includes? (set-of 1 2 3 4 6) 7))
+    (includes? (set-of 66) 66)
+    (not (includes? (set-of 66) 67))))
 
 (define (test-set-subset?)
   'TODO
@@ -1056,14 +1086,13 @@
   )
 
 (define (test-comment)
-  'TODO
-  )
+  ; If the following are executed, the code will crash
+  (comment (/ 0 0))
+  (comment (no-such-function-exists))
+  (comment this is not valid code)
+  #t)
 
 (define (test-size)
-  'TODO
-  )
-
-(define (test-count)
   'TODO
   )
 
@@ -1388,7 +1417,6 @@
 (run-test! 'test-begin)
 (run-test! 'test-comment)
 (run-test! 'test-size)
-(run-test! 'test-count)
 (run-test! 'test-indices-of)
 (run-test! 'test-contains?)
 (run-test! 'test-includes?)
@@ -1427,6 +1455,9 @@
 (run-test! 'test-drop)
 (run-test! 'test-drop-while)
 (run-test! 'test-drop-until)
+(run-test! 'test-take-drop)
+(run-test! 'test-take-drop-while)
+(run-test! 'test-take-drop-until)
 (run-test! 'test-all?)
 (run-test! 'test-none?)
 (run-test! 'test-any?)
@@ -1440,62 +1471,23 @@
 (run-test! 'test-bubblesort)
 (run-test! 'test-type-name)
 
-(let ((N 1)
-      (long-list (->list very-long-list))
-      (long-vector (->vector very-long-list)))
-  
-  (println! (measure! N
-    (lambda ()
-      (foldl-indexed
-        (lambda (acc x idx) (println! idx) (+ acc x))
-        0 long-list))))
-  
-  (println! (measure! N
-    (lambda ()
-      (foldl-indexed
-        (lambda (acc x idx) (println! idx) (+ acc x))
-        0 long-vector))))
-  
-  (println! (measure! N
-    (lambda ()
-      (foldr-indexed
-        (lambda (acc x idx) (println! idx) (+ acc x))
-        0 long-list))))
-  
-  (println! (measure! N
-    (lambda ()
-      (foldr-indexed
-        (lambda (acc x idx) (println! idx) (+ acc x))
-        0 long-vector))))
-
-  (println! "iterate on vector")
-  
-  (println! (measure! N
-    (lambda ()
-      (iterate-seq
-        (lambda (acc x idx) (+ acc x))
-        0 long-vector))))
-
-  (println! (measure! N
-    (lambda ()
-      (iterate-seq-p
-        (lambda (acc x idx) #t)
-        (lambda (acc x idx) (+ acc x))
-        0 long-vector))))
-
-  (println! "iterate on list")
-  
-  (println! (measure! N
-    (lambda ()
-      (iterate-seq
-        (lambda (acc x idx) (+ acc x))
-        0 long-list))))
-
-  (println! (measure! N
-    (lambda ()
-      (iterate-seq-p
-        (lambda (acc x idx) #t)
-        (lambda (acc x idx) (+ acc x))
-        0 long-list))))
-
-)
+(println! (take-drop 5 '()))
+(println! (take-drop 5 '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
+(println! (take-drop 17 '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
+(println! (take-drop 0 '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
+(println! "")
+(println! (take-drop-while (λ (_) #t) '()))
+(println! (take-drop-while (λ (_) #t) '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
+(println! (take-drop-while (λ (_) #f) '()))
+(println! (take-drop-while (λ (_) #f) '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
+(println! (take-drop-while (λ (n) (< n 5)) '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
+(println! (take-drop-while (λ (n) (< n 50)) '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
+(println! (take-drop-while (λ (n) (< n 1)) '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
+(println! "")
+(println! (take-drop-until (λ (_) #t) '()))
+(println! (take-drop-until (λ (_) #t) '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
+(println! (take-drop-until (λ (_) #f) '()))
+(println! (take-drop-until (λ (_) #f) '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
+(println! (take-drop-until (λ (n) (> n 5)) '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
+(println! (take-drop-until (λ (n) (> n 50)) '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))
+(println! (take-drop-until (λ (n) (< n 1)) '(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)))

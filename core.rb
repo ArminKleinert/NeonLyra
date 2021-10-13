@@ -57,6 +57,8 @@ end
 def lyra_eq?(x, y)
   if atom?(x) && atom?(y)
     x == y
+  elsif x.is_a?(Set) && y.is_a?(Set)
+    x == y
   elsif x.is_a?(Enumerable)
     if y.is_a?(Enumerable)
       x.to_a == y.to_a
