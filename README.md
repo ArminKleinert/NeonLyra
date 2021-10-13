@@ -2,7 +2,7 @@
 
 Lyra is a lisp I make for fun and learning. NeonLyra is an improved version.
 
-Current version: 0.0.6
+Current version: 0.0.7
 
 Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cub.
 
@@ -16,7 +16,7 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cub.
 - Macros  
 - Tail recursion  
 - Lazy evaluation (not implemented)  
-- Ease of use for Clojurians.
+- Ease of use for Clojurians.  
 
 ## Differences to original Lyra:
 
@@ -185,5 +185,9 @@ Here are some differences to Clojure I could think of:
   - User-defined types  
   - Generic fuctions  
   - Some other bug fixes.  
+- 0.0.7  
+  - Many new functions.  
+  - Various bug fixes.  
+  - All important functions have tests.  
 
 
