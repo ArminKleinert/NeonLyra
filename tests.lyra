@@ -34,12 +34,12 @@
 
 (define (test-quote)
   (quote (/ 9 0))
+  (quote (crash!))
   (va-all? id
     (symbol? (quote a))
     (symbol? 'a)
     (string? '"abc")
-    (list? '(1 2 3))
-    ))
+    (list? '(1 2 3))))
 
 (define (test-gensym)
   (va-all? id
@@ -63,10 +63,10 @@
     (sequence? (seq (list 1 2 3 4 5)))
     (sequence? (seq (vector 1 2 3 4 5)))))
 
+; If this does not crash, then we know that the expression was not evaluated.
 (define (test-lazy-crash)
-  ;((lambda (x y) (lazy (/ x y))) 0 0) ; If this does not crash, then we know that the expression was not evaluated.
-  (lazy (crash!)) ; If this does not crash, then we know that the expression was not evaluated.)
-  )
+  ((lambda (x y) (lazy (/ x y))) 0 0) 
+  (lazy (crash!)))
 
 (define (test-lazy)
   (va-all? id
@@ -879,36 +879,105 @@
     (eq? 1 (car (car (list (list 1)))))))
 
 (define (test-cdr)
-  'TODO
-  )
+  (va-all? id
+    (list? (cdr '()))
+    (eq? '() (cdr '()))
+    (eq? '() (cdr '(1)))
+    (eq? '(2 3) (cdr (list 1 2 3)))
+    (eq? '() (cdr (list (list 1))))))
 
 (define (test-cons)
-  'TODO
-  )
+  (va-all? id
+    (eq? (list (list)) (cons '() '()))
+    (eq? '(1 2) (cons 1 '(2)))
+    (list? (cons 1 '(2)))
+    (eq? (list (list 1 2 3)) (cons (list 1 2 3) (list)))))
 
 (define (test-vector)
-  'TODO
-  )
+  (va-all? id
+    (empty? (vector))
+    (eq? (vector 1 2 3) (vector 1 2 3))
+    (vector? (vector 1 2 3))
+    (= 3 (size (vector 1 2 3)))
+    (empty? [])
+    (eq? [1 2 3] [1 2 3])
+    (vector? [1 2 3])
+    (= 3 (size [1 2 3]))))
 
 (define (test-vector-size)
-  'TODO
-  )
+  (va-all? id
+    (= 0 (size []))
+    (= 0 (size (vector)))
+    (= 1 (size [1]))
+    (= 1 (size (vector 1)))
+    (= 2 (size [1 2]))
+    (= 2 (size (vector 1 2)))
+    (= 3 (size [1 2 3]))
+    (= 3 (size (vector 1 2 3)))))
 
 (define (test-vector-nth)
-  'TODO
-  )
+  (va-all? id
+    (nothing? (vector-nth [] 0))
+    (nothing? (vector-nth (vector) 0))
+    (nothing? (vector-nth [] 1))
+    (nothing? (vector-nth (vector) 1))
+    (= 1 (vector-nth [1 2] 0))
+    (= 1 (vector-nth (vector 1 2) 0))
+    (= 2 (vector-nth [1 2] 1))
+    (= 2 (vector-nth (vector 1 2) 1))
+    (nothing? (vector-nth [1 2] 255))
+    (nothing? (vector-nth (vector 1 2) 266))))
 
 (define (test-vector-add)
-  'TODO
-  )
+  (va-all? id
+    (eq? [1] (vector-add [] 1))
+    (eq? [1] (vector-add (vector) 1))
+    (eq? [[]] (vector-add [] []))
+    (eq? [[]] (vector-add (vector) []))
+    (eq? [1 2 3] (vector-add [1 2] 3))
+    (eq? [1 2 3] (vector-add (vector 1 2) 3))))
 
 (define (test-vector-append)
-  'TODO
-  )
+  (va-all? id
+    (eq? [1] (vector-append [] [1]))
+    (eq? [1] (vector-append (vector) (vector 1)))
+    (eq? [] (vector-append [] []))
+    (eq? [] (vector-append (vector) []))
+    (eq? [1 2 3] (vector-append [1 2] [3]))
+    (eq? [1 2 3] (vector-append (vector 1 2) [3]))))
 
-(define (test-vector-iterate)
-  'TODO
-  )
+(define (test-iterate-seq)
+  (va-all? id
+    (= 6 (iterate-seq (lambda (acc e i) (inc acc)) 0 [1 2 3 4 5 6]))
+    (= 21 (iterate-seq (lambda (acc e i) (+ acc e)) 0 [1 2 3 4 5 6]))
+    (= "123" (iterate-seq (lambda (acc e i) (append acc (->string e))) "" [1 2 3]))
+
+    (= 6 (iterate-seq (lambda (acc e i) (inc acc)) 0 '(1 2 3 4 5 6)))
+    (= 21 (iterate-seq (lambda (acc e i) (+ acc e)) 0 '(1 2 3 4 5 6)))
+    (= "123" (iterate-seq (lambda (acc e i) (append acc (->string e))) "" '(1 2 3)))))
+
+
+(define (test-iterate-seq-p)
+  (va-all? id
+    (= 6 (iterate-seq-p (lambda (acc e i) #t) (lambda (acc e i) (inc acc))
+           0 [1 2 3 4 5 6]))
+    (= 21 (iterate-seq-p (lambda (acc e i) #t) (lambda (acc e i) (+ acc e))
+           0 [1 2 3 4 5 6]))
+    (= "123" (iterate-seq-p (lambda (acc e i) #t) (lambda (acc e i) (append acc (->string e)))
+           "" [1 2 3 4 5 6]))
+
+    (= 6 (iterate-seq-p (lambda (acc e i) #t) (lambda (acc e i) (inc acc))
+           0 '(1 2 3 4 5 6)))
+    (= 21 (iterate-seq-p (lambda (acc e i) #t) (lambda (acc e i) (+ acc e))
+           0 '(1 2 3 4 5 6)))
+    (= "123" (iterate-seq-p
+                (lambda (acc e i) #t)
+                (lambda (acc e i) (append acc (->string e)))
+                "" '(1 2 3))))
+
+    (= 21 (iterate-seq-p (lambda (acc e i) (< i 6)) (lambda (acc e i) (+ acc e))
+           0 '(1 2 3 4 5 6 7 8 9 10)))
+    )
 
 (define (test-map-of)
   'TODO
@@ -1296,7 +1365,8 @@
 (run-test! 'test-vector-nth)
 (run-test! 'test-vector-add)
 (run-test! 'test-vector-append)
-(run-test! 'test-vector-iterate)
+(run-test! 'test-iterate-seq)
+(run-test! 'test-iterate-seq-p)
 (run-test! 'test-map-of)
 (run-test! 'test-map-size)
 (run-test! 'test-map-get)
@@ -1369,3 +1439,63 @@
 (run-test! 'test-maximum)
 (run-test! 'test-bubblesort)
 (run-test! 'test-type-name)
+
+(let ((N 1)
+      (long-list (->list very-long-list))
+      (long-vector (->vector very-long-list)))
+  
+  (println! (measure! N
+    (lambda ()
+      (foldl-indexed
+        (lambda (acc x idx) (println! idx) (+ acc x))
+        0 long-list))))
+  
+  (println! (measure! N
+    (lambda ()
+      (foldl-indexed
+        (lambda (acc x idx) (println! idx) (+ acc x))
+        0 long-vector))))
+  
+  (println! (measure! N
+    (lambda ()
+      (foldr-indexed
+        (lambda (acc x idx) (println! idx) (+ acc x))
+        0 long-list))))
+  
+  (println! (measure! N
+    (lambda ()
+      (foldr-indexed
+        (lambda (acc x idx) (println! idx) (+ acc x))
+        0 long-vector))))
+
+  (println! "iterate on vector")
+  
+  (println! (measure! N
+    (lambda ()
+      (iterate-seq
+        (lambda (acc x idx) (+ acc x))
+        0 long-vector))))
+
+  (println! (measure! N
+    (lambda ()
+      (iterate-seq-p
+        (lambda (acc x idx) #t)
+        (lambda (acc x idx) (+ acc x))
+        0 long-vector))))
+
+  (println! "iterate on list")
+  
+  (println! (measure! N
+    (lambda ()
+      (iterate-seq
+        (lambda (acc x idx) (+ acc x))
+        0 long-list))))
+
+  (println! (measure! N
+    (lambda ()
+      (iterate-seq-p
+        (lambda (acc x idx) #t)
+        (lambda (acc x idx) (+ acc x))
+        0 long-list))))
+
+)

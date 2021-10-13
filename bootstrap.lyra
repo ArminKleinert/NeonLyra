@@ -78,6 +78,23 @@
 
 
 
+(define (iterate-seq-p-helper pred func acc vec index)
+  (cond
+    ((empty? vec) acc)
+    ((not (pred acc (first vec) index)) acc)
+    (#t (iterate-seq-p-helper pred func
+          (func acc (first vec) index) (rest vec) (inc index)))))
+
+(define (iterate-seq-p pred func acc vec)
+  (iterate-seq-p-helper pred func acc vec 0))
+
+(define (iterate-seq func acc vec)
+  (iterate-seq-p-helper (lambda (x y z) #t) func acc vec 0))
+
+
+
+
+
 
 
 

@@ -114,7 +114,7 @@ def setup_core_functions
     Env.global_env.set!(name, value)
   end
 
-  add_fn(:"list-size", 1){ |x| x.size }
+  add_fn(:"list-size", 1) { |x| x.size }
   add_fn(:cons, 2) { |x, y| cons(x, y) }
   add_fn(:car, 1) { |x| x.car }
   add_fn(:cdr, 1) { |x| x.cdr }
@@ -213,6 +213,22 @@ def setup_core_functions
   add_fn(:"vector-append", 2) { |xs, ys| xs + ys }
   add_fn(:"vector-includes?", 2) { |xs, ys| xs.include? ys }
 
+  add_fn_with_env(:"iterate-seq", 3) do |xs, env|
+    func, acc, vec = xs.to_a
+    vec.each_with_index do |x, i|
+      acc = func.call(list(acc, x, i), env)
+    end
+    acc
+  end
+  add_fn_with_env(:"iterate-seq-p", 4) do |xs, env|
+    pred, func, acc, vec = xs.to_a
+    vec.each_with_index do |x, i|
+      break unless pred.call(list(acc, x, i), env)
+      acc = func.call(list(acc, x, i), env)
+    end
+    acc
+  end
+
   add_fn(:"map-of", 0, -1) { |*xs| xs.to_h }
   add_fn(:"map-size", 1) { |m| m.size }
   add_fn(:"map-get", 2) { |m, k| m[k] }
@@ -220,21 +236,21 @@ def setup_core_functions
   add_fn(:"map-remove", 2) { |m, k| m.select { |k1, _| k != k1 } }
   add_fn(:"map-keys", 1) { |m| m.keys }
   add_fn(:"map-merge", 2) { |m, m2| Hash[m].merge!(m2) }
-  add_fn(:"map-has-key?",2){|m,k| m.has_key? k}
-  add_fn(:"map-has-value?",2){|m,v| m.has_value? v}
-  add_fn(:"map-entries",1){|m| m.to_a}
+  add_fn(:"map-has-key?",2) { |m,k| m.has_key? k}
+  add_fn(:"map-has-value?",2) { |m,v| m.has_value? v}
+  add_fn(:"map-entries",1) { |m| m.to_a}
 
-  add_fn(:"set-of", 0,-1) {|*xs| xs.to_set}
-  add_fn(:"set-size",1) {|s| s.size}
-  add_fn(:"set-add", 2){|s, e| s.add e }
-  add_fn(:"set-union",2){|s0,s1| s0 | s1}
-  add_fn(:"set-difference",2){|s0,s1| s0 - s1}
-  add_fn(:"set-intersection",2){|s0,s1| s0 & s1}
-  add_fn(:"set-includes?", 2){|s, e| s.include? e }
-  add_fn(:"set-subset?", 2){|s0, s1| s0 <= s1 }
-  add_fn(:"set-true-subset?", 2){|s0, s1| s0 < s1 }
-  add_fn(:"set-superset?", 2){|s0, s1| s0 >= s1 }
-  add_fn(:"set-true-superset?", 2){|s0, s1| s0 > s1 }
+  add_fn(:"set-of", 0,-1) { |*xs| xs.to_set}
+  add_fn(:"set-size",1) { |s| s.size}
+  add_fn(:"set-add", 2) { |s, e| s.add e }
+  add_fn(:"set-union",2) { |s0,s1| s0 | s1}
+  add_fn(:"set-difference",2) { |s0,s1| s0 - s1}
+  add_fn(:"set-intersection",2) { |s0,s1| s0 & s1}
+  add_fn(:"set-includes?", 2) { |s, e| s.include? e }
+  add_fn(:"set-subset?", 2) { |s0, s1| s0 <= s1 }
+  add_fn(:"set-true-subset?", 2) { |s0, s1| s0 < s1 }
+  add_fn(:"set-superset?", 2) { |s0, s1| s0 >= s1 }
+  add_fn(:"set-true-superset?", 2) { |s0, s1| s0 > s1 }
 
   add_fn(:size, 1) { |c| c.is_a?(Enumerable) ? c.size : nil }
   add_fn(:"contains?", 2) { |c, e| c.include? e }
@@ -282,7 +298,7 @@ def setup_core_functions
   end
   add_fn_with_env(:"eval!", 1) { |x, env| eval_ly first(x), env }
 
-  #add_var(:"very-long-list", (0..100_000).to_cons_list)
+  add_var(:"very-long-list", (0...5).to_a)
 
   add_fn_with_env(:"measure!", 2) { |args, env|
     median = lambda do |arr|

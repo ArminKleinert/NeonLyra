@@ -34,6 +34,20 @@
         ((= (size xs) 1) (first xs))
         (else (foldr f (first xs) (rest xs)))))
 
+(define (foldl-indexed f s xs)
+  ((lambda (f acc i xs)
+    (if (empty? xs)
+      acc
+      (recur f (f acc (first xs) i) (inc i) (rest xs))))
+    f s 0 xs))
+
+(define (foldr-idx-helper f v i xs)
+  (if (empty? xs)
+    v
+    (f (first xs) (foldr-idx-helper f v (inc i) (rest xs)) i)))
+(define (foldr-indexed f v xs)
+  (foldr-idx-helper f v 0 xs))
+
 ; Function composition
 (define (compose f g)
   (lambda (x) (f (g x))))

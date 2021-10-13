@@ -138,7 +138,14 @@ vector-size          | 1   |  x  |  x  |
 vector-nth           | 2   |  x  |  x  | 
 vector-add           | 2   |  x  |  x  | 
 vector-append        | 2   |  x  |  x  | 
-vector-iterate       | 4   |  x  |  x  | 
+                     |     |     |     | 
+iterate-seq          | 3   |  x  |  x  | Iterates a sequence with a function, accumular and the
+                     |     |     |     | sequence. The function takes 3 arguments: The accumulator,
+                     |     |     |     | the current element and the current element. Example:
+                     |     |     |     |   (iterate-seq (lambda (acc e idx) (+ acc e)) 0 sequence)
+iterate-seq-p        | 4   |  x  |  x  | Similar to iterate-seq, but the first argument is a
+                     |     |     |     | predicate. When the predicate returns a falsey value, the
+                     |     |     |     | iteration breaks.
                      |     |     |     | 
 map-of               | any |  x  |  x  | 
 map-size             | 1   |  x  |  x  | 
@@ -194,10 +201,10 @@ remove-indexed       | 2   |  x  |     |
                      |     |     |     | 
 foldl                | 3   |  x  |  x  | 
 foldl1               | 3   |  x  |  x  | 
-foldl-indexed        | 3   |  x  |     | 
+foldl-indexed        | 3   |  x  |  x  | 
 foldr                | 3   |  x  |  x  | 
 foldr1               | 3   |  x  |  x  | 
-foldr-indexed        | 3   |  x  |     | 
+foldr-indexed        | 3   |  x  |  x  | 
 reduce               | 3   |  x  |  x  | Alias for foldl.
                      |     |     |     | 
 repeat               | 1   |  x  |     | 

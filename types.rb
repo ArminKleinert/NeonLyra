@@ -46,6 +46,17 @@ module ConsList
     self
   end
 
+  def each_with_index
+    lst = self
+    i = 0
+    until lst.empty?
+      yield lst.car, i
+      lst = lst.cdr
+      i += 1
+    end
+    self
+  end
+
   def to_s
     "(#{inject { |x, y| "#{elem_to_s(x)} #{elem_to_s(y)}" }})"
   end
