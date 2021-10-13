@@ -71,6 +71,7 @@
   (list 'define (car name-bindings) (list 'memoize (cons 'lambda (cons (cdr name-bindings) body)))))
 
 (define (map f xs) (foldr (lambda (x v) (cons (f x) v)) '() xs))
+(define (map-indexed f xs) (foldr-indexed (lambda (x v i) (cons (f x i) v)) '() xs))
 (define (filter p xs) (foldr (lambda (x v) (if (p x) (cons x v) v)) '() xs))
 (define (remove p xs) (filter (complement p) xs))
 
@@ -203,6 +204,11 @@
     '()
     (cons from (range (inc from) to))))
 
+(define (indices-of seq elem)
+  (foldr-indexed
+    (lambda (c acc i) (if (eq? c elem) (cons i acc) acc))
+    '() seq))
+
 (define (bubble-up xs)
     (if (empty? (cdr xs))   
         xs
@@ -224,9 +230,11 @@
 (define fold foldr)
 (define reduce foldl)
 
-(def-generic x (foo x y) +)
-(define ::integer foo -)
-(define ::float foo *)
+(define ~ complement)
+(define ⋅ compose)
+(define ∀ all?)
+(define ∃ any?)
+(define ∄ none?)
 
 ;;; Aliases for Clojure devs.
 

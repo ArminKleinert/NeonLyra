@@ -172,9 +172,8 @@ comment              | any |  x  |  x  |
                      |     |     |     | 
 size                 | 1   |  x  |  x  | 
 count                | 1   |  x  |  x  | Alias for size.
-indices-of           | 2   |  x  |     | 
+indices-of           | 2   |  x  |  x  | 
 contains?            | 2   |  x  |  x  | 
-includes?            | 2   |  x  |  x  | Alias for contains?.
 first                | 1   |  x  |  x  | 
 rest                 | 1   |  x  |  x  | 
 last                 | 1   |  x  |  x  | 
@@ -187,7 +186,7 @@ split                | 2   |  x  |     | Take spliterator and collection, split 
 split-by             | 2   |  x  |     | 
                      |     |     |     | 
 map                  | 2   |  x  |  x  | 
-map-indexed          | 2   |  x  |     | 
+map-indexed          | 2   |  x  |  x  | 
 fmap                 | 3   |  x  |  x  | filter, then map
 mapf                 | 3   |  x  |  x  | map, then filter 
 mapcat               | 2   |  x  |     | 

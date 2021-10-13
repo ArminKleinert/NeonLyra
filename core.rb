@@ -57,11 +57,13 @@ end
 def lyra_eq?(x, y)
   if atom?(x) && atom?(y)
     x == y
-  elsif x.is_a?(Set) && y.is_a?(Set)
-    x == y
   elsif x.is_a?(Enumerable)
     if y.is_a?(Enumerable)
-      x.to_a == y.to_a
+      if x.class == y.class
+        x == y
+      else
+        x.to_a == y.to_a
+      end
     elsif y.is_a?(LyraType)
       x.to_a == y.attrs
     else
@@ -84,7 +86,7 @@ def elem_to_s(e)
   elsif e.is_a? Array
     "[#{e.map { |x| elem_to_s(x)}.join(" ")}]"
   elsif e.is_a? Hash
-    "Map[" + e.map{|k,v| "#{elem_to_s(k)} #{elem_to_s(v)}"}.join("") + "]"
+    "Map[" + e.map{|k,v| "#{elem_to_s(k)} #{elem_to_s(v)}"}.join(" , ") + "]"
   elsif e.is_a? Set
     "Set[#{e.map { |x| elem_to_s(x)}.join(" ")}]"
   else
@@ -234,7 +236,7 @@ def setup_core_functions
   add_fn(:"map-of", 0, -1) { |*xs| xs.to_h }
   add_fn(:"map-size", 1) { |m| m.size }
   add_fn(:"map-get", 2) { |m, k| m[k] }
-  add_fn(:"map-set", 3) { |m, k, v| m2 = Hash[m]; m2[k, v]; m2 }
+  add_fn(:"map-set", 3) { |m, k, v| m2 = Hash[m]; m2[k] = v; m2 }
   add_fn(:"map-remove", 2) { |m, k| m.select { |k1, _| k != k1 } }
   add_fn(:"map-keys", 1) { |m| m.keys }
   add_fn(:"map-merge", 2) { |m, m2| Hash[m].merge!(m2) }
@@ -265,7 +267,11 @@ def setup_core_functions
     end }
   add_fn(:rest, 1) { |c|
     if c.is_a?(Enumerable)
-      c.is_a?(List) ? c.cdr : c[1..-1]
+      if c.is_a?(List)
+        c.cdr
+      else
+        c.empty? ? c : c.to_a[1..-1]
+      end
     else
       nil
     end }
