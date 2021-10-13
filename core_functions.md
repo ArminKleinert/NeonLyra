@@ -40,7 +40,7 @@ lazy                 | 1   |  x  |  x  |
 eager                | 1   |  x  |  x  | 
 partial              | >=1 |  x  |  x  | 
                      |     |     |     | 
-nothing              | any |  x  |  x  | Swallows any numer of arguments and returns the Nothing
+nothing              | any |  x  |  x  | Swallows any numer of arguments and returns the Nothing.
                      |     |     |     | object.
 unwrap               | 1   |  x  |  x  | 
                      |     |     |     | 
@@ -48,7 +48,7 @@ box                  | 1   |  x  |  x  |
 unbox                | 1   |  x  |  x  | 
 set-box!             | 2   |  x  |  x  | 
                      |     |     |     | 
-load!                | 1   |     |  x  | Load file. Attention: load! always uses the global 
+load!                | 1   |     |  x  | Load file. Attention: load! always uses the global
                      |     |     |     | environment, not the local one.
 require!             | 1   |     |  x  | Alias for load!
 read-string          | 1   |  x  |  x  | Parses a string into code.
@@ -58,10 +58,13 @@ measure!             | 2   |  x  |  x  |
                      |     |     |     | 
 =                    | 2   |  x  |  x  | 
 /=                   | 2   |  x  |  x  | 
+≠                    | 2   |  x  |  x  | Alias for /=
 <                    | 2   |  x  |  x  | 
 >                    | 2   |  x  |  x  | 
 <=                   | 2   |  x  |  x  | 
 >=                   | 2   |  x  |  x  | 
+≤                    | 2   |  x  |  x  | Alias for >=
+≥                    | 2   |  x  |  x  | Alias for <=
                      |     |     |     | 
 +                    | 2   |  x  |  x  | 
 v+                   | >=1 |  x  |  x  | Variadic +
@@ -86,8 +89,8 @@ bit-shl              | 2   |  x  |  x  |
 bit-shr              | 2   |  x  |  x  | 
                      |     |     |     | 
 defined?             | 1   |  x  |  x  | Checks whether or not a symbol is defined.
-nothing?             | 1   |  x  |  x  | True for the Nothing object
-null?                | 1   |  x  |  x  | True for both Nothing and '()
+nothing?             | 1   |  x  |  x  | True for the Nothing object.
+null?                | 1   |  x  |  x  | True for both Nothing and '().
 collection?          | 1   |  x  |  x  | True for lists, vectors, maps and sets, false for others.
 sequence?            | 1   |  x  |  x  | True if the input is a list or vector.
 list?                | 1   |  x  |  x  | 
@@ -102,15 +105,15 @@ map?                 | 1   |  x  |  x  |
 set?                 | 1   |  x  |  x  | 
 empty?               | 1   |  x  |  x  | 
                      |     |     |     | 
-compose              | 2   |  x  |  x  | Given 2 functions f and g, makes a new function for
+compose              | 2   |  x  |  x  | Given 2 functions f and g, makes a new function for.
                      |     |     |     | (f (g x))
 ⋅                    | 2   |  x  |  x  | Alias for compose.
-compose-and          | 2   |  x  |  x  | Given 2 functions f and g, makes a new function for
+compose-and          | 2   |  x  |  x  | Given 2 functions f and g, makes a new function for.
                      |     |     |     | checking (and (f x) (g x))
-compose-or           | 2   |  x  |  x  | Given 2 functions f and g, makes a new function for
+compose-or           | 2   |  x  |  x  | Given 2 functions f and g, makes a new function for.
                      |     |     |     | checking (or (f x) (g x))
-complement           | 1   |  x  |  x  | Returns given a function p, returns a function which
-                     |     |     |     | checks (not (p x))
+complement           | 1   |  x  |  x  | Returns given a function p, returns a function which.
+                     |     |     |     | Checks (not (p x)).
 ~                    | 1   |  x  |  x  | Alias for complement.
                      |     |     |     | 
 id                   | 1   |  x  |  x  | 
@@ -176,6 +179,10 @@ size                 | 1   |  x  |  x  |
 count                | 1   |  x  |  x  | Alias for size.
 indices-of           | 2   |  x  |  x  | 
 contains?            | 2   |  x  |  x  | 
+included?            | 2   |  x  |  x  | Reverse of contains?.
+∈                    | 2   |  x  |  x  | Alias for included?.
+∉                    | 2   |  x  |  x  | Alias for the complement of included?.
+                     |     |     |     | 
 first                | 1   |  x  |  x  | 
 rest                 | 1   |  x  |  x  | 
 last                 | 1   |  x  |  x  | 
@@ -261,11 +268,7 @@ ljust                | 2   |  x  |  x  | Takes a string and a number. The string
                      |     |     |     | at least n characters by inserting spaces on the right
                      |     |     |     | side.
 ```
-(define ~ complement)
-(define ⋅ compose)
-(define ∀ all?)
-(define ∃ any?)
-(define ∄ none?)
+
 ```
 Name                 | 
 ---------------------+----------------------------------------------------------------------------

@@ -277,7 +277,7 @@ def setup_core_functions
     end }
   add_fn(:last, 1) { |c| c.is_a?(Enumerable) ? c[c.size - 1] : nil }
   add_fn(:"but-last", 1) { |c| c.is_a?(Enumerable) ? c[0..-2] : nil }
-  add_fn(:nth, 1) { |c, i| c.is_a?(Enumerable) ? c[i] : nil }
+  add_fn(:nth, 2) { |c, i| c.is_a?(Enumerable) ? c[i] : nil }
 
   add_fn(:append, 2) do |x, y|
     if x.is_a? String

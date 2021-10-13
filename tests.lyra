@@ -16,20 +16,20 @@
       (= (f 2) 2) 
       (= (f 2) 2) 
       (= (f 2) 2)
-      (= fr 6)
-      )))
+      (= fr 6))))
 
 (define (test-cond)
-  'TODO
-  )
+  (all-true?
+    (= 3 (cond (#f 0) (#f 1) (#f 2) (#t 3)))
+    (cond (#f 0) (#f 1) (#f 2) (else #t))
+    (cond (#t #t) (else (crash!)))))
 
 (define (test-if)
   (all-true?
     (if #f #f #t)
     (if #t #t #f)
     (= 2 (if #t 2 3))
-    (= 3 (if #f 2 3))
-    ))
+    (= 3 (if #f 2 3))))
 
 (define (test-apply)
   'TODO
@@ -85,7 +85,8 @@
 (define (test-partial)
   (all-true?
     (= ((partial + 0) 5) (+ 0 5))
-    (= ((partial foldl + 0) (list 1 2 3 4 5)) (foldl + 0 (list 1 2 3 4 5)))))
+    (= ((partial foldl + 0) (list 1 2 3 4 5))
+        (foldl + 0 (list 1 2 3 4 5)))))
 
 (define (test-nothing)
   (all-true?
@@ -97,10 +98,6 @@
     (nothing? (nothing '()))
     (nothing? (nothing (list 1 2 3 4 5)))
     (nothing? (nothing (vector 1 2 3 4 5)))))
-
-(define (test-unwrap)
-  'TODO
-  )
 
 (define (test-box)
   (let1 (b (box 5))
@@ -157,8 +154,7 @@
     (eval! #t)
     (not (eval! #f))
     (eval! (quote #t))
-    (eval! (quote (= 2 2)))
-    ))
+    (eval! (quote (= 2 2)))))
 
 (define (test-measure)
   (float? (measure! 10 (lambda () #f))))
@@ -330,8 +326,7 @@
     (= "0" (min "0" "1"))
     (= "0" (min "1" "0"))
     (= "1" (min "1" "1"))
-    (= "0" (min "0" "0"))
-    ))
+    (= "0" (min "0" "0"))))
 
 (define (test-max)
   (all-true?
@@ -729,20 +724,30 @@
     (not (empty? (map-of [1 2])))))
 
 (define (test-compose)
-  'TODO
-  )
+  (all-true?
+    ((compose odd? inc) 2)
+    (= 4 ((compose inc inc) 2))
+    (= "3" ((compose ->string inc) 2))
+    ((⋅ odd? inc) 2)
+    (= 4 ((⋅ inc inc) 2))
+    (= "3" ((⋅ ->string inc) 2))
+    ((compose nothing? ->int) '())))
 
 (define (test-compose-and)
-  'TODO
-  )
+  (all-true?
+    ((compose-and empty? vector?) [])
+    ((compose-and int? number?) 5)
+    (not ((compose-and (lambda (e) #f) (lambda (e) (crash!))) 0))))
 
 (define (test-compose-or)
-  'TODO
-  )
+  (all-true?
+    ((compose-or empty? list?) [])
+    ((compose-or int? float?) 5)
+    ((compose-or null? float?) 5.5)
+    ((compose-or (lambda (e) #t) (lambda (e) (crash!))) 0)))
 
 (define (test-complement)
-  'TODO
-  )
+  ((complement odd?) 2))
 
 (define (test-id)
   (all-true?
@@ -822,8 +827,7 @@
     (all? ->bool
     (list #t 'a 1 0.5 '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))
     (none? ->bool
-    (list #f '() Nothing))
-    ))
+    (list #f '() Nothing))))
 
 (define (test-->list)
   (all-true?
@@ -844,12 +848,14 @@
       (map ->vector (list '(1) [1] (set-of 1))))))
 
 (define (test-->char)
-  'TODO
-  )
+  (= "A" (->char 65)))
 
 (define (test-->map)
-  'TODO
-  )
+  (all-true?
+    (nothing? (->map 1))
+    (empty? (->map '()))
+    (eq? (map-of [1 2] [3 1]) (->map '(1 2 3 1)))
+    (eq? (map-of [1 2] [3 1]) (->map [1 2 3 1]))))
 
 (define (test-->set)
   (all-true?
@@ -1011,16 +1017,14 @@
     (eq? (map-of [1 2]) (map-set (map-of) 1 2))
     (eq? (map-of [1 3]) (map-set (map-of [1 2]) 1 3))
     (eq? (map-of [1 3] [13 2]) (map-set (map-of [13 2]) 1 3))
-    (eq? (map-of [1 3] [13 2]) (map-set (map-of [1 3] [13 2]) 1 3))
-    ))
+    (eq? (map-of [1 3] [13 2]) (map-set (map-of [1 3] [13 2]) 1 3))))
 
 (define (test-map-remove)
   (all-true?
     (eq? (map-of) (map-remove (map-of) 1))
     (eq? (map-of) (map-remove (map-of [1 2]) 1))
     (eq? (map-of [13 2]) (map-remove (map-of [13 2]) 1))
-    (eq? (map-of [13 2]) (map-remove (map-of [1 3] [13 2]) 1))
-  ))
+    (eq? (map-of [13 2]) (map-remove (map-of [1 3] [13 2]) 1))))
 
 (define (test-map-keys)
   (all-true?
@@ -1135,8 +1139,13 @@
     (not (set-true-superset? (set-of) (set-of 1 2)))))
 
 (define (test-begin)
-  'TODO
-  )
+  (all-true?
+    (not (begin))
+    (= 1 (begin 2 3 1))
+    (let1 (b (box 0))
+      (and
+        (= @b 0)
+        (begin (box-set! b 5) (= @b 5))))))
 
 (define (test-comment)
   ; If the following are executed, the code will crash
@@ -1307,8 +1316,18 @@
     (nothing? (concat 88 0))))
 
 (define (test-nth)
-  'TODO
-  )
+  (all-true?
+    (nothing? (nth '() 0))
+    (nothing? (nth '(1 2 3) 15))
+    (= 1 (nth '(1 2 3) 0))
+    (= 2 (nth '(1 2 3) 1))
+    (= 3 (nth '(1 2 3) 2))
+    
+    (nothing? (nth [] 0))
+    (nothing? (nth [1 2 3] 15))
+    (= 1 (nth [1 2 3] 0))
+    (= 2 (nth [1 2 3] 1))
+    (= 3 (nth [1 2 3] 2))))
    
 (define (test-split)
   'TODO
@@ -1414,8 +1433,13 @@
     (eq? [1 3 5 7] (filter odd? [1 2 3 4 5 6 7 8]))))
 
 (define (test-filter-indexed)
-  'TODO
-  )
+  (all-true?
+    (empty? (filter-indexed (lambda(e i) #t) '()))
+    (empty? (filter-indexed (lambda(e i) #f) '(1 2 3 4 5 6)))
+    (eq? '(1 3 5) (filter-indexed (lambda(e i) (odd? e)) '(1 2 3 4 5 6)))
+    (eq? '(2 4 6) (filter-indexed (lambda(e i) (even? e)) '(1 2 3 4 5 6)))
+    (eq? '(1 3 5) (filter-indexed (lambda(e i) (even? i)) '(1 2 3 4 5 6)))
+    (eq? '(2 4 6) (filter-indexed (lambda(e i) (odd? i)) '(1 2 3 4 5 6)))))
 
 (define (test-remove)
   (all-true?
@@ -1427,8 +1451,13 @@
     (eq? [1 3 5 7] (remove even? [1 2 3 4 5 6 7 8]))))
 
 (define (test-remove-indexed)
-  'TODO
-  )
+  (all-true?
+    (empty? (remove-indexed (lambda(e i) #f) '()))
+    (empty? (remove-indexed (lambda(e i) #t) '(1 2 3 4 5 6)))
+    (eq? '(2 4 6) (remove-indexed (lambda(e i) (odd? e)) '(1 2 3 4 5 6)))
+    (eq? '(1 3 5) (remove-indexed (lambda(e i) (even? e)) '(1 2 3 4 5 6)))
+    (eq? '(2 4 6) (remove-indexed (lambda(e i) (even? i)) '(1 2 3 4 5 6)))
+    (eq? '(1 3 5) (remove-indexed (lambda(e i) (odd? i)) '(1 2 3 4 5 6)))))
 
 (define (test-foldl)
   (all-true?
@@ -1451,8 +1480,11 @@
     (= 15 (foldl1 + [1 2 3 4 5]))))
 
 (define (test-foldl-indexed)
-  'TODO
-  )
+  (all-true?
+    (= 15 (foldl-indexed nothing 15 '()))
+    (= 10 (foldl-indexed (lambda(s e i) (+ s i)) 0 '(1 2 3 4 5)))
+    (= 25 (foldl-indexed (lambda(s e i) (v+ s e i)) 0 '(1 2 3 4 5)))
+    (= 30 (foldl-indexed (lambda(s e i) (v+ s e i)) 5 '(1 2 3 4 5)))))
 
 (define (test-foldr)
   (all-true?
@@ -1475,8 +1507,11 @@
     (= 15 (foldr1 + [1 2 3 4 5]))))
 
 (define (test-foldr-indexed)
-  'TODO
-  )
+  (all-true?
+    (= 15 (foldr-indexed nothing 15 '()))
+    (= 10 (foldr-indexed (lambda(e s i) (+ s i)) 0 '(1 2 3 4 5)))
+    (= 25 (foldr-indexed (lambda(e s i) (v+ s e i)) 0 '(1 2 3 4 5)))
+    (= 30 (foldr-indexed (lambda(e s i) (v+ s e i)) 5 '(1 2 3 4 5)))))
 
 (define (test-repeat)
   'TODO
@@ -1498,12 +1533,18 @@
     (eq? [1 2 3 4 5] (take 15 [1 2 3 4 5]))))
 
 (define (test-take-while)
-  'TODO
-  )
+  (all-true?
+    (empty? (take-while (partial > 5) '()))
+    (eq? '(1 2 3) (take-while (partial > 4) '(1 2 3 4 5 6 7)))
+    (empty? (take-while (partial > 5) []))
+    (eq? [1 2 3] (take-while (partial > 4) [1 2 3 4 5 6 7]))))
 
 (define (test-take-until)
-  'TODO
-  )
+  (all-true?
+    (empty? (take-until (partial > 5) '()))
+    (eq? '(1 2 3 4) (take-until (partial < 4) '(1 2 3 4 5 6 7)))
+    (empty? (take-until (partial > 5) []))
+    (eq? [1 2 3 4] (take-until (partial < 4) [1 2 3 4 5 6 7]))))
 
 (define (test-drop)
   (all-true?
@@ -1517,12 +1558,18 @@
     (eq? [1 2 3 4 5] (drop 0 [1 2 3 4 5]))))
 
 (define (test-drop-while)
-  'TODO
-  )
+  (all-true?
+    (eq? '() (drop-while (partial > 5) '()))
+    (eq? '(4 5 6 7) (drop-while (partial > 4) '(1 2 3 4 5 6 7)))
+    (eq? '() (drop-while (partial > 5) []))
+    (eq? [4 5 6 7] (drop-while (partial > 4) [1 2 3 4 5 6 7]))))
 
 (define (test-drop-until)
-  'TODO
-  )
+  (all-true?
+    (eq? '() (drop-until (partial > 5) '()))
+    (eq? '(5 6 7) (drop-until (partial < 4) '(1 2 3 4 5 6 7)))
+    (eq? '() (drop-until (partial > 5) []))
+    (eq? '(5 6 7) (drop-until (partial < 4) [1 2 3 4 5 6 7]))))
   
 (define (test-take-drop)
   (all-true?
@@ -1534,12 +1581,18 @@
     (eq? '((1 2) (3 4 5)) (take-drop 2 '(1 2 3 4 5)))))
 
 (define (test-take-drop-while)
-  'TODO
-  )
+  (all-true?
+    (eq? '(() ()) (take-drop-while (partial > 5) '()))
+    (eq? '((1 2 3) (4 5 6 7)) (take-drop-while (partial > 4) '(1 2 3 4 5 6 7)))
+    (eq? '(() ()) (take-drop-while (partial > 5) []))
+    (eq? '((1 2 3) (4 5 6 7)) (take-drop-while (partial > 4) [1 2 3 4 5 6 7]))))
 
 (define (test-take-drop-until)
-  'TODO
-  )
+  (all-true?
+    (eq? '(() ()) (take-drop-until (partial > 5) '()))
+    (eq? '((1 2 3 4) (5 6 7)) (take-drop-until (partial < 4) '(1 2 3 4 5 6 7)))
+    (eq? '(() ()) (take-drop-until (partial > 5) []))
+    (eq? '((1 2 3 4) (5 6 7)) (take-drop-until (partial < 4) [1 2 3 4 5 6 7]))))
 
 (define (test-zip)
   (all-true?
@@ -1655,10 +1708,6 @@
     (eq? '(1 2 3) (bubblesort '(2 1 3)))
     (eq? '(0 1 2 3 4 5) (bubblesort '(5 2 1 3 4 0)))))
 
-(define (test-type-name)
-  'TODO
-  )
-
 ;;;; Function which runs a test
 (define (run-test! test-fn)
   (let1 (res (test-fn))
@@ -1670,168 +1719,64 @@
               (#t "Failure!")
               )))))
 
-(test-lazy) ; If the test fails, the program will crash.
-(run-test! 'test-lambda)
-(run-test! 'test-cond)
-(run-test! 'test-if)
-(run-test! 'test-apply)
-(run-test! 'test-quote)
-(run-test! 'test-gensym)
-(run-test! 'test-seq)
-(run-test! 'test-lazy-crash)
-(run-test! 'test-lazy)
-(run-test! 'test-eager)
-(run-test! 'test-partial)
-(run-test! 'test-nothing)
-(run-test! 'test-unwrap)
-(run-test! 'test-box)
-(run-test! 'test-unbox)
-(run-test! 'test-set-box)
-(run-test! 'test-read-string)
-(run-test! 'test-eval)
-(run-test! 'test-measure)
-(run-test! 'test-=)
-(run-test! 'test-/=)
-(run-test! 'test-<)
-(run-test! 'test->)
-(run-test! 'test-<=)
-(run-test! 'test->=)
-(run-test! 'test-+)
-(run-test! 'test-v+)
-(run-test! 'test--)
-(run-test! 'test-*)
-(run-test! 'test-/)
-(run-test! 'test-rem)
-(run-test! 'test-inc)
-(run-test! 'test-dec)
-(run-test! 'test-min)
-(run-test! 'test-max)
-(run-test! 'test-not)
-(run-test! 'test-and)
-(run-test! 'test-or)
-(run-test! 'test-bit-and)
-(run-test! 'test-bit-or)
-(run-test! 'test-bit-xor)
-(run-test! 'test-bit-shl)
-(run-test! 'test-bit-shr)
-(run-test! 'test-defined?)
-(run-test! 'test-nothing?)
-(run-test! 'test-null?)
-(run-test! 'test-collection?)
-(run-test! 'test-sequence?)
-(run-test! 'test-list?)
-(run-test! 'test-vector?)
-(run-test! 'test-int?)
-(run-test! 'test-float?)
-(run-test! 'test-string?)
-(run-test! 'test-symbol?)
-(run-test! 'test-char?)
-(run-test! 'test-set?)
-(run-test! 'test-map?)
-(run-test! 'test-set?)
-(run-test! 'test-empty?)
-(run-test! 'test-compose)
-(run-test! 'test-compose-and)
-(run-test! 'test-compose-or)
-(run-test! 'test-complement)
-(run-test! 'test-id)
-(run-test! 'test-id-fn)
-(run-test! 'test-hash)
-(run-test! 'test-eq?)
-(run-test! 'test-->int)
-(run-test! 'test-->float)
-(run-test! 'test-->string)
-(run-test! 'test-->bool)
-(run-test! 'test-->list)
-(run-test! 'test-->vector)
-(run-test! 'test-->char)
-(run-test! 'test-->map)
-(run-test! 'test-->set)
-(run-test! 'test-list)
-(run-test! 'test-list-size)
-(run-test! 'test-car)
-(run-test! 'test-cdr)
-(run-test! 'test-cons)
-(run-test! 'test-vector)
-(run-test! 'test-vector-size)
-(run-test! 'test-vector-nth)
-(run-test! 'test-vector-add)
-(run-test! 'test-vector-append)
-(run-test! 'test-iterate-seq)
-(run-test! 'test-iterate-seq-p)
-(run-test! 'test-map-of)
-(run-test! 'test-map-size)
-(run-test! 'test-map-get)
-(run-test! 'test-map-set)
-(run-test! 'test-map-remove)
-(run-test! 'test-map-keys)
-(run-test! 'test-map-merge)
-(run-test! 'test-set-of)
-(run-test! 'test-set-size)
-(run-test! 'test-set-add)
-(run-test! 'test-set-union)
-(run-test! 'test-set-difference)
-(run-test! 'test-set-intersection)
-(run-test! 'test-set-includes?)
-(run-test! 'test-set-subset?)
-(run-test! 'test-set-true-subset?)
-(run-test! 'test-set-superset?)
-(run-test! 'test-set-true-superset?)
-(run-test! 'test-begin)
-(run-test! 'test-comment)
-(run-test! 'test-size)
-(run-test! 'test-indices-of)
-(run-test! 'test-contains?)
-(run-test! 'test-first)
-(run-test! 'test-rest)
-(run-test! 'test-last)
-(run-test! 'test-but-last)
-(run-test! 'test-append)
-(run-test! 'test-concat)
-(run-test! 'test-nth)
-(run-test! 'test-split)
-(run-test! 'test-split-by)
-(run-test! 'test-map)
-(run-test! 'test-map-indexed)
-(run-test! 'test-fmap)
-(run-test! 'test-mapf)
-(run-test! 'test-mapcat)
-(run-test! 'test-map-while)
-(run-test! 'test-map-until)
-(run-test! 'test-filter)
-(run-test! 'test-filter-indexed)
-(run-test! 'test-remove)
-(run-test! 'test-remove-indexed)
-(run-test! 'test-foldl)
-(run-test! 'test-foldl1)
-(run-test! 'test-foldl-indexed)
-(run-test! 'test-foldr)
-(run-test! 'test-foldr1)
-(run-test! 'test-foldr-indexed)
-(run-test! 'test-repeat)
-(run-test! 'test-repeatedly)
-(run-test! 'test-take)
-(run-test! 'test-take-while)
-(run-test! 'test-take-until)
-(run-test! 'test-drop)
-(run-test! 'test-drop-while)
-(run-test! 'test-drop-until)
-(run-test! 'test-take-drop)
-(run-test! 'test-take-drop-while)
-(run-test! 'test-take-drop-until)
-(run-test! 'test-zip)
-(run-test! 'test-zip-with)
-(run-test! 'test-all?)
-(run-test! 'test-none?)
-(run-test! 'test-any?)
-(run-test! 'test-va-all?)
-(run-test! 'test-va-none?)
-(run-test! 'test-va-any?)
-(run-test! 'test-reverse)
-(run-test! 'test-sum)
-(run-test! 'test-minimum)
-(run-test! 'test-maximum)
-(run-test! 'test-bubblesort)
-(run-test! 'test-type-name)
+(define (run-tests! & fns)
+  (let ((results
+          (foldl
+            (lambda (res f)
+              (let ((r (f)))
+                (cond
+                  ((= r 'TODO)
+                    (list (car res) (cadr res) (cons f (caddr res))))
+                  (r
+                    (list (cons f (car res)) (cadr res) (caddr res)))
+                  (else
+                    (list (car res) (cons f (cadr res)) (caddr res))))))
+            '(() () ())
+            fns)))
+    (concat
+      "Successful        (" (size (car results)) "): " (car results)
+      "\nFailed          (" (size (cadr results)) "): " (cadr results)
+      "\nNot implemented (" (size (caddr results)) "): " (caddr results))))
 
 
+(println! (run-tests!
+'test-lambda 'test-cond 'test-if 'test-apply
+'test-quote 'test-gensym 'test-seq 'test-lazy-crash
+'test-lazy 'test-eager 'test-partial 'test-nothing
+'test-box 'test-unbox 'test-set-box 'test-read-string
+'test-eval 'test-measure 'test-= 'test-/= 'test-<
+'test-> 'test-<= 'test->= 'test-+ 'test-v+ 'test-- 'test-*
+'test-/ 'test-rem 'test-inc 'test-dec 'test-min 'test-max 
+'test-not 'test-and 'test-or 'test-bit-and 'test-bit-or 
+'test-bit-xor 'test-bit-shl 'test-bit-shr 'test-defined?
+'test-nothing? 'test-null? 'test-collection? 'test-sequence?
+'test-list? 'test-vector? 'test-int? 'test-float?
+'test-string? 'test-symbol? 'test-char? 'test-set? 'test-map?
+'test-set? 'test-empty? 'test-compose 'test-compose-and
+'test-compose-or 'test-complement 'test-id 'test-id-fn
+'test-hash 'test-eq? 'test-->int 'test-->float
+'test-->string 'test-->bool 'test-->list 'test-->vector
+'test-->char 'test-->map 'test-->set 'test-list
+'test-list-size 'test-car 'test-cdr 'test-cons 'test-vector
+'test-vector-size 'test-vector-nth 'test-vector-add 
+'test-vector-append 'test-iterate-seq 'test-iterate-seq-p
+'test-map-of 'test-map-size 'test-map-get 'test-map-set
+'test-map-remove  'test-map-keys 'test-map-merge 'test-set-of
+'test-set-size 'test-set-add 'test-set-union
+'test-set-difference 'test-set-intersection
+'test-set-includes? 'test-set-subset? 'test-set-true-subset?
+'test-set-superset? 'test-set-true-superset? 'test-begin
+'test-comment 'test-size 'test-indices-of 'test-contains?
+'test-first 'test-rest 'test-last 'test-but-last 'test-append
+'test-concat 'test-nth 'test-split 'test-split-by 'test-map 
+'test-map-indexed 'test-fmap 'test-mapf 'test-mapcat 
+'test-map-while 'test-map-until 'test-filter 'test-filter-indexed 
+'test-remove 'test-remove-indexed 'test-foldl 'test-foldl1 
+'test-foldl-indexed 'test-foldr 'test-foldr1 'test-foldr-indexed 
+'test-repeat 'test-repeatedly 'test-take 'test-take-while 
+'test-take-until 'test-drop 'test-drop-while 'test-drop-until 
+'test-take-drop 'test-take-drop-while 'test-take-drop-until
+'test-zip 'test-zip-with 'test-all? 'test-none? 'test-any? 
+'test-va-all? 'test-va-none? 'test-va-any? 'test-reverse 
+'test-sum 'test-minimum 'test-maximum 'test-bubblesort
+))

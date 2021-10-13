@@ -101,14 +101,14 @@
 
 (define (take-drop-h n st en)
   (if (or (= n 0) (empty? en))
-    (list (->list st) en)
+    (list (->list st) (->list en))
     (take-drop-h (dec n) (vector-add st (first en)) (rest en))))
 (define (take-drop n xs)
   (take-drop-h n [] xs))
   
 (define (take-drop-until-h p st en)
   (if (or (empty? en) (p (first en)))
-    (list (->list st) en)
+    (list (->list st) (->list en))
     (take-drop-until-h p (vector-add st (first en)) (rest en))))
 (define (take-drop-until p xs)
   (take-drop-until-h p [] xs))
@@ -158,6 +158,9 @@
 
 (define (zip l0 l1)
   (zip-with list l0 l1))
+
+(define (included? e s)
+  (contains? s e))
 
 ; Variadic variants for all?, none? and any?
 (define (va-all? p & xs) (all? p xs))
@@ -257,6 +260,11 @@
 (define ∀ all?)
 (define ∃ any?)
 (define ∄ none?)
+(define ≥ >=)
+(define ≤ <=)
+
+(define ∈ included?)
+(define ∉ (lambda (e s) (not (included? e s))))
 
 ;;; Aliases for Clojure devs.
 
