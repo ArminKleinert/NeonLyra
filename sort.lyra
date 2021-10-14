@@ -1,0 +1,21 @@
+(module sort
+  ((sort bubblesort)
+   (bubblesort bubblesort))
+
+(define (bubble-up xs)
+    (if (empty? (cdr xs))   
+        xs
+        (if (< (car xs) (cadr xs))
+            (cons (car xs) (bubble-up (cdr xs)))   
+            (cons (cadr xs) (bubble-up (cons (car xs) (cddr xs)))))))
+
+(define (bubble-sort-aux n xs)    
+  (let ((xs (->list xs)))
+    (cond ((= n 1) (bubble-up xs))   
+          (else (bubble-sort-aux (- n 1) (bubble-up xs))))))
+
+(define (bubblesort xs)
+  (if (or (empty? xs) (= 1 (size xs)))
+    xs
+    (bubble-sort-aux (size xs) (->list xs))))
+)

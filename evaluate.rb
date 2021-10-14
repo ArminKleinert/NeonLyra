@@ -438,6 +438,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       # Same as define, but the 'is_macro' parameter is true.
       # Form: `(def-macro (name arg0 arg1 ...) body...)`
       ev_define(rest(expr), env, true)
+=begin
     when :apply
       # Form: (apply func & args)
       # (apply f x0 x1 x2 (list x3 x4 x5)) becomes (f x0 x1 x2 x3 x4 x5)
@@ -455,6 +456,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         end
         fn.apply_to args1, env
       end
+=end
     when :module
       ev_module expr
     when :lazy

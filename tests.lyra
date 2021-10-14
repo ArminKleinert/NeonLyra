@@ -31,13 +31,20 @@
     (= 2 (if #t 2 3))
     (= 3 (if #f 2 3))))
 
+(define (test-spread)
+  (all-true?
+    (eq? '(1 2 3) (spread '(1 2 (3))))
+    (eq? '(1 2 3) (spread '((1 2 3))))
+    (eq? '((1) 1 2 3) (spread '((1) (1 2 3))))))
+
 (define (test-apply)
   (all-true?
     (eq? [[1] [2]] (concat [[1] [2]]))
     (eq? [1 2] (apply concat [[1] [2]]))
     (eq? '(0 (1) (2)) (concat '(0) '((1) (2))))
     (eq? '(0 1 2) (apply concat '(0) (list (list 1) (list 2))))
-    ))
+    (eq? 20 (apply v+ 1 2 3 '(2 3 4 5)))
+    (eq? 15 (apply v+ '(1 2 3 4 5)))))
 
 (define (test-quote)
   (quote (/ 9 0))
@@ -1409,9 +1416,25 @@
     (eq? [1 9 25]
       (mapf (lambda (n) (* n n)) odd? [1 2 3 4 5 6]))))
 
+(define (test-maplist)
+  (eq? '(0 1 1)
+      (maplist (lambda (x) (if (∈ (car x) (cdr x)) 0 1)) (list 'a 'b 'a))))
+
+(define (test-mapcar)
+  (all-true?
+    (eq? '(1 2 3 4) (mapcar id '(1 2 3 4)))
+    (eq? '(3 5 7 9) (mapcar + '(1 2 3 4) '(2 3 4 5)))
+    (eq? '((1 2) (4 3)) (mapcar list '(1 4) '(2 3)))
+    (eq? '((1 2) (4)) (mapcar list '(1 4) '(2)))
+    (eq? '((1 2) (3)) (mapcar list '(1) '(2 3)))))
+
+(define (test-mapcon)
+  (all-true?
+    (eq? '(((1 2 3 4)) ((2 3 4)) ((3 4)) ((4))) (maplist list '(1 2 3 4)))
+    (eq? '((1 2 3 4) (2 3 4) (3 4) (4)) (mapcon list '(1 2 3 4)))))
+
 (define (test-mapcat)
-  'TODO
-  )
+  (mapcat cdr '((1 2) (3 4) (5 6))))
 
 (define (test-map-while)
   (all-true?
@@ -1738,14 +1761,14 @@
             '(() () ())
             fns)))
     (concat
-      "Ran " (foldl + 0 [(size (car results)) (size (car results)) (size (car results))]) " tests.\n- "
+      "Ran " (foldl + 0 [(size (car results)) (size (cadr results)) (size (caddr results))]) " tests.\n- "
       (size (car results)) " Successful.\n- "
       (size (cadr results)) " Failed: " (cadr results) "\n- "
-      (size (caddr results)) "Not implemented: " (caddr results))))
+      (size (caddr results)) " Not implemented: " (caddr results))))
 
 
 (println! (run-tests!
-'test-lambda 'test-cond 'test-if 'test-apply
+'test-lambda 'test-cond 'test-if 'test-spread 'test-apply
 'test-quote 'test-gensym 'test-seq 'test-lazy-crash
 'test-lazy 'test-eager 'test-partial 'test-nothing
 'test-box 'test-unbox 'test-set-box 'test-read-string
@@ -1774,6 +1797,7 @@
 'test-comment 'test-size 'test-indices-of 'test-contains?
 'test-first 'test-rest 'test-last 'test-but-last 'test-append
 'test-concat 'test-nth 'test-split 'test-split-by 'test-map 
+'test-maplist 'test-mapcar 'test-mapcon 'test-mapcon
 'test-map-indexed 'test-fmap 'test-mapf 'test-mapcat 
 'test-map-while 'test-map-until 'test-filter 'test-filter-indexed 
 'test-remove 'test-remove-indexed 'test-foldl 'test-foldl1 
@@ -1785,3 +1809,5 @@
 'test-va-all? 'test-va-none? 'test-va-any? 'test-reverse 
 'test-sum 'test-minimum 'test-maximum 'test-bubblesort
 ))
+
+

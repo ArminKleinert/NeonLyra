@@ -73,12 +73,34 @@
 (def-macro (def-memo name-bindings & body)
   (list 'define (car name-bindings) (list 'memoize (cons 'lambda (cons (cdr name-bindings) body)))))
 
+(define (spread xs)
+  ((lambda (ys) (append (car ys) (caadr ys))) (take-drop (dec (size xs)) xs)))
+
+(define (apply f & xs)
+  (apply-to f (spread xs)))
+
 (define (map f xs) (foldr (lambda (x v) (cons (f x) v)) '() xs))
-(define (mapcat f xs & ys) (foldr append '() (map f xs)))
 (define (map-indexed f xs) (foldr-indexed (lambda (x v i) (cons (f x i) v)) '() xs))
 
 (define (map-while f p xs) (map f (take-while p xs)))
 (define (map-until f p xs) (map f (take-until p xs)))
+
+(define (maplist f xs)
+  (if (empty? xs)
+    '()
+    (cons (f xs) (maplist f (rest xs)))))
+
+(define (mapcar f & ys)
+  (let ((xs (remove empty? ys)))
+    (if (empty? xs)
+      '()
+      (cons (apply f (map first xs)) (apply mapcar f (map rest xs))))))
+
+(define (mapcon f xs)
+  (foldr append '() (maplist f xs)))
+
+(define (mapcat f xs)
+  (foldr append '() (map f xs)))
 
 (define (filter p xs) (foldr (lambda (x v) (if (p x) (cons x v) v)) '() xs))
 (define (remove p xs) (filter (complement p) xs))
@@ -151,6 +173,11 @@
         ((p (first xs)) #t)
         (else (any? p (rest xs)))))
 
+(define (v-zip-with f xs)
+  (if (all? empty? xs)
+    '()
+    (cons (apply-to f (map first xs)) (v-zip-with f (map rest xs)))))
+
 (define (zip-with f l0 l1)
   (if (or (empty? l0) (empty? l1))
     '()
@@ -175,8 +202,10 @@
 
 (define (v+ & xs) (foldl + 0 xs))
 
-(define (fs x y) x)
-(define (rs x y) y)
+; Take 2 arguments, return the first
+(define (fst x y) x)
+; Take 2 argumentss, return the second
+(define (snd x y) y)
 
 ;;; List and Vector stuff
 
@@ -232,28 +261,11 @@
     (lambda (c acc i) (if (eq? c elem) (cons i acc) acc))
     '() seq))
 
-(define (bubble-up xs)
-    (if (empty? (cdr xs))   
-        xs
-        (if (< (car xs) (cadr xs))
-            (cons (car xs) (bubble-up (cdr xs)))   
-            (cons (cadr xs) (bubble-up (cons (car xs) (cddr xs)))))))
-
-(define (bubble-sort-aux n xs)    
-  (let ((xs (->list xs)))
-    (cond ((= n 1) (bubble-up xs))   
-          (else (bubble-sort-aux (- n 1) (bubble-up xs))))))
-
-(define (bubblesort xs)
-  (if (or (empty? xs) (= 1 (size xs)))
-    xs
-    (bubble-sort-aux (size xs) xs)))
 
 ;;; Aliases
 (define includes? contains?)
 (define require! load!)
 (define fold foldr)
-(define reduce foldl)
 
 (define ~ complement)
 (define ⋅ compose)
@@ -266,28 +278,7 @@
 (define ∈ included?)
 (define ∉ (lambda (e s) (not (included? e s))))
 
-;;; Aliases for Clojure devs.
-
-(def-macro (when p & body)
-  (list 'if p (cons 'begin (cons Nothing body)) (nothing)))
-
-(def-macro (def name val)
-  (list 'define name val))
-
-(def-macro (defn name bindings & body)
-  (cons 'define (cons (cons name (->list bindings)) body)))
-
-(def-macro (fn bindings & body)
-  (cons 'lambda (cons (->list bindings) body)))
-
-(define do begin)
-(define slurp! file-read!)
-(define spit! file-write!)
-
+(require! "sort.lyra")
 
 'ok
-
-
-
-
 

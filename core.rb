@@ -306,7 +306,7 @@ def setup_core_functions
 
   add_var(:Nothing, nil)
 
-  add_fn(:load!, 1) { |file| eval_file(file, Env.global_env) }
+  add_fn(:load!, 1) { |file| eval_str(IO.read(file), Env.global_env) }
 
   add_fn(:"read-string", 1) do |s|
     tokens = tokenize(s)
@@ -345,5 +345,7 @@ def setup_core_functions
 
   add_fn(:ljust, 2) { |x, n| elem_to_s(x).ljust(n) }
 
+  add_fn_with_env(:"apply-to", 2) { |xs, env| first(xs).call(second(xs), env) }
+  
   true
 end
