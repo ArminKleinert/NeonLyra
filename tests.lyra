@@ -32,8 +32,12 @@
     (= 3 (if #f 2 3))))
 
 (define (test-apply)
-  'TODO
-  )
+  (all-true?
+    (eq? [[1] [2]] (concat [[1] [2]]))
+    (eq? [1 2] (apply concat [[1] [2]]))
+    (eq? '(0 (1) (2)) (concat '(0) '((1) (2))))
+    (eq? '(0 1 2) (apply concat '(0) (list (list 1) (list 2))))
+    ))
 
 (define (test-quote)
   (quote (/ 9 0))
@@ -1734,9 +1738,10 @@
             '(() () ())
             fns)))
     (concat
-      "Successful        (" (size (car results)) "): " (car results)
-      "\nFailed          (" (size (cadr results)) "): " (cadr results)
-      "\nNot implemented (" (size (caddr results)) "): " (caddr results))))
+      "Ran " (foldl + 0 [(size (car results)) (size (car results)) (size (car results))]) " tests.\n- "
+      (size (car results)) " Successful.\n- "
+      (size (cadr results)) " Failed: " (cadr results) "\n- "
+      (size (caddr results)) "Not implemented: " (caddr results))))
 
 
 (println! (run-tests!

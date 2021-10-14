@@ -439,21 +439,22 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       # Form: `(def-macro (name arg0 arg1 ...) body...)`
       ev_define(rest(expr), env, true)
     when :apply
-=begin
-      fn = second(expr)
-      args = rest(rest(expr))
-      args1 = nil
-      until args.cdr.empty?
-        #args1 = cons(eval_ly(args.car, env, force_eval, true), args1)
-        args1 = cons(args.car, args1)
-        args = args.cdr
+      # Form: (apply func & args)
+      # (apply f x0 x1 x2 (list x3 x4 x5)) becomes (f x0 x1 x2 x3 x4 x5)
+      # apply is not to be used with macros!
+      fn = eval_ly(second(expr), env, force_eval, true)
+      args = rest(rest(expr)).to_a
+      if args.empty?
+        eval_ly list(fn), env, force_eval, is_in_call_params
+      elsif !args[-1].is_a? Enumerable
+        eval_ly list(cdr(expr)), env,force_eval,is_in_call_params
+      else
+        args1 = eval_ly(args[-1], env, force_eval, true).to_cons_list
+        args[0...-1].reverse_each do |e|
+          args1 = cons(eval_ly(e, env, force_eval, true), args1)
+        end
+        fn.apply_to args1, env
       end
-      last_arg = args.car
-      args1 = reverse(args1) + last_arg.to_cons_list
-      expr = cons(fn, args1)
-      eval_ly(expr, env, force_eval)
-=end
-      raise "apply is not implemented."
     when :module
       ev_module expr
     when :lazy

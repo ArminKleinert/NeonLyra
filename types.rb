@@ -239,6 +239,9 @@ end
 
 # Parent for both native and user-defined functions.
 class LyraFn
+  def apply_to(args, env)
+    call(args, env)
+  end
 end
 
 # A Lyra-function. It knows its argument-count (minimum and maximum),
