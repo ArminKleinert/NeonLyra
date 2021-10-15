@@ -112,7 +112,7 @@ Here are some differences to Clojure I could think of:
 (define (sum xs) (foldl + 0 xs))
 
 ; sum using a partial function
-(define sum (partial + 0))
+(define sum (partial foldl + 0))
 
 ; Example macro for a Clojure-like 'when'
 (def-macro (when p & body) (list 'if p (cons 'begin body) Nothing))
