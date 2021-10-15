@@ -411,7 +411,7 @@ class GenericFn < LyraFn
   def call(args, env)
     type = type_name_of(args[@anchor_idx])
     fn = @implementations[type.to_sym]
-    puts "#{@anchor_idx} #{@implementations.keys} #{args.map{|e|type_name_of(e)}} #{type.to_sym} #{@implementations.has_key?(type.to_sym)}"
+    #puts "#{@anchor_idx} #{@implementations.keys} #{args.map{|e|type_name_of(e)}} #{type.to_sym} #{@implementations.has_key?(type.to_sym)}"
     fn.call args, env
   end
 

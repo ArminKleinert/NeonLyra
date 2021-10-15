@@ -1,3 +1,5 @@
+(module tests
+  ((run-tests run-all-tests))
 
 (define (all-true? & cases)
   (all? id cases))
@@ -1746,7 +1748,7 @@
               (#t "Failure!")
               )))))
 
-(define (run-tests! & fns)
+(define (run-tests & fns)
   (let ((results
           (foldl
             (lambda (res f)
@@ -1766,48 +1768,53 @@
       (size (cadr results)) " Failed: " (cadr results) "\n- "
       (size (caddr results)) " Not implemented: " (caddr results))))
 
+(define (run-all-tests)
+  (run-tests
+  'test-lambda 'test-cond 'test-if 'test-spread 'test-apply
+  'test-quote 'test-gensym 'test-seq 'test-lazy-crash
+  'test-lazy 'test-eager 'test-partial 'test-nothing
+  'test-box 'test-unbox 'test-set-box 'test-read-string
+  'test-eval 'test-measure 'test-= 'test-/= 'test-<
+  'test-> 'test-<= 'test->= 'test-+ 'test-v+ 'test-- 'test-*
+  'test-/ 'test-rem 'test-inc 'test-dec 'test-min 'test-max 
+  'test-not 'test-and 'test-or 'test-bit-and 'test-bit-or 
+  'test-bit-xor 'test-bit-shl 'test-bit-shr 'test-defined?
+  'test-nothing? 'test-null? 'test-collection? 'test-sequence?
+  'test-list? 'test-vector? 'test-int? 'test-float?
+  'test-string? 'test-symbol? 'test-char? 'test-set? 'test-map?
+  'test-set? 'test-empty? 'test-compose 'test-compose-and
+  'test-compose-or 'test-complement 'test-id 'test-id-fn
+  'test-hash 'test-eq? 'test-->int 'test-->float
+  'test-->string 'test-->bool 'test-->list 'test-->vector
+  'test-->char 'test-->map 'test-->set 'test-list
+  'test-list-size 'test-car 'test-cdr 'test-cons 'test-vector
+  'test-vector-size 'test-vector-nth 'test-vector-add 
+  'test-vector-append 'test-iterate-seq 'test-iterate-seq-p
+  'test-map-of 'test-map-size 'test-map-get 'test-map-set
+  'test-map-remove  'test-map-keys 'test-map-merge 'test-set-of
+  'test-set-size 'test-set-add 'test-set-union
+  'test-set-difference 'test-set-intersection
+  'test-set-includes? 'test-set-subset? 'test-set-true-subset?
+  'test-set-superset? 'test-set-true-superset? 'test-begin
+  'test-comment 'test-size 'test-indices-of 'test-contains?
+  'test-first 'test-rest 'test-last 'test-but-last 'test-append
+  'test-concat 'test-nth 'test-split 'test-split-by 'test-map 
+  'test-maplist 'test-mapcar 'test-mapcon 'test-mapcon
+  'test-map-indexed 'test-fmap 'test-mapf 'test-mapcat 
+  'test-map-while 'test-map-until 'test-filter 'test-filter-indexed 
+  'test-remove 'test-remove-indexed 'test-foldl 'test-foldl1 
+  'test-foldl-indexed 'test-foldr 'test-foldr1 'test-foldr-indexed 
+  'test-repeat 'test-repeatedly 'test-take 'test-take-while 
+  'test-take-until 'test-drop 'test-drop-while 'test-drop-until 
+  'test-take-drop 'test-take-drop-while 'test-take-drop-until
+  'test-zip 'test-zip-with 'test-all? 'test-none? 'test-any? 
+  'test-va-all? 'test-va-none? 'test-va-any? 'test-reverse 
+  'test-sum 'test-minimum 'test-maximum 'test-bubblesort
+  ))
 
-(println! (run-tests!
-'test-lambda 'test-cond 'test-if 'test-spread 'test-apply
-'test-quote 'test-gensym 'test-seq 'test-lazy-crash
-'test-lazy 'test-eager 'test-partial 'test-nothing
-'test-box 'test-unbox 'test-set-box 'test-read-string
-'test-eval 'test-measure 'test-= 'test-/= 'test-<
-'test-> 'test-<= 'test->= 'test-+ 'test-v+ 'test-- 'test-*
-'test-/ 'test-rem 'test-inc 'test-dec 'test-min 'test-max 
-'test-not 'test-and 'test-or 'test-bit-and 'test-bit-or 
-'test-bit-xor 'test-bit-shl 'test-bit-shr 'test-defined?
-'test-nothing? 'test-null? 'test-collection? 'test-sequence?
-'test-list? 'test-vector? 'test-int? 'test-float?
-'test-string? 'test-symbol? 'test-char? 'test-set? 'test-map?
-'test-set? 'test-empty? 'test-compose 'test-compose-and
-'test-compose-or 'test-complement 'test-id 'test-id-fn
-'test-hash 'test-eq? 'test-->int 'test-->float
-'test-->string 'test-->bool 'test-->list 'test-->vector
-'test-->char 'test-->map 'test-->set 'test-list
-'test-list-size 'test-car 'test-cdr 'test-cons 'test-vector
-'test-vector-size 'test-vector-nth 'test-vector-add 
-'test-vector-append 'test-iterate-seq 'test-iterate-seq-p
-'test-map-of 'test-map-size 'test-map-get 'test-map-set
-'test-map-remove  'test-map-keys 'test-map-merge 'test-set-of
-'test-set-size 'test-set-add 'test-set-union
-'test-set-difference 'test-set-intersection
-'test-set-includes? 'test-set-subset? 'test-set-true-subset?
-'test-set-superset? 'test-set-true-superset? 'test-begin
-'test-comment 'test-size 'test-indices-of 'test-contains?
-'test-first 'test-rest 'test-last 'test-but-last 'test-append
-'test-concat 'test-nth 'test-split 'test-split-by 'test-map 
-'test-maplist 'test-mapcar 'test-mapcon 'test-mapcon
-'test-map-indexed 'test-fmap 'test-mapf 'test-mapcat 
-'test-map-while 'test-map-until 'test-filter 'test-filter-indexed 
-'test-remove 'test-remove-indexed 'test-foldl 'test-foldl1 
-'test-foldl-indexed 'test-foldr 'test-foldr1 'test-foldr-indexed 
-'test-repeat 'test-repeatedly 'test-take 'test-take-while 
-'test-take-until 'test-drop 'test-drop-while 'test-drop-until 
-'test-take-drop 'test-take-drop-while 'test-take-drop-until
-'test-zip 'test-zip-with 'test-all? 'test-none? 'test-any? 
-'test-va-all? 'test-va-none? 'test-va-any? 'test-reverse 
-'test-sum 'test-minimum 'test-maximum 'test-bubblesort
-))
+)
+
+(println! (run-tests))
+
 
 

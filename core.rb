@@ -39,16 +39,19 @@ def def_generic_fn(func_name, fallback)
   FUNC_MAP[func_name] = entry
 end
 
-def type_name_of (x)
-  case x.class
-  when NilClass
+def type_name_of(x)
+  if x.nil?
     "::nothing"
-  when TrueClass, FalseClass
+  elsif !!x == x
     "::bool"
-  when LyraType
+  elsif x.is_a? LyraType
     "::" + x.name
-  when Array
+  elsif x.is_a? Array
     "::vector"
+  elsif x.is_a? Hash
+    "::map"
+  elsif x.is_a? ConsList
+    "::list"
   else
     "::" + x.class.to_s.downcase
   end
@@ -212,10 +215,12 @@ def setup_core_functions
 
   add_fn(:"vector", 0, -1) { |*xs| xs }
   add_fn(:"vector-size", 1) { |xs| xs.size }
+  add_fn(:"vector-range", 3) { |xs, s, e| r = xs[s ... e]; r.nil? ? [] : r }
   add_fn(:"vector-nth", 2) { |xs, i| xs[i] }
   add_fn(:"vector-add", 2) { |xs, y| xs + [y] }
-  add_fn(:"vector-append", 2) { |xs, ys| xs + ys }
+  add_fn(:"vector-append", 2) { |xs, ys| (xs.nil? || ys.nil?) ? nil : xs + ys }
   add_fn(:"vector-includes?", 2) { |xs, ys| xs.include? ys }
+  add_fn(:"vector-eq?", 2) { |v, v1| v == v1 }
 
   add_fn_with_env(:"iterate-seq", 3) do |xs, env|
     func, acc, vec = xs.to_a
@@ -242,7 +247,9 @@ def setup_core_functions
   add_fn(:"map-merge", 2) { |m, m2| Hash[m].merge!(m2) }
   add_fn(:"map-has-key?",2) { |m,k| m.has_key? k}
   add_fn(:"map-has-value?",2) { |m,v| m.has_value? v}
-  add_fn(:"map-entries",1) { |m| m.to_a}
+  add_fn(:"map-entries",1) { |m| m.to_a }
+  add_fn(:"map->vector", 1) { |m| m.to_a }
+  add_fn(:"map-eq?", 2) { |m, m1| m == m1 }
 
   add_fn(:"set-of", 0,-1) { |*xs| xs.to_set}
   add_fn(:"set-size",1) { |s| s.size}
@@ -255,31 +262,17 @@ def setup_core_functions
   add_fn(:"set-true-subset?", 2) { |s0, s1| s0 < s1 }
   add_fn(:"set-superset?", 2) { |s0, s1| s0 >= s1 }
   add_fn(:"set-true-superset?", 2) { |s0, s1| s0 > s1 }
+  add_fn(:"set->vector", 1) { |s| s.to_a }
+  add_fn(:"set-eq?", 2) { |s, s1| s == s1 }
 
-  add_fn(:size, 1) { |c| c.is_a?(Enumerable) ? c.size : nil }
-  add_fn(:"contains?", 2) { |c, e| c.include? e }
+  #add_fn(:size, 1) { |c| c.is_a?(Enumerable) ? c.size : nil }
+  add_fn(:"native-contains?", 2) { |c, e| c.include? e }
+  
+  add_fn(:"native-nth", 2) { |c, i| c.is_a?(Enumerable) ? c[i] : nil }
+  
+  add_fn(:strcat, 2) { |s, e| s.to_s + elem_to_s(e) }
 
-  add_fn(:first, 1) { |c|
-    if c.is_a?(Enumerable)
-      c.is_a?(List) ? c.car : c[0]
-    else
-      nil
-    end }
-  add_fn(:rest, 1) { |c|
-    if c.is_a?(Enumerable)
-      if c.is_a?(List)
-        c.cdr
-      else
-        c.empty? ? c : c.to_a[1..-1]
-      end
-    else
-      nil
-    end }
-  add_fn(:last, 1) { |c| c.is_a?(Enumerable) ? c[c.size - 1] : nil }
-  add_fn(:"but-last", 1) { |c| c.is_a?(Enumerable) ? c[0..-2] : nil }
-  add_fn(:nth, 2) { |c, i| c.is_a?(Enumerable) ? c[i] : nil }
-
-  add_fn(:append, 2) do |x, y|
+  add_fn(:"native-append", 2) do |x, y|
     if x.is_a? String
       x + elem_to_s(y)
     elsif !x.is_a?(Enumerable) || !y.is_a?(Enumerable)
@@ -320,7 +313,7 @@ def setup_core_functions
 
   add_fn_with_env(:"eval!", 1) { |x, env| eval_ly first(x), env }
 
-  add_var(:"very-long-list", (0...5).to_a)
+  add_var(:"very-long-list", (0...5000).to_a)
 
   add_fn_with_env(:"measure!", 2) { |args, env|
     median = lambda do |arr|
