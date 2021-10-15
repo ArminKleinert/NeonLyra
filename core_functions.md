@@ -1,7 +1,7 @@
 # Core functions and expressions
 
 ```
-Name                 |  #  | Pure|Impl?| 
+Name                 |  #  |Pure?|Impl?| 
 ---------------------+-----+-----+------------------------------------------------------------------
 define               | >=2 |  x  |  x  | Different formats:
                      |     |     |     | (define sym val) Sets the value for sym to val in the 
@@ -25,8 +25,9 @@ let                  | >=1 |  x  |  x  | Sets variables for a scope. References 
                      |     |     |     | the old environment.
 let*                 | >=1 |  x  |  x  | Sets variables for a scope. Works sequentially.
 let1                 | 2   |  x  |  x  | Sets a single variable.
-apply                | >=1 |  x  |  x  | 
-quote                | 1   |  x  |  x  | 
+apply                | >=1 |  x  |  x  | Takes a function and variadic arguments, calls spread on
+                     |     |     |     | the arguments and then applies the function.
+quote                | 1   |  x  |  x  | Return the argument without evaluating it.
 recur                | any |  x  |  x  | Explicit tail-recursion. Only valid in positions that can
                      |     |     |     | trigger implicit tail-recursion.
 gensym               | 0   |  x  |  x  | 
@@ -180,6 +181,7 @@ count                | 1   |  x  |  x  | Alias for size.
 indices-of           | 2   |  x  |  x  | 
 contains?            | 2   |  x  |  x  | 
 included?            | 2   |  x  |  x  | Reverse of contains?.
+member?              | 2   |  x  |  x  | Alias of included?.
 ∈                    | 2   |  x  |  x  | Alias for included?.
 ∉                    | 2   |  x  |  x  | Alias for the complement of included?.
                      |     |     |     | 
@@ -190,22 +192,30 @@ but-last             | 1   |  x  |  x  |
 append               | 2   |  x  |  x  | 
 concat               | >=1 |  x  |  x  | Appends collections.
 nth                  | 2   |  x  |  x  | 
-split                | 2   |  x  |     | Take spliterator and collection, split collection at each
-                     |     |     |     | occurance of the spliterator.
+split                | 2   |  x  |     | Take element and collection, split collection at each
+                     |     |     |     | occurance of the element.
 split-by             | 2   |  x  |     | 
+spread               | 1   |  x  |  x  | Takes a list and expands the last element.
+                     |     |     |     | (spread '(1 2 (1 2) (7 8))) => (1 2 (1 2) 7 8)
                      |     |     |     | 
 map                  | 2   |  x  |  x  | 
 map-indexed          | 2   |  x  |  x  | 
 fmap                 | 3   |  x  |  x  | filter, then map
 mapf                 | 3   |  x  |  x  | map, then filter 
-mapcat               | 2   |  x  |     | 
-map-while            | 3   |  x  |     | 
-map-until            | 3   |  x  |     | 
+maplist              | 2   |  x  |  x  | map but for the consecutive sublists. 
+                     |     |     |     | (maplist size '('a 'b 'c)) => (3 2 1)
+mapcar               | >=2 |  x  |  x  | Variadic map.
+mapcon               | 2   |  x  |  x  | Calls maplist, expects the result to be a sequence of 
+                     |     |     |     | lists and appends them.
+mapcat               | 2   |  x  |  x  | Calls map, expects the result to be a sequence of lists
+                     |     |     |     | and appends them.
+map-while            | 3   |  x  |  x  | 
+map-until            | 3   |  x  |  x  | 
                      |     |     |     | 
 filter               | 2   |  x  |  x  | 
-filter-indexed       | 2   |  x  |     | 
+filter-indexed       | 2   |  x  |  x  | 
 remove               | 2   |  x  |  x  | 
-remove-indexed       | 2   |  x  |     |  
+remove-indexed       | 2   |  x  |  x  |  
                      |     |     |     | 
 foldl                | 3   |  x  |  x  | 
 foldl1               | 3   |  x  |  x  | 
