@@ -101,16 +101,6 @@
 ;;;;;
 ; Simple but bad list-set implementation.
 
-(define (set-helper tree vals)
-  (if (list-empty? vals)
-    tree
-    (set-helper (set-add tree (car vals)))))
-
-(define (set-of & vals
-  (if (empty? vals)
-    (make-set Nothing)
-    (set-helper (make-set Nothing) vals))))
-
 (def-type set vals)
 
 (define (set-of & vals) (make-set vals))

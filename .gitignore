@@ -1,5 +1,6 @@
 .idea
 benchmark.lyra
+bootstrap/necessary
 
 *.gem
 *.rbc

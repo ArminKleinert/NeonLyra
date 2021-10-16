@@ -721,7 +721,7 @@
     (not (empty? #t))
     (not (empty? #f))
     (not (empty? 'a))
-    (not (empty? ""))
+    (empty? "")
     (not (empty? "1"))
     (empty? '())
     (not (empty? '(1)))
@@ -1327,7 +1327,7 @@
     (nothing? (concat '() 88 [1 2]))
     (nothing? (concat 88 88 0))
     (nothing? (concat 88 0))))
-
+    
 (define (test-nth)
   (all-true?
     (nothing? (nth '() 0))

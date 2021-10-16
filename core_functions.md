@@ -144,6 +144,15 @@ vector-size          | 1   |  x  |  x  |
 vector-nth           | 2   |  x  |  x  | 
 vector-add           | 2   |  x  |  x  | 
 vector-append        | 2   |  x  |  x  | 
+vector-range         | 3   |  x  |  x  | 
+vector-includes?     | 2   |  x  |  x  | 
+vector-eq?           | 2   |  x  |  x  | 
+                     |     |     |     | 
+string-size          | 1   |  x  |  x  | 
+string-nth           | 2   |  x  |  x  | 
+string-append        | 2   |  x  |  x  | 
+string-includes?     | 2   |  x  |  x  | 
+string-eq?           | 2   |  x  |  x  | 
                      |     |     |     | 
 iterate-seq          | 3   |  x  |  x  | Iterates a sequence with a function, accumular and the
                      |     |     |     | sequence. The function takes 3 arguments: The accumulator,

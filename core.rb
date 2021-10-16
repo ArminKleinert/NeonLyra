@@ -52,6 +52,8 @@ def type_name_of(x)
     "::map"
   elsif x.is_a? ConsList
     "::list"
+  elsif x.is_a? LyraFn
+    "::function"
   else
     "::" + x.class.to_s.downcase
   end
@@ -192,26 +194,26 @@ def setup_core_functions
   add_fn(:"eq?", 2) { |x, y| lyra_eq?(x, y) }
 
   add_fn(:symbol, 1) { |x| x.respond_to?(:to_sym) ? x.to_sym : nil }
-  add_fn(:"->symbol", 1) { |x| x.respond_to?(:to_sym) ? x.to_sym : nil }
-  add_fn(:"->int", 1) { |x|
+  add_fn(:"native->symbol", 1) { |x| x.respond_to?(:to_sym) ? x.to_sym : nil }
+  add_fn(:"native->int", 1) { |x|
     begin
       Integer(x || "");
     rescue ArgumentError, TypeError
       nil
     end }
-  add_fn(:"->float", 1) { |x|
+  add_fn(:"native->float", 1) { |x|
     begin
       Float(x || "");
     rescue ArgumentError, TypeError
       nil
     end }
-  add_fn(:"->string", 1) { |x| elem_to_s x }
-  add_fn(:"->bool", 1) { |x| !(x.nil? || x == false || (x.is_a?(EmptyList))) }
-  add_fn(:"->list", 1) { |x| x.is_a?(Enumerable) ? x.to_cons_list : nil }
-  add_fn(:"->vector", 1) { |x| x.is_a?(Enumerable) ? x.to_a : nil }
-  add_fn(:"->char", 1) { |x| (x.is_a?(Integer)) ? x.chr : nil }
-  add_fn(:"->map", 1) { |x| x.is_a?(Enumerable) ? Hash[*x] : nil }
-  add_fn(:"->set", 1) { |x| x.is_a?(Enumerable) ? Set[*x] : nil }
+  add_fn(:"native->string", 1) { |x| elem_to_s x }
+  add_fn(:"native->bool", 1) { |x| !(x.nil? || x == false || (x.is_a?(EmptyList))) }
+  add_fn(:"native->list", 1) { |x| x.is_a?(Enumerable) ? x.to_cons_list : nil }
+  add_fn(:"native->vector", 1) { |x| x.is_a?(Enumerable) ? x.to_a : nil }
+  add_fn(:"native->char", 1) { |x| (x.is_a?(Integer)) ? x.chr : nil }
+  add_fn(:"native->map", 1) { |x| x.is_a?(Enumerable) ? Hash[*x] : nil }
+  add_fn(:"native->set", 1) { |x| x.is_a?(Enumerable) ? Set[*x] : nil }
 
   add_fn(:"vector", 0, -1) { |*xs| xs }
   add_fn(:"vector-size", 1) { |xs| xs.size }
@@ -221,6 +223,14 @@ def setup_core_functions
   add_fn(:"vector-append", 2) { |xs, ys| (xs.nil? || ys.nil?) ? nil : xs + ys }
   add_fn(:"vector-includes?", 2) { |xs, ys| xs.include? ys }
   add_fn(:"vector-eq?", 2) { |v, v1| v == v1 }
+
+  add_fn(:"string-size", 1) { |xs| xs.size }
+  add_fn(:"string-range", 3) { |xs, s, e| r = xs[s ... e]; r.nil? ? [] : r }
+  add_fn(:"string-nth", 2) { |xs, i| xs[i] }
+  add_fn(:"string-add", 2) { |xs, y| xs + [y] }
+  add_fn(:"string-append", 2) { |xs, ys| (xs.nil? || ys.nil?) ? nil : xs + ys }
+  add_fn(:"string-includes?", 2) { |xs, ys| xs.include? ys }
+  add_fn(:"string-eq?", 2) { |v, v1| v == v1 }
 
   add_fn_with_env(:"iterate-seq", 3) do |xs, env|
     func, acc, vec = xs.to_a
