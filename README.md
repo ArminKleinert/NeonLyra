@@ -2,7 +2,7 @@
 
 Lyra is a lisp I make for fun and learning. NeonLyra is an improved version.
 
-Current version: 0.0.7
+Current version: 0.0.8
 
 Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 
@@ -17,6 +17,13 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 - Tail recursion  
 - Lazy evaluation (not implemented)  
 - Ease of use for Clojurians.  
+
+## Usage:
+
+- Install Ruby (Tested with Ruby 3.0.2 and Truffleruby)  
+- Clone the repo or download it as a zip  
+- Run `ruby lyra.rb tests.lyra` to ensure that everything works as intended.  
+- Run `ruby lyra.rb <your source files>` to run your own source files.  
 
 ## Differences to original Lyra:
 
@@ -60,7 +67,7 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 
 Clojure influences Lyra a lot. Still, every language has things I love and things I hate.  
 Lyra is by design much less powerful than Clojure because it tries to be as functionally pure as it can. This forbids access to the host language as well as streams to files and sockets.  
-Please keep in mind that most of this might change in the future, since Lyra is partially still in planning. Most of these differences are build into the design of the language though. 
+Please keep in mind that most of this might change in the future, since Lyra is partially still in planning. Most of these differences are build into the design of the language though.  
 Here are some differences to Clojure I could think of:  
 
 - Lyra is a hobby project and not a serious attempt at making something great.  
@@ -90,7 +97,6 @@ Here are some differences to Clojure I could think of:
 - The empty list is a singleton and false.  
 - Type-conversion functions are always marked with `->`.  
 - Type-conversion functions return `Nothing` if conversion failed.  
-- Type hints can only be used in function arguments.  
 - There are no type hints.  
 - User-defined types are not maps.  
 - `(lambda (...) ...)` instead of `(fn [...] ...)`. (fn is available as an alias)  
@@ -100,7 +106,7 @@ Here are some differences to Clojure I could think of:
 - `seq` returns `Nothing` for all types that aren't collections.  
 - modules (`module`) instead of namespaces (`ns`).  
 - `true` is an alias for `#t`.  
-- All impure functions end with the postfix `!` (like `load!`, `readln!`, ...).
+- All impure functions must end with the postfix `!` (like `load!`, `readln!`, ...).  
 
 ## Example
 
