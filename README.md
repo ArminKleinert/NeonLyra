@@ -157,7 +157,7 @@ Here are some differences to Clojure I could think of:
   (pair? 5) ; #f
   (unwrap-pair p) ; [1 2]
   (pair-x p) ; 1
-  (pair-y p)) ; 1
+  (pair-y p)) ; 2
 
 ; The name 'pair' can still be safely used.
 (define (pair x y) (make-pair x y))
@@ -189,5 +189,7 @@ Here are some differences to Clojure I could think of:
   - Many new functions.  
   - Various bug fixes.  
   - All important functions have tests.  
+- 0.0.8  
+  - All important functions are generic now.  
 
 
