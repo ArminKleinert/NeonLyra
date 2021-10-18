@@ -256,8 +256,12 @@ class CompoundFunc < LyraFn
     @definition_env = definition_env
     @arg_counts = (min_args..max_args)
     @body = body
-    @name = name.to_s
+    @name = name.to_s.freeze
     @is_macro = is_macro
+  end
+  
+  def name=(n)
+    @name = n.to_s.freeze
   end
 
   def call(args, env)
@@ -296,19 +300,19 @@ class CompoundFunc < LyraFn
 
   def pure?
     # TODO
-    !@name.to_s.end_with?("!")
+    !@name.end_with?("!")
   end
 end
 
 class NativeLyraFn < LyraFn
   attr_reader :arg_counts # Range of (minimum .. maximum)
-  attr_accessor :name # Symbol
+  attr_reader :name # Symbol
   attr_reader :body # Executable (Any[] -> Any)
 
   def initialize(name, min_args, max_args = min_args, &body)
     @arg_counts = (min_args..max_args)
     @body = body
-    @name = name.to_s
+    @name = name.to_s.freeze
   end
 
   def call(args, env)
@@ -333,6 +337,10 @@ class NativeLyraFn < LyraFn
 
   def native?
     true
+  end
+
+  def is_macro
+    false
   end
 
   def pure?
@@ -363,7 +371,7 @@ class PartialLyraFn < LyraFn
   end
 
   def is_macro
-    @func.native? ? false : @func.is_macro
+    @func.is_macro
   end
 end
 
@@ -398,17 +406,18 @@ class MemoizedLyraFn < LyraFn
   end
 
   def is_macro
-    @func.native? ? false : @func.is_macro
+    @func.is_macro
   end
 end
 
 class GenericFn < LyraFn
   def initialize(name, args, anchor_idx, fallback)
     @implementations = Hash.new fallback
-    @name, @anchor_idx = name.to_s, anchor_idx
+    @name, @anchor_idx = name.to_s.freeze, anchor_idx
   end
 
   def call(args, env)
+    # Potential for speedup?
     type = type_name_of(args[@anchor_idx])
     fn = @implementations[type.to_sym]
     #puts "#{@anchor_idx} #{@implementations.keys} #{args.map{|e|type_name_of(e)}} #{type.to_sym} #{@implementations.has_key?(type.to_sym)}"
