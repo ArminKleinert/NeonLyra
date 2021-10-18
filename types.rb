@@ -256,7 +256,7 @@ class CompoundFunc < LyraFn
     @definition_env = definition_env
     @arg_counts = (min_args..max_args)
     @body = body
-    @name = name
+    @name = name.to_s
     @is_macro = is_macro
   end
 
@@ -296,7 +296,7 @@ class CompoundFunc < LyraFn
 
   def pure?
     # TODO
-    !@name.end_with?("!")
+    !@name.to_s.end_with?("!")
   end
 end
 
@@ -308,7 +308,7 @@ class NativeLyraFn < LyraFn
   def initialize(name, min_args, max_args = min_args, &body)
     @arg_counts = (min_args..max_args)
     @body = body
-    @name = name
+    @name = name.to_s
   end
 
   def call(args, env)
@@ -336,7 +336,7 @@ class NativeLyraFn < LyraFn
   end
 
   def pure?
-    !name.end_with?("!")
+    !@name.end_with?("!")
   end
 end
 
@@ -405,7 +405,7 @@ end
 class GenericFn < LyraFn
   def initialize(name, args, anchor_idx, fallback)
     @implementations = Hash.new fallback
-    @name, @anchor_idx = name, anchor_idx
+    @name, @anchor_idx = name.to_s, anchor_idx
   end
 
   def call(args, env)

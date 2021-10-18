@@ -54,6 +54,8 @@ def type_name_of(x)
     "::list"
   elsif x.is_a? LyraFn
     "::function"
+  elsif x.is_a? Integer
+    "::integer"
   else
     "::" + x.class.to_s.downcase
   end
