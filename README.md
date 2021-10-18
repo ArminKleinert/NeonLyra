@@ -4,7 +4,7 @@ Lyra is a lisp I make for fun and learning. NeonLyra is an improved version.
 
 Current version: 0.0.7
 
-Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cub.
+Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 
 ## Goals and priorities:
 
