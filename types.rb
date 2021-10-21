@@ -64,11 +64,24 @@ module ConsList
   def inspect
     to_s
   end
+  
+  def nth(i)
+    if i >= size
+      nil
+    else
+      each do |e|
+        if i == 0
+          return e
+        end
+        i -= 1
+      end
+    raise "Should never happen."
+    end
+  end
 
   def [](i)
     if i.is_a? Integer
-      xs = nth_rest(i)
-      xs ? xs.car : nil
+      nth(i)
     else
       list(*to_a[i])
     end
@@ -89,7 +102,11 @@ module ConsList
 
   # TODO OPTIMIZE!
   def +(c)
-    list(*(to_a + c.to_a))
+    res = c.to_cons_list
+    to_a.reverse_each do |e|
+      res = cons(e, res)
+    end
+    res
   end
   
   def ==(c)
@@ -482,7 +499,8 @@ LYRA_TYPE_COUNTER = Box.new 20
 def new_lyra_type(name, attrs, env)
   attrs = attrs.to_a
   counter = LYRA_TYPE_COUNTER.value
-  env.set! :"make-#{name}", NativeLyraFn.new(:"make-#{name}", attrs.size) { |params, _| LyraType.new(counter, TypeName.new(name,counter), params.to_a) }
+  t = TypeName.new(("::"+name).to_sym,counter)
+  env.set! :"make-#{name}", NativeLyraFn.new(:"make-#{name}", attrs.size) { |params, _| LyraType.new(counter, t, params.to_a) }
   env.set! :"#{name}?", NativeLyraFn.new(:"#{name}?", 1) { |o, _| o.car.is_a?(LyraType) && o.car.type_id == counter }
   env.set! :"unwrap-#{name}", NativeLyraFn.new(:"unwrap-#{name}", 1) { |o, _| o.attrs }
 
@@ -490,6 +508,7 @@ def new_lyra_type(name, attrs, env)
     fn_name = :"#{name}-#{attr}"
     env.set! fn_name, NativeLyraFn.new(fn_name, 1) { |e, _| e.car.attrs[i] }
   end
+  env.set! t.to_sym, t
 
   LYRA_TYPE_COUNTER.value = LYRA_TYPE_COUNTER.value + 1
 

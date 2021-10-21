@@ -83,7 +83,7 @@ def type_name_of(x)
   elsif x.is_a? TypeName
     Type_name_type
   else
-    "::" + x.class.to_s.downcase
+   raise "No name for type #{x.class} for object #{elem_to_s(x)}"
   end
   h.name
 end
@@ -195,13 +195,13 @@ def setup_core_functions
   # "Primitive" operators. They are overridden in the core library of
   # Lyra as `=`, `<`, `>`, ... and can be extended there later on for
   # different types.
-  add_fn(:"=", 2) { |x, y| x=x.is_a?(TypeName)?x.to_sym : x; y=y.is_a?(TypeName)?y.to_sym : y; x == y }
-  add_fn(:"/=", 2) { |x, y| x=x.is_a?(TypeName)?x.to_sym : x; y=y.is_a?(TypeName)?y.to_sym : y; x != y }
+  add_fn(:"=", 2) { |x, y| x == y }
+  add_fn(:"/=", 2) { |x, y| x != y }
   add_fn(:"ref=", 2) { |x, y| x.object_id == y.object_id }
-  add_fn(:"<", 2) { |x, y| x=x.is_a?(TypeName)?x.to_sym : x; y=y.is_a?(TypeName)?y.to_sym : y; x < y }
-  add_fn(:">", 2) { |x, y| x=x.is_a?(TypeName)?x.to_sym : x; y=y.is_a?(TypeName)?y.to_sym : y; x > y }
-  add_fn(:"<=", 2) { |x, y| x=x.is_a?(TypeName)?x.to_sym : x; y=y.is_a?(TypeName)?y.to_sym : y; x <= y }
-  add_fn(:">=", 2) { |x, y| x=x.is_a?(TypeName)?x.to_sym : x; y=y.is_a?(TypeName)?y.to_sym : y; x >= y }
+  add_fn(:"<", 2) { |x, y| x < y }
+  add_fn(:">", 2) { |x, y| x > y }
+  add_fn(:"<=", 2) { |x, y| x <= y }
+  add_fn(:">=", 2) { |x, y| x >= y }
   add_fn(:"+", 2) { |x, y| x + y }
   add_fn(:"-", 2) { |x, y| x - y }
   add_fn(:"*", 2) { |x, y| x * y }
@@ -418,6 +418,11 @@ def setup_core_functions
   [Nothing_type,Bool_type,Vector_type,Map_type,List_type,Function_type,Integer_type,Float_type,Set_type,Type_name_type,String_type,Symbol_type,Box_type].each do |t|
     add_var t.to_sym, t
   end
+
+  def type_match?(x, t)
+    type_id_of(x) == t.type_id
+  end
+  add_fn(:"is-a?", 2) { |x,t| type_id_of(x) == t.type_id }
   
   true
 end
