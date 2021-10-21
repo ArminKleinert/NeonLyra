@@ -412,16 +412,21 @@ end
 
 class GenericFn < LyraFn
   def initialize(name, args, anchor_idx, fallback)
-    @implementations = Hash.new fallback
+    @implementations = []
+    @fallback = fallback
     @name, @anchor_idx = name.to_s.freeze, anchor_idx
   end
 
   def call(args, env)
     # Potential for speedup?
-    type = type_name_of(args[@anchor_idx])
-    fn = @implementations[type.to_sym]
-    #puts "#{@anchor_idx} #{@implementations.keys} #{args.map{|e|type_name_of(e)}} #{type.to_sym} #{@implementations.has_key?(type.to_sym)}"
-    fn.call args, env
+    type = type_id_of(args[@anchor_idx])
+    fn = @implementations[type]
+    #puts "#{@name} #{@anchor_idx} #{@implementations.keys} #{args.map{|e|type_name_of(e)}} #{type} #{@implementations.has_key?(type)} #{@implementations[type]} #{@implementations.default}"
+    if fn
+      fn.call args, env
+    else
+      @fallback.call args,env
+    end
   end
 
   def to_s
@@ -442,18 +447,18 @@ class GenericFn < LyraFn
   
   def add_implementation!(type, impl)
     # TODO Check redifinition
-    @implementations[type] = impl
+    @implementations[type.type_id] = impl
   end
 end
 
 class TypeName
-  attr_reader :name
-  def initialize(name)
-    @name = name
+  attr_reader :name, :type_id
+  def initialize(name,type_id)
+    @name ,@type_id= name.to_sym,type_id
     @name.freeze
   end
   def to_s
-    @name
+    @name.to_s
   end
   def to_sym
     @name.to_sym
@@ -472,12 +477,12 @@ class LyraType
   end
 end
 
-LYRA_TYPE_COUNTER = Box.new 0xEA7C0FFE
+LYRA_TYPE_COUNTER = Box.new 20
 
 def new_lyra_type(name, attrs, env)
   attrs = attrs.to_a
   counter = LYRA_TYPE_COUNTER.value
-  env.set! :"make-#{name}", NativeLyraFn.new(:"make-#{name}", attrs.size) { |params, _| LyraType.new(counter, name, params.to_a) }
+  env.set! :"make-#{name}", NativeLyraFn.new(:"make-#{name}", attrs.size) { |params, _| LyraType.new(counter, TypeName.new(name,counter), params.to_a) }
   env.set! :"#{name}?", NativeLyraFn.new(:"#{name}?", 1) { |o, _| o.car.is_a?(LyraType) && o.car.type_id == counter }
   env.set! :"unwrap-#{name}", NativeLyraFn.new(:"unwrap-#{name}", 1) { |o, _| o.attrs }
 

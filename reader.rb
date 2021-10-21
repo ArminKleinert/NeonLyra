@@ -79,7 +79,7 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
       raise ".! on empty AST." if root.empty?
       root[-1] = list(:eager, root[-1])
     when /^::.+$/
-      root << TypeName.new(t)
+      root << t.to_sym #TypeName.new(t,-1)
     else
       applications = []
       while t.end_with?(".?") || t.end_with?(".!")

@@ -39,26 +39,88 @@ def def_generic_fn(func_name, fallback)
   FUNC_MAP[func_name] = entry
 end
 
+Nothing_type = TypeName.new "::nothing",0
+Bool_type = TypeName.new "::bool",1
+Vector_type = TypeName.new "::vector",2
+Map_type = TypeName.new "::map",3
+List_type = TypeName.new "::list",4
+Function_type = TypeName.new "::function",5
+Integer_type = TypeName.new "::integer",6
+Float_type = TypeName.new "::float",7
+Set_type = TypeName.new "::set",8
+Type_name_type = TypeName.new "::typename",9
+String_type = TypeName.new "::string",10
+Symbol_type = TypeName.new "::symbol",11
+Box_type = TypeName.new "::box",12
+
 def type_name_of(x)
-  if x.nil?
-    "::nothing"
+  h = if x.nil?
+    Nothing_type
   elsif !!x == x
-    "::bool"
+    Bool_type
+  elsif x.is_a? Symbol
+    Symbol_type
   elsif x.is_a? LyraType
-    "::" + x.name
+    x.name
   elsif x.is_a? Array
-    "::vector"
+    Vector_type
+  elsif x.is_a? String
+    String_type
   elsif x.is_a? Hash
-    "::map"
+    Map_type
   elsif x.is_a? ConsList
-    "::list"
+    List_type
   elsif x.is_a? LyraFn
-    "::function"
+    Function_type
   elsif x.is_a? Integer
-    "::integer"
+    Integer_type
+  elsif x.is_a? Float
+    Float_type
+  elsif x.is_a? Set
+    Set_type
+  elsif x.is_a? Box
+    Box_type
+  elsif x.is_a? TypeName
+    Type_name_type
   else
     "::" + x.class.to_s.downcase
   end
+  h.name
+end
+
+def type_id_of(x)
+  h = if x.nil?
+    Nothing_type
+  elsif !!x == x
+    Bool_type
+  elsif x.is_a? Symbol
+    Symbol_type
+  elsif x.is_a? LyraType
+    x.name
+  elsif x.is_a? Array
+    Vector_type
+  elsif x.is_a? String
+    String_type
+  elsif x.is_a? Hash
+    Map_type
+  elsif x.is_a? ConsList
+    List_type
+  elsif x.is_a? LyraFn
+    Function_type
+  elsif x.is_a? Integer
+    Integer_type
+  elsif x.is_a? Float
+    Float_type
+  elsif x.is_a? Set
+    Set_type
+  elsif x.is_a? Box
+    Box_type
+  elsif x.is_a? TypeName
+    Type_name_type
+  else
+   raise "No id for type #{x.class} for object #{elem_to_s(x)}"
+  end
+  h.type_id
 end
 
 def lyra_eq?(x, y)
@@ -133,13 +195,13 @@ def setup_core_functions
   # "Primitive" operators. They are overridden in the core library of
   # Lyra as `=`, `<`, `>`, ... and can be extended there later on for
   # different types.
-  add_fn(:"=", 2) { |x, y| x == y }
-  add_fn(:"/=", 2) { |x, y| x != y }
+  add_fn(:"=", 2) { |x, y| x=x.is_a?(TypeName)?x.to_sym : x; y=y.is_a?(TypeName)?y.to_sym : y; x == y }
+  add_fn(:"/=", 2) { |x, y| x=x.is_a?(TypeName)?x.to_sym : x; y=y.is_a?(TypeName)?y.to_sym : y; x != y }
   add_fn(:"ref=", 2) { |x, y| x.object_id == y.object_id }
-  add_fn(:"<", 2) { |x, y| x < y }
-  add_fn(:">", 2) { |x, y| x > y }
-  add_fn(:"<=", 2) { |x, y| x <= y }
-  add_fn(:">=", 2) { |x, y| x >= y }
+  add_fn(:"<", 2) { |x, y| x=x.is_a?(TypeName)?x.to_sym : x; y=y.is_a?(TypeName)?y.to_sym : y; x < y }
+  add_fn(:">", 2) { |x, y| x=x.is_a?(TypeName)?x.to_sym : x; y=y.is_a?(TypeName)?y.to_sym : y; x > y }
+  add_fn(:"<=", 2) { |x, y| x=x.is_a?(TypeName)?x.to_sym : x; y=y.is_a?(TypeName)?y.to_sym : y; x <= y }
+  add_fn(:">=", 2) { |x, y| x=x.is_a?(TypeName)?x.to_sym : x; y=y.is_a?(TypeName)?y.to_sym : y; x >= y }
   add_fn(:"+", 2) { |x, y| x + y }
   add_fn(:"-", 2) { |x, y| x - y }
   add_fn(:"*", 2) { |x, y| x * y }
@@ -347,10 +409,15 @@ def setup_core_functions
   add_fn(:quote, 1) { |_| raise "quote must not be called as a function." }
 
   add_fn(:typename, 1) { |x| type_name_of(x) }
+  add_fn(:typeid, 1) { |x| type_id_of(x) }
 
   add_fn(:ljust, 2) { |x, n| elem_to_s(x).ljust(n) }
 
   add_fn_with_env(:"apply-to", 2) { |xs, env| first(xs).call(second(xs), env) }
+  
+  [Nothing_type,Bool_type,Vector_type,Map_type,List_type,Function_type,Integer_type,Float_type,Set_type,Type_name_type,String_type,Symbol_type,Box_type].each do |t|
+    add_var t.to_sym, t
+  end
   
   true
 end

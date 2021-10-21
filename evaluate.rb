@@ -220,8 +220,8 @@ def ev_define_with_type(expr, env, is_macro)
   unless impl.is_a? LyraFn
     raise "Syntax error: Implementation of function #{global_name} must be a function."
   end
-
-  fn.add_implementation! first(expr).to_sym, impl
+  
+  fn.add_implementation! eval_ly(first(expr),env), impl
 
   third(expr)
 end
@@ -239,7 +239,7 @@ def ev_define(expr, env, is_macro)
   if first(expr).is_a?(List)
     # Form is `(define (...) ...)` (Function definition)
     ev_define_fn(expr, env, is_macro)
-  elsif first(expr).is_a?(TypeName)
+  elsif first(expr).is_a?(Symbol) && expr.size == 3
     # Form is `(define .. (...) ...)` (Generic function definition)
     ev_define_with_type(expr, env, is_macro)
   else
