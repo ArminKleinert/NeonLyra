@@ -31,6 +31,9 @@
 (define ::set rest (lambda (s) (let ((v (set->vector s))) (vector-range v 1 (vector-size v)))))
 (define ::map rest (lambda (m) (let ((v (mao->vector m))) (vector-range v 1 (vector-size v)))))
 
+(def-generic xs (foldr f v xs) native-foldr)
+(def-generic xs (foldl f v xs) native-foldl)
+
 (define (last xs)
   (let ((l (->list xs)))
     (if (list? l) (first (drop (dec (size l)) l)) (nothing))))
@@ -86,20 +89,10 @@
 (define (odd? n) (= 1 (rem (->int n) 2)))
 (define (even? n) (= 0 (rem (->int n) 2)))
 
-(define (foldl f v xs)
-  (if (empty? xs)
-    v
-    (foldl f (f v (first xs)) (rest xs))))
-
 (define (foldl1 f xs)
   (cond ((empty? xs) Nothing)
         ((= (size xs) 1) (first xs))
         (else (foldl f (first xs) (rest xs)))))
-
-(comment define (foldr f v xs)
-  (if (empty? xs)
-    v
-    (f (first xs) (foldr f v (rest xs)))))
 
 (define (foldr1 f xs)
   (cond ((empty? xs) Nothing)
@@ -263,11 +256,6 @@
 (define (va-none? p & xs) (none? p xs))
 (define (va-any? p & xs) (any? p xs))
 
-(comment define (concat x & xs)
-  (cond ((empty? xs) x)
-        ((list? (first x)) (append x (foldr1 append xs)))
-        ((null? (first x)) (append x (foldr1 append xs)))
-        (else (foldl append x xs))))
 (define (concat & xs)
   (foldl1 append xs))
 

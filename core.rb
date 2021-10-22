@@ -343,14 +343,23 @@ def setup_core_functions
     end
     v
   end
-  add_fn_with_env(:foldr, 3)do |args,env|
+  add_fn_with_env(:"native-foldr", 3)do |args,env|
     f = args.car
     v = args.cdr.car
     xs = args.cdr.cdr.car
     foldr(f,v,xs,env)
   end
 
-
+  add_fn_with_env(:"native-foldl", 3) do |args,env|
+    f = args.car
+    v = args.cdr.car
+    xs = args.cdr.cdr.car
+    xs.each do |x|
+      v = f.call(list(v, x), env)
+    end
+    v
+  end
+  
 
   #add_fn(:size, 1) { |c| c.is_a?(Enumerable) ? c.size : nil }
   add_fn(:"native-contains?", 2) { |c, e| c.include? e }

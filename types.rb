@@ -425,6 +425,8 @@ class MemoizedLyraFn < LyraFn
 end
 
 class GenericFn < LyraFn
+  attr_reader :name
+  
   def initialize(name, args, anchor_idx, fallback)
     @implementations = []
     @fallback = fallback
