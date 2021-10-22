@@ -64,7 +64,7 @@ module ConsList
   def inspect
     to_s
   end
-  
+
   def nth(i)
     if i >= size
       nil
@@ -100,7 +100,6 @@ module ConsList
     end
   end
 
-  # TODO OPTIMIZE!
   def +(c)
     res = c.to_cons_list
     to_a.reverse_each do |e|
@@ -108,7 +107,7 @@ module ConsList
     end
     res
   end
-  
+
   def ==(c)
     if c.is_a? ConsList
       c0 = self
@@ -119,8 +118,6 @@ module ConsList
       end
       # If both lists are empty and all elements were equal to far, then the lists must be equal
       c0.empty? && c.empty?
-      #    elsif c.is_a? Enumerable
-      #self == c.to_cons_list
     else
       false
     end
@@ -276,7 +273,7 @@ class CompoundFunc < LyraFn
     @name = name.to_s.freeze
     @is_macro = is_macro
   end
-  
+
   def name=(n)
     @name = n.to_s.freeze
   end
@@ -461,7 +458,7 @@ class GenericFn < LyraFn
   def is_macro
     false
   end
-  
+
   def add_implementation!(type, impl)
     # TODO Check redifinition
     @implementations[type.type_id] = impl

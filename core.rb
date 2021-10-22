@@ -27,100 +27,97 @@ def add_fn(func_name, type_name, implementation)
   entry = FUNC_MAP[func_name]
   unless entry
     entry = FuncMapEntry.new nil, {}
-    FUNC_MAP[func_name] = FuncMapEntry.new nil, {}
+    FUNC_MAP[func_name] = entry
   end
 
   entry.inner[type_name] = implementation
 end
 
 def def_generic_fn(func_name, fallback)
-  entry = FuncMapEntry.new fallback,{}
+  entry = FuncMapEntry.new fallback, {}
   raise "Function #{func_name} is already defined." if FUNC_MAP.include? func_name
   FUNC_MAP[func_name] = entry
 end
 
-Nothing_type = TypeName.new "::nothing",0
-Bool_type = TypeName.new "::bool",1
-Vector_type = TypeName.new "::vector",2
-Map_type = TypeName.new "::map",3
-List_type = TypeName.new "::list",4
-Function_type = TypeName.new "::function",5
-Integer_type = TypeName.new "::integer",6
-Float_type = TypeName.new "::float",7
-Set_type = TypeName.new "::set",8
-Type_name_type = TypeName.new "::typename",9
-String_type = TypeName.new "::string",10
-Symbol_type = TypeName.new "::symbol",11
-Box_type = TypeName.new "::box",12
+NOTHING_TYPE = TypeName.new "::nothing", 0
+BOOL_TYPE = TypeName.new "::bool", 1
+VECTOR_TYPE = TypeName.new "::vector", 2
+MAP_TYPE = TypeName.new "::map", 3
+LIST_TYPE = TypeName.new "::list", 4
+FUNCTION_TYPE = TypeName.new "::function", 5
+INTEGER_TYPE = TypeName.new "::integer", 6
+FLOAT_TYPE = TypeName.new "::float", 7
+SET_TYPE = TypeName.new "::set", 8
+TYPE_NAME_TYPE = TypeName.new "::typename", 9
+STRING_TYPE = TypeName.new "::string", 10
+SYMBOL_TYPE = TypeName.new "::symbol", 11
+BOX_TYPE = TypeName.new "::box", 12
 
 def type_name_of(x)
-  h = if x.nil?
-    Nothing_type
+  if x.nil?
+    NOTHING_TYPE
   elsif !!x == x
-    Bool_type
+    BOOL_TYPE
   elsif x.is_a? Symbol
-    Symbol_type
+    SYMBOL_TYPE
   elsif x.is_a? LyraType
     x.name
   elsif x.is_a? Array
-    Vector_type
+    VECTOR_TYPE
   elsif x.is_a? String
-    String_type
+    STRING_TYPE
   elsif x.is_a? Hash
-    Map_type
+    MAP_TYPE
   elsif x.is_a? ConsList
-    List_type
+    LIST_TYPE
   elsif x.is_a? LyraFn
-    Function_type
+    FUNCTION_TYPE
   elsif x.is_a? Integer
-    Integer_type
+    INTEGER_TYPE
   elsif x.is_a? Float
-    Float_type
+    FLOAT_TYPE
   elsif x.is_a? Set
-    Set_type
+    SET_TYPE
   elsif x.is_a? Box
-    Box_type
+    BOX_TYPE
   elsif x.is_a? TypeName
-    Type_name_type
+    TYPE_NAME_TYPE
   else
-   raise "No name for type #{x.class} for object #{elem_to_s(x)}"
-  end
-  h.name
+    raise "No name for type #{x.class} for object #{elem_to_s(x)}"
+  end.name
 end
-
 def type_id_of(x)
-  h = if x.nil?
-    Nothing_type
+  if x.nil?
+    NOTHING_TYPE
   elsif !!x == x
-    Bool_type
+    BOOL_TYPE
   elsif x.is_a? Symbol
-    Symbol_type
+    SYMBOL_TYPE
   elsif x.is_a? LyraType
     x.name
   elsif x.is_a? Array
-    Vector_type
+    VECTOR_TYPE
   elsif x.is_a? String
-    String_type
+    STRING_TYPE
   elsif x.is_a? Hash
-    Map_type
+    MAP_TYPE
   elsif x.is_a? ConsList
-    List_type
+    LIST_TYPE
   elsif x.is_a? LyraFn
-    Function_type
+    FUNCTION_TYPE
   elsif x.is_a? Integer
-    Integer_type
+    INTEGER_TYPE
   elsif x.is_a? Float
-    Float_type
+    FLOAT_TYPE
   elsif x.is_a? Set
-    Set_type
+    SET_TYPE
   elsif x.is_a? Box
-    Box_type
+    BOX_TYPE
   elsif x.is_a? TypeName
-    Type_name_type
+    TYPE_NAME_TYPE
   else
-   raise "No id for type #{x.class} for object #{elem_to_s(x)}"
-  end
-  h.type_id
+    raise "No name for type #{x.class} for object #{elem_to_s(x)}"
+  end.type_id
 end
 
 def lyra_eq?(x, y)
@@ -139,7 +136,7 @@ def lyra_eq?(x, y)
       false
     end
   elsif y.is_a?(Enumerable)
-    lyra_eq?(y,x)
+    lyra_eq?(y, x)
   else
     x == y
   end
@@ -153,11 +150,11 @@ def elem_to_s(e)
   elsif e.nil?
     ""
   elsif e.is_a? Array
-    "[#{e.map { |x| elem_to_s(x)}.join(" ")}]"
+    "[#{e.map { |x| elem_to_s(x) }.join(" ")}]"
   elsif e.is_a? Hash
-    "Map[" + e.map{|k,v| "#{elem_to_s(k)} #{elem_to_s(v)}"}.join(" , ") + "]"
+    "Map[" + e.map { |k, v| "#{elem_to_s(k)} #{elem_to_s(v)}" }.join(" , ") + "]"
   elsif e.is_a? Set
-    "Set[#{e.map { |x| elem_to_s(x)}.join(" ")}]"
+    "Set[#{e.map { |x| elem_to_s(x) }.join(" ")}]"
   else
     e.to_s
   end
@@ -281,7 +278,7 @@ def setup_core_functions
 
   add_fn(:"vector", 0, -1) { |*xs| xs }
   add_fn(:"vector-size", 1) { |xs| xs.size }
-  add_fn(:"vector-range", 3) { |xs, s, e| r = xs[s ... e]; r.nil? ? [] : r }
+  add_fn(:"vector-range", 3) { |xs, s, e| r = xs[s...e]; r.nil? ? [] : r }
   add_fn(:"vector-nth", 2) { |xs, i| xs[i] }
   add_fn(:"vector-add", 2) { |xs, y| xs + [y] }
   add_fn(:"vector-append", 2) { |xs, ys| (xs.nil? || ys.nil?) ? nil : xs + ys }
@@ -289,7 +286,7 @@ def setup_core_functions
   add_fn(:"vector-eq?", 2) { |v, v1| v == v1 }
 
   add_fn(:"string-size", 1) { |xs| xs.size }
-  add_fn(:"string-range", 3) { |xs, s, e| r = xs[s ... e]; r.nil? ? [] : r }
+  add_fn(:"string-range", 3) { |xs, s, e| r = xs[s...e]; r.nil? ? [] : r }
   add_fn(:"string-nth", 2) { |xs, i| xs[i] }
   add_fn(:"string-add", 2) { |xs, y| xs + [y] }
   add_fn(:"string-append", 2) { |xs, ys| (xs.nil? || ys.nil?) ? nil : xs + ys }
@@ -319,18 +316,18 @@ def setup_core_functions
   add_fn(:"map-remove", 2) { |m, k| m.select { |k1, _| k != k1 } }
   add_fn(:"map-keys", 1) { |m| m.keys }
   add_fn(:"map-merge", 2) { |m, m2| Hash[m].merge!(m2) }
-  add_fn(:"map-has-key?",2) { |m,k| m.has_key? k}
-  add_fn(:"map-has-value?",2) { |m,v| m.has_value? v}
-  add_fn(:"map-entries",1) { |m| m.to_a }
+  add_fn(:"map-has-key?", 2) { |m, k| m.has_key? k }
+  add_fn(:"map-has-value?", 2) { |m, v| m.has_value? v }
+  add_fn(:"map-entries", 1) { |m| m.to_a }
   add_fn(:"map->vector", 1) { |m| m.to_a }
   add_fn(:"map-eq?", 2) { |m, m1| m == m1 }
 
-  add_fn(:"set-of", 0,-1) { |*xs| xs.to_set}
-  add_fn(:"set-size",1) { |s| s.size}
+  add_fn(:"set-of", 0, -1) { |*xs| xs.to_set }
+  add_fn(:"set-size", 1) { |s| s.size }
   add_fn(:"set-add", 2) { |s, e| s.add e }
-  add_fn(:"set-union",2) { |s0,s1| s0 | s1}
-  add_fn(:"set-difference",2) { |s0,s1| s0 - s1}
-  add_fn(:"set-intersection",2) { |s0,s1| s0 & s1}
+  add_fn(:"set-union", 2) { |s0, s1| s0 | s1 }
+  add_fn(:"set-difference", 2) { |s0, s1| s0 - s1 }
+  add_fn(:"set-intersection", 2) { |s0, s1| s0 & s1 }
   add_fn(:"set-includes?", 2) { |s, e| s.include? e }
   add_fn(:"set-subset?", 2) { |s0, s1| s0 <= s1 }
   add_fn(:"set-true-subset?", 2) { |s0, s1| s0 < s1 }
@@ -341,9 +338,9 @@ def setup_core_functions
 
   #add_fn(:size, 1) { |c| c.is_a?(Enumerable) ? c.size : nil }
   add_fn(:"native-contains?", 2) { |c, e| c.include? e }
-  
+
   add_fn(:"native-nth", 2) { |c, i| c.is_a?(Enumerable) ? c[i] : nil }
-  
+
   add_fn(:strcat, 2) { |s, e| s.to_s + elem_to_s(e) }
 
   add_fn(:"native-append", 2) do |x, y|
@@ -414,15 +411,17 @@ def setup_core_functions
   add_fn(:ljust, 2) { |x, n| elem_to_s(x).ljust(n) }
 
   add_fn_with_env(:"apply-to", 2) { |xs, env| first(xs).call(second(xs), env) }
-  
-  [Nothing_type,Bool_type,Vector_type,Map_type,List_type,Function_type,Integer_type,Float_type,Set_type,Type_name_type,String_type,Symbol_type,Box_type].each do |t|
+
+  [NOTHING_TYPE, BOOL_TYPE, VECTOR_TYPE, MAP_TYPE, LIST_TYPE, FUNCTION_TYPE, INTEGER_TYPE,
+   FLOAT_TYPE, SET_TYPE, TYPE_NAME_TYPE, STRING_TYPE, SYMBOL_TYPE, BOX_TYPE].each do |t|
     add_var t.to_sym, t
   end
 
   def type_match?(x, t)
     type_id_of(x) == t.type_id
   end
-  add_fn(:"is-a?", 2) { |x,t| type_id_of(x) == t.type_id }
-  
+
+  add_fn(:"is-a?", 2) { |x, t| type_id_of(x) == t.type_id }
+
   true
 end
