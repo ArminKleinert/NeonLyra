@@ -336,6 +336,22 @@ def setup_core_functions
   add_fn(:"set->vector", 1) { |s| s.to_a }
   add_fn(:"set-eq?", 2) { |s, s1| s == s1 }
 
+
+  def foldr(f,v,xs,env)
+    xs.to_a.reverse_each do |e|
+      v = f.call(list(e, v), env)
+    end
+    v
+  end
+  add_fn_with_env(:foldr, 3)do |args,env|
+    f = args.car
+    v = args.cdr.car
+    xs = args.cdr.cdr.car
+    foldr(f,v,xs,env)
+  end
+
+
+
   #add_fn(:size, 1) { |c| c.is_a?(Enumerable) ? c.size : nil }
   add_fn(:"native-contains?", 2) { |c, e| c.include? e }
 

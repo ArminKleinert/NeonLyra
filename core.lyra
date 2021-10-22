@@ -4,7 +4,7 @@
 
 ; Take 2 arguments, return the first
 (define (fst x y) x)
-; Take 2 argumentss, return the second
+; Take 2 arguments, return the second
 (define (snd x y) y)
 
 (define (list & xs)
@@ -68,7 +68,6 @@
 (def-generic x (->map x) native->map)
 (def-generic x (->set x) native->set)
 
-
 (def-generic x (collection? x)
   (lambda (xs) (or (list? xs) (or (vector? xs) (or (map? xs) (set? xs))))))
 (def-generic x (sequence? x)
@@ -76,26 +75,7 @@
 (def-generic x (number? x)
   (lambda (xs) (or (int? xs) (float? xs))))
 
-(define (box? x) (is-a? x ::box))
-(define (nothing? x) (is-a? x ::nothing))
-(define (nil? x) (is-a? x ::nothing))
-(define (null? x) (or (nothing? x) (empty? x)))
-(define (list? x) (is-a? x ::list))
-(define (vector? x) (is-a? x ::vector))
-(define (int? x) (is-a? x ::integer))
-(define (float? x) (is-a? x ::float))
-(define (string? x) (is-a? x ::string))
-(define (symbol? x) (is-a? x ::symbol))
-(define (char? x) (and (string? x) (= 1 (size x))))
-(define (boolean? x) (is-a? x ::bool))
-(define (map? x) (is-a? x ::map))
-(define (set? x) (is-a? x ::set))
-(define (function? x) (is-a? x ::function))
-
 (define symbol ->symbol)
-
-(def-macro (λ bindings & body)
-  (cons 'lambda (cons bindings body)))
 
 (define else #t)
 
@@ -116,7 +96,7 @@
         ((= (size xs) 1) (first xs))
         (else (foldl f (first xs) (rest xs)))))
 
-(define (foldr f v xs)
+(comment define (foldr f v xs)
   (if (empty? xs)
     v
     (f (first xs) (foldr f v (rest xs)))))
@@ -352,6 +332,9 @@
 (define includes? contains?)
 (define require! load!)
 (define fold foldr)
+
+(def-macro (λ bindings & body)
+  (cons 'lambda (cons bindings body)))
 
 (define ~ complement)
 (define ⋅ compose)

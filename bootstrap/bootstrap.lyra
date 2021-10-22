@@ -93,6 +93,22 @@
 
 
 
+(define (box? x) (is-a? x ::box))
+(define (nothing? x) (= x Nothing))
+(define nil? nothing?)
+(define (null? x) (or (nothing? x) (empty? x)))
+(define (list? x) (is-a? x ::list))
+(define (vector? x) (is-a? x ::vector))
+(define (int? x) (is-a? x ::integer))
+(define (float? x) (is-a? x ::float))
+(define (string? x) (is-a? x ::string))
+(define (symbol? x) (is-a? x ::symbol))
+(define (char? x) (and (string? x) (= 1 (size x))))
+(define (boolean? x) (or (= x #t) (= x #f)))
+(define (map? x) (is-a? x ::map))
+(define (set? x) (is-a? x ::set))
+(define (function? x) (is-a? x ::function))
+
 
 
 
