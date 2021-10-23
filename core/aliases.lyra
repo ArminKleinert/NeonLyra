@@ -1,0 +1,18 @@
+(module aliases
+  ((includes? contains?)
+   (require! load!)
+   (fold foldr)
+   (member? included?)
+   (~ complement)
+   (⋅ compose)
+   (∀ all?)
+   (∃ any?)
+   (∄ none?)
+   (≠ /=)
+   (≥ >=)
+   (≤ <=)
+   (∈ included?)
+   (∉ ∉))
+
+(define ∉ (lambda (e s) (not (included? e s))))
+)

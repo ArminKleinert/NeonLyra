@@ -5,7 +5,9 @@
   (fn fn)
   (do begin)
   (slurp! file-read!)
-  (spit! file-write!))
+  (spit! file-write!)
+  (count size)
+  (reduce foldl))
 
   (def-macro (when p & body)
     (list 'if p (cons 'begin (cons Nothing body)) (nothing)))

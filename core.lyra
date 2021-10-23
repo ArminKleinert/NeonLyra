@@ -7,6 +7,8 @@
 ; Take 2 arguments, return the second
 (define (snd x y) y)
 
+(def-generic x (compare x y) (lambda (x y) (if (= x y) 0 (if (< x y) -1 1))))
+
 (define (list & xs)
   xs)
 
@@ -50,6 +52,7 @@
 
 (def-generic xs (append xs ys) native-append)
 (def-generic xs (contains? xs e) native-contains?)
+(define (included? e s) (contains? s e))
 (def-generic xs (nth xs i) native-nth)
 
 (define (seq-eq? l0 l1)
@@ -99,17 +102,17 @@
         ((= (size xs) 1) (first xs))
         (else (foldl f (first xs) (rest xs)))))
 
-(define (foldr1 f xs)
-  (cond ((empty? xs) Nothing)
-        ((= (size xs) 1) (first xs))
-        (else (f (first xs) (foldr1 f (rest xs))))))
-
 (define (foldl-indexed f s xs)
   ((lambda (f acc i xs)
     (if (empty? xs)
       acc
       (recur f (f acc (first xs) i) (inc i) (rest xs))))
     f s 0 xs))
+
+(define (foldr1 f xs)
+  (cond ((empty? xs) Nothing)
+        ((= (size xs) 1) (first xs))
+        (else (f (first xs) (foldr1 f (rest xs))))))
 
 (define (foldr-idx-helper f v i xs)
   (if (empty? xs)
@@ -170,10 +173,10 @@
   (foldr append '() (map f xs)))
 
 (define (filter p xs) (foldr (lambda (x v) (if (p x) (cons x v) v)) '() xs))
-(define (remove p xs) (filter (complement p) xs))
-
 (define (filter-indexed p xs)
   (foldr-indexed (lambda (x v i) (if (p x i) (cons x v) v)) '() xs))
+
+(define (remove p xs) (filter (complement p) xs))
 (define (remove-indexed p xs)
   (filter-indexed (lambda (x i) (not (p x i))) xs))
 
@@ -240,11 +243,6 @@
         ((p (first xs)) #t)
         (else (any? p (rest xs)))))
 
-(define (v-zip-with f xs)
-  (if (all? empty? xs)
-    '()
-    (cons (apply-to f (map first xs)) (v-zip-with f (map rest xs)))))
-
 (define (zip-with f l0 l1)
   (if (or (empty? l0) (empty? l1))
     '()
@@ -256,6 +254,11 @@
 (define (zip-to-index xs)
   (map-indexed (lambda (x i) (list i x)) xs))
 
+(define (v-zip-with f xs)
+  (if (all? empty? xs)
+    '()
+    (cons (apply-to f (map first xs)) (v-zip-with f (map rest xs)))))
+
 (define (split-by f xs)
   (foldr
     (lambda (x v) (if (f x) (cons '() v) (cons (cons x (car v)) (cdr v))))
@@ -264,9 +267,6 @@
 
 (define (split v xs)
   (split-by (lambda (x) (eq? v x)) xs))
-
-(define (included? e s)
-  (contains? s e))
 
 (define (repeatedly n f)
   (reverse
@@ -343,11 +343,8 @@
     (lambda (c acc i) (if (eq? c elem) (cons i acc) acc))
     '() seq))
 
-;;; Aliases
-(define includes? contains?)
-(define require! load!)
-(define fold foldr)
-(define member? included?)
+(load! "core/sort.lyra")
+(load! "core/aliases.lyra")
 
 (def-macro (λ & args)
   (let* ((args1 (split '. args))
@@ -356,19 +353,6 @@
     (cons 'lambda (apply concat (list bindings) body))))
 
 (def-macro (# v0 op v1) (list op v0 v1))
-
-(define ~ complement)
-(define ⋅ compose)
-(define ∀ all?)
-(define ∃ any?)
-(define ∄ none?)
-(define ≥ >=)
-(define ≤ <=)
-
-(define ∈ included?)
-(define ∉ (lambda (e s) (not (included? e s))))
-
-(require! "core/sort.lyra")
 
 'ok
 

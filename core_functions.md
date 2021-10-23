@@ -5,9 +5,13 @@
 Pure? : Does the function have no sideeffects?
 Impl? : Is the function implementede?
 Gen?  : Is the function generic?
+```
 
+### File: core.rb, evaluate.rb
+
+```
 Name                 |  #  |Pure?|Impl?|Gen? | 
----------------------+-----+-----+------------------------------------------------------------------
+---------------------+-----+-----+-----+-----+------------------------------------------------------
 define               | >=2 |  x  |  x  |     | Different formats:
                      |     |     |     |     | (define sym val) Sets the value for sym to val in the 
                      |     |     |     |     | module environment. (value-define)
@@ -29,16 +33,12 @@ if                   | 3   |  x  |  x  |     |
 let                  | >=1 |  x  |  x  |     | Sets variables for a scope. References are looked up from
                      |     |     |     |     | the old environment.
 let*                 | >=1 |  x  |  x  |     | Sets variables for a scope. Works sequentially.
-let1                 | 2   |  x  |  x  |     | Sets a single variable.
-apply                | >=1 |  x  |  x  |     | Takes a function and variadic arguments, calls spread on
-                     |     |     |     |     | the arguments and then applies the function.
 quote                | 1   |  x  |  x  |     | Return the argument without evaluating it.
 recur                | any |  x  |  x  |     | Explicit tail-recursion. Only valid in positions that can
                      |     |     |     |     | trigger implicit tail-recursion.
 gensym               | 0   |  x  |  x  |     | 
 module               | >=1 |  x  |  x  |     | 
 memoize              | 1   |  x  |  x  |     | 
-def-memo             | >=1 |  x  |  x  |     | A macro which defines a function and memoizes it.
 seq                  | 1   |  x  |  x  |     | Returns a equence for all non-empty collections, Nothing
                      |     |     |     |     | otherwise.
                      |     |     |     |     | 
@@ -56,7 +56,6 @@ set-box!             | 2   |  x  |  x  |     |
                      |     |     |     |     | 
 load!                | 1   |     |  x  |     | Load file. Attention: load! always uses the global
                      |     |     |     |     | environment, not the local one.
-require!             | 1   |     |  x  |     | Alias for load!
 read-string          | 1   |  x  |  x  |     | Parses a string into code.
 eval!                | 1   |     |  x  |     | Executes an object as code.
                      |     |     |     |     | 
@@ -64,29 +63,16 @@ measure!             | 2   |  x  |  x  |     |
                      |     |     |     |     | 
 =                    | 2   |  x  |  x  |     | 
 /=                   | 2   |  x  |  x  |     | 
-≠                    | 2   |  x  |  x  |     | Alias for /=
 <                    | 2   |  x  |  x  |     | 
 >                    | 2   |  x  |  x  |     | 
 <=                   | 2   |  x  |  x  |     | 
 >=                   | 2   |  x  |  x  |     | 
-≤                    | 2   |  x  |  x  |     | Alias for >=
-≥                    | 2   |  x  |  x  |     | Alias for <=
                      |     |     |     |     | 
 +                    | 2   |  x  |  x  |     | 
-v+                   | >=1 |  x  |  x  |     | Variadic +
 -                    | 2   |  x  |  x  |     | 
 *                    | 2   |  x  |  x  |     | 
 /                    | 2   |  x  |  x  |     | 
 rem                  | 2   |  x  |  x  |     | 
-                     |     |     |     |     | 
-inc                  | 1   |  x  |  x  |     | Increases a number by 1.
-dec                  | 1   |  x  |  x  |     | Decreases a number by 1.
-min                  | 2   |  x  |  x  |     | Get minimum of 2 objects.
-max                  | 2   |  x  |  x  |     | Get maximum of 2 objects.
-                     |     |     |     |     | 
-not                  | 1   |  x  |  x  |     | 
-and                  | 2   |  x  |  x  |     | 
-or                   | 2   |  x  |  x  |     | 
                      |     |     |     |     | 
 bit-and              | 2   |  x  |  x  |     | 
 bit-or               | 2   |  x  |  x  |     | 
@@ -97,8 +83,6 @@ bit-shr              | 2   |  x  |  x  |     |
 defined?             | 1   |  x  |  x  |     | Checks whether or not a symbol is defined.
 nothing?             | 1   |  x  |  x  |     | True for the Nothing object.
 null?                | 1   |  x  |  x  |     | True for both Nothing and '().
-collection?          | 1   |  x  |  x  |  x  | True for lists, vectors, maps and sets, false for others.
-sequence?            | 1   |  x  |  x  |  x  | True if the input is a list or vector.
 list?                | 1   |  x  |  x  |     | 
 vector?              | 1   |  x  |  x  |     | 
 int?                 | 1   |  x  |  x  |     | 
@@ -109,37 +93,12 @@ char?                | 1   |  x  |  x  |     |
 boolean?             | 1   |  x  |  x  |     | 
 map?                 | 1   |  x  |  x  |     | 
 set?                 | 1   |  x  |  x  |     | 
-empty?               | 1   |  x  |  x  |     | 
-number?              | 1   |  x  |  x  |  x  | 
-                     |     |     |     |     | 
-compose              | 2   |  x  |  x  |     | Given 2 functions f and g, makes a new function for.
-                     |     |     |     |     | (f (g x))
-⋅                    | 2   |  x  |  x  |     | Alias for compose.
-compose-and          | 2   |  x  |  x  |     | Given 2 functions f and g, makes a new function for
-                     |     |     |     |     | checking (and (f x) (g x))
-compose-or           | 2   |  x  |  x  |     | Given 2 functions f and g, makes a new function for
-                     |     |     |     |     | checking (or (f x) (g x))
-complement           | 1   |  x  |  x  |     | Returns given a function p, returns a function which
-                     |     |     |     |     | checks (not (p x)).
-~                    | 1   |  x  |  x  |     | Alias for complement.
                      |     |     |     |     | 
 id                   | 1   |  x  |  x  |     | 
 id-fn                | 1   |  x  |  x  |     | Creates a function which always returns the object.
 hash                 | 1   |  x  |  x  |     | Returns the hash-code for an object
                      |     |     |     |     | (reference for Boxes)
-eq?                  | 2   |  x  |  x  |  x  | 
                      |     |     |     |     | 
-->int                | 1   |  x  |  x  |  x  | 
-->float              | 1   |  x  |  x  |  x  | 
-->string             | 1   |  x  |  x  |  x  | 
-->bool               | 1   |  x  |  x  |  x  | 
-->list               | 1   |  x  |  x  |  x  | 
-->vector             | 1   |  x  |  x  |  x  | 
-->char               | 1   |  x  |  x  |  x  | 
-->map                | 1   |  x  |  x  |  x  | 
-->set                | 1   |  x  |  x  |  x  | 
-                     |     |     |     |     | 
-list                 | any |  x  |  x  |     | 
 list-size            | 1   |  x  |  x  |     | 
 car                  | 1   |  x  |  x  |     | 
 cdr                  | 1   |  x  |  x  |     | 
@@ -188,105 +147,12 @@ set-true-subset?     | 2   |  x  |  x  |     |
 set-superset?        | 2   |  x  |  x  |     | 
 set-true-superset?   | 2   |  x  |  x  |     | 
                      |     |     |     |     | 
-begin                | any |  x  |  x  |     | 
-comment              | any |  x  |  x  |     | 
-                     |     |     |     |     | 
-size                 | 1   |  x  |  x  |  x  | 
-count                | 1   |  x  |  x  |     | Alias for size.
-indices-of           | 2   |  x  |  x  |     | 
-contains?            | 2   |  x  |  x  |  x  | 
-included?            | 2   |  x  |  x  |     | Reverse of contains?.
-member?              | 2   |  x  |  x  |     | Alias of included?.
-∈                    | 2   |  x  |  x  |     | Alias for included?.
-∉                    | 2   |  x  |  x  |     | Alias for the complement of included?.
-                     |     |     |     |     | 
-first                | 1   |  x  |  x  |  x  | 
-second               | 1   |  x  |  x  |  x  | 
-rest                 | 1   |  x  |  x  |  x  | 
-last                 | 1   |  x  |  x  |     | 
-but-last             | 1   |  x  |  x  |     | 
-append               | 2   |  x  |  x  |  x  | 
-concat               | >=1 |  x  |  x  |     | Appends collections.
-nth                  | 2   |  x  |  x  |  x  | 
-split                | 2   |  x  |  x  |     | Take element and collection, split collection at each
-                     |     |     |     |     | occurance of the element.
-split-by             | 2   |  x  |  x  |     | 
-spread               | 1   |  x  |  x  |     | Takes a list and expands the last element.
-                     |     |     |     |     | (spread '(1 2 (1 2) (7 8))) => (1 2 (1 2) 7 8)
-                     |     |     |     |     | 
-map                  | 2   |  x  |  x  |     | 
-map-indexed          | 2   |  x  |  x  |     | 
-fmap                 | 3   |  x  |  x  |     | filter, then map
-mapf                 | 3   |  x  |  x  |     | map, then filter 
-maplist              | 2   |  x  |  x  |     | map but for the consecutive sublists. 
-                     |     |     |     |     | (maplist size '('a 'b 'c)) => (3 2 1)
-mapcar               | >=2 |  x  |  x  |     | Variadic map.
-mapcon               | 2   |  x  |  x  |     | Calls maplist, expects the result to be a sequence of 
-                     |     |     |     |     | lists and appends them.
-mapcat               | 2   |  x  |  x  |     | Calls map, expects the result to be a sequence of lists
-                     |     |     |     |     | and appends them.
-map-while            | 3   |  x  |  x  |     | 
-map-until            | 3   |  x  |  x  |     | 
-                     |     |     |     |     | 
-filter               | 2   |  x  |  x  |     | 
-filter-indexed       | 2   |  x  |  x  |     | 
-remove               | 2   |  x  |  x  |     | 
-remove-indexed       | 2   |  x  |  x  |     |  
-                     |     |     |     |     | 
-foldl                | 3   |  x  |  x  |     | 
-foldl1               | 3   |  x  |  x  |     | 
-foldl-indexed        | 3   |  x  |  x  |     | 
-foldr                | 3   |  x  |  x  |  x  | 
-foldr1               | 3   |  x  |  x  |  x  | 
-foldr-indexed        | 3   |  x  |  x  |     | 
-reduce               | 3   |  x  |  x  |     | Alias for foldl.
-                     |     |     |     |     | 
-repeat               | 2   |  x  |  x  |     | 
-repeatedly           | 2   |  x  |  x  |     | 
-take                 | 2   |  x  |  x  |     | 
-take-while           | 2   |  x  |  x  |     | 
-take-until           | 2   |  x  |  x  |     | 
-drop                 | 2   |  x  |  x  |     | 
-drop-while           | 2   |  x  |  x  |     | 
-drop-until           | 2   |  x  |  x  |     | 
-take-drop            | 2   |  x  |  x  |     | Creates a list equal to
-                     |     |     |     |     |   (list (take n xs) (drop n xs))
-take-drop-while      | 2   |  x  |  x  |     | Creates a list equal to
-                     |     |     |     |     |   (list (take-while p xs) (drop-while p xs))
-take-drop-until      | 2   |  x  |  x  |     | Creates a list equal to
-                     |     |     |     |     |   (list (take-until p xs) (drop-until p xs))
-                     |     |     |     |     | 
-zip-with             | 3   |  x  |  x  |     | 
-zip                  | 2   |  x  |  x  |     | (zip l0 l1) is equal to (zip-with list l0 l1)
-                     |     |     |     |     | 
-all?                 | 2   |  x  |  x  |     | Checks whether a predicate is true for all elements in a 
-                     |     |     |     |     | list.
-none?                | 2   |  x  |  x  |     | Checks whether a predicate is true for no element in a 
-                     |     |     |     |     | list.
-any?                 | 2   |  x  |  x  |     | Checks whether a predicate is true for at least 1 element
-                     |     |     |     |     | in a list.
-∀                    | 2   |  x  |  x  |     | Alias for all?.
-∃                    | 2   |  x  |  x  |     | Alias for any?.
-∄                    | 2   |  x  |  x  |     | Alias for none?.
-va-all?              | >=1 |  x  |  x  |     | Variadic version of all?
-va-none?             | >=1 |  x  |  x  |     | Variadic version of none?
-va-any?              | >=1 |  x  |  x  |     | Variadic version of any?
-                     |     |     |     |     | 
-reverse              | 1   |  x  |  x  |     | Reverse a list.
-sum                  | 1   |  x  |  x  |     | Sums the elements of a list.
-minimum              | 1   |  x  |  x  |     | Get minimum of a list.
-maximum              | 1   |  x  |  x  |     | Get maximum of a list.
-                     |     |     |     |     | 
-bubblesort           | 1   |  x  |  x  |     | Sort a list using bubblesort.
-                     |     |     |     |     | 
 print!               | 1   |     |  x  |     | 
 println!             | 1   |     |  x  |     | 
 readln!              | 0   |     |  x  |     | 
 file-read!           | 1   |     |  x  |     | 
 file-write!          | 2   |     |  x  |     | 
 file-append!         | 2   |     |  x  |     | 
-slurp!               | 1   |     |  x  |     | Alias for file-read!
-spit!                | 2   |     |  x  |     | Alias for file-write!
                      |     |     |     |     | 
 is-a?                | 2   |  x  |  x  |     | Checks whether an object is of a certain type.
                      |     |     |     |     | Example: (is-a? x ::integer)
@@ -294,30 +160,231 @@ is-a?                | 2   |  x  |  x  |     | Checks whether an object is of a 
 ljust                | 2   |  x  |  x  |     | Takes a string and a number. The string is then resized to
                      |     |     |     |     | at least n characters by inserting spaces on the right
                      |     |     |     |     | side.
+```
+
+### File: core.lyra
+
+```
+Name                 |  #  |Pure?|Impl?|Gen? | 
+---------------------+-----+-----+-----+-----+------------------------------------------------------
+comment              | any |  x  |  x  |     | 
+fst                  | 2   |  x  |  x  |     | Take 2 arguments and return the first.
+snd                  | 2   |  x  |  x  |     | Take 2 arguments and return the second.
+compare              | 2   |  x  |  x  |     | 
+                     |     |     |     |     | 
+list                 | any |  x  |  x  |     | Take any number of arguments and return them as a list.
+let1                 | 2   |  x  |  x  |     | Sets a single variable.
+                     |     |     |     |     | 
+size                 | 1   |  x  |  x  |  x  | 
+first                | 1   |  x  |  x  |  x  | 
+second               | 1   |  x  |  x  |  x  | 
+rest                 | 1   |  x  |  x  |  x  | 
+foldl                | 3   |  x  |  x  |  x  | 
+foldr                | 3   |  x  |  x  |  x  | 
+last                 | 1   |  x  |  x  |     | 
+but-last             | 1   |  x  |  x  |     | 
+empty?               | 1   |  x  |  x  |     | 
+append               | 2   |  x  |  x  |  x  | 
+contains?            | 2   |  x  |  x  |  x  | 
+included?            | 2   |  x  |  x  |     | Reverse of contains?.
+nth                  | 2   |  x  |  x  |  x  | 
+seq-eq?              | 2   |  x  |  x  |     | Comparison function for lists.
+eq?                  | 2   |  x  |  x  |  x  | General comparison function.
+                     |     |     |     |     | 
+->symbol             | 1   |  x  |  x  |  x  | 
+->int                | 1   |  x  |  x  |  x  | 
+->float              | 1   |  x  |  x  |  x  | 
+->string             | 1   |  x  |  x  |  x  | 
+->bool               | 1   |  x  |  x  |  x  | 
+->list               | 1   |  x  |  x  |  x  | 
+->vector             | 1   |  x  |  x  |  x  | 
+->char               | 1   |  x  |  x  |  x  | 
+->map                | 1   |  x  |  x  |  x  | 
+->set                | 1   |  x  |  x  |  x  | 
+                     |     |     |     |     | 
+collection?          | 1   |  x  |  x  |  x  | True for lists, vectors, maps and sets, false for others.
+sequence?            | 1   |  x  |  x  |  x  | True if the input is a list or vector.
+number?              | 1   |  x  |  x  |  x  | 
+                     |     |     |     |     | 
+symbol               | 1   |  x  |  x  |     | Alias for ->symbol.
+not                  | 1   |  x  |  x  |     | 
+and                  | 2   |  x  |  x  |     | 
+or                   | 2   |  x  |  x  |     | 
+odd?                 | 1   |  x  |  x  |     | 
+even?                | 1   |  x  |  x  |     | 
+                     |     |     |     |     | 
+foldl1               | 3   |  x  |  x  |     | 
+foldl-indexed        | 3   |  x  |  x  |     | 
+foldr1               | 3   |  x  |  x  |     | 
+foldr-indexed        | 3   |  x  |  x  |     | 
+                     |     |     |     |     | 
+compose              | 2   |  x  |  x  |     | Given 2 functions f and g, makes a new function for
+                     |     |     |     |     | (f (g x))
+compose-and          | 2   |  x  |  x  |     | Given 2 functions f and g, makes a new function for
+                     |     |     |     |     | checking (and (f x) (g x))
+compose-or           | 2   |  x  |  x  |     | Given 2 functions f and g, makes a new function for
+                     |     |     |     |     | checking (or (f x) (g x))
+complement           | 1   |  x  |  x  |     | Returns given a function p, returns a function which
+                     |     |     |     |     | checks (not (p x)).
+                     |     |     |     |     | 
+begin                | any |  x  |  x  |     | 
+def-memo             | >=1 |  x  |  x  |     | A macro which defines a function and memoizes it.
+                     |     |     |     |     | 
+spread               | 1   |  x  |  x  |     | Takes a list and expands the last element.
+                     |     |     |     |     | (spread '(1 2 (1 2) (7 8))) => (1 2 (1 2) 7 8)
+apply                | >=1 |  x  |  x  |     | Takes a function and variadic arguments, calls spread on
+                     |     |     |     |     | the arguments and then applies the function.
+                     |     |     |     |     | 
+map                  | 2   |  x  |  x  |     | 
+map-indexed          | 2   |  x  |  x  |     | 
+map-while            | 3   |  x  |  x  |     | 
+map-until            | 3   |  x  |  x  |     | 
+maplist              | 2   |  x  |  x  |     | map but for the consecutive sublists. 
+                     |     |     |     |     | (maplist size '('a 'b 'c)) => (3 2 1)
+mapcar               | >=2 |  x  |  x  |     | Variadic map.
+mapcon               | 2   |  x  |  x  |     | Calls maplist, expects the result to be a sequence of 
+                     |     |     |     |     | lists and appends them.
+mapcat               | 2   |  x  |  x  |     | Calls map, expects the result to be a sequence of lists
+                     |     |     |     |     | and appends them.
+                     |     |     |     |     | 
+filter               | 2   |  x  |  x  |     | 
+filter-indexed       | 2   |  x  |  x  |     | 
+remove               | 2   |  x  |  x  |     | 
+remove-indexed       | 2   |  x  |  x  |     |  
+fmap                 | 3   |  x  |  x  |     | filter, then map
+mapf                 | 3   |  x  |  x  |     | map, then filter 
+                     |     |     |     |     | 
+take-drop            | 2   |  x  |  x  |     | Creates a list equal to
+                     |     |     |     |     |   (list (take n xs) (drop n xs))
+take-drop-while      | 2   |  x  |  x  |     | Creates a list equal to
+                     |     |     |     |     |   (list (take-while p xs) (drop-while p xs))
+take-drop-until      | 2   |  x  |  x  |     | Creates a list equal to
+                     |     |     |     |     |   (list (take-until p xs) (drop-until p xs))
+take                 | 2   |  x  |  x  |     | 
+take-while           | 2   |  x  |  x  |     | 
+take-until           | 2   |  x  |  x  |     | 
+drop                 | 2   |  x  |  x  |     | 
+drop-while           | 2   |  x  |  x  |     | 
+drop-until           | 2   |  x  |  x  |     | 
+                     |     |     |     |     | 
+all?                 | 2   |  x  |  x  |     | Checks whether a predicate is true for all elements in a 
+                     |     |     |     |     | list.
+none?                | 2   |  x  |  x  |     | Checks whether a predicate is true for no element in a 
+                     |     |     |     |     | list.
+any?                 | 2   |  x  |  x  |     | Checks whether a predicate is true for at least 1 element
+                     |     |     |     |     | in a list.
+                     |     |     |     |     | 
+zip-with             | 3   |  x  |  x  |     | 
+zip                  | 2   |  x  |  x  |     | (zip l0 l1) is equal to (zip-with list l0 l1)
+zip-to-index         | 1   |  x  |  x  |     | (zip-to-index '(5 4 3)) => ((0 5) (1 4) (2 3))
+v-zip-with           | 2   |  x  |  x  |     | zip-with but takes a sequence of sequences.
+                     |     |     |     |     | 
+split-by             | 2   |  x  |  x  |     | 
+split                | 2   |  x  |  x  |     | Take element and collection, split collection at each
+                     |     |     |     |     | occurance of the element.
+                     |     |     |     |     | 
+repeatedly           | 2   |  x  |  x  |     | 
+repeat               | 2   |  x  |  x  |     | 
+                     |     |     |     |     | 
+va-all?              | >=1 |  x  |  x  |     | Variadic version of all?
+va-none?             | >=1 |  x  |  x  |     | Variadic version of none?
+va-any?              | >=1 |  x  |  x  |     | Variadic version of any?
+                     |     |     |     |     | 
+concat               | >=1 |  x  |  x  |     | Appends collections.
+string-concat        | >=1 |  x  |  x  |     | Appends strings.
+                     |     |     |     |     | 
+v+                   | >=1 |  x  |  x  |     | Variadic +
+                     |     |     |     |     | 
+reverse              | 1   |  x  |  x  |     | Reverse a list.
+sum                  | 1   |  x  |  x  |     | Sums the elements of a list.
+                     |     |     |     |     | 
+inc                  | 1   |  x  |  x  |     | Increases a number by 1.
+dec                  | 1   |  x  |  x  |     | Decreases a number by 1.
+min                  | 2   |  x  |  x  |     | Get minimum of 2 objects.
+max                  | 2   |  x  |  x  |     | Get maximum of 2 objects.
+minimum              | 1   |  x  |  x  |     | Get minimum of a list.
+maximum              | 1   |  x  |  x  |     | Get maximum of a list.
+                     |     |     |     |     | 
+range                | 2   |  x  |  x  |     | 
+indices-of           | 2   |  x  |  x  |     | 
+                     |     |     |     |     | 
 λ                    | >=2 |  x  |  x  |     | A fun macro which transforms into a lambda-form:
                      |     |     |     |     | (λ x y . (+ x y)) becomes (lambda (x y) (+ x y))
 #                    | 3   |  x  |  x  |     | Transforms infix form into prefix-form:
                      |     |     |     |     | (# x ∈ ys) becomes (∈ x ys)
 ```
 
+### File: core/aliases.lyra
+
 ```
-Name                 | 
----------------------+----------------------------------------------------------------------------
-#t                   | Boolean true
-#f                   | Boolean false
-else                 | alias for #t (for use in cond expressions)
-Nothing              | The non-object
-::nothing            | Type name for the Nothing object. (Can only be used for is-a?)
-::bool               | Type name for #t and #f. (Can only be used for is-a?)
-::vector             | Type name for vectors. (Can only be used for is-a?)
-::map                | Type name for maps. (Can only be used for is-a?)
-::list               | Type name for lists. (Can only be used for is-a?)
-::function           | Type name for functions. (Can only be used for is-a?)
-::integer            | Type name for integers. (Can only be used for is-a?)
-::float              | Type name for floats. (Can only be used for is-a?)
-::set                | Type name for sets. (Can only be used for is-a?)
-::typename           | Type name for typename objects. (Can only be used for is-a?)
-::string             | Type name for strings. (Can only be used for is-a?)
-::symbol             | Type name for symbols. (Can only be used for is-a?)
-::box                | Type name for boxes. (Can only be used for is-a?)
+Name                 |  #  |Pure?|Impl?|Gen? | 
+---------------------+-----+-----+-----+-----+------------------------------------------------------
+includes?            | 2   |  x  |  x  |     | Alias for contains?.
+require!             | 1   |     |  x  |     | Alias for load!
+fold                 | 3   |  x  |  x  |     | Alias for foldr.
+member?              | 2   |  x  |  x  |     | Alias of included?.
+~                    | 1   |  x  |  x  |     | Alias for complement.
+⋅                    | 2   |  x  |  x  |     | Alias for compose.
+∀                    | 2   |  x  |  x  |     | Alias for all?.
+∃                    | 2   |  x  |  x  |     | Alias for any?.
+∄                    | 2   |  x  |  x  |     | Alias for none?.
+≠                    | 2   |  x  |  x  |     | Alias for /=
+≤                    | 2   |  x  |  x  |     | Alias for >=
+≥                    | 2   |  x  |  x  |     | Alias for <=
+∈                    | 2   |  x  |  x  |     | Alias for included?.
+∉                    | 2   |  x  |  x  |     | Alias for the complement of included?.
+<=>                  | 2   |  x  |  x  |     | Alias for compare.
+```
+
+### File: core/clj.lyra
+
+```
+Name                 |  #  |Pure?|Impl?|Gen? | 
+---------------------+-----+-----+-----+-----+------------------------------------------------------
+when                 | >=1 |  x  |  x  |     | (when p ...) => (if p (begin ...) Nothing)
+def                  | 2   |  x  |  x  |     | Alias for value-define.
+defn                 | 2   |  x  |  x  |     | Alias for function-define, but parameters are given
+                     |     |     |     |     | as a vector.
+fn                   | >=1 |  x  |  x  |     | Alias for lambda, but bindings are given as a vector.
+do                   | any |  x  |  x  |     | Alias for begin.
+slurp!               | 1   |     |  x  |     | Alias for file-read!
+spit!                | 2   |     |  x  |     | Alias for file-write!
+count                | 1   |  x  |  x  |     | Alias for size.
+reduce               | 3   |  x  |  x  |     | Alias for foldl.
+```
+
+### File: core/sort.lyra
+
+```
+Name                 |  #  |Pure?|Impl?|Gen? | 
+---------------------+-----+-----+-----+-----+------------------------------------------------------
+bubblesort           | 1   |  x  |  x  |     | Sort a list using bubblesort.
+sort                 | 1   |  x  |  x  |     | Sort a list.
+```
+
+## Variables
+
+```
+Name        | File              | 
+------------+-------------------+-------------------------------------------------------------------
+#t          | core.rb           | Boolean true
+#f          | core.rb           | Boolean false
+else        | core.lyra         | alias for #t (for use in cond expressions)
+Nothing     | core.rb           | The non-object
+::nothing   | core.rb           | Type name for the Nothing object.
+::bool      | core.rb           | Type name for #t and #f.
+::vector    | core.rb           | Type name for vectors.
+::map       | core.rb           | Type name for maps.
+::list      | core.rb           | Type name for lists.
+::function  | core.rb           | Type name for functions.
+::integer   | core.rb           | Type name for integers.
+::float     | core.rb           | Type name for floats.
+::set       | core.rb           | Type name for sets.
+::typename  | core.rb           | Type name for typename objects.
+::string    | core.rb           | Type name for strings.
+::symbol    | core.rb           | Type name for symbols.
+::box       | core.rb           | Type name for boxes.
+true        | core/clj.lyra     | #t
+false       | core/clj.lyra     | #f
+nil         | core/clj.lyra     | Nothing
 ```
