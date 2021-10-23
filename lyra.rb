@@ -6,7 +6,7 @@ require_relative 'reader.rb'
 require_relative 'evaluate.rb'
 require_relative 'core.rb'
 
-LYRA_VERSION = "0_0_4"
+LYRA_VERSION = "0_0_9"
 
 # Treat the first console argument as a filename,
 # read from the file and evaluate the result.

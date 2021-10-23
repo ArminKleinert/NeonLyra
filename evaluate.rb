@@ -386,7 +386,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       unless bindings.empty?
         env1 = Env.new(nil, env)
         bindings.each do |b|
-          raise "Syntax error: Binding in let* must have 2 parts." unless b.size == 2
+          raise "Syntax error: Binding in let* must have 2 parts." unless b.is_a?(List) && b.size == 2
           raise "Syntax error: Name of binding in let* must be a symbol." unless b.car.is_a? Symbol
           env1.set!(b.car, eval_ly(b.cdr.car, env1, force_eval))
         end
@@ -394,30 +394,17 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
 
       # Execute the body.
       eval_keep_last(body, env1)
-=begin
-    when :"let1"
-      raise "Syntax error: let1 needs at least 1 argument." if expr.cdr.empty?
-      raise "Syntax error: let1 bindings must be a non-empty list." unless second(expr).is_a?(ConsList)
-
-      raise "Syntax error: Binding in let* must have 2 parts." unless first(second(expr)).is_a? Symbol
-
-      name = first(second(expr))
-      val = eval_ly(second(second(expr)), env, force_eval) # Evaluate the value.
-      env1 = Env.new nil, env
-      env1.set!(name, val)
-      eval_keep_last(rest(rest(expr)), env1) # Evaluate the body.
-=end
     when :let
       raise "Syntax error: let needs at least 1 argument." if expr.cdr.empty?
       bindings = second(expr)
-      raise "Syntax error: let bindings must be a list." unless bindings.is_a?(ConsList) || bindings.is_a?(EmptyList)
+      raise "Syntax error: let bindings must be a list." unless bindings.is_a?(ConsList)
 
       body = rest(rest(expr))
       env1 = Env.new(nil, env)
       unless bindings.empty?
         # Evaluate bindings in order using the old environment.
         bindings.each do |b|
-          raise "Syntax error: Binding in let must have 2 parts." unless b.size == 2
+          raise "Syntax error: Binding in let must have 2 parts." unless b.is_a?(List) && b.size == 2
           raise "Syntax error: Name of binding in let must be a symbol." unless b.car.is_a? Symbol
           env1.set!(b.car, eval_ly(b.cdr.car, env, force_eval))
         end
@@ -440,25 +427,6 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       # Same as define, but the 'is_macro' parameter is true.
       # Form: `(def-macro (name arg0 arg1 ...) body...)`
       ev_define(rest(expr), env, true)
-=begin
-    when :apply
-      # Form: (apply func & args)
-      # (apply f x0 x1 x2 (list x3 x4 x5)) becomes (f x0 x1 x2 x3 x4 x5)
-      # apply is not to be used with macros!
-      fn = eval_ly(second(expr), env, force_eval, true)
-      args = rest(rest(expr)).to_a
-      if args.empty?
-        eval_ly list(fn), env, force_eval, is_in_call_params
-      elsif !args[-1].is_a? Enumerable
-        eval_ly list(cdr(expr)), env,force_eval,is_in_call_params
-      else
-        args1 = eval_ly(args[-1], env, force_eval, true).to_cons_list
-        args[0...-1].reverse_each do |e|
-          args1 = cons(eval_ly(e, env, force_eval, true), args1)
-        end
-        fn.apply_to args1, env
-      end
-=end
     when :module
       ev_module expr
     when :lazy

@@ -19,21 +19,19 @@ class Env
       if @parent0.nil? || is_module_env
         @next_module_env = self
       else
-        @next_module_env = @parent0.next_module_env
+        # &. gets rid of the "Method invocation 'next_module_env' may produce 'NoMethodError" warning
+        @next_module_env = @parent0&.next_module_env
       end
     end
   end
 
   def self.create_module_env(module_name)
-    e = Env.new(module_name, global_env, nil, nil, true)
-    #e.next_module_env = e
-    e
+    Env.new(module_name, global_env, nil, nil, true)
   end
 
   def self.global_env
     unless GLOBAL_ENV.frozen?
       e = Env.new :global
-      # e.next_module_env = e
       GLOBAL_ENV.val = e
       GLOBAL_ENV.freeze
     end

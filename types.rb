@@ -427,7 +427,7 @@ end
 class GenericFn < LyraFn
   attr_reader :name
   
-  def initialize(name, args, anchor_idx, fallback)
+  def initialize(name, _, anchor_idx, fallback)
     @implementations = []
     @fallback = fallback
     @name, @anchor_idx = name.to_s.freeze, anchor_idx
@@ -462,7 +462,7 @@ class GenericFn < LyraFn
   end
 
   def add_implementation!(type, impl)
-    # TODO Check redifinition
+    # TODO Check redefinition
     @implementations[type.type_id] = impl
   end
 end
