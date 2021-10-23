@@ -31,6 +31,8 @@
 (define ::set rest (lambda (s) (let ((v (set->vector s))) (vector-range v 1 (vector-size v)))))
 (define ::map rest (lambda (m) (let ((v (mao->vector m))) (vector-range v 1 (vector-size v)))))
 
+(def-generic xs (second xs) (lambda (xs) (first (rest xs))))
+
 (def-generic xs (foldr f v xs) native-foldr)
 (def-generic xs (foldl f v xs) native-foldl)
 
@@ -56,8 +58,8 @@
 (def-generic x (eq? x y) =)
 (define ::list eq? seq-eq?)
 (define ::vector eq? (lambda (v o) (vector-eq? v (->vector o))))
-(define ::set eq? map-eq?)
-(define ::map eq? set-eq?)
+(define ::set eq? set-eq?)
+(define ::map eq? map-eq?)
 (define ::string eq? string-eq?)
 
 (def-generic x (->symbol x) native->symbol)
@@ -247,6 +249,18 @@
 
 (define (zip l0 l1)
   (zip-with list l0 l1))
+  
+(define (zip-to-index xs)
+  (map-indexed (lambda (x i) (list i x)) xs))
+
+(define (split-by f xs)
+  (foldr
+    (lambda (x v) (if (f x) (cons '() v) (cons (cons x (car v)) (cdr v))))
+    (list '())
+    xs))
+
+(define (split v xs)
+  (split-by (lambda (x) (eq? v x)) xs))
 
 (define (included? e s)
   (contains? s e))

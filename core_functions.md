@@ -201,9 +201,9 @@ but-last             | 1   |  x  |  x  |
 append               | 2   |  x  |  x  | 
 concat               | >=1 |  x  |  x  | Appends collections.
 nth                  | 2   |  x  |  x  | 
-split                | 2   |  x  |     | Take element and collection, split collection at each
+split                | 2   |  x  |  x  | Take element and collection, split collection at each
                      |     |     |     | occurance of the element.
-split-by             | 2   |  x  |     | 
+split-by             | 2   |  x  |  x  | 
 spread               | 1   |  x  |  x  | Takes a list and expands the last element.
                      |     |     |     | (spread '(1 2 (1 2) (7 8))) => (1 2 (1 2) 7 8)
                      |     |     |     | 

@@ -233,20 +233,20 @@ def setup_core_functions
   add_fn(:"nothing?", 1) { |m| m.nil? }
   add_fn(:"nil?", 1) { |x| x.nil? }
   add_fn(:"null?", 1) { |x| x.nil? || x.is_a?(EmptyList) }
-  add_fn(:"collection?", 1) { |x| x.is_a?(Enumerable) }
-  add_fn(:"sequence?", 1) { |x| x.is_a?(ConsList) || x.is_a?(Array) }
+  #add_fn(:"collection?", 1) { |x| x.is_a?(Enumerable) }
+  #add_fn(:"sequence?", 1) { |x| x.is_a?(ConsList) || x.is_a?(Array) }
   add_fn(:"list?", 1) { |x| x.is_a? ConsList }
   add_fn(:"vector?", 1) { |x| x.is_a? Array }
   add_fn(:"int?", 1) { |x| x.is_a? Integer }
   add_fn(:"float?", 1) { |x| x.is_a? Float }
-  add_fn(:"number?", 1) { |x| x.is_a? Numeric }
+  #add_fn(:"number?", 1) { |x| x.is_a? Numeric }
   add_fn(:"string?", 1) { |x| x.is_a? String }
   add_fn(:"symbol?", 1) { |x| x.is_a? Symbol }
   add_fn(:"char?", 1) { |x| x.is_a?(String) && x.size == 1 }
   add_fn(:"boolean?", 1) { |x| (!!x) == x }
   add_fn(:"map?", 1) { |x| x.is_a? Hash }
   add_fn(:"set?", 1) { |x| x.is_a? Set }
-  add_fn(:"empty?", 1) { |x| x.is_a?(Enumerable) && x.empty? }
+  #add_fn(:"empty?", 1) { |x| x.is_a?(Enumerable) && x.empty? }
   add_fn(:"function?", 1) { |x| x.is_a?(LyraFn) }
 
   add_fn(:id, 1) { |x| x }
