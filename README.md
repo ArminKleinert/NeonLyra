@@ -86,8 +86,7 @@ Here are some differences to Clojure I could think of:
 - No arrays.  
 - No build-in loops.  
 - No keyword access for maps. (I really want it though)  
-- No literals for `Map`.  
-- No literals for `Set`.  
+- No literals for maps and sets.
 - No primitive (value) types.  
 - No streams to files or sockets.  
 - No transients.  
@@ -107,6 +106,7 @@ Here are some differences to Clojure I could think of:
 - modules (`module`) instead of namespaces (`ns`).  
 - `true` is an alias for `#t`.  
 - All impure functions must end with the postfix `!` (like `load!`, `readln!`, ...).  
+- No infinite sequences (for now)
 
 ## Example
 
@@ -189,7 +189,7 @@ Here are some differences to Clojure I could think of:
   - renamed List to ConsList and NonEmptyList to List  
 - 0.0.6  
   - User-defined types  
-  - Generic fuctions  
+  - Generic functions  
   - Some other bug fixes.  
 - 0.0.7  
   - Many new functions.  
@@ -206,4 +206,7 @@ Here are some differences to Clojure I could think of:
   - Better implementation for some functions  
   - Fixed foldr1  
 
+## Planned features
 
+- Lazy sequences
+- Write bootstrap modules which only require a small subset of the functions to implement the rest 

@@ -1665,12 +1665,21 @@
     (= 30 (foldr-indexed (lambda(e s i) (v+ s e i)) 5 '(1 2 3 4 5)))))
 
 (define (test-repeat)
-  'TODO
-  )
+  (all-true?
+    (empty? (repeat -1 7))
+    (empty? (repeat 0 7))
+    (eq? '(7 7) (repeat 2 7))
+    (all? function? (repeat 2 gensym))))
 
 (define (test-repeatedly)
-  'TODO
-  )
+  (let ((b (box 0)))
+    (all-true?
+      (empty? (repeatedly -1 gensym))
+      (empty? (repeatedly 0 gensym))
+      (= 2 (size (repeatedly 2 nothing)))
+      (all? nothing? (repeatedly 2 nothing))
+      (eq? '(1 2 3 4 5) (repeatedly 5 (lambda () (box-set! b (inc @b)) @b)))
+      )))
 
 (define (test-take)
   (all-true?

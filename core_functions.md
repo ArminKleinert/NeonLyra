@@ -234,8 +234,8 @@ foldr1               | 3   |  x  |  x  |
 foldr-indexed        | 3   |  x  |  x  | 
 reduce               | 3   |  x  |  x  | Alias for foldl.
                      |     |     |     | 
-repeat               | 1   |  x  |     | 
-repeatedly           | 1   |  x  |     | 
+repeat               | 2   |  x  |  x  | 
+repeatedly           | 2   |  x  |  x  | 
 take                 | 2   |  x  |  x  | 
 take-while           | 2   |  x  |  x  | 
 take-until           | 2   |  x  |  x  | 
@@ -281,7 +281,8 @@ file-append!         | 2   |     |  x  |
 slurp!               | 1   |     |  x  | Alias for file-read!
 spit!                | 2   |     |  x  | Alias for file-write!
                      |     |     |     | 
-type-name            | 1   |  x  |  x  | Returns the name of the type of a variable.
+is-a?                | 2   |  x  |  x  | Checks whether an object is of a certain type.
+                     |     |     |     | Example: (is-a? x ::integer)
                      |     |     |     | 
 ljust                | 2   |  x  |  x  | Takes a string and a number. The string is then resized to
                      |     |     |     | at least n characters by inserting spaces on the right
@@ -297,6 +298,19 @@ Name                 |
 ---------------------+----------------------------------------------------------------------------
 #t                   | Boolean true
 #f                   | Boolean false
-else                 | alias for #t
+else                 | alias for #t (for use in cond expressions)
 Nothing              | The non-object
+::nothing            | Type name for the Nothing object. (Can only be used for is-a?)
+::bool               | Type name for #t and #f. (Can only be used for is-a?)
+::vector             | Type name for vectors. (Can only be used for is-a?)
+::map                | Type name for maps. (Can only be used for is-a?)
+::list               | Type name for lists. (Can only be used for is-a?)
+::function           | Type name for functions. (Can only be used for is-a?)
+::integer            | Type name for integers. (Can only be used for is-a?)
+::float              | Type name for floats. (Can only be used for is-a?)
+::set                | Type name for sets. (Can only be used for is-a?)
+::typename           | Type name for typename objects. (Can only be used for is-a?)
+::string             | Type name for strings. (Can only be used for is-a?)
+::symbol             | Type name for symbols. (Can only be used for is-a?)
+::box                | Type name for boxes. (Can only be used for is-a?)
 ```

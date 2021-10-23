@@ -53,39 +53,6 @@ STRING_TYPE = TypeName.new "::string", 10
 SYMBOL_TYPE = TypeName.new "::symbol", 11
 BOX_TYPE = TypeName.new "::box", 12
 
-def type_name_of(x)
-  if x.nil?
-    NOTHING_TYPE
-  elsif !!x == x
-    BOOL_TYPE
-  elsif x.is_a? Symbol
-    SYMBOL_TYPE
-  elsif x.is_a? LyraType
-    x.name
-  elsif x.is_a? Array
-    VECTOR_TYPE
-  elsif x.is_a? String
-    STRING_TYPE
-  elsif x.is_a? Hash
-    MAP_TYPE
-  elsif x.is_a? ConsList
-    LIST_TYPE
-  elsif x.is_a? LyraFn
-    FUNCTION_TYPE
-  elsif x.is_a? Integer
-    INTEGER_TYPE
-  elsif x.is_a? Float
-    FLOAT_TYPE
-  elsif x.is_a? Set
-    SET_TYPE
-  elsif x.is_a? Box
-    BOX_TYPE
-  elsif x.is_a? TypeName
-    TYPE_NAME_TYPE
-  else
-    raise "No name for type #{x.class} for object #{elem_to_s(x)}"
-  end.name
-end
 def type_id_of(x)
   if x.nil?
     NOTHING_TYPE
@@ -429,9 +396,6 @@ def setup_core_functions
 
   # This is here to register it as a function and make it possible to remove it later.
   add_fn(:quote, 1) { |_| raise "quote must not be called as a function." }
-
-  add_fn(:typename, 1) { |x| type_name_of(x) }
-  add_fn(:typeid, 1) { |x| type_id_of(x) }
 
   add_fn(:ljust, 2) { |x, n| elem_to_s(x).ljust(n) }
 
