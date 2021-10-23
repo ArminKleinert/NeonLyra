@@ -9,12 +9,24 @@
 
 (define (test-lambda)
   (let* ((f (lambda (n) n))
-          (fr (f 6)))
+         (fr (f 6)))
     (all-true?
       (= 2 ((lambda (n) (+ n n)) 1))
       (< 2 ((lambda (n) (+ n n)) 2))
       (= 2 ((lambda (n) n) 2))
       ((lambda (n) #t) 2)
+      (= (f 2) 2) 
+      (= (f 2) 2) 
+      (= (f 2) 2)
+      (= fr 6)))
+
+  (let* ((f (λ n . n))
+         (fr (f 6)))
+    (all-true?
+      (= 2 ((λ n . (+ n n)) 1))
+      (< 2 ((λ n . (+ n n)) 2))
+      (= 2 ((λ n . n) 2))
+      ((λ n . #t) 2)
       (= (f 2) 2) 
       (= (f 2) 2) 
       (= (f 2) 2)
@@ -247,7 +259,18 @@
     (not (<= "a" ""))
     (not (<= 1.2 0.5))
     (<= 1 1)
-    (<= "" "")))
+    (<= "" "")
+    
+    (≤ 1 2)
+    (≤ -1 0)
+    (≤ "" "a")
+    (≤ 0.5 1.2)
+    (not (≤ 2 1))
+    (not (≤ 0 -1))
+    (not (≤ "a" ""))
+    (not (≤ 1.2 0.5))
+    (≤ 1 1)
+    (≤ "" "")))
 
 (define (test->=)
   (all-true?
@@ -260,7 +283,18 @@
     (not (>= "" "a"))
     (not (>= 0.5 1.2))
     (>= 1 1)
-    (>= "" "")))
+    (>= "" "")
+    
+    (≥ 2 1)
+    (≥ 0 -1)
+    (≥ "a" "")
+    (≥ 1.2 0.5)
+    (not (≥ 1 2))
+    (not (≥ -1 0))
+    (not (≥ "" "a"))
+    (not (≥ 0.5 1.2))
+    (≥ 1 1)
+    (≥ "" "")))
 
 (define (test-+)
   (all-true?
@@ -741,10 +775,17 @@
     ((compose odd? inc) 2)
     (= 4 ((compose inc inc) 2))
     (= "3" ((compose ->string inc) 2))
+    ((compose nothing? ->int) '())
+
     ((⋅ odd? inc) 2)
     (= 4 ((⋅ inc inc) 2))
     (= "3" ((⋅ ->string inc) 2))
-    ((compose nothing? ->int) '())))
+    ((⋅ nothing? ->int) '())
+
+    ((# odd? ⋅ inc) 2)
+    (= 4 ((# inc ⋅ inc) 2))
+    (= "3" ((# ->string ⋅ inc) 2))
+    ((# nothing? ⋅ ->int) '())))
 
 (define (test-compose-and)
   (all-true?
@@ -760,7 +801,8 @@
     ((compose-or (lambda (e) #t) (lambda (e) (crash!))) 0)))
 
 (define (test-complement)
-  ((complement odd?) 2))
+  ((complement odd?) 2)
+  ((~ odd?) 2))
 
 (define (test-id)
   (all-true?
@@ -1200,7 +1242,52 @@
     (not (contains? '(1 1 2 1 1) 5))
     (not (contains? [1 1 2 1 1] 5))
     (contains? '(1 1 2 1 1) 2)
-    (contains? [1 1 2 1 1] 2)))
+    (contains? [1 1 2 1 1] 2)
+    
+    (not (included? 1 '()))
+    (not (included? 1 []))
+    (included? 1 '(1 2))
+    (included? 1 [1 2])
+    (included? 1 '(1 1 1 1))
+    (included? 1 [1 1 1 1])
+    (not (included? 5 '(1 1 2 1 1)))
+    (not (included? 5 [1 1 2 1 1]))
+    (included? 2 '(1 1 2 1 1))
+    (included? 2 [1 1 2 1 1])
+    
+    (not (member? 1 '()))
+    (not (member? 1 []))
+    (member? 1 '(1 2))
+    (member? 1 [1 2])
+    (member? 1 '(1 1 1 1))
+    (member? 1 [1 1 1 1])
+    (not (member? 5 '(1 1 2 1 1)))
+    (not (member? 5 [1 1 2 1 1]))
+    (member? 2 '(1 1 2 1 1))
+    (member? 2 [1 1 2 1 1])
+    
+    (not (∈ 1 '()))
+    (not (∈ 1 []))
+    (∈ 1 '(1 2))
+    (∈ 1 [1 2])
+    (∈ 1 '(1 1 1 1))
+    (∈ 1 [1 1 1 1])
+    (not (∈ 5 '(1 1 2 1 1)))
+    (not (∈ 5 [1 1 2 1 1]))
+    (∈ 2 '(1 1 2 1 1))
+    (∈ 2 [1 1 2 1 1])
+    
+    (∉ 1 '())
+    (∉ 1 [])
+    (not (∉ 1 '(1 2)))
+    (not (∉ 1 [1 2]))
+    (not (∉ 1 '(1 1 1 1)))
+    (not (∉ 1 [1 1 1 1]))
+    (∉ 5 '(1 1 2 1 1))
+    (∉ 5 [1 1 2 1 1])
+    (not (∉ 2 '(1 1 2 1 1)))
+    (not (∉ 2 [1 1 2 1 1]))
+    ))
 
 (define (test-first)
   (all-true?
@@ -1287,19 +1374,6 @@
 
 (define (test-concat)
   (all-true?
-    ; Appending strings
-    (= "" (concat "" ""))
-    (= "1" (concat "" "1"))
-    (= "21" (concat "2" "1"))
-    (= "" (concat "" "" ""))
-    (= "1" (concat "" "1" ""))
-    (= "321" (concat "3" "2" "1"))
-    
-    ; Appending to string transforms the 2. element into a string
-    (= "19" (concat "" 1 9))
-    (= "11a" (concat "" 11 'a))
-    (= "21" (concat "2" 1 ""))
-    
     ; Appending empty sequences
     (empty? (concat '() '()))
     (empty? (concat [] []))
@@ -1327,6 +1401,20 @@
     (nothing? (concat '() 88 [1 2]))
     (nothing? (concat 88 88 0))
     (nothing? (concat 88 0))))
+
+(define (test-string-concat)
+  (all-true?
+    (= "" (string-concat "" ""))
+    (= "1" (string-concat "" "1"))
+    (= "21" (string-concat "2" "1"))
+    (= "" (string-concat "" "" ""))
+    (= "1" (string-concat "" "1" ""))
+    (= "321" (string-concat "3" "2" "1"))
+    
+    ; Appending to string transforms the 2. element into a string
+    (= "19" (string-concat "" 1 9))
+    (= "11a" (string-concat "" 11 'a))
+    (= "21" (string-concat "2" 1 ""))))
     
 (define (test-nth)
   (all-true?
@@ -1343,12 +1431,46 @@
     (= 3 (nth [1 2 3] 2))))
    
 (define (test-split)
-  'TODO
-  )
+  (all-true?
+    (eq? '(()) (split 1 '()))
+    (eq? '(()) (split 1 []))
+    (eq? '(() (2)) (split 1 '(1 2)))
+    (eq? '(() (2)) (split 1 [1 2]))
+    (eq? '(() (2 3)) (split 1 '(1 2 3)))
+    (eq? '(() (2 3)) (split 1 [1 2 3]))
+    (eq? '((5) (2 3) (6)) (split 1 '(5 1 2 3 1 6)))
+    (eq? '((5) (2 3) (6)) (split 1 [5 1 2 3 1 6]))))
 
 (define (test-split-by)
-  'TODO
-  )
+  (all-true?
+    (eq? '(()) (split-by (lambda (x) (< x 2)) '()))
+    (eq? '(()) (split-by (lambda (x) (< x 2)) []))
+    (eq? '(() (2)) (split-by (lambda (x) (< x 2)) '(1 2)))
+    (eq? '(() (2)) (split-by (lambda (x) (< x 2)) [1 2]))
+    (eq? '(() (2 3)) (split-by (lambda (x) (< x 2)) '(1 2 3)))
+    (eq? '(() (2 3)) (split-by (lambda (x) (< x 2)) [1 2 3]))
+    (eq? '((5) (2 3) (6)) (split-by (lambda (x) (< x 2)) '(5 1 2 3 1 6)))
+    (eq? '((5) (2 3) (6)) (split-by (lambda (x) (< x 2)) [5 1 2 3 1 6]))
+    
+    (eq? '(()) (split-by (lambda (x) (> x 15)) '()))
+    (eq? '(()) (split-by (lambda (x) (> x 15)) []))
+    (eq? '(() (2)) (split-by (lambda (x) (< x 2)) '(-6 2)))
+    (eq? '(() (2)) (split-by (lambda (x) (< x 2)) [-6 2]))
+    (eq? '((5) (2 3) (6)) (split-by (lambda (x) (< x 2)) '(5 0 2 3 1 6)))
+    (eq? '((5) (2 3) (6)) (split-by (lambda (x) (< x 2)) [5 0 2 3 1 6]))))
+
+(define (test-but-last)
+  (all-true?
+    (empty? (but-last '()))
+    (empty? (but-last []))
+    (eq? '(1) (but-last '(1 2)))
+    (eq? [1] (but-last [1 2]))
+    (eq? '(1 1 1) (but-last '(1 1 1 1)))
+    (eq? [1 1 1] (but-last [1 1 1 1]))
+    (eq? '(1 1 2 1) (but-last '(1 1 2 1 1)))
+    (eq? [1 1 2 1] (but-last [1 1 2 1 1]))
+    (eq? '(99 2 1) (but-last '(99 2 1 1)))
+    (eq? [99 2 1] (but-last [99 2 1 1]))))
 
 (define (test-map)
   (all-true?
@@ -1662,26 +1784,49 @@
     (eq? '(5 7) (zip-with + [1 2 3] [4 5]))
     (eq? '(5 7 9) (zip-with + [1 2 3] [4 5 6]))))
 
+(define (test-zip-to-index)
+  (all-true?
+    (empty? (zip-to-index '()))
+    (empty? (zip-to-index []))
+
+    (eq? '((0 4) (1 5) (2 6)) (zip-to-index '(4 5 6)))
+    (eq? '((0 4) (1 5) (2 6)) (zip-to-index [4 5 6]))))
+
 (define (test-all?)
   (all-true?
     (all? (partial > 5) '())
     (all? (partial > 6) '(1 2 3 4 5))
     (not (all? (partial > 3) '(1 2 3 4 5)))
-    (not (all? (partial < 6) '(1 2 3 4 5)))))
+    (not (all? (partial < 6) '(1 2 3 4 5)))
+    
+    (∀ (partial > 5) '())
+    (∀ (partial > 6) '(1 2 3 4 5))
+    (not (∀ (partial > 3) '(1 2 3 4 5)))
+    (not (∀ (partial < 6) '(1 2 3 4 5)))))
 
 (define (test-none?)
   (all-true?
     (none? (partial > 5) '())
     (not (none? (partial > 6) '(1 2 3 4 5)))
     (not (none? (partial > 3) '(1 2 3 4 5)))
-    (none? (partial < 6) '(1 2 3 4 5))))
+    (none? (partial < 6) '(1 2 3 4 5))
+    
+    (∄ (partial > 5) '())
+    (not (∄ (partial > 6) '(1 2 3 4 5)))
+    (not (∄ (partial > 3) '(1 2 3 4 5)))
+    (∄ (partial < 6) '(1 2 3 4 5))))
 
 (define (test-any?)
   (all-true?
     (not (any? (partial > 5) '()))
     (any? (partial > 6) '(1 2 3 4 5))
     (any? (partial > 3) '(1 2 3 4 5))
-    (not (any? (partial < 6) '(1 2 3 4 5)))))
+    (not (any? (partial < 6) '(1 2 3 4 5)))
+    
+    (not (∃ (partial > 5) '()))
+    (∃ (partial > 6) '(1 2 3 4 5))
+    (∃ (partial > 3) '(1 2 3 4 5))
+    (not (∃ (partial < 6) '(1 2 3 4 5)))))
 
 (define (test-va-all?)
   (all-true?
@@ -1762,7 +1907,7 @@
                     (list (car res) (cons f (cadr res)) (caddr res))))))
             '(() () ())
             fns)))
-    (concat
+    (string-concat
       "Ran " (foldl + 0 [(size (car results)) (size (cadr results)) (size (caddr results))]) " tests.\n- "
       (size (car results)) " Successful.\n- "
       (size (cadr results)) " Failed: " (cadr results) "\n- "
@@ -1781,7 +1926,7 @@
   'test-bit-xor 'test-bit-shl 'test-bit-shr 'test-defined?
   'test-nothing? 'test-null? 'test-collection? 'test-sequence?
   'test-list? 'test-vector? 'test-int? 'test-float?
-  'test-string? 'test-symbol? 'test-char? 'test-set? 'test-map?
+  'test-string? 'test-symbol? 'test-char? 'test-boolean? 'test-set? 'test-map?
   'test-set? 'test-empty? 'test-compose 'test-compose-and
   'test-compose-or 'test-complement 'test-id 'test-id-fn
   'test-hash 'test-eq? 'test-->int 'test-->float
@@ -1798,7 +1943,7 @@
   'test-set-superset? 'test-set-true-superset? 'test-begin
   'test-comment 'test-size 'test-indices-of 'test-contains?
   'test-first 'test-rest 'test-last 'test-but-last 'test-append
-  'test-concat 'test-nth 'test-split 'test-split-by 'test-map 
+  'test-concat 'test-string-concat 'test-nth 'test-split 'test-split-by 'test-map 
   'test-maplist 'test-mapcar 'test-mapcon 'test-mapcon
   'test-map-indexed 'test-fmap 'test-mapf 'test-mapcat 
   'test-map-while 'test-map-until 'test-filter 'test-filter-indexed 
@@ -1807,7 +1952,7 @@
   'test-repeat 'test-repeatedly 'test-take 'test-take-while 
   'test-take-until 'test-drop 'test-drop-while 'test-drop-until 
   'test-take-drop 'test-take-drop-while 'test-take-drop-until
-  'test-zip 'test-zip-with 'test-all? 'test-none? 'test-any? 
+  'test-zip 'test-zip-with 'test-zip-to-index 'test-all? 'test-none? 'test-any? 
   'test-va-all? 'test-va-none? 'test-va-any? 'test-reverse 
   'test-sum 'test-minimum 'test-maximum 'test-bubblesort
   ))

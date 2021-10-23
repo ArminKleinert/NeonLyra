@@ -394,6 +394,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
 
       # Execute the body.
       eval_keep_last(body, env1)
+=begin
     when :"let1"
       raise "Syntax error: let1 needs at least 1 argument." if expr.cdr.empty?
       raise "Syntax error: let1 bindings must be a non-empty list." unless second(expr).is_a?(ConsList)
@@ -405,6 +406,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       env1 = Env.new nil, env
       env1.set!(name, val)
       eval_keep_last(rest(rest(expr)), env1) # Evaluate the body.
+=end
     when :let
       raise "Syntax error: let needs at least 1 argument." if expr.cdr.empty?
       bindings = second(expr)

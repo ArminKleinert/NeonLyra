@@ -10,6 +10,9 @@
 (define (list & xs)
   xs)
 
+(def-macro (let1 bindings & body)
+  (cons 'let (cons (list bindings) body)))
+
 (def-generic xs (size xs) nothing)
 (define ::list size list-size)
 (define ::vector size vector-size)
@@ -86,7 +89,7 @@
 
 (define (not x) (if x #f #t))
 (def-macro (and x y) (list 'if x y #f))
-(def-macro (or x y) (list 'let1 (list 'x0 x) (list 'if 'x0 'x0 y)))
+(def-macro (or x y) (list 'let (list (list 'x0 x)) (list 'if 'x0 'x0 y)))
 
 (define (odd? n) (= 1 (rem (->int n) 2)))
 (define (even? n) (= 0 (rem (->int n) 2)))
@@ -99,7 +102,7 @@
 (define (foldr1 f xs)
   (cond ((empty? xs) Nothing)
         ((= (size xs) 1) (first xs))
-        (else (foldr f (first xs) (rest xs)))))
+        (else (f (first xs) (foldr1 f (rest xs))))))
 
 (define (foldl-indexed f s xs)
   ((lambda (f acc i xs)
@@ -271,7 +274,10 @@
 (define (va-any? p & xs) (any? p xs))
 
 (define (concat & xs)
-  (foldl1 append xs))
+  (foldr1 append xs))
+
+(define (string-concat & xs)
+  (foldr1 strcat xs))
 
 (define (v+ & xs) (foldl + 0 xs))
 
@@ -329,14 +335,19 @@
     (lambda (c acc i) (if (eq? c elem) (cons i acc) acc))
     '() seq))
 
-
 ;;; Aliases
 (define includes? contains?)
 (define require! load!)
 (define fold foldr)
+(define member? included?)
 
-(def-macro (λ bindings & body)
-  (cons 'lambda (cons bindings body)))
+(def-macro (λ & args)
+  (let* ((args1 (split '. args))
+         (bindings (first args1))
+         (body (rest args1)))
+    (cons 'lambda (apply concat (list bindings) body))))
+
+(def-macro (# v0 op v1) (list op v0 v1))
 
 (define ~ complement)
 (define ⋅ compose)
@@ -349,7 +360,6 @@
 (define ∈ included?)
 (define ∉ (lambda (e s) (not (included? e s))))
 
-(require! "sort.lyra")
+(require! "core/sort.lyra")
 
 'ok
-

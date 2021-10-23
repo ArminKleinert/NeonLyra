@@ -286,6 +286,10 @@ type-name            | 1   |  x  |  x  | Returns the name of the type of a varia
 ljust                | 2   |  x  |  x  | Takes a string and a number. The string is then resized to
                      |     |     |     | at least n characters by inserting spaces on the right
                      |     |     |     | side.
+λ                    | >=2 |  x  |  x  | A fun macro which transforms into a lambda-form:
+                     |     |     |     | (λ x y . (+ x y)) becomes (lambda (x y) (+ x y))
+#                    | 3   |  x  |  x  | Transforms infix form into prefix-form:
+                     |     |     |     | (# x ∈ ys) becomes (∈ x ys)
 ```
 
 ```
