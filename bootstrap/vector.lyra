@@ -1,3 +1,53 @@
 (module vector
+;;;;;
+; Vector implemented as a tree.
+; Vectors should be implemented as a native construct of cause
+; because they should have an access complexity of O(1), but this
+; implementation is only O(log(n)).
+; If a negative index is accessed, the behavior is implementation
+; defined.
+(def-type vector-node left index value right)
+(def-type vector size entry)
 
+(define (vector-node-set vec idx e)
+  (cond
+    ((nothing? vec) (make-vector-node Nothing idx e Nothing))
+    ((= (vector-node-index vec) idx)
+      (make-vector-node (vector-node-left vec) idx e (vector-node-right vec)))
+    ((< (vector-node-inde vec) idx)
+      (make-vector-node (vector-node-left vec) idx e (vector-node-set (vector-node-right vec))))
+    (else
+      (make-vector-node (vector-node-set (vector-node-left vec)) idx e (vector-node-right vec)))))
+
+(define (vector-set vec idx e)
+  (if (< idx 0)
+    vec
+    (vector-node-set (vector-entry idx e))))
+
+(define (vector-empty? vec)
+  (nothing? (vector-entry vec)))
+
+(define (vector-node-max-idx vec acc)
+  (if (nothing? (vector-node-right vec))
+    (vector-node-idx vec)
+    (vector-node-max-idx (vector-node-right vec))))
+
+(define (vector-size vec)
+  (if (vector-empty? vec)
+    0
+    (inc (vector-node-max-idx (vector-entry vec)))))
+
+(define (vector-append vec e)
+  (vector-set vec (vector-size vec) e))
+
+; The elements are insert from the higher indices to the lower,
+; so the vector's right side will be fast to access and appending
+; will be very quick. Indexed access to the first elements will be
+; better if the order of insertion is reversed.
+(define (vector & xs)
+  (foldr
+    (lambda (ix v)
+      (vector-set v (car ix) (cadr ix)))
+    (make-vector Nothing)
+    (list-pairs (range 0 (size xs)) xs)))
 )

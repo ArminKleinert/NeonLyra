@@ -1,0 +1,73 @@
+(module bootstrap-set
+  ((set-of set-of)
+   (set->list set->list)
+   (set-size set-size)
+   (set-add set-add)
+   (set-union set-union)
+   (set-difference set-difference)
+   (set-intersection set-intersection)
+   (set-includes? set-includes?)
+   (set-subset? set-subset?)
+   (set-true-subset? set-true-subset?)
+   (set-superset? set-superset?)
+   (set-true-superset? set-true-superset?)
+   (set-remove set-remove)
+   (set-eq? set-eq?))
+
+;;;;;
+; Simple but bad list-set implementation.
+
+; set? is automatically defined
+(def-type set vals)
+
+(define (set-of & vals)
+  (make-set vals))
+
+(define set->list set-vals)
+
+(define (set-size set)
+  (list-size (set->list set)))
+
+(define (set-add set v)
+  (if (set-includes? set v)
+    set
+    (make-set (set->list v))))
+
+(define (set-union set0 set1)
+  (make-set (list-append (set-difference set0 set1) set1)))
+
+(define (set-difference)
+  (make-set
+    (list-append
+      (remove (lambda (e) (set-includes? set1 e)) (set->list set0)))))
+
+(define (set-intersection set0 set1)
+  (make-set (filter (lambda (e) (set-includes? set1 e)) (set->list set0))))
+
+(define (set-includes? set v)
+  (list-includes? (set->list set)))
+
+(define (set-subset? xs ys)
+  (all? (lambda (e) (set-includes? ys e)) xs))
+
+(define (set-true-subset? xs ys)
+  (and (/= (set-size xs) (set-size ys)) (set-subset? xs ys)))
+
+(define (set-superset? xs ys)
+  (set-subset? ys xs))
+
+(define (set-true-superset? xs ys)
+  (set-true-subset? ys xs))
+
+(define (set-remove set v)
+  (make-set set (list-remove (set->list set) v)))
+
+(define (set-eq? xs ys)
+  (list-eq? (set->list xs) (set->list ys)))
+
+(define ::set contains? set-includes?)
+(define ::set eq? set-eq?)
+(define ::set size set-size)
+(define ::set ->list set->list)
+(define ::set ->string (lambda (e) (list->string (set->list set))))
+)
