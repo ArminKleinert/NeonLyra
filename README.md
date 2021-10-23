@@ -204,6 +204,6 @@ Here are some differences to Clojure I could think of:
     - Infix-to-prefix transformation with #: (# 1 + 2)  
   - More tests  
   - Better implementation for some functions  
-  - Fixed foldr  
+  - Fixed foldr1  
 
 
