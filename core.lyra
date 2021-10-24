@@ -287,7 +287,11 @@
 (define (string-concat & xs)
   (foldr1 strcat xs))
 
-(define (v+ & xs) (foldl + 0 xs))
+(define (v+ x & xs) (foldl + x xs))
+(define (v- x & xs) (if (empty? xs) (- 0 x) (foldl - x xs)))
+(define (v* x & xs) (foldl * x xs))
+(define (v/ x & xs) (foldl / x xs))
+(define (v% x & xs) (foldl rem x xs))
 
 ;;; List and Vector stuff
 

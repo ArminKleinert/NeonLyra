@@ -306,11 +306,45 @@
 
 (define (test-v+)
   (all-true?
-    (= 2 (v+ 1 1))
+    (= 1 (v+ 1))
+    (= 19 (v+ 1 1 17))
     (= 3 (v+ 2 1))
     (= 5 (v+ 2 3))
-    (= 1 (v+ 0.5 0.5))
-    (= 1.5 (v+ 0.5 1))))
+    (= 2.5 (v+ 0.5 0.5 0.5 0.5 0.5))
+    (= 3 (v+ 0.5 1 0.5 1))))
+
+(define (test-v-)
+  (all-true?
+    (= -1 (v- 1))
+    (= -17 (v- 1 1 17))
+    (= 1 (v- 2 1))
+    (= -1 (v- 2 3))
+    (= -1.5 (v- 0.5 0.5 0.5 0.5 0.5))
+    (= -2 (v- 0.5 1 0.5 1))))
+
+(define (test-v*)
+  (all-true?
+    (= 1 (v* 1))
+    (= 17 (v* 1 1 17))
+    (= -2 (v* 2 -1))
+    (= 6 (v* 2 3))
+    (= 0.03125 (v* 0.5 0.5 0.5 0.5 0.5))
+    (= 1 (v* 0.5 2 0.5 2))))
+
+(define (test-v/)
+  (all-true?
+    (= 1 (v/ 1))
+    (= 0.125 (v/ 1.0 1 8))
+    (= -2.0 (v/ 2 -1.0))
+    (= 1.0 (v/ 2 2.0))
+    (= 8.0 (v/ 0.5 0.5 0.5 0.5 0.5))
+    (= 0.25 (v/ 0.5 2 0.5 2))))
+
+(define (test-v%)
+  (all-true?
+    (= 2 (v% 2 10 3))
+    (= 0.0 (v% 0.5 0.5))
+    (= 0.0 (v% 10 2))))
 
 (define (test--)
   (all-true?
@@ -1929,13 +1963,14 @@
   'test-lazy 'test-eager 'test-partial 'test-nothing
   'test-box 'test-unbox 'test-set-box 'test-read-string
   'test-eval 'test-measure 'test-= 'test-/= 'test-<
-  'test-> 'test-<= 'test->= 'test-+ 'test-v+ 'test-- 'test-*
-  'test-/ 'test-rem 'test-inc 'test-dec 'test-min 'test-max 
+  'test-> 'test-<= 'test->= 'test-+ 'test-- 'test-* 'test-/ 'test-rem 
+  'test-v+ 'test-v- 'test-v* 'test-v/ 'test-v% 'test-set? 'test-map?
+  'test-inc 'test-dec 'test-min 'test-max 'test-map 
   'test-not 'test-and 'test-or 'test-bit-and 'test-bit-or 
   'test-bit-xor 'test-bit-shl 'test-bit-shr 'test-defined?
   'test-nothing? 'test-null? 'test-collection? 'test-sequence?
   'test-list? 'test-vector? 'test-int? 'test-float?
-  'test-string? 'test-symbol? 'test-char? 'test-boolean? 'test-set? 'test-map?
+  'test-string? 'test-symbol? 'test-char? 'test-boolean?
   'test-set? 'test-empty? 'test-compose 'test-compose-and
   'test-compose-or 'test-complement 'test-id 'test-id-fn
   'test-hash 'test-eq? 'test-->int 'test-->float
@@ -1946,13 +1981,13 @@
   'test-vector-append 'test-iterate-seq 'test-iterate-seq-p
   'test-map-of 'test-map-size 'test-map-get 'test-map-set
   'test-map-remove  'test-map-keys 'test-map-merge 'test-set-of
-  'test-set-size 'test-set-add 'test-set-union
-  'test-set-difference 'test-set-intersection
+  'test-set-size 'test-set-add 'test-set-union 'test-any? 
+  'test-set-difference 'test-set-intersection 'test-bubblesort
   'test-set-includes? 'test-set-subset? 'test-set-true-subset?
   'test-set-superset? 'test-set-true-superset? 'test-begin
   'test-comment 'test-size 'test-indices-of 'test-contains?
   'test-first 'test-rest 'test-last 'test-but-last 'test-append
-  'test-concat 'test-string-concat 'test-nth 'test-split 'test-split-by 'test-map 
+  'test-concat 'test-string-concat 'test-nth 'test-split 'test-split-by
   'test-maplist 'test-mapcar 'test-mapcon 'test-mapcon
   'test-map-indexed 'test-fmap 'test-mapf 'test-mapcat 
   'test-map-while 'test-map-until 'test-filter 'test-filter-indexed 
@@ -1961,9 +1996,9 @@
   'test-repeat 'test-repeatedly 'test-take 'test-take-while 
   'test-take-until 'test-drop 'test-drop-while 'test-drop-until 
   'test-take-drop 'test-take-drop-while 'test-take-drop-until
-  'test-zip 'test-zip-with 'test-zip-to-index 'test-all? 'test-none? 'test-any? 
+  'test-zip 'test-zip-with 'test-zip-to-index 'test-all? 'test-none?
   'test-va-all? 'test-va-none? 'test-va-any? 'test-reverse 
-  'test-sum 'test-minimum 'test-maximum 'test-bubblesort
+  'test-sum 'test-minimum 'test-maximum
   ))
 
 )
