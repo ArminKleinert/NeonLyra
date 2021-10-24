@@ -200,8 +200,8 @@ Here are some differences to Clojure I could think of:
 - 0.0.9  
   - Massive performance improvement (very welcome after 0.0.8).  
   - Some useless but fun macros:  
-    - Fun lambdas like (any? (λ x . x) '(#f #f #t))  
-    - Infix-to-prefix transformation with #: (# 1 + 2)  
+    - Fun lambdas like `(any? (λ x . x) '(#f #f #t))`  
+    - Infix-to-prefix transformation with #: `(# 1 + 2)`  
   - More tests  
   - Better implementation for some functions  
   - Fixed foldr1  

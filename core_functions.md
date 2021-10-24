@@ -3,7 +3,7 @@
 ```
 #     : Number of arguments.
 Pure? : Does the function have no sideeffects?
-Impl? : Is the function implementede?
+Impl? : Is the function implemented?
 Gen?  : Is the function generic?
 ```
 
