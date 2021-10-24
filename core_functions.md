@@ -20,14 +20,10 @@ define               | >=2 |  x  |  x  |     | Different formats:
                      |     |     |     |     | generic function genfunc.
 def-generic          | 3   |  x  |  x  |     | Defines a generic function. It takes a symbol, function 
                      |     |     |     |     | signature and a fallback function.
-def                  | 2   |  x  |  x  |     | Equivalent to value-define.
-defn                 | >=1 |  x  |  x  |     | Equivalent to function-define.
 def-macro            | >=1 |  x  |  x  |     | Defines a macro. (See redme)
 def-type             | >=1 |  x  |  x  |     | Defines a new type. This adds a couple of other functions
                      |     |     |     |     | automatically. (See redme)
 lambda               | >=2 |  x  |  x  |     | 
-fn                   | >=2 |  x  |  x  |     | Equivalent to lambda but uses vector-literal instead of a
-                     |     |     |     |     | list for parameters.
 cond                 | >=1 |  x  |  x  |     | 
 if                   | 3   |  x  |  x  |     | 
 let                  | >=1 |  x  |  x  |     | Sets variables for a scope. References are looked up from
@@ -276,6 +272,7 @@ any?                 | 2   |  x  |  x  |     | Checks whether a predicate is tru
                      |     |     |     |     | 
 zip-with             | 3   |  x  |  x  |     | 
 zip                  | 2   |  x  |  x  |     | (zip l0 l1) is equal to (zip-with list l0 l1)
+                     |     |     |     |     | (zip '(9 8 7) '(1 2 3)) => ((9 1) (8 2) (7 3))
 zip-to-index         | 1   |  x  |  x  |     | (zip-to-index '(5 4 3)) => ((0 5) (1 4) (2 3))
 v-zip-with           | 2   |  x  |  x  |     | zip-with but takes a sequence of sequences.
                      |     |     |     |     | 
@@ -294,6 +291,10 @@ concat               | >=1 |  x  |  x  |     | Appends collections.
 string-concat        | >=1 |  x  |  x  |     | Appends strings.
                      |     |     |     |     | 
 v+                   | >=1 |  x  |  x  |     | Variadic +
+v-                   | >=1 |  x  |  x  |     | Variadic - (if only 1 argument is given, it is negated)
+v*                   | >=1 |  x  |  x  |     | Variadic *
+v/                   | >=1 |  x  |  x  |     | Variadic /
+v&                   | >=1 |  x  |  x  |     | Variadic rem
                      |     |     |     |     | 
 reverse              | 1   |  x  |  x  |     | Reverse a list.
 sum                  | 1   |  x  |  x  |     | Sums the elements of a list.
@@ -322,7 +323,7 @@ Name                 |  #  |Pure?|Impl?|Gen? |
 includes?            | 2   |  x  |  x  |     | Alias for contains?.
 require!             | 1   |     |  x  |     | Alias for load!
 fold                 | 3   |  x  |  x  |     | Alias for foldr.
-member?              | 2   |  x  |  x  |     | Alias of included?.
+member?              | 2   |  x  |  x  |     | Alias for included?.
 ~                    | 1   |  x  |  x  |     | Alias for complement.
 ⋅                    | 2   |  x  |  x  |     | Alias for compose.
 ∀                    | 2   |  x  |  x  |     | Alias for all?.
