@@ -55,7 +55,9 @@ load!                | 1   |     |  x  |     | Load file. Attention: load! alway
 read-string          | 1   |  x  |  x  |     | Parses a string into code.
 eval!                | 1   |     |  x  |     | Executes an object as code.
                      |     |     |     |     | 
-measure!             | 2   |  x  |  x  |     | 
+measure!             | 2   |  x  |  x  |     | Takes an integer n and a function f. Executes f n
+                     |     |     |     |     | times and returns the median time of the execution in
+                     |     |     |     |     | milliseconds.
                      |     |     |     |     | 
 =                    | 2   |  x  |  x  |     | 
 /=                   | 2   |  x  |  x  |     | 
@@ -166,7 +168,10 @@ Name                 |  #  |Pure?|Impl?|Gen? |
 comment              | any |  x  |  x  |     | 
 fst                  | 2   |  x  |  x  |     | Take 2 arguments and return the first.
 snd                  | 2   |  x  |  x  |     | Take 2 arguments and return the second.
-compare              | 2   |  x  |  x  |     | 
+compare              | 2   |  x  |  x  |  x  | Compares 2 variables x and y.
+                     |     |     |     |     |   x < y => -1
+                     |     |     |     |     |   x = y => 0
+                     |     |     |     |     |   x > y => 1
                      |     |     |     |     | 
 list                 | any |  x  |  x  |     | Take any number of arguments and return them as a list.
 let1                 | 2   |  x  |  x  |     | Sets a single variable.
@@ -294,7 +299,7 @@ v+                   | >=1 |  x  |  x  |     | Variadic +
 v-                   | >=1 |  x  |  x  |     | Variadic - (if only 1 argument is given, it is negated)
 v*                   | >=1 |  x  |  x  |     | Variadic *
 v/                   | >=1 |  x  |  x  |     | Variadic /
-v&                   | >=1 |  x  |  x  |     | Variadic rem
+v%                   | >=1 |  x  |  x  |     | Variadic rem
                      |     |     |     |     | 
 reverse              | 1   |  x  |  x  |     | Reverse a list.
 sum                  | 1   |  x  |  x  |     | Sums the elements of a list.
