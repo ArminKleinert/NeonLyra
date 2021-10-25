@@ -15,7 +15,7 @@ Name                 |  #  |Pure?|Impl?|Gen? |
 define               | >=2 |  x  |  x  |     | Different formats:
                      |     |     |     |     | (define sym val) Sets the value for sym to val in the 
                      |     |     |     |     | module environment. (value-define)
-                     |     |     |     |     | (define (sig) & bodx) Defines a function. (function-define)
+                     |     |     |     |     | (define (sig) & body) Defines a function. (function-define)
                      |     |     |     |     | (define type genfunc impl) Adds an implementation for the 
                      |     |     |     |     | generic function genfunc.
 def-generic          | 3   |  x  |  x  |     | Defines a generic function. It takes a symbol, function 
