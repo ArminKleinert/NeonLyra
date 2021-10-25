@@ -59,6 +59,19 @@
 
 
 
+(define (take n xs)
+  (cond ((<= n 0) '())
+        ((empty? xs) '())
+        (else (cons (first xs) (take (- n 1) (rest xs))))))
+(define (take-while p xs)
+  (cond ((empty? xs) '())
+        ((p (first xs)) (cons (first xs) (take-while p (rest xs))))
+        (else '())))
+(define (take-until p xs)
+  (cond ((empty? xs) '())
+        ((p (first xs)) '())
+        (else (cons (first xs) (take-until p (rest xs))))))
+
 
 
 

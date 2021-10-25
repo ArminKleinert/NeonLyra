@@ -270,8 +270,9 @@ def setup_core_functions
   add_fn_with_env(:"iterate-seq-p", 4) do |xs, env|
     pred, func, acc, vec = xs.to_a
     vec.each_with_index do |x, i|
-      break unless pred.call(list(acc, x, i), env)
-      acc = func.call(list(acc, x, i), env)
+      temp = list(acc, x, i)
+      break unless pred.call(temp, env)
+      acc = func.call(temp, env)
     end
     acc
   end

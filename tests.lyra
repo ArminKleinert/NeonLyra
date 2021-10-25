@@ -842,31 +842,31 @@
   (all-true?
     (all?
       (lambda (e) (= e (id e)))
-      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))
+      (list 'a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))
     (all?
       (lambda (e) (= (id e) (id e)))
-      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))))
+      (list 'a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))))
 
 (define (test-id-fn)
   (all-true?
     (all?
       (lambda (e) (= e ((id-fn e))))
-      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))
+      (list 'a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))
     (all?
       (lambda (e) (= (id e) ((id-fn e))))
-      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))
+      (list 'a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))
     (all?
       (lambda (e) (= ((id-fn e)) ((id-fn e))))
-      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))))
+      (list 'a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))))
 
 (define (test-hash)
   (all-true?
     (all?
       (lambda (e) (int? (hash e)))
-      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))
+      (list 'a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))
     (all?
       (lambda (e) (= (hash e) (hash e)))
-      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))))
+      (list 'a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))))
 
 (define (test-eq?)
   (all?
@@ -883,7 +883,7 @@
     (= 3 (->int "3"))
     (all?
       (lambda (e) (nothing? (->int e)))
-      '('a "" "4.5" '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))))
+      (list 'a "" "4.5" '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))))
 
 (define (test-->float)
   (all-true?
@@ -897,7 +897,7 @@
     (= 4.5 (->float "4.5"))
     (all?
       (lambda (e) (nothing? (->float e)))
-      '('a "" '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))))
+      (list 'a "" '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))))
 
 (define (test-->string)
   (all-true?

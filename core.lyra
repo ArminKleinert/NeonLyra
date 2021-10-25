@@ -209,17 +209,22 @@
   (take-drop-until-h (complement p) [] xs))
 
 (define (take n xs)
-  (cond ((<= n 0) '())
-        ((empty? xs) '())
-        (else (cons (first xs) (take (- n 1) (rest xs))))))
+  (iterate-seq-p
+    (lambda (a x i) (< i n))
+    (lambda (a x i) (vector-add a x))
+    [] (->vector xs)))
+
 (define (take-while p xs)
-  (cond ((empty? xs) '())
-        ((p (first xs)) (cons (first xs) (take-while p (rest xs))))
-        (else '())))
+  (iterate-seq-p
+    (lambda (a x i) (p x))
+    (lambda (a x i) (vector-add a x))
+    [] (->vector xs)))
+
 (define (take-until p xs)
-  (cond ((empty? xs) '())
-        ((p (first xs)) '())
-        (else (cons (first xs) (take-until p (rest xs))))))
+  (iterate-seq-p
+    (lambda (a x i) (not (p x)))
+    (lambda (a x i) (vector-add a x))
+    [] (->vector xs)))
 
 (define (drop n xs)
   (cond ((<= n 0) xs)
