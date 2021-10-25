@@ -59,6 +59,7 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 - `<expr>.?` becomes `(unwrap <expr>)`  
 - `<expr>.!` becomes `(eager <expr>)`  
 - `@<expr>` becomes `(unbox <expr>)`  
+- `#(...)` alterative syntax for anonymous functions  
 - `#t` is literal true  
 - `#f` is literal false  
 - Numbers can start with the prefixes `0x` or `0b` for hexadecimal or binary literals.
@@ -119,6 +120,9 @@ Here are some differences to Clojure I could think of:
 
 ; sum using a partial function
 (define sum (partial foldl + 0))
+
+; sum using a lambda
+(define sum (lambda (xs) (foldl + 0 xs)))
 
 ; Example macro for a Clojure-like 'when'
 (def-macro (when p & body) (list 'if p (cons 'begin body) Nothing))
@@ -201,10 +205,15 @@ Here are some differences to Clojure I could think of:
   - Massive performance improvement (very welcome after 0.0.8).  
   - Some useless but fun macros:  
     - Fun lambdas like `(any? (λ x . x) '(#f #f #t))`  
-    - Infix-to-prefix transformation with #: `(# 1 + 2)`  
   - More tests  
   - Better implementation for some functions  
   - Fixed foldr1  
+  - Beta features (Might be removed in the next version):  
+    - Function arguments are now also bound to the variables `%0` to `%15` (or less if the function call receives less arguments).  
+      So `(lambda (x y) (+ x y))` and `(lambda (x y) (+ %0 %1))` are equivalent.  
+    - New `#(...)` syntax for anonymous functions.  
+      - The function is variadic and its arguments are bound to the variables `%0` to `%15`. Such a function must not receive more than that number of arguments.  
+      - `#(+ %0 %1)` becomes `(lambda (& \x00) (+ %0 %1))`  
 
 ## Planned features
 

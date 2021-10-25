@@ -296,6 +296,22 @@ def ev_lambda(args_expr, body_expr, definition_env, is_macro = false)
 
     env1 = Env.new(nil, definition_env, environment).set_multi!(arg_pairs)
 
+
+    # TODO Decide whether to keep or remove this.
+    # `%0` to `%16` assignments.
+    unless args.empty?
+      if max_args < 0
+        arr = args.to_a
+        arr[0 ... [16, arr.size].min].each_with_index do |e, i|
+          env1.set! :"%#{i}", e
+        end
+      else
+        args.each_with_index do |e, i|
+          env1.set! :"%#{i}", e
+        end
+      end
+    end
+
     # Execute all commands in the body and return the last
     # value.
     eval_keep_last(body_expr, env1)

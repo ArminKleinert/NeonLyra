@@ -816,10 +816,10 @@
     (= "3" ((⋅ ->string inc) 2))
     ((⋅ nothing? ->int) '())
 
-    ((# odd? ⋅ inc) 2)
-    (= 4 ((# inc ⋅ inc) 2))
-    (= "3" ((# ->string ⋅ inc) 2))
-    ((# nothing? ⋅ ->int) '())))
+    ((§ odd? ⋅ inc) 2)
+    (= 4 ((§ inc ⋅ inc) 2))
+    (= "3" ((§ ->string ⋅ inc) 2))
+    ((§ nothing? ⋅ ->int) '())))
 
 (define (test-compose-and)
   (all-true?
