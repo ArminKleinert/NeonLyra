@@ -364,4 +364,4 @@
 (def-macro (§ v0 op v1) (list op v0 v1))
 
 'ok
-
+(load! "core/clj.lyra")

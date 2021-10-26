@@ -7,7 +7,10 @@
   (slurp! file-read!)
   (spit! file-write!)
   (count size)
-  (reduce foldl))
+  (reduce foldl)
+  (true #t)
+  (false #f)
+  (nil Nothing))
 
   (def-macro (when p & body)
     (list 'if p (cons 'begin (cons Nothing body)) (nothing)))
@@ -21,12 +24,4 @@
   (def-macro (fn bindings & body)
     (cons 'lambda (cons (->list bindings) body)))
 
-  (define do begin)
-  (define slurp! file-read!)
-  (define spit! file-write!)
-  (define reduce foldl)
-  
-  (define true #t)
-  (define false #f)
-  (define nil Nothing)
 )

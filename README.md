@@ -53,13 +53,13 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 - `(...)` is used for function calls.  
 - `'expr` quotes an expression and is equivalent to (quote expr)  
 - `[...]` creates a vector. It is not fully the same as `(vector ...)`, but gives the same value.  
-- `'()` is the empty list. (Not just `()`)  
-- `let` is the sequential let expression.  
-- `let1` defines a single variable.  
+- `'()` is the empty list. (`()` is also valid, but discouraged)  
+- `let` is the parallel let expression.  
+- `let*` is the sequential let expression.  
 - `<expr>.?` becomes `(unwrap <expr>)`  
 - `<expr>.!` becomes `(eager <expr>)`  
 - `@<expr>` becomes `(unbox <expr>)`  
-- `#(...)` alterative syntax for anonymous functions  
+- `#(...)` is an alternative syntax for anonymous functions  
 - `#t` is literal true  
 - `#f` is literal false  
 - Numbers can start with the prefixes `0x` or `0b` for hexadecimal or binary literals.
@@ -73,6 +73,7 @@ Here are some differences to Clojure I could think of:
 
 - Lyra is a hobby project and not a serious attempt at making something great.  
 - Bad performance. :(  
+- The boolean literals are `#t` and `#f` (but are aliases as `true` and `false`)
 - Box instead of `Atom`.  
 - Boxes are not synchronized.  
 - Creators for user-defined types should start with `make-` instead of `->`.  
@@ -101,13 +102,14 @@ Here are some differences to Clojure I could think of:
 - User-defined types are not maps.  
 - `(lambda (...) ...)` instead of `(fn [...] ...)`. (fn is available as an alias)  
 - `#f`, `Nothing` and `'()` are all false.  
-- `false` is an alias for `#f`.  
 - `module` surrounds a list of expressions instead of being used at the top of a file only.  
 - `seq` returns `Nothing` for all types that aren't collections.  
 - modules (`module`) instead of namespaces (`ns`).  
-- `true` is an alias for `#t`.  
 - All impure functions must end with the postfix `!` (like `load!`, `readln!`, ...).  
-- No infinite sequences (for now)
+- Nested `#(...)` is allowed (though discouraged)
+- No infinite and lazy sequences (for now)
+
+The aliases can be imported using `(load! "core/clj.lyra")`. 
 
 ## Example
 
@@ -209,11 +211,14 @@ Here are some differences to Clojure I could think of:
   - Better implementation for some functions  
   - Fixed foldr1  
   - Beta features (Might be removed in the next version):  
+    - Infix-to-prefix macro `§`: `(§ 9 + 1)` becomes `(+ 9 1)`
     - Function arguments are now also bound to the variables `%0` to `%15` (or less if the function call receives less arguments).  
       So `(lambda (x y) (+ x y))` and `(lambda (x y) (+ %0 %1))` are equivalent.  
     - New `#(...)` syntax for anonymous functions.  
       - The function is variadic and its arguments are bound to the variables `%0` to `%15`. Such a function must not receive more than that number of arguments.  
       - `#(+ %0 %1)` becomes `(lambda (& \x00) (+ %0 %1))`  
+- 0.1.0  
+  
 
 ## Planned features
 
