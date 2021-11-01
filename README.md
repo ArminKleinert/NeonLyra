@@ -218,6 +218,7 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
       - The function is variadic and its arguments are bound to the variables `%0` to `%15`. Such a function must not receive more than that number of arguments.  
       - `#(+ %0 %1)` becomes `(lambda (& \x00) (+ %0 %1))`  
 - 0.1.0  
+  - Performance improvement  
   
 
 ## Planned features

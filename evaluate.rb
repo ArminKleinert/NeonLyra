@@ -286,6 +286,7 @@ def ev_lambda(args_expr, body_expr, definition_env, is_macro = false)
   end
 
   CompoundFunc.new("", definition_env, is_macro, arg_count, max_args) do |args, environment|
+=begin
     # Makes pairs of the argument names and given arguments and
     # adds these pairs to the local environment.
     if max_args < 0
@@ -295,7 +296,6 @@ def ev_lambda(args_expr, body_expr, definition_env, is_macro = false)
     end
 
     env1 = Env.new(nil, definition_env, environment).set_multi!(arg_pairs)
-
 
     # TODO Decide whether to keep or remove this.
     # `%0` to `%16` assignments.
@@ -311,9 +311,11 @@ def ev_lambda(args_expr, body_expr, definition_env, is_macro = false)
         end
       end
     end
+=end
 
     # Execute all commands in the body and return the last
     # value.
+    env1 = Env.new(nil, definition_env, environment).set_multi_2!(args_expr, args, true, max_args<0)
     eval_keep_last(body_expr, env1)
   end
 end

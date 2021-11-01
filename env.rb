@@ -78,6 +78,26 @@ class Env
     self
   end
 
+  ANONYMOUS_ARG_NAMES = Array.new(17){|i| :"%#{i}"}.freeze
+
+  def set_multi_2!(keys, values, anonymous_keys, varargs)
+    anon_count = 1
+    until keys.empty?
+      if varargs && keys.cdr.empty?
+        set! keys.car, values
+      else
+        set! keys.car, values.car
+      end
+      if anonymous_keys && anon_count<17
+        set! ANONYMOUS_ARG_NAMES[anon_count], values.car
+        anon_count += 1
+      end
+      keys = keys.cdr
+      values = values.cdr
+    end
+    self
+  end
+
   def is_the_global_env?
     object_id == Env.global_env.object_id
   end
