@@ -22,7 +22,7 @@ def-generic          | 3   |  x  |  x  |     | Defines a generic function. It ta
                      |     |     |     |     | signature and a fallback function.
 def-macro            | >=1 |  x  |  x  |     | Defines a macro. (See redme)
 def-type             | >=1 |  x  |  x  |     | Defines a new type. This adds a couple of other functions
-                     |     |     |     |     | automatically. (See redme)
+                     |     |     |     |     | automatically. (See readme)
 lambda               | >=2 |  x  |  x  |     | 
 cond                 | >=1 |  x  |  x  |     | 
 if                   | 3   |  x  |  x  |     | 
@@ -46,8 +46,8 @@ nothing              | any |  x  |  x  |     | Swallows any numer of arguments a
                      |     |     |     |     | object.
 unwrap               | 1   |  x  |  x  |     | 
                      |     |     |     |     | 
-box                  | 1   |  x  |  x  |     | 
-unbox                | 1   |  x  |  x  |     | 
+box                  | 1   |  x  |  x  |     | Create a box.
+unbox                | 1   |  x  |  x  |     | Get the contents of a Box.
 set-box!             | 2   |  x  |  x  |     | 
                      |     |     |     |     | 
 load!                | 1   |     |  x  |     | Load file. Attention: load! always uses the global

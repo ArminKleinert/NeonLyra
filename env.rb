@@ -71,16 +71,9 @@ class Env
     self
   end
 
-  def set_multi!(pairs)
-    pairs.each do |b|
-      set!(b.car, b.cdr.car)
-    end
-    self
-  end
+  ANONYMOUS_ARG_NAMES = Array.new(16){|i| :"%#{i}"}.freeze
 
-  ANONYMOUS_ARG_NAMES = Array.new(17){|i| :"%#{i}"}.freeze
-
-  def set_multi_2!(keys, values, anonymous_keys, varargs)
+  def set_multi!(keys, values, anonymous_keys, varargs)
     anon_count = 1
     until keys.empty?
       if varargs && keys.cdr.empty?

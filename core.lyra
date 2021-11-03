@@ -8,6 +8,7 @@
 (define (snd x y) y)
 
 (def-generic x (compare x y) (lambda (x y) (if (= x y) 0 (if (< x y) -1 1))))
+(def-generic x (unwrap x) native-unwrap)
 
 (define (list & xs)
   xs)

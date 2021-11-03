@@ -163,6 +163,17 @@
       (= (unbox b) 16)
       (int? b.?))))
 
+(def-type unwrappable a b c)
+
+(define (test-unwrap)
+    (all-true?
+      (= (unwrap (box 5)) 5)
+      (nothing? (unwrap Nothing))
+      (let ((b (box 5))) (= (unbox b) (unwrap b)))
+      (= 5 (unwrap 5))
+      (vector-eq? [1 2 3] (unwrap (make-unwrappable 1 2 3)))
+      ))
+
 (define (test-read-string)
   (all-true?
     (nothing? (read-string "Nothing"))
@@ -1998,7 +2009,7 @@
   'test-take-drop 'test-take-drop-while 'test-take-drop-until
   'test-zip 'test-zip-with 'test-zip-to-index 'test-all? 'test-none?
   'test-va-all? 'test-va-none? 'test-va-any? 'test-reverse 
-  'test-sum 'test-minimum 'test-maximum
+  'test-sum 'test-minimum 'test-maximum 'test-unwrap
   ))
 
 )

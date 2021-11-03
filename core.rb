@@ -185,8 +185,13 @@ def setup_core_functions
   add_fn(:"always-false", 0, -1) { |*_| false }
 
   add_fn(:box, 1) { |x| Box.new(x) }
-  add_fn(:unbox, 1) { |b| b.value }
-  add_fn(:unwrap, 1) { |b| b.value } # Intended for use with any boxing type
+  add_fn(:unbox, 1) { |b| b.is_a?(Box) ? b.value : nil }
+  add_fn(:"native-unwrap", 1) { |b|
+    if b.is_a?(Box)
+      b.value
+    else
+      b.is_a?(LyraType) ? b.attrs : b
+    end } # Intended for use with any boxing type
   add_fn(:"box-set!", 2) { |b, x| b.value = x; b }
 
   add_fn(:eager, 1) { |x| eager x }
