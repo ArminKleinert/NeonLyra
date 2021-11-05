@@ -68,30 +68,35 @@ jruby: 1073.5075
 Truffleruby: 708.4105
 
 IDs as keys for generics:
-Ruby 341.11100250000004
+Ruby: 341.11100250000004
 
 Native foldr and foldl:
-Ruby 273.103618
+Ruby: 273.103618
 jruby: 562.018
 Truffleruby: 827.8824999999999
 
 After adding new tests:
-Ruby 302.417607
+Ruby: 302.417607
 jruby: 626.0905
 Truffleruby: 926.5335
 
 After adding anonymous arguments (v0.0.9):
-Ruby 342.32527550000003
+Ruby: 342.32527550000003
 
 After adding anonymous arguments and performance improvements:
-Ruby 281.233253
+Ruby: 281.233253
 
 After adding lazy lists but without actually using them:
-Ruby 233.50337
+Ruby: 233.50337
 
 After making most functions lazy and adding iterate:
-Ruby 253.244277
+Ruby: 253.244277
 jruby: 598.5474999999999
 Truffleruby: 988.9205000000001
+
+After fixing (if lazy ...) and changing how compound functions are initialized:
+Ruby: 248.1495455
+jruby: 552.375
+Truffleruby: 961.738
 )
 

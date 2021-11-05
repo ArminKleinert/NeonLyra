@@ -18,9 +18,9 @@ unless Object.const_defined?(:LYRA_ENV)
   setup_core_functions
 end
 
-RECUR_FUNC = CompoundFunc.new(:recur, Env.global_env, false, 0, -1) do |*_|
-  raise "Internal error: recur must not be called directly."
-end
+RECUR_FUNC = CompoundFunc.new(
+  :recur, list(:xs), list(:"error", "recur must not be called directly"),
+  nil, false, 0, -1)
 Env.global_env.set! :recur, RECUR_FUNC
 
 # Parses and evaluates a string as Lyra-source code.
@@ -31,30 +31,6 @@ end
 
 def top_env(env)
   env.next_module_env
-end
-
-# Turns 2 lists into a combined one.
-#   `pairs(list(1,2,3), list(4,5,6)) => ((1 . 4) (2 . 5) (3 . 6))`
-# If the first list is longer than the second, all remaining 
-# elements from the second are added the value for the last element
-# of the first list:
-#   `pairs(list(1,2,3), list(4,5,6,7)) => ((1 . 4) (2 . 5) (3 6 7))`
-# The intended use for this function is for adding function arguments
-# to the environment. The latter case makes it easy to pass
-# variadic arguments.
-def pairs(cons0, cons1, expect_v_args = false)
-  res = []
-  until cons0.empty?
-    if expect_v_args && cons0.size == 1
-      res << list(cons0.car, cons1)
-    else
-      res << list(cons0.car, cons1.car)
-    end
-    cons0 = cons0.cdr
-    cons1 = cons1.cdr
-  end
-  #puts res
-  res
 end
 
 def ev_module(expr)
@@ -285,17 +261,7 @@ def ev_lambda(args_expr, body_expr, definition_env, is_macro = false)
     end
   end
 
-  CompoundFunc.new("", definition_env, is_macro, arg_count, max_args) do |args, environment|
-    # Execute all commands in the body and return the last
-    # value.
-    if environment.nil?
-      env1 = Env.new(nil, definition_env).set_multi!(args_expr, args, true, max_args < 0)
-    else
-      env1 = Env.new(nil, definition_env, environment).set_multi!(args_expr, args, true, max_args < 0)
-    end
-
-    eval_keep_last(body_expr, env1)
-  end
+  CompoundFunc.new("", args_expr, body_expr, definition_env, is_macro, arg_count, max_args)
 end
 
 # Evaluation function
@@ -331,9 +297,12 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       # If the predicate holds true, the then-branch is executed.
       # Otherwise, the else-branch is executed.
       raise "if needs 3 arguments." if expr.size < 4 # includes the 'if
-      pres = eval_ly(second(expr), env, force_eval)
-      #uts "In if: " + pres.to_s
-      if pres != false && pres != nil && !pres.is_a?(EmptyList)
+      pred = eval_ly(second(expr), env, force_eval)
+      if !force_eval && pred.is_a?(LazyObj)
+        # transform (if <lazy e> <then> <else>) into (lazy (if <e> <then> <else>))
+        expr = list(:lazy, cons(:if, cons(pred.expr, expr.cdr.cdr)))
+        eval_ly(expr,env)
+      elsif pred != false && !pred.nil? && !pred.is_a?(EmptyList)
         # The predicate was true
         eval_ly(third(expr), env, force_eval)
       else
@@ -467,12 +436,16 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         LYRA_CALL_STACK.pop
         r
       elsif func.is_macro
+        LYRA_CALL_STACK.push func
         # The macro is first called and the resulting expression
         # is then executed.
         r1 = func.call(args, env)
+        LYRA_CALL_STACK.pop
         #puts r1
-        expr.set_car! :id
-        expr.set_cdr! list(r1)
+        if LYRA_CALL_STACK.none?(&:is_macro)
+          expr.set_car! :id
+          expr.set_cdr! list(r1)
+        end
         eval_ly(r1, env, force_eval)
       else
         # Check whether a tail-call is possible

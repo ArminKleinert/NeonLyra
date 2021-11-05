@@ -161,7 +161,7 @@ def setup_core_functions
       cons(x, y)
     end
   end
-  add_fn(:cons, 2)  { |x,xs| cons(x,xs) }
+  add_fn(:cons, 2) { |x, xs| cons(x, xs) }
   add_fn(:car, 1) { |x| x.car }
   add_fn(:cdr, 1) { |x| x.cdr }
 
@@ -427,6 +427,8 @@ def setup_core_functions
   end
 
   add_fn(:"is-a?", 2) { |x, t| type_id_of(x) == t.type_id }
+
+  add_fn(:"error", 1) { |msg| raise msg }
 
   true
 end

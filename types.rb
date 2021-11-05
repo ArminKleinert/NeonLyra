@@ -9,6 +9,8 @@ end
 class LazyObj
   include Lazy
 
+  attr_reader :expr
+
   def initialize(expr, env)
     @expr, @env = expr, env
     @executed = false
@@ -328,12 +330,15 @@ end
 # A Lyra-function. It knows its argument-count (minimum and maximum),
 # body (the executable function), name and whether it is a macro or not.
 class CompoundFunc < LyraFn
+  attr_reader :args_expr
   attr_reader :arg_counts # Range of (minimum .. maximum)
   attr_reader :body # Executable ((List<Any>, Env) -> Any)
   attr_accessor :name # Symbol
   attr_reader :is_macro # Boolean
 
-  def initialize(name, definition_env, is_macro, min_args, max_args = min_args, &body)
+  def initialize(name, args_expr, body_expr, definition_env, is_macro, min_args, max_args = min_args, &body)
+    @args_expr=args_expr
+    @body_expr=body_expr
     @definition_env = definition_env
     @arg_counts = (min_args..max_args)
     @body = body
@@ -352,8 +357,11 @@ class CompoundFunc < LyraFn
     raise "#{@name}: Too many arguments. (Given #{args_given}, expected #{@arg_counts})" if arg_counts.last >= 0 && args_given > arg_counts.last
 
     begin
+      env1 = Env.new(nil, @definition_env,env).set_multi!(@args_expr, args, true, @arg_counts.last < 0)
+
       # Execute the body and return
-      body.call(args, env)
+      #body.call(args, env1)
+      eval_keep_last(@body_expr, env1)
     rescue TailCall => tail_call
       unless native?
         # Do a tail-call. (Thanks for providing `retry`, Ruby!)
