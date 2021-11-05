@@ -426,7 +426,15 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
     when :module
       ev_module expr
     when :lazy
+      if expr.cdr.size != 1
+        raise "Wrong number of arguments for lazy. (Expected 1, got #{expr.cdr.size})"
+      end
       LazyObj.new expr.cdr.car, env
+    when :"lazy-seq"
+      if expr.cdr.size != 2
+        raise "Wrong number of arguments for lazy-seq. (Expected 2, got #{expr.cdr.size})"
+      end
+      LazyList.create eval_ly(expr.cdr.car, env), lambda { eval_ly(expr.cdr.cdr.car, env) }
     else
       # Here, the expression will have a form like the following:
       # (func arg0 arg1 ...)

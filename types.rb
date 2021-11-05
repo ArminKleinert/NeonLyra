@@ -3,7 +3,12 @@
 
 require 'singleton'
 
+module Lazy
+end
+
 class LazyObj
+  include Lazy
+
   def initialize(expr, env)
     @expr, @env = expr, env
     @executed = false
@@ -189,7 +194,7 @@ class List
 end
 
 class LazyList
-  include Enumerable, ConsList
+  include Enumerable, ConsList,Lazy
 
   def initialize(head, tail_fn)
     @car = head
@@ -205,10 +210,10 @@ class LazyList
   end
 
   def size
-    force.size
+    evaluate.size
   end
 
-  def force
+  def evaluate
     each do
     end
     self
@@ -226,9 +231,7 @@ class LazyList
 end
 
 def cons(e, l)
-  if l.is_a?(Proc)
-    LazyList.create e, l
-  elsif l.is_a?(ConsList)
+  if l.is_a?(ConsList)
     List.create(e, l)
   else
     raise "Tail must be a list or function."

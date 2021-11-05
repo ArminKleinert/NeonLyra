@@ -219,9 +219,9 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
       - `#(+ %0 %1)` becomes `(lambda (& \x00) (+ %0 %1))`  
 - 0.1.0  
   - Performance improvement  
+  - Lazy and infinite sequences
   
 
 ## Planned features
 
-- Lazy sequences
 - Write bootstrap modules which only require a small subset of the functions to implement the rest 

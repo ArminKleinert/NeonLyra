@@ -366,18 +366,17 @@
 
 (comment
 (define (lmap f xs)
-  (println! (car xs))
   (if (empty? xs)
     '()
-    (cons (f (car xs)) (lambda () (lmap f (cdr xs))))))
+    (lazy-seq (f (car xs)) (lmap f (cdr xs)))))
 
 (define (infinite i)
-  (cons i (lambda () (infinite (inc i)))))
+  (lazy-seq i (infinite (inc i))))
 
 (define (takeN n xs)
   (cond ((= 0 n) '())
         ((empty? xs) '())
-        (else (cons (car xs) (takeN (dec n) (cdr xs))))))
+        (else (lazy-seq (car xs) (takeN (dec n) (cdr xs))))))
 
 (takeN 15 (infinite 0))
 )

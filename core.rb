@@ -128,7 +128,7 @@ def elem_to_s(e)
 end
 
 def eager(x)
-  x.is_a?(LazyObj) ? x.evaluate : x
+  x.is_a?(Lazy) ? x.evaluate : x
 end
 
 # Sets up the core functions and variables. The functions defined here are
@@ -161,6 +161,7 @@ def setup_core_functions
       cons(x, y)
     end
   end
+  add_fn(:cons, 2)  { |x,xs| cons(x,xs) }
   add_fn(:car, 1) { |x| x.car }
   add_fn(:cdr, 1) { |x| x.cdr }
 
