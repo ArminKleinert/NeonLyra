@@ -1,6 +1,7 @@
 .idea
 benchmark.lyra
 bootstrap/necessary
+exclude
 
 *.gem
 *.rbc

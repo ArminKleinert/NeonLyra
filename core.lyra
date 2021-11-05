@@ -49,7 +49,7 @@
   (let ((l (->list xs)))
     (if (list? l) (take (dec (size l)) l) (nothing))))
 
-(define (empty? xs) (or (nothing? xs) (= (size xs) 0)))
+(define (empty? xs) (if (list? xs) (null? xs) (or (nothing? xs) (= (size xs) 0))))
 
 (def-generic xs (append xs ys) native-append)
 (def-generic xs (contains? xs e) native-contains?)
@@ -364,4 +364,22 @@
 
 (def-macro (§ v0 op v1) (list op v0 v1))
 
+(comment
+(define (lmap f xs)
+  (if (empty? xs)
+    '()
+    (cons (f (car xs)) (lambda () (lmap f (cdr xs))))))
+
+(define (infinite i)
+  (cons i (lambda () (infinite (inc i)))))
+
+(define (takeN n xs)
+  (cond ((= 0 n) '())
+        ((empty? xs) '())
+        (else (cons (car xs) (takeN (dec n) (cdr xs))))))
+
+(takeN 15 (lmap inc (infinite 0)))
+)
+
 'ok
+

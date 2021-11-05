@@ -75,7 +75,7 @@ module ConsList
         end
         i -= 1
       end
-    raise "Should never happen."
+      raise "Should never happen."
     end
   end
 
@@ -188,9 +188,50 @@ class List
   end
 end
 
+class LazyList
+  include Enumerable, ConsList
+
+  def initialize(head, tail_fn)
+    @car = head
+    @tail_fn = tail_fn
+  end
+
+  def car
+    @car
+  end
+
+  def cdr
+    @tail_fn.call
+  end
+
+  def size
+    force.size
+  end
+
+  def force
+    each do end
+    self
+  end
+
+  def self.create(head, tail_fn)
+    LazyList.send :new, head, tail_fn
+  end
+
+  private_class_method :new
+
+  def empty?
+    false
+  end
+end
+
 def cons(e, l)
-  raise "Tail must be a list." unless l.is_a?(ConsList)
-  List.create(e, l)
+  if l.is_a?(Proc)
+    LazyList.create e, l
+  elsif l.is_a?(ConsList)
+    List.create(e, l)
+  else
+    raise "Tail must be a list or function."
+  end
 end
 
 def list(*args)
@@ -218,8 +259,6 @@ Box = Struct.new(:value) do
     "(box #{elem_to_s(value)})"
   end
 end
-
-
 
 # Convenience functions.
 def first(c)
@@ -255,6 +294,16 @@ end
 class LyraFn
   def apply_to(args, env)
     call(args, env)
+  end
+end
+
+class LazyLyraFn < Proc
+  def self.create(f, env)
+    LazyLyraFn.new{|args|
+      if args.nil?
+        args = EmptyList.instance
+      end
+      f.call(args, env)}
   end
 end
 
@@ -313,7 +362,6 @@ class CompoundFunc < LyraFn
   end
 
   def pure?
-    # TODO
     !@name.end_with?("!")
   end
 end
@@ -426,7 +474,7 @@ end
 
 class GenericFn < LyraFn
   attr_reader :name
-  
+
   def initialize(name, _, anchor_idx, fallback)
     @implementations = []
     @fallback = fallback
@@ -441,7 +489,7 @@ class GenericFn < LyraFn
     if fn
       fn.call args, env
     else
-      @fallback.call args,env
+      @fallback.call args, env
     end
   end
 
@@ -469,13 +517,16 @@ end
 
 class TypeName
   attr_reader :name, :type_id
-  def initialize(name,type_id)
-    @name ,@type_id= name.to_sym,type_id
+
+  def initialize(name, type_id)
+    @name, @type_id = name.to_sym, type_id
     @name.freeze
   end
+
   def to_s
     @name.to_s
   end
+
   def to_sym
     @name.to_sym
   end
@@ -486,9 +537,10 @@ def atom?(x)
 end
 
 class LyraType
-  attr_reader :name,:type_id,:attrs
-  def initialize(type_id,name,attrs)
-    @type_id,@name,@attrs = type_id,name,attrs
+  attr_reader :name, :type_id, :attrs
+
+  def initialize(type_id, name, attrs)
+    @type_id, @name, @attrs = type_id, name, attrs
     @attrs.freeze
   end
 end
@@ -498,7 +550,7 @@ LYRA_TYPE_COUNTER = Box.new 20
 def new_lyra_type(name, attrs, env)
   attrs = attrs.to_a
   counter = LYRA_TYPE_COUNTER.value
-  t = TypeName.new(:"::#{name}" ,counter)
+  t = TypeName.new(:"::#{name}", counter)
   env.set! :"make-#{name}", NativeLyraFn.new(:"make-#{name}", attrs.size) { |params, _| LyraType.new(counter, t, params.to_a) }
   env.set! :"#{name}?", NativeLyraFn.new(:"#{name}?", 1) { |o, _| o.car.is_a?(LyraType) && o.car.type_id == counter }
   env.set! :"unwrap-#{name}", NativeLyraFn.new(:"unwrap-#{name}", 1) { |o, _| o.attrs }

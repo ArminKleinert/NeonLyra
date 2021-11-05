@@ -152,7 +152,15 @@ def setup_core_functions
   end
 
   add_fn(:"list-size", 1) { |x| x.size }
-  add_fn(:cons, 2) { |x, y| cons(x, y) }
+  add_fn_with_env(:cons, 2) do |args, env|
+    x = args.car
+    y = args.cdr.car
+    if y.is_a?(LyraFn)
+      cons(x, LazyLyraFn.create(y, env))
+    else
+      cons(x, y)
+    end
+  end
   add_fn(:car, 1) { |x| x.car }
   add_fn(:cdr, 1) { |x| x.cdr }
 
@@ -309,21 +317,21 @@ def setup_core_functions
   add_fn(:"set->vector", 1) { |s| s.to_a }
   add_fn(:"set-eq?", 2) { |s, s1| s == s1 }
 
-
-  def foldr(f,v,xs,env)
+  def foldr(f, v, xs, env)
     xs.to_a.reverse_each do |e|
       v = f.call(list(e, v), env)
     end
     v
   end
-  add_fn_with_env(:"native-foldr", 3)do |args,env|
+
+  add_fn_with_env(:"native-foldr", 3) do |args, env|
     f = args.car
     v = args.cdr.car
     xs = args.cdr.cdr.car
-    foldr(f,v,xs,env)
+    foldr(f, v, xs, env)
   end
 
-  add_fn_with_env(:"native-foldl", 3) do |args,env|
+  add_fn_with_env(:"native-foldl", 3) do |args, env|
     f = args.car
     v = args.cdr.car
     xs = args.cdr.cdr.car
@@ -332,7 +340,6 @@ def setup_core_functions
     end
     v
   end
-  
 
   #add_fn(:size, 1) { |c| c.is_a?(Enumerable) ? c.size : nil }
   add_fn(:"native-contains?", 2) { |c, e| c.include? e }

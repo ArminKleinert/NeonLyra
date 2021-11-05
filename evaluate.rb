@@ -171,17 +171,17 @@ def ev_define_generic(expr, env)
   if expr.size != 3
     raise "Syntax error: Invalid format of def-generic."
   end
-  
+
   ref_arg = first(expr)
   unless ref_arg.is_a? Symbol
     raise "Syntax error: Generic function reference argument must be a symbol."
   end
-  
+
   args_expr = second(expr)
   unless args_expr.is_a?(List)
     raise "Syntax error: Signature of generic function must be a list."
   end
-  
+
   name = first(args_expr)
   unless name.is_a?(Symbol)
     raise "Syntax error: Name of generic function in define must be a symbol."
@@ -192,7 +192,7 @@ def ev_define_generic(expr, env)
   unless anchor_idx
     raise "Syntax error: Argument #{ref_arg} not found for generic function #{name}."
   end
-  
+
   fallback = eval_ly(third(expr), env)
   unless fallback.is_a?(LyraFn)
     raise "Syntax error: Fallback for generic function #{name} must be a function."
@@ -211,17 +211,17 @@ def ev_define_with_type(expr, env, is_macro)
   global_name = second(expr)
   impl_name = third(expr)
   impl = eval_ly(impl_name, env)
-  
+
   fn = eval_ly(global_name, env)
   unless fn.is_a? GenericFn
     raise "Syntax error: No generic function #{global_name} found."
   end
-  
+
   unless impl.is_a? LyraFn
     raise "Syntax error: Implementation of function #{global_name} must be a function."
   end
-  
-  fn.add_implementation! eval_ly(first(expr),env), impl
+
+  fn.add_implementation! eval_ly(first(expr), env), impl
 
   third(expr)
 end
@@ -247,7 +247,7 @@ def ev_define(expr, env, is_macro)
     name = first(expr) # Get the name
     val = second(expr)
     res = eval_ly(val, env) # Get and evaluate the value.
-    
+
     # Add the entry to the global environment.
     top_env(env).set!(name, res)
     name
@@ -261,7 +261,7 @@ def ev_lambda(args_expr, body_expr, definition_env, is_macro = false)
   arg_count = arg_arr.size
   max_args = arg_count
 
-  unless arg_arr.all?{|x| x.is_a? Symbol}
+  unless arg_arr.all? { |x| x.is_a? Symbol }
     raise "Syntax error: Arguments for lambda must be symbols."
   end
 
@@ -288,7 +288,12 @@ def ev_lambda(args_expr, body_expr, definition_env, is_macro = false)
   CompoundFunc.new("", definition_env, is_macro, arg_count, max_args) do |args, environment|
     # Execute all commands in the body and return the last
     # value.
-    env1 = Env.new(nil, definition_env, environment).set_multi!(args_expr, args, true, max_args<0)
+    if environment.nil?
+      env1 = Env.new(nil, definition_env).set_multi!(args_expr, args, true, max_args < 0)
+    else
+      env1 = Env.new(nil, definition_env, environment).set_multi!(args_expr, args, true, max_args < 0)
+    end
+
     eval_keep_last(body_expr, env1)
   end
 end
@@ -441,7 +446,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       # If `expr` had the form `((...) ...)`, then the result of the
       # inner list must be executed too.
       func = eval_ly(func, env, force_eval) if func.is_a?(ConsList)
-      
+
       raise "Runtime error: Expected a function, got #{elem_to_s(func)}" unless func.is_a?(LyraFn)
 
       # If the function is not pure, force evaluation.
