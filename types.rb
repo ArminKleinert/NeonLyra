@@ -209,7 +209,8 @@ class LazyList
   end
 
   def force
-    each do end
+    each do
+    end
     self
   end
 
@@ -299,11 +300,11 @@ end
 
 class LazyLyraFn < Proc
   def self.create(f, env)
-    LazyLyraFn.new{|args|
+    LazyLyraFn.new { |args|
       if args.nil?
         args = EmptyList.instance
       end
-      f.call(args, env)}
+      f.call(args, env) }
   end
 end
 

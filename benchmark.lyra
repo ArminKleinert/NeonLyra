@@ -1,0 +1,92 @@
+(require! "tests.lyra")
+
+; xs = (n,m,...)
+; xs = (m) if only 1 element remains
+(define (ack-h xs)
+  (cond ((= (size xs) 1) ; only result in list
+          (car xs)) ; m
+        ((= (car xs) 0) ; n is 0: (cons m-1 rest)
+          (ack-h (cons 1 (cons (dec (cadr xs)) (cddr xs)))))
+        ((= (cadr xs) 0) ; m is 0: (cons n+1 rest)
+          (ack-h (cons (inc (car xs)) (cddr xs))))
+        (else ; Default: (cons n-1 (cons m (cons m-1 rest)))
+          (ack-h (cons (dec (car xs)) (cons (cadr xs) (cons (dec (cadr xs)) (cddr xs))))))))
+
+(define (ack m n)
+  (ack-h (list n m)))
+    
+
+(let ((runs 100)
+      (r (range 0 100)))
+
+(comment
+(println! (measure! runs (lambda () (take (size r) r))))
+(println! (measure! runs (lambda () (take-while (lambda (x) #t) r))))
+(println! (measure! runs (lambda () (take-until (lambda (x) #f) r))))
+(println! (measure! runs (lambda () (range 0 750))))
+(println! (measure! runs (lambda () (->vector r))))
+(println! (measure! runs (lambda () (->set r))))
+(println! (measure! runs (lambda () (map inc r))))
+(println! (measure! runs (lambda () (maplist size r))))
+(println! (measure! runs (lambda () (maplist first r))))
+(println! (measure! runs (lambda () (maplist rest r))))
+(println! (measure! runs (lambda () (mapcar v+ r r r r r r))))
+(println! (measure! runs (lambda () (mapcar list r r r r r r))))
+(println! (measure! runs (lambda () (apply concat (mapcar list r r r r r r)))))
+(println! (measure! runs (lambda () (concat r r r r r r r r r r r r r r r))))
+(println! (measure! runs (lambda () (apply concat '(r r r r r r r r r r r r r r r)))))
+(println! (measure! runs (lambda () (maximum r))))
+)
+
+;(println! (measure! 1 run-tests))
+(println! (measure! runs run-tests))
+;(println! (measure! (max (/ runs 10) 1) (lambda () (ack 3 5)))) ; Tests the time for 45000 tail recursive calls and many calls to cons, car and cdr.
+
+)
+
+
+(comment
+Times in milliseconds.
+
+Tests with v0.0.7:
+167.859757
+
+Tests with generic eq?:
+250.824882
+
+After making all important functions generic:
+370.53632
+
+Tests with v0.0.8 and jRuby support:
+Ruby: 370.876406
+jruby: 720.529
+Truffleruby: 1095.8115
+
+Frozen names:
+Ruby: 355.27617
+jruby: 1073.5075
+Truffleruby: 708.4105
+
+IDs as keys for generics:
+Ruby 341.11100250000004
+
+Native foldr and foldl:
+Ruby 273.103618
+jruby: 562.018
+Truffleruby: 827.8824999999999
+
+After adding new tests:
+Ruby 302.417607
+jruby: 626.0905
+Truffleruby: 926.5335
+
+After adding anonymous arguments (v0.0.9):
+Ruby 342.32527550000003
+
+After adding anonymous arguments and performance improvements:
+Ruby 281.233253
+
+After adding lazy lists (but without actually using them:
+Ruby 233.50337
+)
+

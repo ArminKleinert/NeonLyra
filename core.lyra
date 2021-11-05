@@ -366,6 +366,7 @@
 
 (comment
 (define (lmap f xs)
+  (println! (car xs))
   (if (empty? xs)
     '()
     (cons (f (car xs)) (lambda () (lmap f (cdr xs))))))
@@ -378,8 +379,7 @@
         ((empty? xs) '())
         (else (cons (car xs) (takeN (dec n) (cdr xs))))))
 
-(takeN 15 (lmap inc (infinite 0)))
+(takeN 15 (infinite 0))
 )
 
 'ok
-
