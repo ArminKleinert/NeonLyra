@@ -285,8 +285,10 @@ split-by             | 2   |  x  |  x  |     |
 split                | 2   |  x  |  x  |     | Take element and collection, split collection at each
                      |     |     |     |     | occurance of the element.
                      |     |     |     |     | 
-repeatedly           | 2   |  x  |  x  |     | 
-repeat               | 2   |  x  |  x  |     | 
+repeatedly           | 1   |  x  |  x  |     | 
+repeat               | 1   |  x  |  x  |     | Create an infinite sequence of the same element.
+iterate              | 2   |  x  |  x  |     | Infinite sequence as in Haskell:
+                     |     |     |     |     | iterate f e = e : iterate f (f e)
                      |     |     |     |     | 
 va-all?              | >=1 |  x  |  x  |     | Variadic version of all?
 va-none?             | >=1 |  x  |  x  |     | Variadic version of none?

@@ -1711,20 +1711,27 @@
 
 (define (test-repeat)
   (all-true?
-    (empty? (repeat -1 7))
-    (empty? (repeat 0 7))
-    (eq? '(7 7) (repeat 2 7))
-    (all? function? (repeat 2 gensym))))
+    (list? (repeat 7))
+    (not (empty? (repeat 7)))
+    (eq? '(7 7) (take 2 (repeat 7)))
+    (all? function? (take 2 (repeat gensym)))))
 
 (define (test-repeatedly)
   (let ((b (box 0)))
     (all-true?
-      (empty? (repeatedly -1 gensym))
-      (empty? (repeatedly 0 gensym))
-      (= 2 (size (repeatedly 2 nothing)))
-      (all? nothing? (repeatedly 2 nothing))
-      (eq? '(1 2 3 4 5) (repeatedly 5 (lambda () (box-set! b (inc @b)) @b)))
+      (list? (repeatedly gensym))
+      (not (empty? (repeatedly gensym)))
+      (= 2 (size (take 2 (repeatedly nothing))))
+      (all? nothing? (take 2 (repeatedly nothing)))
+      (eq? '(1 2 3 4 5) (take 5 (repeatedly (lambda () (box-set! b (inc @b)) @b))))
       )))
+
+(define (test-iterate)
+  (all-true?
+    (list? (iterate (lambda (n) (* n 2)) 1))
+    (not (empty? (iterate (lambda (n) (* n 2)) 1)))
+    (eq? '(1 2 4 8 16) (take 5 (iterate (lambda (n) (* n 2)) 1)))
+    (eq? '(1 1 1 1 1) (take 5 (drop 50 (iterate id 1))))))
 
 (define (test-take)
   (all-true?
@@ -2009,7 +2016,7 @@
   'test-take-drop 'test-take-drop-while 'test-take-drop-until
   'test-zip 'test-zip-with 'test-zip-to-index 'test-all? 'test-none?
   'test-va-all? 'test-va-none? 'test-va-any? 'test-reverse 
-  'test-sum 'test-minimum 'test-maximum 'test-unwrap
+  'test-sum 'test-minimum 'test-maximum 'test-unwrap 'test-iterate
   ))
 
 )

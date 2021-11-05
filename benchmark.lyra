@@ -16,14 +16,13 @@
   (ack-h (list n m)))
     
 
-(let ((runs 100)
+(let ((runs 500)
       (r (range 0 100)))
 
 (comment
 (println! (measure! runs (lambda () (take (size r) r))))
 (println! (measure! runs (lambda () (take-while (lambda (x) #t) r))))
 (println! (measure! runs (lambda () (take-until (lambda (x) #f) r))))
-(println! (measure! runs (lambda () (range 0 750))))
 (println! (measure! runs (lambda () (->vector r))))
 (println! (measure! runs (lambda () (->set r))))
 (println! (measure! runs (lambda () (map inc r))))
@@ -37,6 +36,7 @@
 (println! (measure! runs (lambda () (apply concat '(r r r r r r r r r r r r r r r)))))
 (println! (measure! runs (lambda () (maximum r))))
 )
+;(println! (measure! runs (lambda () (range 0 500))))
 
 ;(println! (measure! 1 run-tests))
 (println! (measure! runs run-tests))
@@ -86,7 +86,12 @@ Ruby 342.32527550000003
 After adding anonymous arguments and performance improvements:
 Ruby 281.233253
 
-After adding lazy lists (but without actually using them:
+After adding lazy lists but without actually using them:
 Ruby 233.50337
+
+After making most functions lazy and adding iterate:
+Ruby 253.244277
+jruby: 598.5474999999999
+Truffleruby: 988.9205000000001
 )
 

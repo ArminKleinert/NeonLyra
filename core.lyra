@@ -150,8 +150,17 @@
 (define (apply f & xs)
   (apply-to f (spread xs)))
 
-(define (map f xs) (foldr (lambda (x v) (cons (f x) v)) '() xs))
-(define (map-indexed f xs) (foldr-indexed (lambda (x v i) (cons (f x i) v)) '() xs))
+(define (map f xs)
+  (if (empty? xs)
+    '()
+    (lazy-seq (f (first xs)) (map f (rest xs)))))
+(define (map-eager f xs) (foldr (lambda (x v) (cons (f x) v)) '() xs))
+;(define (map f xs) (map1 f (->list xs)))
+(define (map-indexed-h f xs i)
+  (if (empty? xs)
+    '()
+    (lazy-seq (f (first xs) i) (map-indexed-h f (rest xs) (inc i)))))
+(define (map-indexed f xs) (map-indexed-h f xs 0))
 
 (define (map-while f p xs) (map f (take-while p xs)))
 (define (map-until f p xs) (map f (take-until p xs)))
@@ -159,13 +168,10 @@
 (define (maplist f xs)
   (if (empty? xs)
     '()
-    (cons (f xs) (maplist f (rest xs)))))
+    (lazy-seq (f xs) (maplist f (rest xs)))))
 
 (define (mapcar f & ys)
-  (let ((xs (remove empty? ys)))
-    (if (empty? xs)
-      '()
-      (cons (apply f (map first xs)) (apply mapcar f (map rest xs))))))
+  (v-zip-with f ys))
 
 (define (mapcon f xs)
   (foldr append '() (maplist f xs)))
@@ -173,24 +179,32 @@
 (define (mapcat f xs)
   (foldr append '() (map f xs)))
 
-(define (filter p xs) (foldr (lambda (x v) (if (p x) (cons x v) v)) '() xs))
-(define (filter-indexed p xs)
-  (foldr-indexed (lambda (x v i) (if (p x i) (cons x v) v)) '() xs))
+(define (filter p xs)
+   (cond ((empty? xs) '())
+         ((p (first xs)) (lazy-seq (first xs) (filter p (rest xs))))
+         (else (filter p (rest xs)))))
+
+(define (filter-indexed-h p xs i)
+  (cond ((empty? xs) '())
+        ((p (first xs) i) (lazy-seq (first xs) (filter-indexed-h p (rest xs) (inc i))))
+        (else (filter-indexed-h p (rest xs) (inc i)))))
+(define (filter-indexed p xs) (filter-indexed-h p xs 0))
 
 (define (remove p xs) (filter (complement p) xs))
 (define (remove-indexed p xs)
   (filter-indexed (lambda (x i) (not (p x i))) xs))
 
 (define (fmap f p xs)
- (foldr
-  (lambda (x v)
-    (if (p x) (cons (f x) v) v))
-  '() xs))
+  (cond ((empty? xs) '())
+        ((p (first xs)) (lazy-seq (f (first xs)) (fmap f p (rest xs))))
+        (else (fmap f p (rest xs)))))
 (define (mapf f p xs)
- (foldr
-  (lambda (x v)
-    (let1 (z (f x)) (if (p z) (cons z v) v)))
-  '() xs))
+  (if (empty? xs)
+    '()
+    (let ((y (f (first xs))))
+      (if (p y)
+        (lazy-seq y (mapf f p (rest xs)))
+        (mapf f p (rest xs))))))
 
 (define (take-drop-h n st en)
   (if (or (= n 0) (empty? en))
@@ -210,22 +224,17 @@
   (take-drop-until-h (complement p) [] xs))
 
 (define (take n xs)
-  (iterate-seq-p
-    (lambda (a x i) (< i n))
-    (lambda (a x i) (vector-add a x))
-    [] (->vector xs)))
-
+  (cond ((<= n 0) '())
+        ((empty? xs) '())
+        (else (cons (first xs) (take (- n 1) (rest xs))))))
 (define (take-while p xs)
-  (iterate-seq-p
-    (lambda (a x i) (p x))
-    (lambda (a x i) (vector-add a x))
-    [] (->vector xs)))
-
+  (cond ((empty? xs) '())
+        ((p (first xs)) (cons (first xs) (take-while p (rest xs))))
+        (else '())))
 (define (take-until p xs)
-  (iterate-seq-p
-    (lambda (a x i) (not (p x)))
-    (lambda (a x i) (vector-add a x))
-    [] (->vector xs)))
+  (cond ((empty? xs) '())
+        ((p (first xs)) '())
+        (else (cons (first xs) (take-until p (rest xs))))))
 
 (define (drop n xs)
   (cond ((<= n 0) xs)
@@ -241,9 +250,9 @@
         (else (drop-until p (rest xs)))))
 
 (define (all? p xs)
-  (= (size (drop-while p xs)) 0))
+  (empty? (drop-while p xs)))
 (define (none? p xs)
-  (= (size (drop-until p xs)) 0))
+  (empty? (drop-until p xs)))
 (define (any? p xs)
   (cond ((empty? xs) #f)
         ((p (first xs)) #t)
@@ -252,7 +261,7 @@
 (define (zip-with f l0 l1)
   (if (or (empty? l0) (empty? l1))
     '()
-    (cons (f (first l0) (first l1)) (zip-with f (rest l0) (rest l1)))))
+    (lazy-seq (f (first l0) (first l1)) (zip-with f (rest l0) (rest l1)))))
 
 (define (zip l0 l1)
   (zip-with list l0 l1))
@@ -263,7 +272,7 @@
 (define (v-zip-with f xs)
   (if (all? empty? xs)
     '()
-    (cons (apply-to f (map first xs)) (v-zip-with f (map rest xs)))))
+    (cons (apply-to f (map-eager first xs)) (v-zip-with f (remove empty? (map-eager rest xs))))))
 
 (define (split-by f xs)
   (foldr
@@ -274,13 +283,14 @@
 (define (split v xs)
   (split-by (lambda (x) (eq? v x)) xs))
 
-(define (repeatedly n f)
-  (reverse
-    ((lambda (n acc) (if (<= n 0) acc (recur (dec n) (cons (f) acc))))
-      n '())))
+(define (repeatedly f)
+  (lazy-seq (f) (repeatedly f)))
 
-(define (repeat n e)
-  (repeatedly n (id-fn e)))
+(define (repeat e)
+  (lazy-seq e (repeat e)))
+
+(define (iterate f e)
+  (lazy-seq e (iterate f (f e))))
 
 ; Variadic variants for all?, none? and any?
 (define (va-all? p & xs) (all? p xs))
@@ -346,7 +356,7 @@
 (define (range from to)
   (if (> from to)
     '()
-    (cons from (range (inc from) to))))
+    (lazy-seq from (range (inc from) to))))
 
 (define (indices-of seq elem)
   (foldr-indexed
@@ -363,22 +373,5 @@
     (cons 'lambda (apply concat (list bindings) body))))
 
 (def-macro (§ v0 op v1) (list op v0 v1))
-
-(comment
-(define (lmap f xs)
-  (if (empty? xs)
-    '()
-    (lazy-seq (f (car xs)) (lmap f (cdr xs)))))
-
-(define (infinite i)
-  (lazy-seq i (infinite (inc i))))
-
-(define (takeN n xs)
-  (cond ((= 0 n) '())
-        ((empty? xs) '())
-        (else (lazy-seq (car xs) (takeN (dec n) (cdr xs))))))
-
-(takeN 15 (infinite 0))
-)
 
 'ok

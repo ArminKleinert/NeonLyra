@@ -399,12 +399,14 @@ def setup_core_functions
       (arr[(len - 1) / 2] + arr[len / 2]) / 2
     end
 
-    res = []
-    args.car.times do
+    runs = args.car
+    f = args.cdr.car
+    res = Array.new(runs)
+    runs.times do |i|
       t0 = Time.now
-      args.cdr.car.call(list, env)
+      f.call(list, env)
       t1 = Time.now
-      res << (t1 - t0) * 1000.0
+      res[i] = (t1 - t0) * 1000.0
     end
     median.call(res) }
 
@@ -413,7 +415,7 @@ def setup_core_functions
 
   add_fn(:ljust, 2) { |x, n| elem_to_s(x).ljust(n) }
 
-  add_fn_with_env(:"apply-to", 2) { |xs, env| first(xs).call(second(xs), env) }
+  add_fn_with_env(:"apply-to", 2) { |xs, env| first(xs).call(second(xs).force, env) }
 
   [NOTHING_TYPE, BOOL_TYPE, VECTOR_TYPE, MAP_TYPE, LIST_TYPE, FUNCTION_TYPE, INTEGER_TYPE,
    FLOAT_TYPE, SET_TYPE, TYPE_NAME_TYPE, STRING_TYPE, SYMBOL_TYPE, BOX_TYPE].each do |t|

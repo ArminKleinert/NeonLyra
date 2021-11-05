@@ -127,6 +127,10 @@ module ConsList
       false
     end
   end
+
+  def force
+    each do end
+  end
 end
 
 class EmptyList
@@ -167,7 +171,12 @@ class List
   end
 
   def size
-    @size
+    if @size == -1
+      # Tail was lazy, so calculate its size
+      @size = tail.size + 1
+    else
+      @size
+    end
   end
 
   # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
@@ -182,8 +191,13 @@ class List
   end
 
   def self.create(head, tail)
-    raise "Illegal cdr" unless tail.is_a? ConsList
-    List.send :new, head, tail, tail.size + 1
+    if tail.is_a? LazyList
+      List.send :new, head, tail, -1
+    elsif tail.is_a? ConsList
+      List.send :new, head, tail, tail.size + 1
+    else
+      raise "Illegal cdr"
+    end
   end
 
   private_class_method :new
@@ -194,7 +208,7 @@ class List
 end
 
 class LazyList
-  include Enumerable, ConsList,Lazy
+  include Enumerable, ConsList, Lazy
 
   def initialize(head, tail_fn)
     @car = head
