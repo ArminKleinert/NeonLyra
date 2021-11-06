@@ -15,7 +15,7 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 - Different numeric types: Integer and Float  
 - Macros  
 - Tail recursion  
-- Lazy evaluation (not implemented)  
+- Lazy evaluation  
 - Ease of use for Clojurians.  
 
 ## Usage:
@@ -29,7 +29,7 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 
 - No `set-car!` or `set-cdr!` and no mutating functions for vectors.  
 - No shying away from using more native functions.  
-- Lists have a size. To count the elements, they do not have to be iterated.  
+- Lists (except lazy lists) have a size. To count the elements, they do not have to be iterated.  
 - User-defined types use native functions.  
 - A module system.  
 
@@ -63,6 +63,7 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 - `#t` is literal true  
 - `#f` is literal false  
 - Numbers can start with the prefixes `0x` or `0b` for hexadecimal or binary literals.
+- Function with names that end in `!` are considered impure. Impure calls eagerly evaluate their parameters. They will also not be optimized away. You can mark any function as pure by not putting a `!` at the end of the name.  
 
 ## Differences to Clojure:
 
@@ -149,6 +150,10 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
 (define ::list first car)
 (define ::vector first (lambda (v) (vector-get v 0)))
 (define ::string first (lambda (s) (first (chars s))))
+
+; Infinite sequence of numbers counting up.
+(define (foo i) (lazy-seq i (foo (+ i 1))))
+(take 6 (filter odd? (map inc (foo 0)))) ; => (1 3 5 7 9 11)
 ```
 
 ## Example of a user-defined type

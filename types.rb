@@ -375,16 +375,14 @@ end
 class CompoundFunc < LyraFn
   attr_reader :args_expr
   attr_reader :arg_counts # Range of (minimum .. maximum)
-  attr_reader :body # Executable ((List<Any>, Env) -> Any)
   attr_accessor :name # Symbol
   attr_reader :is_macro # Boolean
 
-  def initialize(name, args_expr, body_expr, definition_env, is_macro, min_args, max_args = min_args, &body)
+  def initialize(name, args_expr, body_expr, definition_env, is_macro, min_args, max_args = min_args)
     @args_expr = args_expr
     @body_expr = body_expr
     @definition_env = definition_env
     @arg_counts = (min_args..max_args)
-    @body = body
     @name = name.to_s.freeze
     @is_macro = is_macro
   end

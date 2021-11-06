@@ -154,13 +154,16 @@
   (if (empty? xs)
     '()
     (lazy-seq (f (first xs)) (map f (rest xs)))))
-(define (map-eager f xs) (foldr (lambda (x v) (cons (f x) v)) '() xs))
-;(define (map f xs) (map1 f (->list xs)))
+(define (map-eager f xs)
+  (foldr (lambda (x v) (cons (f x) v)) '() xs))
 (define (map-indexed-h f xs i)
   (if (empty? xs)
     '()
     (lazy-seq (f (first xs) i) (map-indexed-h f (rest xs) (inc i)))))
 (define (map-indexed f xs) (map-indexed-h f xs 0))
+
+(define (mapv f xs) (foldl (lambda (v x) (vector-add v (f x))) [] xs))
+(define (mapv-indexed f xs) (foldl-indexed (lambda (v x i) (vector-add v (f x i))) [] xs))
 
 (define (map-while f p xs) (map f (take-while p xs)))
 (define (map-until f p xs) (map f (take-until p xs)))
@@ -183,6 +186,9 @@
    (cond ((empty? xs) '())
          ((p (first xs)) (lazy-seq (first xs) (filter p (rest xs))))
          (else (filter p (rest xs)))))
+
+(define (filterv p xs)
+  (foldl (lambda (v x) (if (p x) (vector-add v x) v)) '() xs))
 
 (define (filter-indexed-h p xs i)
   (cond ((empty? xs) '())
@@ -375,5 +381,7 @@
     (cons 'lambda (apply concat (list bindings) body))))
 
 (def-macro (§ v0 op v1) (list op v0 v1))
+
+(define (doall! xs) xs)
 
 'ok

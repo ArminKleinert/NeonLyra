@@ -16,7 +16,7 @@
   (ack-h (list n m)))
     
 
-(let ((runs 500)
+(let ((runs 1000)
       (r (range 0 100)))
 
 (comment

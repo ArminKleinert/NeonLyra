@@ -239,8 +239,10 @@ spread               | 1   |  x  |  x  |     | Takes a list and expands the last
 apply                | >=1 |  x  |  x  |     | Takes a function and variadic arguments, calls spread on
                      |     |     |     |     | the arguments and then applies the function.
                      |     |     |     |     | 
-map                  | 2   |  x  |  x  |     | 
+map                  | 2   |  x  |  x  |     | Lazy map. Returns a list.
+mapv                 | 2   |  x  |  x  |     | Eager map. Returns a vector.
 map-indexed          | 2   |  x  |  x  |     | 
+mapv-indexed         | 2   |  x  |  x  |     | 
 map-while            | 3   |  x  |  x  |     | 
 map-until            | 3   |  x  |  x  |     | 
 maplist              | 2   |  x  |  x  |     | map but for the consecutive sublists. 
@@ -251,12 +253,13 @@ mapcon               | 2   |  x  |  x  |     | Calls maplist, expects the result
 mapcat               | 2   |  x  |  x  |     | Calls map, expects the result to be a sequence of lists
                      |     |     |     |     | and appends them.
                      |     |     |     |     | 
-filter               | 2   |  x  |  x  |     | 
+filter               | 2   |  x  |  x  |     | Lazy filter. Returns a list.
+filterv              | 2   |  x  |  x  |     | Eager filter. Returns a vector.
 filter-indexed       | 2   |  x  |  x  |     | 
 remove               | 2   |  x  |  x  |     | 
 remove-indexed       | 2   |  x  |  x  |     |  
-fmap                 | 3   |  x  |  x  |     | filter, then map
-mapf                 | 3   |  x  |  x  |     | map, then filter 
+fmap                 | 3   |  x  |  x  |     | filter, then map (like (filter p (map f xs)))
+mapf                 | 3   |  x  |  x  |     | map, then filter (like (map f (filter p xs)))
                      |     |     |     |     | 
 take-drop            | 2   |  x  |  x  |     | Creates a list equal to
                      |     |     |     |     |   (list (take n xs) (drop n xs))
@@ -321,8 +324,8 @@ indices-of           | 2   |  x  |  x  |     |
                      |     |     |     |     | 
 λ                    | >=2 |  x  |  x  |     | A fun macro which transforms into a lambda-form:
                      |     |     |     |     | (λ x y . (+ x y)) becomes (lambda (x y) (+ x y))
-#                    | 3   |  x  |  x  |     | Transforms infix form into prefix-form:
-                     |     |     |     |     | (# x ∈ ys) becomes (∈ x ys)
+§                    | 3   |  x  |  x  |     | Transforms infix form into prefix-form:
+                     |     |     |     |     | (§ x ∈ ys) becomes (∈ x ys)
 ```
 
 ### File: core/aliases.lyra
