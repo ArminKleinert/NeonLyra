@@ -79,7 +79,7 @@ Here are some differences to Clojure I could think of:
 - Creators for user-defined types should start with `make-` instead of `->`.  
 - Disallows overriding old defs.  
 - Functions and variables are created using scheme-style `define`. (though `def` and `defn` are available as aliases but discouraged)  
-- `nil` is called `Nothing` in reference to Haskell.  
+- `nil` is called `Nothing` in reference to Haskell. (`nil` is provided as an alias though)  
 - No meta-data.  
 - No method-access using `.` and `..`.  
 - No `Keyword` type (Maybe in the future).  
@@ -106,8 +106,7 @@ Here are some differences to Clojure I could think of:
 - `seq` returns `Nothing` for all types that aren't collections.  
 - modules (`module`) instead of namespaces (`ns`).  
 - All impure functions must end with the postfix `!` (like `load!`, `readln!`, ...).  
-- Nested `#(...)` is allowed (though discouraged)
-- No infinite and lazy sequences (for now)
+- Nested `#(...)` is allowed (though discouraged)  
 
 The aliases can be imported using `(load! "core/clj.lyra")`. 
 
