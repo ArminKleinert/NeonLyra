@@ -108,11 +108,7 @@ module ConsList
   end
 
   def +(c)
-    res = c.to_cons_list
-    to_a.reverse_each do |e|
-      res = cons(e, res)
-    end
-    res
+    list_append self, c
   end
 
   def ==(c)
@@ -131,7 +127,8 @@ module ConsList
   end
 
   def force
-    each do end
+    each do
+    end
   end
 end
 
@@ -175,7 +172,7 @@ class List
   def size
     if @size == -1
       # Tail was lazy, so calculate its size
-      @size = tail.size + 1
+      @size = @cdr.size + 1
     else
       @size
     end
@@ -206,6 +203,52 @@ class List
 
   def empty?
     false
+  end
+end
+
+def list_append(*lists)
+  lists = lists.delete_if(&:empty?)
+  if lists.empty?
+    EmptyList.instance
+  else
+    lists.inject { |l0, l1| ListPair.new(l0, l1) }
+  end
+end
+
+class ListPair
+  include Enumerable, ConsList
+
+  def initialize(list0, list1)
+    @list0 = list0
+    @list1 = list1
+  end
+
+  def car
+    @list0.car
+  end
+
+  def cdr
+    list_append @list0.cdr, @list1
+  end
+
+  def size
+    @list0.size + @list1.size
+  end
+
+  def empty?
+    @list0.empty? && @list1.empty?
+  end
+
+  def each(&block)
+    @list0.each(&block)
+    @list1.each(&block)
+    self
+  end
+
+  def compact
+    l0 = @list0.is_a?(ListPair) ? @list0.compact : @list0
+    l1 = @list1.is_a?(ListPair) ? @list1.compact : @list1
+    l0 + l1
   end
 end
 
@@ -337,8 +380,8 @@ class CompoundFunc < LyraFn
   attr_reader :is_macro # Boolean
 
   def initialize(name, args_expr, body_expr, definition_env, is_macro, min_args, max_args = min_args, &body)
-    @args_expr=args_expr
-    @body_expr=body_expr
+    @args_expr = args_expr
+    @body_expr = body_expr
     @definition_env = definition_env
     @arg_counts = (min_args..max_args)
     @body = body
@@ -357,7 +400,7 @@ class CompoundFunc < LyraFn
     raise "#{@name}: Too many arguments. (Given #{args_given}, expected #{@arg_counts})" if arg_counts.last >= 0 && args_given > arg_counts.last
 
     begin
-      env1 = Env.new(nil, @definition_env,env).set_multi!(@args_expr, args, true, @arg_counts.last < 0)
+      env1 = Env.new(nil, @definition_env, env).set_multi!(@args_expr, args, true, @arg_counts.last < 0)
 
       # Execute the body and return
       #body.call(args, env1)

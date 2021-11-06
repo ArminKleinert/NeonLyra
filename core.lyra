@@ -297,8 +297,10 @@
 (define (va-none? p & xs) (none? p xs))
 (define (va-any? p & xs) (any? p xs))
 
-(define (concat & xs)
-  (foldr1 append xs))
+(define (concat x & xs)
+  (if (list? (car xs))
+    (apply-to list-concat (cons x xs))
+    (foldr1 append (cons x xs))))
 
 (define (string-concat & xs)
   (foldr1 strcat xs))

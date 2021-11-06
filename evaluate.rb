@@ -301,7 +301,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       if !force_eval && pred.is_a?(LazyObj)
         # transform (if <lazy e> <then> <else>) into (lazy (if <e> <then> <else>))
         expr = list(:lazy, cons(:if, cons(pred.expr, expr.cdr.cdr)))
-        eval_ly(expr,env)
+        eval_ly(expr, env)
       elsif pred != false && !pred.nil? && !pred.is_a?(EmptyList)
         # The predicate was true
         eval_ly(third(expr), env, force_eval)

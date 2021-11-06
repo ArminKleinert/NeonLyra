@@ -165,6 +165,8 @@ def setup_core_functions
   add_fn(:car, 1) { |x| x.car }
   add_fn(:cdr, 1) { |x| x.cdr }
 
+  add_fn(:"list-concat", 1, -1) { |*xs| list_append *xs }
+
   # "Primitive" operators. They are overridden in the core library of
   # Lyra as `=`, `<`, `>`, ... and can be extended there later on for
   # different types.
