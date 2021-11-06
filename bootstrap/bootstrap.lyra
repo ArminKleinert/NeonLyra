@@ -11,6 +11,9 @@
     l1
     (list-append (cdr l0) (cons (car l0) l1))))
 
+(define (list-concat l0 & ls)
+  (foldr1 list-append (cons l0 ls)))
+
 (define (list-pairs l0 l1)
   (cond ((list-empty? l0) '())
         ((list-empty? l1) '())
@@ -58,19 +61,6 @@
 (define (function? x) (is-a? x ::function))
 
 
-
-(define (take n xs)
-  (cond ((<= n 0) '())
-        ((empty? xs) '())
-        (else (cons (first xs) (take (- n 1) (rest xs))))))
-(define (take-while p xs)
-  (cond ((empty? xs) '())
-        ((p (first xs)) (cons (first xs) (take-while p (rest xs))))
-        (else '())))
-(define (take-until p xs)
-  (cond ((empty? xs) '())
-        ((p (first xs)) '())
-        (else (cons (first xs) (take-until p (rest xs))))))
 
 
 

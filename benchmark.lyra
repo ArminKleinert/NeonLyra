@@ -94,7 +94,7 @@ Ruby: 253.244277
 jruby: 598.5474999999999
 Truffleruby: 988.9205000000001
 
-After fixing (if lazy ...) and changing how compound functions are initialized:
+After fixing (if lazy ...) and changing how compound functions are initialized (0.1.0):
 Ruby: 248.1495455
 jruby: 552.375
 Truffleruby: 961.738

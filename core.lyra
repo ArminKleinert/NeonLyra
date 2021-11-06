@@ -2,45 +2,73 @@
 
 (def-macro (comment & xs) (nothing))
 
+(def-generic x (unwrap x) buildin-unwrap)
+
+(def-generic xs (foldr f v xs) buildin-foldr)
+(def-generic xs (foldl f v xs) buildin-foldl)
+
+(def-generic xs (append xs ys) buildin-append)
+(def-generic xs (contains? xs e) buildin-contains?)
+(def-generic xs (nth xs i) buildin-nth)
+
+(def-generic x (->symbol x) buildin->symbol)
+(def-generic x (->int x) buildin->int)
+(def-generic x (->float x) buildin->float)
+(def-generic x (->string x) buildin->string)
+(def-generic x (->bool x) buildin->bool)
+(def-generic x (->list x) buildin->list)
+(def-generic x (->vector x) buildin->vector)
+(def-generic x (->char x) buildin->char)
+(def-generic x (->map x) buildin->map)
+(def-generic x (->set x) buildin->set)
+
+(def-generic x (eq? x y) =)
+
+(def-generic xs (size xs) nothing)
+(def-generic xs (rest xs) nothing)
+(def-generic xs (first xs) nothing)
+(def-generic xs (second xs) (lambda (xs) (first (rest xs))))
+
+(def-generic x (compare x y) (lambda (x y) (if (= x y) 0 (if (< x y) -1 1))))
+
+(def-generic x (collection? x)
+  (lambda (xs) (or (list? xs) (or (vector? xs) (or (map? xs) (set? xs))))))
+(def-generic x (sequence? x)
+  (lambda (xs) (or (list? xs) (vector? xs))))
+(def-generic x (number? x)
+  (lambda (xs) (or (int? xs) (float? xs))))
+
+
 ; Take 2 arguments, return the first
 (define (fst x y) x)
 ; Take 2 arguments, return the second
 (define (snd x y) y)
 
-(def-generic x (compare x y) (lambda (x y) (if (= x y) 0 (if (< x y) -1 1))))
-(def-generic x (unwrap x) native-unwrap)
-
 (define (list & xs)
   xs)
+
 
 (def-macro (let1 bindings & body)
   (cons 'let (cons (list bindings) body)))
 
-(def-generic xs (size xs) nothing)
+
 (define ::list size list-size)
 (define ::vector size vector-size)
 (define ::string size string-size)
 (define ::set size set-size)
 (define ::map size map-size)
 
-(def-generic xs (first xs) nothing)
 (define ::list first car)
 (define ::vector first (lambda (v) (vector-nth v 0)))
 (define ::string first (lambda (v) (string-nth v 0)))
 (define ::set first (lambda (s) (vector-nth (set->vector s) 0)))
 (define ::map first (lambda (m) (vector-nth (map->vector m) 0)))
 
-(def-generic xs (rest xs) nothing)
 (define ::list rest cdr)
 (define ::vector rest (lambda (v) (vector-range v 1 (vector-size v))))
 (define ::string rest (lambda (v) (string-range v 1 (string-size v))))
 (define ::set rest (lambda (s) (let ((v (set->vector s))) (vector-range v 1 (vector-size v)))))
 (define ::map rest (lambda (m) (let ((v (mao->vector m))) (vector-range v 1 (vector-size v)))))
-
-(def-generic xs (second xs) (lambda (xs) (first (rest xs))))
-
-(def-generic xs (foldr f v xs) native-foldr)
-(def-generic xs (foldl f v xs) native-foldl)
 
 (define (last xs)
   (let ((l (->list xs)))
@@ -51,10 +79,7 @@
 
 (define (empty? xs) (if (list? xs) (null? xs) (or (nothing? xs) (= (size xs) 0))))
 
-(def-generic xs (append xs ys) native-append)
-(def-generic xs (contains? xs e) native-contains?)
 (define (included? e s) (contains? s e))
-(def-generic xs (nth xs i) native-nth)
 
 (define (seq-eq? l0 l1)
   (if (empty? l0)
@@ -62,30 +87,11 @@
     (and (and (not (empty? l1)) (= (first l0) (first l1)))
          (seq-eq? (rest l0) (rest l1)))))
 
-(def-generic x (eq? x y) =)
 (define ::list eq? seq-eq?)
 (define ::vector eq? (lambda (v o) (vector-eq? v (->vector o))))
 (define ::set eq? set-eq?)
 (define ::map eq? map-eq?)
 (define ::string eq? string-eq?)
-
-(def-generic x (->symbol x) native->symbol)
-(def-generic x (->int x) native->int)
-(def-generic x (->float x) native->float)
-(def-generic x (->string x) native->string)
-(def-generic x (->bool x) native->bool)
-(def-generic x (->list x) native->list)
-(def-generic x (->vector x) native->vector)
-(def-generic x (->char x) native->char)
-(def-generic x (->map x) native->map)
-(def-generic x (->set x) native->set)
-
-(def-generic x (collection? x)
-  (lambda (xs) (or (list? xs) (or (vector? xs) (or (map? xs) (set? xs))))))
-(def-generic x (sequence? x)
-  (lambda (xs) (or (list? xs) (vector? xs))))
-(def-generic x (number? x)
-  (lambda (xs) (or (int? xs) (float? xs))))
 
 (define symbol ->symbol)
 

@@ -28,6 +28,9 @@
 (define (set-size set)
   (list-size (set->list set)))
 
+(define (set->vector set)
+  (list->vector (set->list set)))
+
 (define (set-add set v)
   (if (set-includes? set v)
     set
@@ -36,7 +39,7 @@
 (define (set-union set0 set1)
   (make-set (list-append (set-difference set0 set1) set1)))
 
-(define (set-difference)
+(define (set-difference set0 set1)
   (make-set
     (list-append
       (remove (lambda (e) (set-includes? set1 e)) (set->list set0)))))
@@ -63,11 +66,6 @@
   (make-set set (list-remove (set->list set) v)))
 
 (define (set-eq? xs ys)
-  (list-eq? (set->list xs) (set->list ys)))
-
-(define ::set contains? set-includes?)
-(define ::set eq? set-eq?)
-(define ::set size set-size)
-(define ::set ->list set->list)
-(define ::set ->string (lambda (e) (list->string (set->list set))))
+  (and (= (set-size xs) (set-size ys))
+       (= 0 (set-size (set-difference xs ys)))))
 )

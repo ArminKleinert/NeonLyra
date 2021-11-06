@@ -188,7 +188,7 @@ def setup_core_functions
 
   add_fn(:box, 1) { |x| Box.new(x) }
   add_fn(:unbox, 1) { |b| b.is_a?(Box) ? b.value : nil }
-  add_fn(:"native-unwrap", 1) { |b|
+  add_fn(:"buildin-unwrap", 1) { |b|
     if b.is_a?(Box)
       b.value
     else
@@ -229,26 +229,26 @@ def setup_core_functions
   add_fn(:"eq?", 2) { |x, y| lyra_eq?(x, y) }
 
   add_fn(:symbol, 1) { |x| x.respond_to?(:to_sym) ? x.to_sym : nil }
-  add_fn(:"native->symbol", 1) { |x| x.respond_to?(:to_sym) ? x.to_sym : nil }
-  add_fn(:"native->int", 1) { |x|
+  add_fn(:"buildin->symbol", 1) { |x| x.respond_to?(:to_sym) ? x.to_sym : nil }
+  add_fn(:"buildin->int", 1) { |x|
     begin
       Integer(x || "");
     rescue ArgumentError, TypeError
       nil
     end }
-  add_fn(:"native->float", 1) { |x|
+  add_fn(:"buildin->float", 1) { |x|
     begin
       Float(x || "");
     rescue ArgumentError, TypeError
       nil
     end }
-  add_fn(:"native->string", 1) { |x| elem_to_s x }
-  add_fn(:"native->bool", 1) { |x| !(x.nil? || x == false || (x.is_a?(EmptyList))) }
-  add_fn(:"native->list", 1) { |x| x.is_a?(Enumerable) ? x.to_cons_list : nil }
-  add_fn(:"native->vector", 1) { |x| x.is_a?(Enumerable) ? x.to_a : nil }
-  add_fn(:"native->char", 1) { |x| (x.is_a?(Integer)) ? x.chr : nil }
-  add_fn(:"native->map", 1) { |x| x.is_a?(Enumerable) ? Hash[*x] : nil }
-  add_fn(:"native->set", 1) { |x| x.is_a?(Enumerable) ? Set[*x] : nil }
+  add_fn(:"buildin->string", 1) { |x| elem_to_s x }
+  add_fn(:"buildin->bool", 1) { |x| !(x.nil? || x == false || (x.is_a?(EmptyList))) }
+  add_fn(:"buildin->list", 1) { |x| x.is_a?(Enumerable) ? x.to_cons_list : nil }
+  add_fn(:"buildin->vector", 1) { |x| x.is_a?(Enumerable) ? x.to_a : nil }
+  add_fn(:"buildin->char", 1) { |x| (x.is_a?(Integer)) ? x.chr : nil }
+  add_fn(:"buildin->map", 1) { |x| x.is_a?(Enumerable) ? Hash[*x] : nil }
+  add_fn(:"buildin->set", 1) { |x| x.is_a?(Enumerable) ? Set[*x] : nil }
 
   add_fn(:"vector", 0, -1) { |*xs| xs }
   add_fn(:"vector-size", 1) { |xs| xs.size }
@@ -318,14 +318,14 @@ def setup_core_functions
     v
   end
 
-  add_fn_with_env(:"native-foldr", 3) do |args, env|
+  add_fn_with_env(:"buildin-foldr", 3) do |args, env|
     f = args.car
     v = args.cdr.car
     xs = args.cdr.cdr.car
     foldr(f, v, xs, env)
   end
 
-  add_fn_with_env(:"native-foldl", 3) do |args, env|
+  add_fn_with_env(:"buildin-foldl", 3) do |args, env|
     f = args.car
     v = args.cdr.car
     xs = args.cdr.cdr.car
@@ -336,13 +336,13 @@ def setup_core_functions
   end
 
   #add_fn(:size, 1) { |c| c.is_a?(Enumerable) ? c.size : nil }
-  add_fn(:"native-contains?", 2) { |c, e| c.include? e }
+  add_fn(:"buildin-contains?", 2) { |c, e| c.include? e }
 
-  add_fn(:"native-nth", 2) { |c, i| c.is_a?(Enumerable) ? c[i] : nil }
+  add_fn(:"buildin-nth", 2) { |c, i| c.is_a?(Enumerable) ? c[i] : nil }
 
   add_fn(:strcat, 2) { |s, e| s.to_s + elem_to_s(e) }
 
-  add_fn(:"native-append", 2) do |x, y|
+  add_fn(:"buildin-append", 2) do |x, y|
     if x.is_a? String
       x + elem_to_s(y)
     elsif !x.is_a?(Enumerable) || !y.is_a?(Enumerable)
