@@ -2,7 +2,7 @@
 
 Lyra is a lisp I make for fun and learning. NeonLyra is an improved version.
 
-Current version: 0.0.9
+Current version: 0.1.0
 
 Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 
@@ -220,9 +220,11 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
 - 0.1.0  
   - Performance improvement  
   - Lazy and infinite sequences  
-  
+  - Safer macro inlining  
+  - Optimized list concatenation
+- 0.1.1
+
 
 ## Planned features
 
-- When a LazyObj is used in an if or cond, the entire expression becomes a LazyObj.  
 - Write bootstrap modules which only require a small subset of the functions to implement the rest.  

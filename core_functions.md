@@ -41,6 +41,9 @@ seq                  | 1   |  x  |  x  |     | Returns a equence for all non-emp
 lazy                 | 1   |  x  |  x  |     | 
 eager                | 1   |  x  |  x  |     | 
 partial              | >=1 |  x  |  x  |     | 
+lazy-seq             | 2   |  x  |  x  |     | Creates a lazy sequence. First takes an element, then
+                     |     |     |     |     | the generator body:
+                     |     |     |     |     |   (define (repeat e) (lazy-seq e (repeat e)))
                      |     |     |     |     | 
 nothing              | any |  x  |  x  |     | Swallows any numer of arguments and returns the Nothing.
                      |     |     |     |     | object.

@@ -152,15 +152,6 @@ def setup_core_functions
   end
 
   add_fn(:"list-size", 1) { |x| x.size }
-  add_fn_with_env(:cons, 2) do |args, env|
-    x = args.car
-    y = args.cdr.car
-    if y.is_a?(LyraFn)
-      cons(x, LazyLyraFn.create(y, env))
-    else
-      cons(x, y)
-    end
-  end
   add_fn(:cons, 2) { |x, xs| cons(x, xs) }
   add_fn(:car, 1) { |x| x.car }
   add_fn(:cdr, 1) { |x| x.cdr }
