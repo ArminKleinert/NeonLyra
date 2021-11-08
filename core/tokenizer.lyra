@@ -1,5 +1,5 @@
 (module lyra-tokenizer
-()
+  ((tokenize tokenize))
 
 (def-type tokenizer-context tokens is-in-string next-escaped current-text line commented)
 
@@ -50,10 +50,10 @@
       (tokens ctx) #t #f "\""
       (line ctx) (commented? ctx))))
 
-(let ((whitespaces (set-of " " "\n" "\t"))
+(let ((whitespaces (set-of " " "\n" "\t" ","))
       (opening-brackets (set-of "(" "{" "["))
       (closing-brackets (set-of ")" "}" "]"))
-      (special-syms (set-of "'" ";" ".!" ".?" "@" "#(" "\"")))
+      (special-syms (set-of "'" "@")))
 (define (parse-char ctx c)
   (if (in-string? ctx)
     (cond
@@ -68,11 +68,15 @@
       ((eq? c "\n") (linebreak ctx))
       ((commented? ctx) ctx)
       ((set-includes? whitespaces c) (add-token ctx))
-      ((set-includes? opening-brackets c) (add-token (append-tkn-text ctx c)))
-      ((set-includes? closing-brackets c) (add-token (append-tkn-text (add-token ctx) c)))
+      ((set-includes? opening-brackets c)
+        (add-token (append-tkn-text (add-token ctx) c)))
+      ((set-includes? closing-brackets c)
+        (add-token (append-tkn-text (add-token ctx) c)))
       ((= c "\"") (open-string ctx))
       ((= c "\\") (append-tkn-text ctx c))
       ((= c ";") (open-comment ctx))
+      ((set-includes? special-syms c)
+        (add-token (append-tkn-text (add-token ctx) c)))
       (#t (append-tkn-text ctx c)))))
 )
 
@@ -86,6 +90,6 @@
         (recur (parse-char ctx (string-nth source i)) (inc i))))))
   (reverse (tokens (add-token (iter ctx 0))))))
 
-(let ((easy (lambda (t) (string-concat "\"" t "\""))))
+(comment let ((easy (lambda (t) (string-concat "\"" t "\""))))
   (println! (mapv easy (tokenize (file-read! "core/clj.lyra")))))
 )
