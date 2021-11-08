@@ -28,6 +28,7 @@
 (def-generic xs (rest xs) nothing)
 (def-generic xs (first xs) nothing)
 (def-generic xs (second xs) (lambda (xs) (first (rest xs))))
+(def-generic xs (reverse xs) (lambda (xs) (foldl (lambda (a b) (cons b a)) '() xs)))
 
 (def-generic x (compare x y) (lambda (x y) (if (= x y) 0 (if (< x y) -1 1))))
 
@@ -69,6 +70,9 @@
 (define ::string rest (lambda (v) (string-range v 1 (string-size v))))
 (define ::set rest (lambda (s) (let ((v (set->vector s))) (vector-range v 1 (vector-size v)))))
 (define ::map rest (lambda (m) (let ((v (mao->vector m))) (vector-range v 1 (vector-size v)))))
+
+(define ::set reverse id)
+(define ::map reverse id)
 
 (define (last xs)
   (let ((l (->list xs)))
@@ -353,9 +357,6 @@
 (define (cddadr x) (cdr (cdr (car (cdr x)))))
 (define (cdddar x) (cdr (cdr (cdr (car x)))))
 (define (cddddr x) (cdr (cdr (cdr (cdr x)))))
-
-(define (reverse xs)
-  (foldl (lambda (a b) (cons b a)) '() xs))
 
 (define sum (partial foldl + 0))
 
