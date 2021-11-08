@@ -100,12 +100,12 @@
   (all-true?
     (lazy #f)
     (lazy #t)
-    (lazy #t).!))
+    (eager (lazy #t))))
 
 (define (test-eager)
   (all-true?
-    (not (lazy #f).!)
-    (lazy #t).!))
+    (not (eager (lazy #f)))
+    (eager (lazy #t))))
 
 (define (test-partial)
   (all-true?
@@ -128,40 +128,34 @@
   (let1 (b (box 5))
     (all-true?
       (box? b)
-      (= b.? 5)
       (= (unbox b) 5)
-      (int? b.?)
+      (int? (unbox b))
       (always-true (box-set! b 16))
       (box? b)
-      (= b.? 16)
       (= (unbox b) 16)
-      (int? b.?))))
+      (int? (unbox b)))))
 
 (define (test-unbox)
   (let1 (b (box 5))
     (all-true?
       (box? b)
-      (= b.? 5)
       (= (unbox b) 5)
-      (int? b.?)
+      (int? (unbox b))
       (always-true (box-set! b 16))
       (box? b)
-      (= b.? 16)
       (= (unbox b) 16)
-      (int? b.?))))
+      (int? (unbox b)))))
 
 (define (test-set-box)
   (let1 (b (box 5))
     (all-true?
       (box? b)
-      (= b.? 5)
       (= (unbox b) 5)
-      (int? b.?)
+      (int? (unbox b))
       (always-true (box-set! b 16))
       (box? b)
-      (= b.? 16)
       (= (unbox b) 16)
-      (int? b.?))))
+      (int? (unbox b)))))
 
 (def-type unwrappable a b c)
 
