@@ -1,0 +1,16 @@
+(module lyra-ast-builder
+()
+
+(def-type ast-context tokens code)
+
+(define tokens ast-context-tokens)
+(define code ast-context-code)
+
+(define (pop-token ctx) (make-ast-context (rest (tokens ctx)) (code ctx)))
+
+(define (build-ast ctx level expected stop-after-1)
+  (cond
+    ((empty? (tokens ctx)) 
+    ((= 
+
+
