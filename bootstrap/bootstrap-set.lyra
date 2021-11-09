@@ -20,8 +20,11 @@
 ; set? is automatically defined
 (def-type set vals)
 
+(define (list->set xs)
+  (make-set xs))
+
 (define (set-of & vals)
-  (make-set vals))
+  (list->set vals))
 
 (define set->list set-vals)
 
@@ -37,11 +40,11 @@
     (make-set (set->list v))))
 
 (define (set-union set0 set1)
-  (make-set (list-append (set-difference set0 set1) set1)))
+  (make-set (list-concat (set-difference set0 set1) set1)))
 
 (define (set-difference set0 set1)
   (make-set
-    (list-append
+    (list-concat
       (remove (lambda (e) (set-includes? set1 e)) (set->list set0)))))
 
 (define (set-intersection set0 set1)
@@ -54,7 +57,7 @@
   (all? (lambda (e) (set-includes? ys e)) xs))
 
 (define (set-true-subset? xs ys)
-  (and (/= (set-size xs) (set-size ys)) (set-subset? xs ys)))
+  (and (< (set-size xs) (set-size ys)) (set-subset? xs ys)))
 
 (define (set-superset? xs ys)
   (set-subset? ys xs))
@@ -63,7 +66,7 @@
   (set-true-subset? ys xs))
 
 (define (set-remove set v)
-  (make-set set (list-remove (set->list set) v)))
+  (make-set (remove (lambda (e) (= e v)) (set->list set))))
 
 (define (set-eq? xs ys)
   (and (= (set-size xs) (set-size ys))

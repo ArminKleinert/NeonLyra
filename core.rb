@@ -226,7 +226,7 @@ def setup_core_functions
   add_fn(:id, 1) { |x| x }
   add_fn(:"id-fn", 1) { |x| NativeLyraFn.new("", 0) { x } }
   add_fn(:hash, 1) { |x| x.hash }
-  add_fn(:"eq?", 2) { |x, y| lyra_eq?(x, y) }
+  #add_fn(:"eq?", 2) { |x, y| lyra_eq?(x, y) }
 
   add_fn(:symbol, 1) { |x| x.respond_to?(:to_sym) ? x.to_sym : nil }
   add_fn(:"buildin->symbol", 1) { |x| x.respond_to?(:to_sym) ? x.to_sym : nil }
@@ -382,8 +382,6 @@ def setup_core_functions
   end
 
   add_fn_with_env(:"eval!", 1) { |x, env| eval_ly first(x), env }
-
-  add_var(:"very-long-list", (0...5000).to_a)
 
   add_fn_with_env(:"measure!", 2) { |args, env|
     median = lambda do |arr|

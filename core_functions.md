@@ -122,7 +122,7 @@ string-eq?           | 2   |  x  |  x  |     |
                      |     |     |     |     | 
 iterate-seq          | 3   |  x  |  x  |     | Iterates a sequence with a function, accumular and the
                      |     |     |     |     | sequence. The function takes 3 arguments: The accumulator,
-                     |     |     |     |     | the current element and the current element. Example:
+                     |     |     |     |     | the current element and the current index. Example:
                      |     |     |     |     |   (iterate-seq (lambda (acc e idx) (+ acc e)) 0 sequence)
 iterate-seq-p        | 4   |  x  |  x  |     | Similar to iterate-seq, but the first argument is a
                      |     |     |     |     | predicate. When the predicate returns a falsey value, the
@@ -240,6 +240,7 @@ apply                | >=1 |  x  |  x  |     | Takes a function and variadic arg
                      |     |     |     |     | the arguments and then applies the function.
                      |     |     |     |     | 
 map                  | 2   |  x  |  x  |     | Lazy map. Returns a list.
+map-eager            | 2   |  x  |  x  |     | Eager map. Returns a list.
 mapv                 | 2   |  x  |  x  |     | Eager map. Returns a vector.
 map-indexed          | 2   |  x  |  x  |     | 
 mapv-indexed         | 2   |  x  |  x  |     | 

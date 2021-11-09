@@ -1,4 +1,5 @@
 (module vector
+()
 ;;;;;
 ; Vector implemented as a tree.
 ; Vectors should be implemented as a native construct of cause
@@ -44,10 +45,13 @@
 ; so the vector's right side will be fast to access and appending
 ; will be very quick. Indexed access to the first elements will be
 ; better if the order of insertion is reversed.
-(define (vector & xs)
+(define (list->vector xs)
   (foldr
     (lambda (ix v)
       (vector-set v (car ix) (cadr ix)))
     (make-vector Nothing)
-    (list-pairs (range 0 (size xs)) xs)))
+    (zip-to-index xs)))
+
+(define (vector & xs)
+  (list->vector xs))
 )

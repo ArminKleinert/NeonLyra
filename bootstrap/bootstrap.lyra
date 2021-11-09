@@ -3,27 +3,14 @@
 (define (list-empty? l)
   (= (list-size l) 0))
 
-(define (list-remove l val)
-  (filter (lambda (e) (not (eq? e val))) l))
-
+; Private
 (define (list-append l0 l1)
-  (if (list-empty? l0)
+  (if (= (list-size l0) 0)
     l1
     (list-append (cdr l0) (cons (car l0) l1))))
 
 (define (list-concat l0 & ls)
   (foldr1 list-append (cons l0 ls)))
-
-(define (list-pairs l0 l1)
-  (cond ((list-empty? l0) '())
-        ((list-empty? l1) '())
-        (else (cons (list (car l0) (car l1)) (list-pairs l0 l1)))))
-
-; From from x to y (exclusive)
-(define (range x y)
-  (if (>= x y)
-    '()
-    (cons x (range (inc x) y))))
 
 
 
@@ -63,6 +50,87 @@
 
 
 
+(define (id x) x)
+(define (copy x) (if (box? x) (box (unbox x)) x))
+
+(define (buildin-foldr f v xs)
+  (if xs
+    (f (first xs) (buildin-foldr f v (rest xs)))
+    v))
+
+(define (buildin-foldl f v xs)
+  (if xs
+    (recur f (f v (first xs)) (rest xs))
+    v))
+
+(define (buildin-append xs ys)
+  (list-append (->list xs) (->list ys)))
+
+(define (buildin-contains? xs e)
+  (cond ((list? xs) (any? (lambda (x) (eq? e x)) xs))
+        ((vector? xs) (any? (lambda (x) (eq? e x)) xs))
+        ((set? xs) (set-includes? xs e))
+        ((map? xs) (map-has-key? xs e))
+        (else #f)))
+
+(comment
+id
+copy
+
+buildin-foldr
+buildin-foldl
+buildin-append
+buildin-contains?
+buildin-nth
+
+buildin->symbol
+buildin->string
+buildin->bool
+buildin->list
+buildin->vector
+buildin->map
+buildin->set
+
+set-size
+map-size
+string-range
+
+vector
+vector-size
+vector-range
+vector-nth
+vector-add
+vector-append
+vector-includes?
+vector-eq?
+
+map-of
+map-size
+map-get
+map-set
+map-remove
+map-keys
+map-merge
+map-has-key?
+map-has-value?
+map-entries
+map->vector
+map-eq?
+
+set-of
+set-size
+set-add
+set-union
+set-difference
+set-intersection
+set-includes?
+set-subset?
+set-true-subset?
+set-superset?
+set-true-superset?
+set->vector
+set-eq?
+)
 
 
 
