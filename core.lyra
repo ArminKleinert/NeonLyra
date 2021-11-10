@@ -74,6 +74,12 @@
 (define ::set reverse id)
 (define ::map reverse id)
 
+(define (list-nth l i)
+  (if (<= i 0)
+    (first l)
+    (list-nth (rest l) (dec i))))
+(define ::list nth list-nth)
+
 (define (last xs)
   (let ((l (->list xs)))
     (if (list? l) (first (drop (dec (size l)) l)) (nothing))))
@@ -359,6 +365,7 @@
 (define (cddddr x) (cdr (cdr (cdr (cdr x)))))
 
 (define sum (partial foldl + 0))
+(define product (partial foldl * 1))
 
 (define (inc n) (+ n 1))
 (define (dec n) (- n 1))
@@ -378,9 +385,6 @@
     (lambda (c acc i) (if (eq? c elem) (cons i acc) acc))
     '() seq))
 
-(load! "core/sort.lyra")
-(load! "core/aliases.lyra")
-
 (def-macro (λ & args)
   (let* ((args1 (split '. args))
          (bindings (first args1))
@@ -391,8 +395,16 @@
 
 (define (doall! xs) xs)
 
-
-(load! "core/random.lyra")
+(define (fact-seq)
+  (map cadr
+    (iterate
+      (lambda (p)
+        (list (inc (car p)) (* (car p) (cadr p))))
+      '(1 1))))
 
 'ok
+
+
+
+
 

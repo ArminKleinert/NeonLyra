@@ -3,6 +3,7 @@
 
 (load! "core/random.lyra")
 (load! "core/sort.lyra")
+(load! "core/aliases.lyra")
 
 (define (all-true? & cases)
   (all? id cases))
@@ -1921,6 +1922,13 @@
     (= 15 (sum '(1 2 3 4 5)))
     (= 15.5 (sum '(1 2 0.5 3 4 5)))))
 
+(define (test-product)
+  (all-true?
+    (= 1 (product '()))
+    (= 2 (product '(2)))
+    (= 120 (product '(1 2 3 4 5)))
+    (= 60.0 (product '(1 2 0.5 3 4 5)))))
+
 (define (test-minimum)
   (all-true?
     (nothing? (minimum '()))
@@ -2209,6 +2217,7 @@
   'test-random 'test-xorshift64s 'test-xorshift64 'test-xorshift32 'test-lfsr
   'test-random-nums 'test-xorshift64s-seq 'test-xorshift64-seq 
   'test-xorshift32-seq 'test-lfsr32-seq 'test-with-bounds 'test-shuffle
+  'test-product
   ))
 
 )
