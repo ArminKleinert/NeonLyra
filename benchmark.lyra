@@ -16,7 +16,7 @@
   (ack-h (list n m)))
     
 
-(let ((runs 1000)
+(let ((runs 100)
       (r (range 0 100)))
 
 (comment
@@ -98,5 +98,8 @@ After fixing (if lazy ...) and changing how compound functions are initialized (
 Ruby: 248.1495455
 jruby: 552.375
 Truffleruby: 961.738
+
+After adding random.lyra and more sorting functions (Including many tests):
+Ruby: 550.5251805
 )
 
