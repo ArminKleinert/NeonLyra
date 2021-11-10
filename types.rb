@@ -257,7 +257,8 @@ class LazyList
 
   def initialize(head, tail_fn)
     @car = head
-    @tail_fn = tail_fn
+    @cdr_or_tail_fn = tail_fn
+    @tail_evaluated = false
   end
 
   def car
@@ -265,11 +266,17 @@ class LazyList
   end
 
   def cdr
-    @tail_fn.call
+    if @tail_evaluated
+      @cdr_or_tail_fn
+    else
+      @cdr_or_tail_fn = @cdr_or_tail_fn.call
+      @tail_evaluated = true
+      @cdr_or_tail_fn
+    end
   end
 
   def size
-    evaluate.size
+    cdr.size + 1
   end
 
   def evaluate

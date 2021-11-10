@@ -1,0 +1,79 @@
+(module random
+  ((random xorshift64s)
+   (random! random!)
+   
+   (xorshift64s xorshift64s)
+   (xorshift64 xorshift64)
+   (xorshift32 xorshift32)
+   (lfsr lfsr32)
+   
+   (xorshift64s-seq xorshift64s-seq)
+   (xorshift64-seq xorshift64-seq)
+   (xorshift32-seq xorshift32-seq)
+   (lfsr32-seq lfsr32-seq)
+   
+   (random-nums random-nums)
+   (with-bounds with-bounds)
+   (shuffle shuffle))
+
+(let ((max-32 0xFFFFFFFF)
+      (max-64 0xFFFFFFFFFFFFFFFF))
+
+(define (xorshift64s seed)
+  (let* ((x0 (bit-xor seed (bit-shr seed 12)))
+         (x1 (bit-xor x0 (bit-shl x0 25)))
+         (x2 (bit-xor x1 (bit-shr x1 27))))
+    (bit-and (* x2 2685821657736338717) max-64)))
+    
+(define (xorshift64 seed)
+  (let* ((x0 (bit-xor seed (bit-shl seed 13)))
+         (x1 (bit-xor x0 (bit-shr x0 7)))
+         (x2 (bit-xor x1 (bit-shl x1 17))))
+    (bit-and x2 max-64)))
+
+(define (xorshift32 seed)
+  (let* ((x0 (bit-xor seed (bit-shl seed 13)))
+         (x1 (bit-xor x0 (bit-shr x0 17)))
+         (x2 (bit-xor x1 (bit-shl x1 5))))
+    (bit-and x2 max-32)))
+
+(define (lfsr32 x)
+  (let* ((x (bit-and x max-32))
+         (b (foldl bit-xor x (list (bit-shr x 31) (bit-shr x 28)))))
+    (bit-or (bit-shr x 1) (bit-shl b 31))))
+
+(let ((state (box 0xCAFEBABE)))
+  (define (random!)
+    (let ((res (xorshift64s (unbox state))))
+      (box-set! state res)
+      res)))
+
+(define (random-seq f seed)
+  (iterate f (f seed)))
+
+(define (xorshift64s-seq seed)
+  (random-seq xorshift64s seed))
+
+(define (xorshift64-seq seed)
+  (random-seq xorshift64 seed))
+
+(define (xorshift32-seq seed)
+  (random-seq xorshift32 seed))
+
+(define (lfsr32-seq seed)
+  (random-seq lfsr32 seed))
+
+(define (random-nums seed)
+  (random-seq xorshift64s seed))
+
+(define (with-bounds seq min-n max-n)
+  (map (lambda (x) (+ (rem x (- (inc max-n) min-n)) min-n)) seq))
+
+(load! "core/sort.lyra")
+
+(define (shuffle seq seed)
+  (let ((rands (with-bounds (random-nums seed) -1 1)))
+    (sort-compare (lambda (x y) (first rands)) seq)))
+)
+)
+

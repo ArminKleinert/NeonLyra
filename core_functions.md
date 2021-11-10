@@ -368,13 +368,48 @@ count                | 1   |  x  |  x  |     | Alias for size.
 reduce               | 3   |  x  |  x  |     | Alias for foldl.
 ```
 
+### File: core/random.lyra
+
+```
+Name                 |  #  |Pure?|Impl?|Gen? | 
+---------------------+-----+-----+-----+-----+------------------------------------------------------
+random               | 1   |  x  |  x  |     | Takes a seed and generates a random number based on
+                     |     |     |     |     | it. (64 bits)
+random!              | 0   |     |  x  |     | Generates a random number and sets an invisible 
+                     |     |     |     |     | global seed. (64 bits)
+xorshift64s          | 1   |  x  |  x  |     | Take a seed and call xorshift64* on it. (64 bits)
+xorshift64           | 1   |  x  |  x  |     | Take a seed and call xorshift64 om it. (64 bits)
+xorshift32           | 1   |  x  |  x  |     | Take a seed and call xorshift32 on it. (32 bits)
+lfsr                 | 1   |  x  |  x  |     | Take a seed and call a simple lfsr on it. (32 bits)
+xorshift64s-seq      | 1   |  x  |  x  |     | Using a seed, generate an infinite sequence using 
+                     |     |     |     |     | xorshift64s.
+xorshift64-seq       | 1   |  x  |  x  |     | Using a seed, generate an infinite sequence using 
+                     |     |     |     |     | xorshift64.
+xorshift32-seq       | 1   |  x  |  x  |     | Using a seed, generate an infinite sequence using 
+                     |     |     |     |     | xorshift32.
+lfsr-seq             | 1   |  x  |  x  |     | Using a seed, generate an infinite sequence using 
+                     |     |     |     |     | lfsr (32 bits).
+random-nums          | 1   |  x  |  x  |     | Using a seed, generate an infinite sequence of 
+                     |     |     |     |     | random numbers.
+with-bounds          | 3   |  x  |  x  |     | Take a sequence of numbers, a minimum and a maximum. 
+                     |     |     |     |     | Then every number in the sequence is lazily adjusted
+                     |     |     |     |     | to be betweeen the minimum and maximum.
+shuffle              | 2   |  x  |  x  |     | Takes a sequence and a seed. Random numbers are 
+                     |     |     |     |     | generated based on the seed and used to shuffle the
+                     |     |     |     |     | sequence.
+```
+
 ### File: core/sort.lyra
 
 ```
 Name                 |  #  |Pure?|Impl?|Gen? | 
 ---------------------+-----+-----+-----+-----+------------------------------------------------------
-bubblesort           | 1   |  x  |  x  |     | Sort a list using bubblesort.
 sort                 | 1   |  x  |  x  |     | Sort a list.
+sort-compare         | 2   |  x  |  x  |     | Like sort, but uses a comparator (see compare).
+bubblesort           | 1   |  x  |  x  |     | Sort a list using bubblesort.
+mergesort            | 1   |  x  |  x  |     | Sort a list using mergesort.
+mergesort-compare    | 2   |  x  |  x  |     | Like mergesort, but the first parameter is a 
+                     |     |     |     |     | comparator.
 ```
 
 ## Variables

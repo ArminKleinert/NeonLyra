@@ -193,9 +193,9 @@
   (foldr append '() (map f xs)))
 
 (define (filter p xs)
-   (cond ((empty? xs) '())
-         ((p (first xs)) (lazy-seq (first xs) (filter p (rest xs))))
-         (else (filter p (rest xs)))))
+  (cond ((empty? xs) '())
+        ((p (first xs)) (lazy-seq (first xs) (filter p (rest xs))))
+        (else (filter p (rest xs)))))
 
 (define (filterv p xs)
   (foldl (lambda (v x) (if (p x) (vector-add v x) v)) '() xs))
@@ -392,21 +392,7 @@
 (define (doall! xs) xs)
 
 
-(define (split1 xs) (if (empty? xs) '() (cons (list (first xs)) (split1 (rest xs)))))
-
-(define (merge xs ys)
-  (cond ((empty? xs) ys)
-        ((empty? ys) xs)
-        ((<= (car xs) (car ys)) (cons (car xs) (merge (cdr xs) ys)))
-        (else (cons (car ys) (merge xs (cdr ys))))))
-
-(define (merge-lists xss)
-  (cond ((< (size xss) 2) xss)
-        (else (merge-lists (cons (merge (car xss) (cadr xss)) (cddr xss))))))
-
-(define (mergesort xs) (lazy (car (merge-lists (split1 xs)))))
+(load! "core/random.lyra")
 
 'ok
-
-(mergesort (reverse (take 90 (iterate (lambda (i) (* (dec i) -1.5)) 1))))
 

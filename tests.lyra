@@ -1,6 +1,9 @@
 (module tests
   ((run-tests run-all-tests))
 
+(load! "core/random.lyra")
+(load! "core/sort.lyra")
+
 (define (all-true? & cases)
   (all? id cases))
 
@@ -1935,7 +1938,198 @@
     (empty? (bubblesort '()))
     (eq? '(1) (bubblesort '(1)))
     (eq? '(1 2 3) (bubblesort '(2 1 3)))
-    (eq? '(0 1 2 3 4 5) (bubblesort '(5 2 1 3 4 0)))))
+    (eq? '(0 1 2 3 4 5) (bubblesort '(5 2 1 3 4 0)))
+    (eq? '(0 1 2 3 4 5) (bubblesort '(0 1 2 3 4 5)))
+    (eq? '(0 1 2 3 4 5) (bubblesort '(5 4 3 2 1 0)))
+    (eq? '(-4 -2 0 1 3 5) (bubblesort '(5 -2 1 3 -4 0)))
+    (eq? '(-4 -2 0 1 3 5) (bubblesort '(-4 -2 0 1 3 5)))
+    (eq? '(-4 -2 0 1 3 5) (bubblesort '(5 3 1 0 -2 -4)))))
+
+(define (test-mergesort)
+  (all-true?
+    (empty? (mergesort '()))
+    (eq? '(1) (mergesort '(1)))
+    (eq? '(1 2 3) (mergesort '(2 1 3)))
+    (eq? '(0 1 2 3 4 5) (mergesort '(5 2 1 3 4 0)))
+    (eq? '(0 1 2 3 4 5) (mergesort '(0 1 2 3 4 5)))
+    (eq? '(0 1 2 3 4 5) (mergesort '(5 4 3 2 1 0)))
+    (eq? '(-4 -2 0 1 3 5) (mergesort '(5 -2 1 3 -4 0)))
+    (eq? '(-4 -2 0 1 3 5) (mergesort '(-4 -2 0 1 3 5)))
+    (eq? '(-4 -2 0 1 3 5) (mergesort '(5 3 1 0 -2 -4)))))
+
+(define (test-sort)
+  (all-true?
+    (empty? (sort '()))
+    (eq? '(1) (sort '(1)))
+    (eq? '(1 2 3) (sort '(2 1 3)))
+    (eq? '(0 1 2 3 4 5) (sort '(5 2 1 3 4 0)))
+    (eq? '(0 1 2 3 4 5) (sort '(0 1 2 3 4 5)))
+    (eq? '(0 1 2 3 4 5) (sort '(5 4 3 2 1 0)))
+    (eq? '(-4 -2 0 1 3 5) (sort '(5 -2 1 3 -4 0)))
+    (eq? '(-4 -2 0 1 3 5) (sort '(-4 -2 0 1 3 5)))
+    (eq? '(-4 -2 0 1 3 5) (sort '(5 3 1 0 -2 -4)))))
+
+(define (test-sort-compare)
+  (let ((odd-is-less (lambda (x y) (if (odd? x) (if (odd? y) (compare x y) -1) (if (even? y) (compare x y) 1))))
+        (rev-compare (lambda (x y) (* -1 (compare x y)))))
+  (all-true?
+    (empty? (sort-compare compare '()))
+    (eq? '(1) (sort-compare compare '(1)))
+    (eq? '(1 2 3) (sort-compare compare '(2 1 3)))
+    (eq? (sort '(5 2 1 3 4 0)) (sort-compare compare '(5 2 1 3 4 0)))
+    (eq? (sort '(0 1 2 3 4 5)) (sort-compare compare '(0 1 2 3 4 5)))
+    (eq? (reverse (sort '(5 2 1 3 4 0))) (sort-compare rev-compare '(5 2 1 3 4 0)))
+    (eq? (reverse (sort '(0 1 2 3 4 5))) (sort-compare rev-compare '(0 1 2 3 4 5)))
+    (eq? '(1 3 5 0 2 4) (sort-compare odd-is-less '(0 1 2 3 4 5)))
+    (eq? '(1 3 5 0 2 4) (sort-compare odd-is-less '(1 3 5 0 2 4))))))
+
+(define (test-mergesort-compare)
+  (let ((odd-is-less (lambda (x y) (if (odd? x) (if (odd? y) (compare x y) -1) (if (even? y) (compare x y) 1))))
+        (rev-compare (lambda (x y) (* -1 (compare x y)))))
+  (all-true?
+    (empty? (mergesort-compare compare '()))
+    (eq? '(1) (mergesort-compare compare '(1)))
+    (eq? '(1 2 3) (mergesort-compare compare '(2 1 3)))
+    (eq? (sort '(5 2 1 3 4 0)) (mergesort-compare compare '(5 2 1 3 4 0)))
+    (eq? (sort '(0 1 2 3 4 5)) (mergesort-compare compare '(0 1 2 3 4 5)))
+    (eq? (reverse (sort '(5 2 1 3 4 0))) (mergesort-compare rev-compare '(5 2 1 3 4 0)))
+    (eq? (reverse (sort '(0 1 2 3 4 5))) (mergesort-compare rev-compare '(0 1 2 3 4 5)))
+    (eq? '(1 3 5 0 2 4) (mergesort-compare odd-is-less '(0 1 2 3 4 5)))
+    (eq? '(1 3 5 0 2 4) (mergesort-compare odd-is-less '(1 3 5 0 2 4))))))
+
+(define (test-random)
+  (all-true?
+    (= (random 500) (random 500))
+    (int? (random 500))
+    (<= 0 (random 500))
+    (= (random 12345) (random 12345))
+    (int? (random 12345))
+    (<= 0 (random 12345))
+    (= (random 3405691582) (random 3405691582))
+    (int? (random 3405691582))
+    (<= 0 (random 3405691582))))
+
+(define (test-xorshift64s)
+  (all-true?
+    (= (xorshift64s 500) (xorshift64s 500))
+    (int? (xorshift64s 500))
+    (<= 0 (xorshift64s 500))
+    (= (xorshift64s 12345) (xorshift64s 12345))
+    (int? (xorshift64s 12345))
+    (<= 0 (xorshift64s 12345))
+    (= (xorshift64s 3405691582) (xorshift64s 3405691582))
+    (int? (xorshift64s 3405691582))
+    (<= 0 (xorshift64s 3405691582))
+    (/= (xorshift64s 5001) (xorshift64s 5002))
+    (/= (xorshift64s 5002) (xorshift64s 5003))
+    (/= (xorshift64s 5003) (xorshift64s 5004))))
+
+(define (test-xorshift64)
+  (all-true?
+    (= (xorshift64 500) (xorshift64 500))
+    (int? (xorshift64 500))
+    (<= 0 (xorshift64 500))
+    (= (xorshift64 12345) (xorshift64 12345))
+    (int? (xorshift64 12345))
+    (<= 0 (xorshift64 12345))
+    (= (xorshift64 3405691582) (xorshift64 3405691582))
+    (int? (xorshift64 3405691582))
+    (<= 0 (xorshift64 3405691582))
+    (/= (xorshift64 5001) (xorshift64 5002))
+    (/= (xorshift64 5002) (xorshift64 5003))
+    (/= (xorshift64 5003) (xorshift64 5004))))
+
+(define (test-xorshift32)
+  (all-true?
+    (= (xorshift32 500) (xorshift32 500))
+    (int? (xorshift32 500))
+    (<= 0 (xorshift32 500))
+    (= (xorshift32 12345) (xorshift32 12345))
+    (int? (xorshift32 12345))
+    (<= 0 (xorshift32 12345))
+    (= (xorshift32 3405691582) (xorshift32 3405691582))
+    (int? (xorshift32 3405691582))
+    (<= 0 (xorshift32 3405691582))
+    (/= (xorshift32 5001) (xorshift32 5002))
+    (/= (xorshift32 5002) (xorshift32 5003))
+    (/= (xorshift32 5003) (xorshift32 5004))))
+
+(define (test-lfsr)
+  (all-true?
+    (= (lfsr 500) (lfsr 500))
+    (int? (lfsr 500))
+    (<= 0 (lfsr 500))
+    (= (lfsr 12345) (lfsr 12345))
+    (int? (lfsr 12345))
+    (<= 0 (lfsr 12345))
+    (= (lfsr 3405691582) (lfsr 3405691582))
+    (int? (lfsr 3405691582))
+    (<= 0 (lfsr 3405691582))
+    (/= (lfsr 5001) (lfsr 5002))
+    (/= (lfsr 5002) (lfsr 5003))
+    (/= (lfsr 5003) (lfsr 5004))))
+
+(define (test-random-nums)
+  (let* ((s (random-nums 3405691582))
+         (first-100 (take 100 s)))
+    (all-true? 
+      (list? s)
+      (all? int? first-100)
+      (= (size (->set first-100)) (size first-100)) ; All unique?
+      )))
+
+(define (test-xorshift64s-seq)
+  (let* ((s (xorshift64s-seq 3405691582))
+         (first-100 (take 100 s)))
+    (all-true? 
+      (list? s)
+      (all? int? first-100)
+      (= (size (->set first-100)) (size first-100)) ; All unique?
+      )))
+
+(define (test-xorshift64-seq)
+  (let* ((s (xorshift64-seq 3405691582))
+         (first-100 (take 100 s)))
+    (all-true? 
+      (list? s)
+      (all? int? first-100)
+      (= (size (->set first-100)) (size first-100)) ; All unique?
+      )))
+
+(define (test-xorshift32-seq)
+  (let* ((s (xorshift32-seq 3405691582))
+         (first-100 (take 100 s)))
+    (all-true? 
+      (list? s)
+      (all? int? first-100)
+      (= (size (->set first-100)) (size first-100)) ; All unique?
+      )))
+
+(define (test-lfsr32-seq)
+  (let* ((s (lfsr32-seq 3405691582))
+         (first-100 (take 100 s)))
+    (all-true? 
+      (list? s)
+      (all? int? first-100)
+      (= (size (->set first-100)) (size first-100)) ; All unique?
+      )))
+
+(define (test-with-bounds)
+  (let* ((s (with-bounds (random-nums 3405691582) -100 100))
+         (first-100 (take 100 s)))
+    (all-true? 
+      (list? s)
+      (all? int? first-100)
+      (all? (lambda (x) (>= x -100)) first-100)
+      (all? (lambda (x) (<= x 100)) first-100)
+      )))
+
+(define (test-shuffle)
+  (all-true?
+    (empty? (shuffle '() 3405691582))
+    (= 1 (size (shuffle '(5) 3405691582)))
+    (eq? (shuffle (take 20 (random-nums 3405691582)) 3405691582) (shuffle (take 20 (random-nums 3405691582)) 3405691582))
+    (= 20 (size (shuffle (take 20 (random-nums 3405691582)) 3405691582)))))
 
 ;;;; Function which runs a test
 (define (run-test! test-fn)
@@ -1995,6 +2189,7 @@
   'test-map-remove  'test-map-keys 'test-map-merge 'test-set-of
   'test-set-size 'test-set-add 'test-set-union 'test-any? 
   'test-set-difference 'test-set-intersection 'test-bubblesort
+  'test-mergesort 'test-sort 'test-sort-compare 'test-mergesort-compare
   'test-set-includes? 'test-set-subset? 'test-set-true-subset?
   'test-set-superset? 'test-set-true-superset? 'test-begin
   'test-comment 'test-size 'test-indices-of 'test-contains?
@@ -2011,6 +2206,9 @@
   'test-zip 'test-zip-with 'test-zip-to-index 'test-all? 'test-none?
   'test-va-all? 'test-va-none? 'test-va-any? 'test-reverse 
   'test-sum 'test-minimum 'test-maximum 'test-unwrap 'test-iterate
+  'test-random 'test-xorshift64s 'test-xorshift64 'test-xorshift32 'test-lfsr
+  'test-random-nums 'test-xorshift64s-seq 'test-xorshift64-seq 
+  'test-xorshift32-seq 'test-lfsr32-seq 'test-with-bounds 'test-shuffle
   ))
 
 )
