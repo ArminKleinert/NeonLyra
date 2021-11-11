@@ -402,9 +402,13 @@
         (list (inc (car p)) (* (car p) (cadr p))))
       '(1 1))))
 
+(def-macro (-> x & exprs)
+  (foldl (lambda (acc expr) (if (list? expr) (cons (car expr) (cons acc (cdr expr))) (list expr acc))) x exprs))
+
+(def-macro (->> x & exprs)
+  (foldl (lambda (acc expr) (if (list? expr) (append expr (list acc)) (list expr acc))) x exprs))
+
 'ok
 
-
-
-
+(load! "core/random.lyra")
 

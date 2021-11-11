@@ -311,7 +311,8 @@ v/                   | >=1 |  x  |  x  |     | Variadic /
 v%                   | >=1 |  x  |  x  |     | Variadic rem
                      |     |     |     |     | 
 reverse              | 1   |  x  |  x  |     | Reverse a list.
-sum                  | 1   |  x  |  x  |     | Sums the elements of a list.
+sum                  | 1   |  x  |  x  |     | Sums the elements of a list. (0 if the list is empty)
+product              | 1   |  x  |  x  |     | Calculate the product of a list. (1 if empty)
                      |     |     |     |     | 
 inc                  | 1   |  x  |  x  |     | Increases a number by 1.
 dec                  | 1   |  x  |  x  |     | Decreases a number by 1.
@@ -327,6 +328,11 @@ indices-of           | 2   |  x  |  x  |     |
                      |     |     |     |     | (λ x y . (+ x y)) becomes (lambda (x y) (+ x y))
 §                    | 3   |  x  |  x  |     | Transforms infix form into prefix-form:
                      |     |     |     |     | (§ x ∈ ys) becomes (∈ x ys)
+doall!               |     |     |     |     | Eagerly evaluate a list.
+fact-seq             |     |     |     |     | An infinite list of the factorial numbers.
+                     |     |     |     |     | 
+->                   |     |     |     |     | As in Clojure.
+->>                  |     |     |     |     | As in Clojure.
 ```
 
 ### File: core/aliases.lyra
