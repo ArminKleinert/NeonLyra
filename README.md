@@ -228,7 +228,7 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Optimized list concatenation
 - 0.1.1
   - Support for random numbers  
-  - Added `->` and `->>` from Clojure  
+  - Added `->`, `->>` and `as->` from Clojure  
 
 
 ## Planned features

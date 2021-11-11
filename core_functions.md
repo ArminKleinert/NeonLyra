@@ -331,8 +331,9 @@ indices-of           | 2   |  x  |  x  |     |
 doall!               |     |     |     |     | Eagerly evaluate a list.
 fact-seq             |     |     |     |     | An infinite list of the factorial numbers.
                      |     |     |     |     | 
-->                   |     |     |     |     | As in Clojure.
-->>                  |     |     |     |     | As in Clojure.
+->                   | >=1 |  x  |  x  |     | As in Clojure.
+->>                  | >=1 |  x  |  x  |     | As in Clojure.
+as->                 | >=2 |  x  |  x  |     | As in Clojure.
 ```
 
 ### File: core/aliases.lyra

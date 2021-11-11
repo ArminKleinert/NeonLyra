@@ -408,5 +408,12 @@
 (def-macro (->> x & exprs)
   (foldl (lambda (acc expr) (if (list? expr) (append expr (list acc)) (list expr acc))) x exprs))
 
-'ok
+(define (help-as-> name x exprs)
+  (if (empty? exprs)
+    x
+    (list 'let (list (list name x)) (help-as-> name (car exprs) (cdr exprs)))))
 
+(def-macro (as-> name x & exprs)
+  (help-as-> name x exprs))
+
+'ok
