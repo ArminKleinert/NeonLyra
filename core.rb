@@ -222,6 +222,8 @@ def setup_core_functions
   add_fn(:"set?", 1) { |x| x.is_a? Set }
   #add_fn(:"empty?", 1) { |x| x.is_a?(Enumerable) && x.empty? }
   add_fn(:"function?", 1) { |x| x.is_a?(LyraFn) }
+  add_fn(:"lazy?", 1) { |x| x.is_a?(Lazy) }
+  add_fn(:"lazy-obj?", 1) { |x| x.is_a?(LazyObj) }
 
   add_fn(:id, 1) { |x| x }
   add_fn(:"id-fn", 1) { |x| NativeLyraFn.new("", 0) { x } }
@@ -420,6 +422,7 @@ def setup_core_functions
   add_fn(:"is-a?", 2) { |x, t| type_id_of(x) == t.type_id }
 
   add_fn(:"error", 1) { |msg| raise msg }
+  add_fn(:typename, 1) {|t| t.class.to_s}
 
   true
 end

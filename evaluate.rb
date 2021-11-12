@@ -299,8 +299,12 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       raise "if needs 3 arguments." if expr.size < 4 # includes the 'if
       pred = eval_ly(second(expr), env, force_eval)
       if !force_eval && pred.is_a?(LazyObj)
+        #
+        # TODO Bug? The ENV of the current expr and the ENV of the lazy obj could be different!
+        #
         # transform (if <lazy e> <then> <else>) into (lazy (if <e> <then> <else>))
-        expr = list(:lazy, cons(:if, cons(pred.expr, expr.cdr.cdr)))
+        expr = list(:lazy, cons(:if, expr.cdr))
+        puts expr
         eval_ly(expr, env)
       elsif pred != false && !pred.nil? && !pred.is_a?(EmptyList)
         # The predicate was true
@@ -469,9 +473,12 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
           # Evaluate arguments that will be passed to the call.
           args = eval_list(args, env, force_eval)
 
-          # Call the function with the new arguments
-          r = func.call(args, env)
-
+          if !force_eval && args.any?{|e|e.is_a?(LazyObj)}
+            r = list(:lazy, cons(func, args))
+          else
+            # Call the function with the new arguments
+            r = func.call(args, env)
+          end
           # Remove from the callstack.
           LYRA_CALL_STACK.pop
 

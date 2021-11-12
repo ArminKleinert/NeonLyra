@@ -16,9 +16,9 @@
     ((= (vector-node-index vec) idx)
       (make-vector-node (vector-node-left vec) idx e (vector-node-right vec)))
     ((< (vector-node-inde vec) idx)
-      (make-vector-node (vector-node-left vec) idx e (vector-node-set (vector-node-right vec))))
+      (make-vector-node (vector-node-left vec) .. (vector-node-set (vector-node-right vec) idx e)))
     (else
-      (make-vector-node (vector-node-set (vector-node-left vec)) idx e (vector-node-right vec)))))
+      (make-vector-node (vector-node-set (vector-node-left vec) idx e) .. (vector-node-right vec)))))
 
 (define (vector-set vec idx e)
   (if (< idx 0)
