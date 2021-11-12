@@ -337,7 +337,6 @@ def setup_core_functions
     v
   end
 
-  #add_fn(:size, 1) { |c| c.is_a?(Enumerable) ? c.size : nil }
   add_fn(:"buildin-contains?", 2) { |c, e| c.include? e }
 
   add_fn(:"buildin-nth", 2) { |c, i| c.is_a?(Enumerable) ? c[i] : nil }
@@ -422,7 +421,8 @@ def setup_core_functions
   add_fn(:"is-a?", 2) { |x, t| type_id_of(x) == t.type_id }
 
   add_fn(:"error", 1) { |msg| raise msg }
-  add_fn(:typename, 1) {|t| t.class.to_s}
+  
+  add_fn(:"debug-type",1){|e| e.class.to_s}
 
   true
 end

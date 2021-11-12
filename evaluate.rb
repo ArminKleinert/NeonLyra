@@ -299,12 +299,8 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       raise "if needs 3 arguments." if expr.size < 4 # includes the 'if
       pred = eval_ly(second(expr), env, force_eval)
       if !force_eval && pred.is_a?(LazyObj)
-        #
-        # TODO Bug? The ENV of the current expr and the ENV of the lazy obj could be different!
-        #
-        # transform (if <lazy e> <then> <else>) into (lazy (if <e> <then> <else>))
-        expr = list(:lazy, cons(:if, expr.cdr))
-        puts expr
+        puts pred
+        expr = list(:lazy, expr)
         eval_ly(expr, env)
       elsif pred != false && !pred.nil? && !pred.is_a?(EmptyList)
         # The predicate was true
@@ -402,7 +398,11 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       if expr.cdr.size != 1
         raise "Wrong number of arguments for lazy. (Expected 1, got #{expr.cdr.size})"
       end
-      LazyObj.new expr.cdr.car, env
+      if force_eval
+        eval_ly(expr.cdr.car, env,force_eval)
+      else
+        LazyObj.new expr.cdr.car, env
+      end
     when :"lazy-seq"
       if expr.cdr.size != 2
         raise "Wrong number of arguments for lazy-seq. (Expected 2, got #{expr.cdr.size})"

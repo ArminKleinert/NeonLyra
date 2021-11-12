@@ -27,7 +27,8 @@ class LazyObj
   end
 
   def to_s
-    elem_to_s(evaluate)
+    #elem_to_s(evaluate)
+    elem_to_s expr
   end
 end
 
