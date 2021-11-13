@@ -4,15 +4,11 @@
   ((shunting-yard shunting-yard)
    (eval-rpn))
 
-;;; For Dijkstra's Shunting-yard Algorithm
-
-;; Determines the associativity of a given mathematical operator
 (define (associativity-of op)
   (cond
     ((contains? '(^ ** = += -= *= /= %= mod= <<= >>= &= ^= |=) op) 'right)
     (else 'left)))
 
-;; Determines the precedence of a given mathematical operator
 (define (precedence-of op)
   (cond
     ((contains? '(= += -= *= /= %= mod= <<= >>= &= ^= |=) op) 1)
@@ -30,8 +26,6 @@
     ((contains? '(.) op)     13)
     (else                    0)))
 
-
-;; Determines if a given token from a string is a mathematical operator
 (define (operator? symbol)
   (> (precedence-of symbol) 0))
 
@@ -52,26 +46,15 @@
            (cons stack-oper (%shunting-yard stmt (cdr stack))))
           (else (%shunting-yard (cdr stmt) (cons (car stmt) stack))))))
 
-;; Obviously this makes no sense; it's just a suggestion for the
-;; _structure_ of a real test.
-;; (if (not (equal? 'frotz
-;;                  (operator-actions (list #\( 4 '+ 4 #\)) (list) cons)))
-;;     (error "some other case of operator-actions is broken"))
-
 (let ((open-bracket (symbol "("))
       (close-bracket (symbol ")")))
-;; Actions to take if (null? stmt)
 (define (stack-operations stack)
-  ;; If a left-parenthesis is found on the stack,
-  ;; it means there was no right-parenthesis to match it
-  ;; and thus the statement has unbalanced parentheses.
   (cond ((and (not (null? stack))
               (eq? (car stack) open-bracket))
          (error "Unbalanced parenthesis"))
         ((null? stack) '())
         (else (cons (car stack) (%shunting-yard '() (cdr stack))))))
 
-;; Implementation of Dijkstra's Shunting-yard Algorithm
 (define (%shunting-yard stmt stack)
   "Converts infix-notation mathematical equations into
 postfix-notation mathematical equations, using an
@@ -94,14 +77,13 @@ implementation of Dijkstra's Shunting-yard Algorithm."
 )
 
 (define (shunting-yard stmt)
-  ;(%shunting-yard stmt '())
   (%shunting-yard (map-eager (lambda (expr) (if (list? expr) (shunting-yard expr) expr)) stmt) '()))
 
 
 ;;;
 ; Evaluation:
 
-(define (unary-op? sym) (contains? '(! ++ -- not ) sym))
+(define (unary-op? sym) (contains? '(! ++ -- not) sym))
 
 (define (bin-op? sym) (contains? '(= += -= *= /= %= mod= <<= >>= &= ^= |= || or && and | ^ & ** ^ == != < > <= >= + - * / % .) sym))
 
