@@ -419,6 +419,29 @@ mergesort-compare    | 2   |  x  |  x  |     | Like mergesort, but the first par
                      |     |     |     |     | comparator.
 ```
 
+### File: core/infix.lyra
+
+```
+Name                 |  #  |Pure?|Impl?|Gen? | 
+---------------------+-----+-----+-----+-----+------------------------------------------------------
+infix->prefix        | >=2 |  x  |  x  |     | Convert an infix expression into prefix notation and
+                     |     |     |     |     | call it as lyra code.
+                     |     |     |     |     | The first parameter is a map with 4 entries: 
+                     |     |     |     |     | 'associativity-of Take a symbol and return either 
+                     |     |     |     |     | 'left or 'right.
+                     |     |     |     |     | 'precedence-of Take a symbol and return the fitting 
+                     |     |     |     |     | precedence.
+                     |     |     |     |     | 'unary-op? Take a symbol and return true if it is a 
+                     |     |     |     |     | unary operator.
+                     |     |     |     |     | 'bin-op? Take a symbol and return true if it is a 
+                     |     |     |     |     | binary operator.
+infix->lyra          | >=1 |  x  |  x  |     | Take an infix expression, convert it to lyra code and 
+                     |     |     |     |     | execute. Uses the aliases defined in aliases.lyra
+§                    | >=1 |  x  |  x  |     | Alias for infix->lyra
+show-infix-as-prefix | >=2 |  x  |  x  |     | Similar to infix->prefix but does not execute the 
+                     |     |     |     |     | code.
+```
+
 ## Variables
 
 ```

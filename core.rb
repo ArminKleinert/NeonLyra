@@ -288,7 +288,7 @@ def setup_core_functions
 
   add_fn(:"map-of", 0, -1) { |*xs| xs.to_h }
   add_fn(:"map-size", 1) { |m| m.size }
-  add_fn(:"map-get", 2) { |m, k| m[k] }
+  add_fn(:"map-get", 2) { |m, k| m.is_a?(Hash) ? m[k] : raise("#{m} is not a map.") }
   add_fn(:"map-set", 3) { |m, k, v| m2 = Hash[m]; m2[k] = v; m2 }
   add_fn(:"map-remove", 2) { |m, k| m.select { |k1, _| k != k1 } }
   add_fn(:"map-keys", 1) { |m| m.keys }

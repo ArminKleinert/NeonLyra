@@ -5,7 +5,8 @@
    (eval-rpn eval-rpn)
    (infix->prefix infix->prefix)
    (infix->lyra infix->lyra)
-   (§ infix->lyra))
+   (§ infix->lyra)
+   (show-infix-as-prefix show-infix-as-prefix))
 
 (let ((open-bracket (symbol "("))
       (close-bracket (symbol ")"))
@@ -148,8 +149,8 @@ implementation of Dijkstra's Shunting-yard Algorithm."
       (car res)
       res)))
 
-(define (show-infix-as-prefix binds exprs)
-  (eval-rpn (shunting-yard exprs binds) binds))
+(def-macro (show-infix-as-prefix binds & exprs)
+  (list 'eval-rpn (list 'shunting-yard (list 'quote exprs) binds) binds))
 
 ; Quick macros
 ; Requires a map with 4 functions:
@@ -180,12 +181,12 @@ implementation of Dijkstra's Shunting-yard Algorithm."
 ;(println! (eval-rpn (shunting-yard '(9 + 9 = 9 + 8 + 1 * 1  and empty? 0) lyra-binds) lyra-binds))
 
 (comment map-eager println! [
-(show-infix-as-prefix lyra-binds '(1 + 2 = 3))
-(show-infix-as-prefix lyra-binds '(9 + 1 * 2 = 11))
-(show-infix-as-prefix lyra-binds '(11 = 9 + 1 * 2))
-(show-infix-as-prefix lyra-binds '(11 /= 9 + 3 * 2))
-(show-infix-as-prefix lyra-binds '(7 = 7 and 11 /= 9 + 3 * 2))
-(let ((plus1 inc)) (show-infix-as-prefix lyra-binds '(odd? ⋅ plus1)))])
+(show-infix-as-prefix lyra-binds 1 + 2 = 3)
+(show-infix-as-prefix lyra-binds 9 + 1 * 2 = 11)
+(show-infix-as-prefix lyra-binds 11 = 9 + 1 * 2)
+(show-infix-as-prefix lyra-binds 11 /= 9 + 3 * 2)
+(show-infix-as-prefix lyra-binds 7 = 7 and 11 /= 9 + 3 * 2)
+(let ((plus1 inc)) (show-infix-as-prefix lyra-binds (odd? ⋅ plus1)))])
 ;(show-infix-as-prefix lyra-binds '(1 + 2 = 3))
 )
 
