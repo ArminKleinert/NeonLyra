@@ -40,6 +40,7 @@ def ev_module(expr)
   raise "Syntax error: Module name must be a symbol but is #{name}." unless name.is_a?(Symbol)
 
   return name if IMPORTED_MODULES.include? name
+  IMPORTED_MODULES << name
 
   module_env = Env.create_module_env name
   expr = expr.cdr

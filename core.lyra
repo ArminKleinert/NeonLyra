@@ -39,7 +39,6 @@
 (def-generic x (number? x)
   (lambda (xs) (or (int? xs) (float? xs))))
 
-
 ; Take 2 arguments, return the first
 (define (fst x y) x)
 ; Take 2 arguments, return the second
@@ -102,6 +101,8 @@
 (define ::set eq? set-eq?)
 (define ::map eq? map-eq?)
 (define ::string eq? string-eq?)
+
+(define (not-eq? x y) (not (eq? x y)))
 
 (define symbol ->symbol)
 

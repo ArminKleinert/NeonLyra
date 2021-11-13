@@ -154,6 +154,10 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
 ; Infinite sequence of numbers counting up.
 (define (foo i) (lazy-seq i (foo (+ i 1))))
 (take 6 (filter odd? (map inc (foo 0)))) ; => (1 3 5 7 9 11)
+
+; Infix fun
+(load! "infix.lyra")
+(§ 1 + 2 * 3 = 7) ; => #t
 ```
 
 ## Example of a user-defined type
@@ -215,7 +219,6 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Better implementation for some functions  
   - Fixed foldr1  
   - Beta features (Might be removed in the next version):  
-    - Infix-to-prefix macro `§`: `(§ 9 + 1)` becomes `(+ 9 1)`
     - Function arguments are now also bound to the variables `%0` to `%15` (or less if the function call receives less arguments).  
       So `(lambda (x y) (+ x y))` and `(lambda (x y) (+ %0 %1))` are equivalent.  
     - New `#(...)` syntax for anonymous functions.  
@@ -229,6 +232,7 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
 - 0.1.1
   - Support for random numbers  
   - Added `->`, `->>` and `as->` from Clojure  
+  - Infix operations in `infix.lyra`  
 
 
 ## Planned features

@@ -4,6 +4,7 @@
 (load! "core/random.lyra")
 (load! "core/sort.lyra")
 (load! "core/aliases.lyra")
+(load! "core/infix.lyra")
 
 (define (all-true? & cases)
   (all? id cases))
@@ -823,12 +824,7 @@
     ((⋅ odd? inc) 2)
     (= 4 ((⋅ inc inc) 2))
     (= "3" ((⋅ ->string inc) 2))
-    ((⋅ nothing? ->int) '())
-
-    ((§ odd? ⋅ inc) 2)
-    (= 4 ((§ inc ⋅ inc) 2))
-    (= "3" ((§ ->string ⋅ inc) 2))
-    ((§ nothing? ⋅ ->int) '())))
+    ((⋅ nothing? ->int) '())))
 
 (define (test-compose-and)
   (all-true?
@@ -2139,6 +2135,17 @@
     (eq? (shuffle (take 20 (random-nums 3405691582)) 3405691582) (shuffle (take 20 (random-nums 3405691582)) 3405691582))
     (= 20 (size (shuffle (take 20 (random-nums 3405691582)) 3405691582)))))
 
+(define (test-infix)
+  (all-true?
+    (infix->lyra 1 + 2 = 3)
+    (infix->lyra 9 + 1 * 2 = 11)
+    (infix->lyra 11 = 9 + 1 * 2)
+    (infix->lyra 11 /= 9 + 3 * 2)
+    (infix->lyra 7 = 7 and 11 /= 9 + 3 * 2)
+    (let ((plus1 inc)) ((infix->lyra odd? ⋅ plus1) 2))
+    ))
+
+
 ;;;; Function which runs a test
 (define (run-test! test-fn)
   (let1 (res (test-fn))
@@ -2217,7 +2224,7 @@
   'test-random 'test-xorshift64s 'test-xorshift64 'test-xorshift32 'test-lfsr
   'test-random-nums 'test-xorshift64s-seq 'test-xorshift64-seq 
   'test-xorshift32-seq 'test-lfsr32-seq 'test-with-bounds 'test-shuffle
-  'test-product
+  'test-product 'test-infix
   ))
 
 )

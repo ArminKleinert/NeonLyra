@@ -2,7 +2,10 @@
 ; This is a heavily edited conversion of https://github.com/osoleve/Scheme-Infix-Calculator by osoleve (https://github.com/osoleve)
 (module infix
   ((shunting-yard shunting-yard)
-   (eval-rpn))
+   (eval-rpn eval-rpn)
+   (infix->prefix infix->prefix)
+   (infix->lyra infix->lyra)
+   (§ infix->lyra))
 
 (let ((open-bracket (symbol "("))
       (close-bracket (symbol ")"))
@@ -30,14 +33,14 @@
         ((contains? '(< > <= >=) op) 8)
         ((contains? '(<< >>) op) 9)
         ((contains? '(+ -) op)   10)
-        ((contains? '(* / %) op) 11)
+        ((contains? '(* / % mod) op) 11)
         ((contains? '(! not ++ --) op) 12)
         ((contains? '(.) op)     13)
         (else                    0)))]
         
     ['unary-op? (lambda (sym) (contains? '(! ++ -- not) sym))]
 
-    ['bin-op? (lambda (sym) (contains? '(= += -= *= /= %= mod= <<= >>= &= ^= |= || or && and | ^ & ** ^ == != < > <= >= + - * / % .) sym))]
+    ['bin-op? (lambda (sym) (contains? '(= += -= *= /= %= mod= <<= >>= &= ^= |= || or && and | ^ & ** ^ == != < > <= >= + - * / % . mod) sym))]
         ))
         
     ; Bindings for Lyra. This includes some of the aliases found in aliases.lyra
@@ -46,29 +49,28 @@
     ['associativity-of
       (lambda (op)
         (cond
-          ((contains? '(^ ** ∈ ∉ empty? not ) op) 'right)
+          ((contains? '(∈ ∉ empty? ⋅ not) op) 'right)
           (else 'left)))]
 
     ['precedence-of
       (lambda (op)
         (cond
-          ((contains? '(∈ ∉) op) 1)
-          ((contains? '(or) op) 2)
-          ((contains? '(and) op) 3)
-          ((contains? '(bit-or) op)     4)
-          ((contains? '(^ **) op)  5)
-          ((contains? '(bit-and) op)     6)
-          ((contains? '(= not= ≠) op) 7)
-          ((contains? '(< > <= >= ≥ ≤) op) 8)
-          ((contains? '(bit-shl bit-shr) op) 9)
-          ((contains? '(+ -) op)   10)
-          ((contains? '(* / %) op) 11)
-          ((contains? '(empty? not ⋅ inc dec) op) 12)
-          (else                    0)))]
+          ((contains? '(∈ ∉) op)                  1)
+          ((contains? '(or) op)                   2)
+          ((contains? '(and) op)                  3)
+          ((contains? '(bit-or) op)               4)
+          ((contains? '(bit-and) op)              6)
+          ((contains? '(= /= ≠ eq? not-eq?) op) 7)
+          ((contains? '(< > <= >= ≥ ≤) op)        8)
+          ((contains? '(bit-shl bit-shr) op)      9)
+          ((contains? '(+ -) op)                  10)
+          ((contains? '(* / rem) op)              11)
+          ((contains? '(empty? ⋅ inc not dec) op) 12)
+          (else                                   0)))]
 
     ['unary-op? (lambda (sym) (contains? '(empty? inc dec not) sym))]
 
-    ['bin-op? (lambda (sym) (contains? '(∈ ∉ or and bit-or ^ ** bit-and == != = not= ≠ < > <= >= ≥ ≤ bit-shl bit-shr + - * / % ⋅) sym))]
+    ['bin-op? (lambda (sym) (contains? '(∈ ∉ or and q? not-eq? bit-or bit-and /= = ≠ < > <= >= ≥ ≤ bit-shl bit-shr + - * / rem ⋅) sym))]
         )))
 
 (define (operator? symbol binds)
@@ -108,10 +110,10 @@ implementation of Dijkstra's Shunting-yard Algorithm."
          (cons (car stmt) (%shunting-yard (cdr stmt) stack binds)))
         ((operator? (car stmt) binds)
          (operator-actions stmt stack binds))
-        ((list? (car stmt))
-         (%shunting-yard (cdr stmt) (cons (car stmt) stack binds)))
+        ;((list? (car stmt))
+        ; (%shunting-yard (cdr stmt) (cons (car stmt) stack) binds))
         ((eq? (car stmt) open-bracket)
-         (%shunting-yard (cdr stmt) (cons (car stmt) stack binds)))
+         (%shunting-yard (cdr stmt) (cons (car stmt) stack) binds))
         ((eq? (car stmt) close-bracket)     
          (if (eq? open-bracket (car stack))
              (%shunting-yard (cdr stmt) (cdr stack) binds)
@@ -119,7 +121,8 @@ implementation of Dijkstra's Shunting-yard Algorithm."
         (else (cons (car stmt) (%shunting-yard (cdr stmt) stack binds)))))
 
 (define (shunting-yard stmt binds)
-  (%shunting-yard (map-eager (lambda (expr) (if (list? expr) (shunting-yard expr binds binds) expr)) stmt) '() binds))
+  ;(println! (map-eager (lambda (expr) (if (list? expr) (shunting-yard expr binds) expr)) stmt))
+  (%shunting-yard (map-eager (lambda (expr) (if (list? expr) (shunting-yard expr binds) expr)) stmt) '() binds))
 
 
 ;;;
@@ -129,18 +132,24 @@ implementation of Dijkstra's Shunting-yard Algorithm."
   (cond
     ((empty? input)
       output)
-    ((list? (car input)) ; Recurse for sub-expressions
-      (%eval-rpn (cdr input) (cons (car (%eval-rpn (car input) '() binds)) output) binds))
+    ;((list? (car input)) ; Recurse for sub-expressions
+    ;  (%eval-rpn (cdr input) (cons (car (%eval-rpn (car input) '() binds)) output) binds))
     (((map-get binds 'unary-op?) (car input)) ; Unary operation (op arg)
       (%eval-rpn (cdr input) (cons (list (car input) (car output)) (cdr output)) binds))
     (((map-get binds 'bin-op?) (car input)) ; Binary op (op arg1 arg2)
       (%eval-rpn (cdr input) (cons (list (car input) (cadr output) (car output)) (cddr output)) binds))
-    (else ; atom => return put self on output
+    (else ; atom => put self on output
       (%eval-rpn (cdr input) (cons (car input) output) binds)) ; Number
     ))
 
 (define (eval-rpn input binds)
-  (%eval-rpn input '() binds))
+  (let ((res (%eval-rpn (map-eager (lambda (e) (if (list? e) (eval-rpn e binds) e)) input) '() binds)))
+    (if (= (size res) 1)
+      (car res)
+      res)))
+
+(define (show-infix-as-prefix binds exprs)
+  (eval-rpn (shunting-yard exprs binds) binds))
 
 ; Quick macros
 ; Requires a map with 4 functions:
@@ -149,22 +158,36 @@ implementation of Dijkstra's Shunting-yard Algorithm."
 ;  unary-op? : Whether an operator takes 1 argument
 ;  bin-op? : Whether an operator takes 2 arguments
 (def-macro (infix->prefix bindings & exprs)
-  (car (eval-rpn (shunting-yard t bindings) bindings)))
+  (eval-rpn (shunting-yard exprs bindings) bindings))
 
 ; infix->prefix with default lyra bindings
 (def-macro (infix->lyra & exprs)
-  (car (eval-rpn (shunting-yard t lyra-binds) lyra-binds)))
+  (eval-rpn (shunting-yard exprs lyra-binds) lyra-binds))
 
+(define § infix->lyra)
 
 (comment let ((t '(a = 9 + 9 + 9 + 9 * ! 8)))
   (println! (shunting-yard t default-binds))
-  (println! (car (eval-rpn (shunting-yard t default-binds) default-binds))))
+  (println! (eval-rpn (shunting-yard t default-binds) default-binds)))
 
 (comment let ((t '(a = 9 + 9 + 9 + 9 * 8)))
   (println! (shunting-yard t lyra-binds))
-  (println! (car (eval-rpn (shunting-yard t lyra-binds) lyra-binds))))
+  (println! (eval-rpn (shunting-yard t lyra-binds) lyra-binds)))
 
 (comment let ((t '(99 = 9 + 9 + 9 + 9 * 8)))
   (println! (infix->lyra t)))
+
+;(println! (eval-rpn (shunting-yard '(9 + 9 = 9 + 8 + 1 * 1  and empty? 0) lyra-binds) lyra-binds))
+
+(comment map-eager println! [
+(show-infix-as-prefix lyra-binds '(1 + 2 = 3))
+(show-infix-as-prefix lyra-binds '(9 + 1 * 2 = 11))
+(show-infix-as-prefix lyra-binds '(11 = 9 + 1 * 2))
+(show-infix-as-prefix lyra-binds '(11 /= 9 + 3 * 2))
+(show-infix-as-prefix lyra-binds '(7 = 7 and 11 /= 9 + 3 * 2))
+(let ((plus1 inc)) (show-infix-as-prefix lyra-binds '(odd? ⋅ plus1)))])
+;(show-infix-as-prefix lyra-binds '(1 + 2 = 3))
 )
+
+#t
 )
