@@ -373,6 +373,16 @@
 (define (cdddar x) (cdr (cdr (cdr (car x)))))
 (define (cddddr x) (cdr (cdr (cdr (cdr x)))))
 
+; Could use some optimization
+(define (flatten xs)
+  (if (collection? xs)
+    (foldr append '() (map flatten xs))
+    (list xs)))
+
+; Could use some optimization
+(define (flatten1 xs)
+  (apply-to list-concat (map (lambda (x) (if (collection? x) (->list x) (list x))) xs)))
+
 (define sum (partial foldl + 0))
 (define product (partial foldl * 1))
 
@@ -424,6 +434,5 @@
 
 (def-macro (as-> name x & exprs)
   (help-as-> name x exprs))
-
 
 'ok

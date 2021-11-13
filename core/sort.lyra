@@ -32,8 +32,9 @@
   (cond ((< (size xss) 2) xss)
         (else (merge-lists (cons (merge (car xss) (cadr xss)) (cddr xss))))))
 
+; (map-eager list xs) puts every element into its own list.
 (define (mergesort xs)
-  (car (merge-lists (doall! (map-eager list xs)))))
+  (car (merge-lists (map-eager list xs))))
 
 
 (define (merge-w-c c xs ys)
@@ -47,5 +48,5 @@
         (else (merge-lists-w-c c (cons (merge-w-c c (car xss) (cadr xss)) (cddr xss))))))
 
 (define (mergesort-with-comparator c xs)
-  (car (merge-lists-w-c c (doall! (map-eager list xs)))))
+  (car (merge-lists-w-c c (map-eager list xs))))
 )

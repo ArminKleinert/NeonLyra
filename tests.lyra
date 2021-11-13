@@ -2145,6 +2145,20 @@
     (let ((plus1 inc)) ((infix->lyra odd? ⋅ plus1) 2))
     ))
 
+(define (test-flatten)
+  (all-true?
+    (= '(1 2 3) (flatten '(1 2 3)))
+    (= '(1 2 3) (flatten '((1) (2 3))))
+    (= '(1 2 3) (flatten '((1) [2 3])))
+    (= '(1 2 3) (flatten '((1) ([2 3]))))))
+
+(define (test-flatten1)
+  (all-true?
+    (= '(1 2 3) (flatten1 '(1 2 3)))
+    (= '(1 2 3) (flatten1 '((1) (2 3))))
+    (= '(1 2 3) (flatten1 '((1) [2 3])))
+    (= '(1 [2 3]) (flatten1 '((1) ([2 3]))))))
+
 
 ;;;; Function which runs a test
 (define (run-test! test-fn)
@@ -2224,7 +2238,7 @@
   'test-random 'test-xorshift64s 'test-xorshift64 'test-xorshift32 'test-lfsr
   'test-random-nums 'test-xorshift64s-seq 'test-xorshift64-seq 
   'test-xorshift32-seq 'test-lfsr32-seq 'test-with-bounds 'test-shuffle
-  'test-product 'test-infix
+  'test-product 'test-infix 'test-flatten 'test-flatten1
   ))
 
 )

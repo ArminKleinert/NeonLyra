@@ -264,10 +264,11 @@ def setup_core_functions
   add_fn(:"string-size", 1) { |xs| xs.size }
   add_fn(:"string-range", 3) { |xs, s, e| r = xs[s...e]; r.nil? ? [] : r }
   add_fn(:"string-nth", 2) { |xs, i| xs[i] }
-  add_fn(:"string-add", 2) { |xs, y| xs + [y] }
+  add_fn(:"string-add", 2) { |xs, y| xs + y }
   add_fn(:"string-append", 2) { |xs, ys| (xs.nil? || ys.nil?) ? nil : xs + ys }
   add_fn(:"string-includes?", 2) { |xs, ys| xs.include? ys }
   add_fn(:"string-eq?", 2) { |v, v1| v == v1 }
+  add_fn(:"string-split-at", 2) { |s, pat| s.split(pat) }
 
   add_fn_with_env(:"iterate-seq", 3) do |xs, env|
     func, acc, vec = xs.to_a
