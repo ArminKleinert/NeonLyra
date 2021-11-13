@@ -7,6 +7,8 @@
 (let ((open-bracket (symbol "("))
       (close-bracket (symbol ")"))
       
+      ; Default bindings for operators used in imperative languages.
+      ; This includes =, +=, etc for setting variables.
       (default-binds
   (map-of
     ['associativity-of
@@ -38,7 +40,7 @@
     ['bin-op? (lambda (sym) (contains? '(= += -= *= /= %= mod= <<= >>= &= ^= |= || or && and | ^ & ** ^ == != < > <= >= + - * / % .) sym))]
         ))
         
-        
+    ; Bindings for Lyra. This includes some of the aliases found in aliases.lyra
     (lyra-binds
   (map-of
     ['associativity-of
@@ -140,9 +142,16 @@ implementation of Dijkstra's Shunting-yard Algorithm."
 (define (eval-rpn input binds)
   (%eval-rpn input '() binds))
 
-(def-macro (infix-to-prefix bindings & exprs)
+; Quick macros
+; Requires a map with 4 functions:
+;  associativity-of : Whether an operator is left- or right-associative
+;  precedence-of : Precedence of a symbol
+;  unary-op? : Whether an operator takes 1 argument
+;  bin-op? : Whether an operator takes 2 arguments
+(def-macro (infix->prefix bindings & exprs)
   (car (eval-rpn (shunting-yard t bindings) bindings)))
 
+; infix->prefix with default lyra bindings
 (def-macro (infix->lyra & exprs)
   (car (eval-rpn (shunting-yard t lyra-binds) lyra-binds)))
 
