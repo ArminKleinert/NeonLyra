@@ -12,7 +12,8 @@
    (≥ >=)
    (≤ <=)
    (∈ included?)
-   (∉ ∉))
+   (∉ ∉)
+   (<=> complement))
 
 (define ∉ (lambda (e s) (not (included? e s))))
 )
