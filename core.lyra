@@ -271,6 +271,14 @@
         ((p (first xs)) xs)
         (else (drop-until p (rest xs)))))
 
+(define (subseq start length xs)
+  (take length (drop start xs)))
+
+(define (replace-subseq start length replacement xs)
+  (let ((t (take-drop start xs)))
+    (concat (car t) replacement (drop length (cadr t)))))
+
+
 (define (all? p xs)
   (empty? (drop-while p xs)))
 (define (none? p xs)
@@ -416,7 +424,5 @@
 (def-macro (as-> name x & exprs)
   (help-as-> name x exprs))
 
+
 'ok
-
-
-

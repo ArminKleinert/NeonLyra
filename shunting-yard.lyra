@@ -1,0 +1,127 @@
+(module shunting-yard
+  ((shunting-yard shunting-yard))
+
+
+
+;;; For Dijkstra's Shunting-yard Algorithm
+
+;; Determines if a given token from a string is a mathematical operator
+(define (operator? symbol)
+  (> (precedence-of symbol) 0))
+
+;; Determines the associativity of a given mathematical operator
+(define (associativity-of op)
+  (cond
+    ((contains? '(^ ** = += -= *= /= %= mod= <<= >>= &= ^= |=) op) 'right)
+    (else 'left)))
+
+;; Determines the precedence of a given mathematical operator
+(define (precedence-of op)
+  (cond
+    ((contains? '(= += -= *= /= %= mod= <<= >>= &= ^= |=) op) 1)
+    ((contains? '(|| or) op) 2)
+    ((contains? '(&& and) op) 3)
+    ((contains? '(|) op) 4)
+    ((contains? '(^ **) op) 5)
+    ((contains? '(&) op) 6)
+    ((contains? '(== !=) op) 7)
+    ((contains? '(< > <= >=) op) 8)
+    ((contains? '(<< >>) op) 9)
+    ((contains? '(+ -) op) 10)
+    ((contains? '(* / %) op) 11)
+    ((contains? '(! not ++ --) op) 12)
+    ((contains? '(.) op) 13)
+    (else                    0)))
+
+;; Actions to take if the token in the stmt is an operator
+(define (operator-actions stmt stack)
+  (let* ((token-precedence (precedence-of (car stmt)))
+         (token-assoc (associativity-of (car stmt)))
+         (stack-oper (if (not (null? stack))
+                         (car stack)
+                         '()))
+         (stack-precedence (if (not (null? stack-oper))
+                               (precedence-of stack-oper)
+                               0)))
+    (cond ((or (and (eq? token-assoc 'left)
+                    (<= token-precedence stack-precedence))
+               (and (eq? token-assoc 'right)
+                    (< token-precedence stack-precedence)))
+           (cons stack-oper (%shunting-yard stmt (cdr stack))))
+          (else (%shunting-yard (cdr stmt) (cons (car stmt) stack))))))
+
+;; Obviously this makes no sense; it's just a suggestion for the
+;; _structure_ of a real test.
+;; (if (not (equal? 'frotz
+;;                  (operator-actions (list #\( 4 '+ 4 #\)) (list) cons)))
+;;     (error "some other case of operator-actions is broken"))
+
+(let ((open-bracket (symbol "("))
+      (close-bracket (symbol ")")))
+;; Actions to take if (null? stmt)
+(define (stack-operations stack)
+  ;; If a left-parenthesis is found on the stack,
+  ;; it means there was no right-parenthesis to match it
+  ;; and thus the statement has unbalanced parentheses.
+  (cond ((and (not (null? stack))
+              (eq? (car stack) open-bracket))
+         (error "Unbalanced parenthesis"))
+        ((null? stack) '())
+        (else (cons (car stack) (%shunting-yard '() (cdr stack))))))
+
+;; Implementation of Dijkstra's Shunting-yard Algorithm
+(define (%shunting-yard stmt stack)
+  "Converts infix-notation mathematical equations into
+postfix-notation mathematical equations, using an
+implementation of Dijkstra's Shunting-yard Algorithm."
+  (cond ((null? stmt)
+         (stack-operations stack))
+        ((number? (car stmt))
+         (cons (car stmt) (%shunting-yard (cdr stmt) stack)))
+        ((operator? (car stmt))
+         (operator-actions stmt stack))
+        ((list? (car stmt))
+         (%shunting-yard (cdr stmt) (cons (car stmt) stack)))
+        ((eq? (car stmt) open-bracket)
+         (%shunting-yard (cdr stmt) (cons (car stmt) stack)))
+        ((eq? (car stmt) close-bracket)     
+         (if (eq? open-bracket (car stack))
+             (%shunting-yard (cdr stmt) (cdr stack))
+             (cons (car stack) (%shunting-yard stmt (cdr stack)))))
+        (else (cons (car stmt) (%shunting-yard (cdr stmt) stack)))))
+)
+
+(define (shunting-yard stmt)
+  ;(%shunting-yard stmt '())
+  (%shunting-yard (map-eager (lambda (expr) (if (list? expr) (shunting-yard expr) expr)) stmt) '()))
+
+
+;;;
+; Evaluation:
+
+(define (unary-op? sym) (contains? '(! ++ -- not ) sym))
+
+(define (bin-op? sym) (contains? '(= += -= *= /= %= mod= <<= >>= &= ^= |= || or && and | ^ & ** ^ == != < > <= >= + - * / % .) sym))
+
+(define (%eval-rpn input output)
+  (cond
+    ((empty? input)
+      output)
+    ((list? (car input)) ; Recurse for sub-expressions
+      (%eval-rpn (cdr input) (cons (car (%eval-rpn (car input) '())) output)))
+    ((unary-op? (car input)) ; Unary operation (op arg)
+      (%eval-rpn (cdr input) (cons (list (car input) (car output)) (cdr output))))
+    ((bin-op? (car input)) ; Binary op (op arg1 arg2)
+      (%eval-rpn (cdr input) (cons (list (car input) (cadr output) (car output)) (cddr output))))
+    (else ; atom => return put self on output
+      (%eval-rpn (cdr input) (cons (car input) output))) ; Number
+    ))
+
+(define (eval-rpn input)
+  (%eval-rpn input '()))
+
+
+(let ((t '(abc = 9 + 9 + 9 + 9 * ! 8 && a --)))
+  (println! (shunting-yard t))
+  (println! (car (eval-rpn (shunting-yard t) ))))
+)
