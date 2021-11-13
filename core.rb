@@ -423,7 +423,9 @@ def setup_core_functions
 
   add_fn(:"error", 1) { |msg| raise msg }
   
-  add_fn(:"debug-type",1){|e| e.class.to_s}
+  add_fn(:"debug-type",1){ |e| e.class.to_s }
+  
+  add_fn("exit!", 2) { |message, code| $stderr.puts(message); exit(code) }
 
   true
 end

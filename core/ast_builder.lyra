@@ -69,7 +69,7 @@
             ((eq? token "@")
               (read-macro reader 'unquote (inc level)))
             ((eq? token "(")
-              (read-list reader ")" list (inc level)))
+              (read-list reader ")" id (inc level)))
             ((eq? token "[")
               (read-list reader "]" ->vector (inc level)))
             (else
