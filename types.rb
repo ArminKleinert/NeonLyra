@@ -560,6 +560,9 @@ class GenericFn < LyraFn
     # Potential for speedup?
     type = type_id_of(args[@anchor_idx])
     fn = @implementations[type]
+    if @name == :"->string"
+      puts type
+    end
     #puts "#{@name} #{@anchor_idx} #{@implementations.keys} #{args.map{|e|type_name_of(e)}} #{type} #{@implementations.has_key?(type)} #{@implementations[type]} #{@implementations.default}"
     if fn
       fn.call args, env
@@ -617,6 +620,10 @@ class LyraType
   def initialize(type_id, name, attrs)
     @type_id, @name, @attrs = type_id, name, attrs
     @attrs.freeze
+  end
+  
+  def to_s
+    "[LyraType #{@type_id} #{@name} attrs=#{attrs.to_s}]"
   end
 end
 

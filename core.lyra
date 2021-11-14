@@ -39,6 +39,16 @@
 (def-generic x (number? x)
   (lambda (xs) (or (int? xs) (float? xs))))
 
+
+(define (%print! xs)
+  (if xs (let () (buildin-print! (->string (car xs))) (%print! (cdr xs))) Nothing))
+(define (print! & xs)
+  (%print! xs))
+(define (println! & xs)
+  (%print! xs)
+  (buildin-print! "\n"))
+
+
 ; Take 2 arguments, return the first
 (define (fst x y) x)
 ; Take 2 arguments, return the second
@@ -51,6 +61,9 @@
 (def-macro (let1 bindings & body)
   (cons 'let (cons (list bindings) body)))
 
+
+(define ::list ->string (lambda (xs) (buildin->string (map-eager ->string xs))))
+(define ::vector ->string (lambda (xs) (buildin->string (mapv ->string xs))))
 
 (define ::list size list-size)
 (define ::vector size vector-size)
@@ -436,3 +449,8 @@
   (help-as-> name x exprs))
 
 'ok
+
+
+
+
+

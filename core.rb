@@ -358,8 +358,7 @@ def setup_core_functions
     end
   end
 
-  add_fn(:"print!", 1) { |x| print elem_to_s(x) }
-  add_fn(:"println!", 1) { |x| puts elem_to_s(x) }
+  add_fn(:"buildin-print!", 1) { |x| print elem_to_s(x) }
   add_fn(:"readln!", 0) { gets }
   add_fn(:"file-read!", 1) { |name| IO.read name }
   add_fn(:"file-write!", 2) { |name, text| IO.write name, text }
