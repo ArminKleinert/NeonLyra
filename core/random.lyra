@@ -1,20 +1,8 @@
 (module random
   ((random xorshift64s)
-   (random! random!)
-   
-   (xorshift64s xorshift64s)
-   (xorshift64 xorshift64)
-   (xorshift32 xorshift32)
-   (lfsr lfsr32)
-   
-   (xorshift64s-seq xorshift64s-seq)
-   (xorshift64-seq xorshift64-seq)
-   (xorshift32-seq xorshift32-seq)
-   (lfsr32-seq lfsr32-seq)
-   
-   (random-nums random-nums)
-   (with-bounds with-bounds)
-   (shuffle shuffle))
+   random! xorshift64s xorshift64 xorshift32 (lfsr lfsr32)
+   xorshift64s-seq xorshift64-seq xorshift32-seq lfsr32-seq 
+   random-nums with-bounds shuffle)
 
 (let ((max-32 0xFFFFFFFF)
       (max-64 0xFFFFFFFFFFFFFFFF))

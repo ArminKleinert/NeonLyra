@@ -1,3 +1,6 @@
+(module core
+  (comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? %print! print! println! fst snd list let1 list-nth last but-last empty? included? seq-eq? not-eq? symbol else not and or odd? even? foldl1 foldl-indexed foldr1 foldr-idx-helper foldr-indexed compose compose-or compose-and complement begin def-memo spread apply map map-eager map-indexed-h map-indexed mapv mapv-indexed map-while map-until maplist mapcar mapcon mapcat filter filterv filter-indexed-h filter-indexed remove remove-indexed fmap mapf take-drop-h take-drop take-drop-until-h take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat string-concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ § doall! fact-seq -> ->> help-as-> as->)
+
 ;;; Some core things
 
 (def-macro (comment & xs) (nothing))
@@ -449,7 +452,7 @@
   (help-as-> name x exprs))
 
 'ok
-
+)
 
 
 

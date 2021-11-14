@@ -1,9 +1,9 @@
 (module sort
   ((sort mergesort)
    (sort-compare mergesort-with-comparator)
-   (mergesort mergesort)
+   mergesort
    (mergesort-compare mergesort-with-comparator)
-   (bubblesort bubblesort))
+   bubblesort)
 
 (define (bubble-up xs)
     (if (empty? (cdr xs))   

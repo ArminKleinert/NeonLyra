@@ -1,5 +1,5 @@
 (module lyra-tokenizer
-  ((tokenize tokenize))
+  (tokenize)
 
 (def-type tokenizer-context tokens is-in-string next-escaped current-text line commented)
 

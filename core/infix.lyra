@@ -1,12 +1,12 @@
 ; Parse infix operations for parsing imperative languages which treat = as a setter.
 ; This is a heavily edited conversion of https://github.com/osoleve/Scheme-Infix-Calculator by osoleve (https://github.com/osoleve)
 (module infix
-  ((shunting-yard shunting-yard)
-   (eval-rpn eval-rpn)
-   (infix->prefix infix->prefix)
-   (infix->lyra infix->lyra)
+  (shunting-yard
+   eval-rpn
+   infix->prefix
+   infix->lyra
    (§ infix->lyra)
-   (show-infix-as-prefix show-infix-as-prefix))
+   show-infix-as-prefix)
 
 (let ((open-bracket (symbol "("))
       (close-bracket (symbol ")"))

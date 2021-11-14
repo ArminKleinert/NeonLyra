@@ -54,7 +54,13 @@ def ev_module(expr)
   global = Env.global_env
   bindings.each do |binding|
     #check_for_redef(binding.car, global)
-    global.set! binding.car, eval_ly(binding.cdr.car, module_env)
+    if binding.is_a? ConsList
+      global.set! binding.car, eval_ly(binding.cdr.car, module_env)
+    elsif binding.is_a? Symbol
+      global.set! binding, eval_ly(binding, module_env)
+    else
+      raise "Syntax error: Module binding must be a list or symbol."
+    end
   end
 
   name

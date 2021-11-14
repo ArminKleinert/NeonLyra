@@ -1,8 +1,8 @@
 (module clj
-  ((when when)
-  (def def)
-  (defn defn)
-  (fn fn)
+  (when
+  def
+  defn
+  fn
   (do begin)
   (slurp! file-read!)
   (spit! file-write!)
