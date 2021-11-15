@@ -233,6 +233,7 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Support for random numbers  
   - Added `->`, `->>` and `as->` from Clojure  
   - Infix operations in `infix.lyra`  
+  - Simpler export from modules.  
 
 
 ## Planned features

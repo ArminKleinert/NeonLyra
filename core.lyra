@@ -1,5 +1,5 @@
 (module core
-  (comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number?  print! println! fst snd list let1 list-nth last but-last empty? included? seq-eq? not-eq? symbol else not and or odd? even? foldl1 foldl-indexed foldr1 foldr-idx-helper foldr-indexed compose compose-or compose-and complement begin def-memo spread apply map map-eager map-indexed mapv mapv-indexed map-while map-until maplist mapcar mapcon mapcat filter filterv filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat string-concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as->)
+  (comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number?  print! println! fst snd list let1 list-nth last but-last empty? included? seq-eq? not-eq? symbol else not and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and complement begin def-memo spread apply map map-eager map-indexed mapv mapv-indexed map-while map-until maplist mapcar mapcon mapcat filter filterv filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat string-concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as->)
 
 ;;; Some core things
 
@@ -148,12 +148,12 @@
         ((= (size xs) 1) (first xs))
         (else (f (first xs) (foldr1 f (rest xs))))))
 
-(define (foldr-idx-helper f v i xs)
+(define (%foldr-indexed f v i xs)
   (if (empty? xs)
     v
-    (f (first xs) (foldr-idx-helper f v (inc i) (rest xs)) i)))
+    (f (first xs) (%foldr-indexed f v (inc i) (rest xs)) i)))
 (define (foldr-indexed f v xs)
-  (foldr-idx-helper f v 0 xs))
+  (%foldr-indexed f v 0 xs))
 
 ; Function composition
 (define (compose f g)
@@ -189,11 +189,11 @@
     (lazy-seq (f (first xs)) (map f (rest xs)))))
 (define (map-eager f xs)
   (foldr (lambda (x v) (cons (f x) v)) '() xs))
-(define (map-indexed-h f xs i)
+(define (%map-indexed f xs i)
   (if (empty? xs)
     '()
-    (lazy-seq (f (first xs) i) (map-indexed-h f (rest xs) (inc i)))))
-(define (map-indexed f xs) (map-indexed-h f xs 0))
+    (lazy-seq (f (first xs) i) (%map-indexed f (rest xs) (inc i)))))
+(define (map-indexed f xs) (%map-indexed f xs 0))
 
 (define (mapv f xs) (foldl (lambda (v x) (vector-add v (f x))) [] xs))
 (define (mapv-indexed f xs) (foldl-indexed (lambda (v x i) (vector-add v (f x i))) [] xs))
@@ -223,11 +223,11 @@
 (define (filterv p xs)
   (foldl (lambda (v x) (if (p x) (vector-add v x) v)) '() xs))
 
-(define (filter-indexed-h p xs i)
+(define (%filter-indexed p xs i)
   (cond ((empty? xs) '())
-        ((p (first xs) i) (lazy-seq (first xs) (filter-indexed-h p (rest xs) (inc i))))
-        (else (filter-indexed-h p (rest xs) (inc i)))))
-(define (filter-indexed p xs) (filter-indexed-h p xs 0))
+        ((p (first xs) i) (lazy-seq (first xs) (%filter-indexed p (rest xs) (inc i))))
+        (else (%filter-indexed p (rest xs) (inc i)))))
+(define (filter-indexed p xs) (%filter-indexed p xs 0))
 
 (define (remove p xs) (filter (complement p) xs))
 (define (remove-indexed p xs)
@@ -245,22 +245,22 @@
         (lazy-seq y (mapf f p (rest xs)))
         (mapf f p (rest xs))))))
 
-(define (take-drop-h n st en)
+(define (%take-drop n st en)
   (if (or (= n 0) (empty? en))
     (list (->list st) (->list en))
-    (take-drop-h (dec n) (vector-add st (first en)) (rest en))))
+    (%take-drop (dec n) (vector-add st (first en)) (rest en))))
 (define (take-drop n xs)
-  (take-drop-h n [] xs))
+  (%take-drop n [] xs))
   
-(define (take-drop-until-h p st en)
+(define (%take-drop-until p st en)
   (if (or (empty? en) (p (first en)))
     (list (->list st) (->list en))
-    (take-drop-until-h p (vector-add st (first en)) (rest en))))
+    (%take-drop-until p (vector-add st (first en)) (rest en))))
 (define (take-drop-until p xs)
-  (take-drop-until-h p [] xs))
+  (%take-drop-until p [] xs))
 
 (define (take-drop-while p xs)
-  (take-drop-until-h (complement p) [] xs))
+  (%take-drop-until (complement p) [] xs))
 
 (define (take n xs)
   (cond ((<= n 0) '())
@@ -441,13 +441,13 @@
 (def-macro (->> x & exprs)
   (foldl (lambda (acc expr) (if (list? expr) (append expr (list acc)) (list expr acc))) x exprs))
 
-(define (help-as-> name x exprs)
+(define (%as-> name x exprs)
   (if (empty? exprs)
     x
-    (list 'let (list (list name x)) (help-as-> name (car exprs) (cdr exprs)))))
+    (list 'let (list (list name x)) (%as-> name (car exprs) (cdr exprs)))))
 
 (def-macro (as-> name x & exprs)
-  (help-as-> name x exprs))
+  (%as-> name x exprs))
 
 'ok
 )

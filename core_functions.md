@@ -326,9 +326,6 @@ indices-of           | 2   |  x  |  x  |     |
                      |     |     |     |     | 
 λ                    | >=2 |  x  |  x  |     | A fun macro which transforms into a lambda-form:
                      |     |     |     |     | (λ x y . (+ x y)) becomes (lambda (x y) (+ x y))
-§                    | 3   |  x  |  x  |     | Transforms infix form into prefix-form:
-                     |     |     |     |     | (§ x ∈ ys) becomes (∈ x ys)
-doall!               |     |     |     |     | Eagerly evaluate a list.
 fact-seq             |     |     |     |     | An infinite list of the factorial numbers.
                      |     |     |     |     | 
 ->                   | >=1 |  x  |  x  |     | As in Clojure.

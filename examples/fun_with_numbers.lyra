@@ -1,0 +1,42 @@
+
+(define (sum-of-divisors n)
+  (sum
+    (filter (lambda (x) (= (rem n x) 0))
+      (take-while (lambda (x) (< x (/ n 2)))
+        (iterate inc 2)))))
+
+(define (fib n)
+  (if (< n 2) n (+ (fib (dec n)) (fib (- n 2)))))
+
+(def-memo (fib-memo n) (if (< n 2) n (+ (fib (dec n)) (fib (- n 2)))))
+
+(define (fib-tr n)
+  (let ((%fib-tr (lambda (n a b)
+          (cond ((= n 0) a)
+                ((= n 1) b)
+                (else (%fib-tr (dec n) b (+ a b)))))))
+    (%fib-tr n 0 1)))
+
+(define (fact n)
+  (cond ((< n 2) 1)
+        (else (* n (fact (dec n))))))
+
+(define (fact-tr n)
+  (let ((%fact-tr (lambda (n res) (if (< n 2) res (%fact-tr (dec n) (* n res))))))
+    (if (< n 2) 1 (%fact-tr n 1))))
+
+(define (pow-rec x y)
+  (if (= 0 y)
+    1
+    (* x (pow-rec x (dec y)))))
+
+(define (pow x y)
+  (product (take y (repeat x))))
+
+
+(println! (take 10 (map fib (iterate inc 0))))
+(println! (take 10 (map fib-tr (iterate inc 0))))
+(println! (take 10 (map fact (iterate inc 0))))
+(println! (take 10 (map fact-tr (iterate inc 0))))
+(println! (pow-rec 2 7))
+(println! (pow 2 7))

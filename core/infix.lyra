@@ -186,6 +186,7 @@ implementation of Dijkstra's Shunting-yard Algorithm."
 (show-infix-as-prefix lyra-binds 11 = 9 + 1 * 2)
 (show-infix-as-prefix lyra-binds 11 /= 9 + 3 * 2)
 (show-infix-as-prefix lyra-binds 7 = 7 and 11 /= 9 + 3 * 2)
+(show-infix-as-prefix default-binds b = 1 + 2 == 3)
 (let ((plus1 inc)) (show-infix-as-prefix lyra-binds (odd? ⋅ plus1)))])
 ;(show-infix-as-prefix lyra-binds '(1 + 2 = 3))
 )
