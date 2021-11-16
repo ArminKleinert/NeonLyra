@@ -175,9 +175,6 @@ implementation of Dijkstra's Shunting-yard Algorithm."
   (println! (shunting-yard t lyra-binds))
   (println! (eval-rpn (shunting-yard t lyra-binds) lyra-binds)))
 
-(comment let ((t '(99 = 9 + 9 + 9 + 9 * 8)))
-  (println! (infix->lyra t)))
-
 ;(println! (eval-rpn (shunting-yard '(9 + 9 = 9 + 8 + 1 * 1  and empty? 0) lyra-binds) lyra-binds))
 
 (comment map-eager println! [
@@ -189,6 +186,16 @@ implementation of Dijkstra's Shunting-yard Algorithm."
 (show-infix-as-prefix default-binds b = 1 + 2 == 3)
 (let ((plus1 inc)) (show-infix-as-prefix lyra-binds (odd? ⋅ plus1)))])
 ;(show-infix-as-prefix lyra-binds '(1 + 2 = 3))
+
+(println! (infix->lyra 99 = 9 + 9 + 9 + 9 * 8)) ; => #t
+(println! (show-infix-as-prefix lyra-binds 99 = 9 + 9 + 9 + 9 * 8)) ; => (= 99 (+ (+ (+ 9 9) 9) (* 9 8)))
+
+(println! (infix->lyra 99 = 9 + 9 * 8 + 9 + 9)) ; => #t
+(println! (show-infix-as-prefix lyra-binds 99 = 9 + 9 * 8 + 9 + 9)) ; => (= 99 (+ (+ (+ 9 (* 9 8)) 9) 9))
+
+(println! (infix->lyra 117 = 9 + 9 * 8 + 2 * (9 + 9))) ; => #t
+(println! (show-infix-as-prefix lyra-binds 117 = 9 + 9 * 8 + 2 * (9 + 9))) ; => (= 117 (+ (+ 9 (* 9 8)) (* 2 (+ 9 9))))
+
 )
 
 #t
