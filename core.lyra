@@ -452,8 +452,11 @@
 'ok
 )
 
-(load! "./bootstrap/tree.lyra")
-(println! (empty-tree))
-(println! (list->tree '(1 2 3 4 5)))
-(println! (set 10 6 (list->tree '(1 2 3 4 5))))
-(println! (tree->list (set 10 6 (list->tree '(1 2 3 4 5)))))
+
+
+
+
+
+
+
+
