@@ -8,7 +8,9 @@
 ; If a negative index is accessed, the behavior is implementation
 ; defined.
 (def-type vector-node left index value right)
-(def-type vector size entry)
+(def-type mvector size entry)
+
+(define make-vector make-mvector)
 
 (define (vector-node-set vec idx e)
   (cond
@@ -16,14 +18,15 @@
     ((= (vector-node-index vec) idx)
       (make-vector-node (vector-node-left vec) idx e (vector-node-right vec)))
     ((< (vector-node-inde vec) idx)
-      (make-vector-node (vector-node-left vec) .. (vector-node-set (vector-node-right vec) idx e)))
+      (make-vector-node (vector-node-left vec) (vector-node-index vec) (vector-node-value vec) (vector-node-set (vector-node-right vec) idx e)))
     (else
-      (make-vector-node (vector-node-set (vector-node-left vec) idx e) .. (vector-node-right vec)))))
+      (make-vector-node (vector-node-set (vector-node-left vec) idx e) (vector-node-index vec) (vector-node-value vec) (vector-node-right vec)))))
 
 (define (vector-set vec idx e)
   (if (< idx 0)
     vec
-    (vector-node-set (vector-entry idx e))))
+    (let ((v (vector-node-set (vector-entry idx e))))
+      (make-vector (vector-size v) v))))
 
 (define (vector-empty? vec)
   (nothing? (vector-entry vec)))
@@ -40,6 +43,10 @@
 
 (define (vector-append vec e)
   (vector-set vec (vector-size vec) e))
+
+(define (vector->list v l)
+  (cond ((nothing? v) Nothing)
+        (else (list-append (vector->list (vector-node-left v)) (cons (vector-node-value v) (vector->list (vector-node-right v)))))))
 
 ; The elements are insert from the higher indices to the lower,
 ; so the vector's right side will be fast to access and appending
