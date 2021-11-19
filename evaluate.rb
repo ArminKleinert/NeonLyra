@@ -303,7 +303,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       # Form is `(if predicate then-branch else-branch)`.
       # If the predicate holds true, the then-branch is executed.
       # Otherwise, the else-branch is executed.
-      raise "if needs 3 arguments." if expr.size < 4 # includes the 'if
+      raise "if needs 3 arguments." if expr.size != 4 # includes the 'if
       pred = eval_ly(second(expr), env, force_eval)
       if !force_eval && pred.is_a?(LazyObj)
         puts pred
@@ -320,12 +320,17 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       clauses = rest(expr)
       result = nil
       until clauses.empty?
-        unless first(clauses).size == 2
+        clause = first(clauses)
+        unless clause.size == 2
           raise "Syntax error: Clause in cond must have exactly 2 bindings."
         end
-        predicate = eval_ly(first(first(clauses)), env, force_eval)
-        if predicate
-          result = eval_ly(second(first(clauses)), env, force_eval)
+        predicate = eval_ly(first(clause), env, force_eval)
+        if !force_eval && predicate.is_a?(LazyObj)
+          expr = list(:lazy, expr)
+          result = eval_ly(expr,env)
+          break
+        elsif predicate
+          result = eval_ly(second(clause), env, force_eval)
           break
         end
         clauses = rest(clauses)
