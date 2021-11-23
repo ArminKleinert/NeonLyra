@@ -74,7 +74,7 @@ Here are some differences to Clojure I could think of:
 
 - Lyra is a hobby project and not a serious attempt at making something great.  
 - Bad performance. :(  
-- The boolean literals are `#t` and `#f` (but are aliases as `true` and `false`)
+- The boolean literals are `#t` and `#f` (but are aliased as `true` and `false`)
 - Box instead of `Atom`.  
 - Boxes are not synchronized.  
 - Creators for user-defined types should start with `make-` instead of `->`.  
