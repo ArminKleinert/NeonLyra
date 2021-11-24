@@ -6,7 +6,7 @@ require_relative 'reader.rb'
 require_relative 'evaluate.rb'
 require_relative 'core.rb'
 
-LYRA_VERSION = "0_1_0"
+LYRA_VERSION = "0_1_1"
 
 if ARGV.include? "-args"
   src_files, lyra_args = ARGV.slice_after{|e| e == "-args"}.to_a

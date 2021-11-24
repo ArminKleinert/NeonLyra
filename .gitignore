@@ -2,6 +2,7 @@
 lox
 bootstrap/necessary
 exclude
+wishlist
 
 *.gem
 *.rbc
