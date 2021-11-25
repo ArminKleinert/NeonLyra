@@ -23,6 +23,15 @@ begin
   src_files.each do |f|
     puts elem_to_s(eval_str(IO.read(f)))
   end
+
+  #print ">> "
+  #s = gets
+  #while s
+  #  puts elem_to_s(eval_str(s))
+  #  print ">> "
+  #  s = gets
+  #end
+  puts "Bye!"
 rescue SystemStackError
   $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_s(x) }}"
   raise

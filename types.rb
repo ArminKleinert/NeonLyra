@@ -28,7 +28,11 @@ class LazyObj
 
   def to_s
     #elem_to_s(evaluate)
-    elem_to_s expr
+    "(lazy #{elem_to_s(expr)})"
+  end
+  
+  def inspect
+    to_s
   end
 end
 
@@ -410,7 +414,7 @@ class CompoundFunc < LyraFn
 
       # Execute the body and return
       #body.call(args, env1)
-      eval_keep_last(@body_expr, env1)
+      eval_keep_last(@body_expr, env1, !pure?)
     rescue TailCall => tail_call
       unless native?
         # Do a tail-call. (Thanks for providing `retry`, Ruby!)

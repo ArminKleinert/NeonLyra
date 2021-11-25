@@ -7,7 +7,7 @@
 (load! "core/infix.lyra")
 
 (define (all-true? & cases)
-  (all? id cases))
+  (all? (lambda (e) (if e.! #t #f)) cases))
 
 (define (crash!)
   (/ 0 0))
@@ -99,11 +99,11 @@
 ; If this does not crash, then we know that the expression was not evaluated.
 (define (test-lazy-crash)
   ((lambda (x y) (lazy (/ x y))) 0 0) 
-  (lazy (crash!)))
+  (lazy (crash!))
+  #t)
 
 (define (test-lazy)
   (all-true?
-    (lazy #f)
     (lazy #t)
     (eager (lazy #t))))
 
@@ -2158,18 +2158,6 @@
     (= '(1 2 3) (flatten1 '((1) (2 3))))
     (= '(1 2 3) (flatten1 '((1) [2 3])))
     (= '(1 [2 3]) (flatten1 '((1) ([2 3]))))))
-
-
-;;;; Function which runs a test
-(define (run-test! test-fn)
-  (let1 (res (test-fn))
-    (println!
-      (append
-        (ljust test-fn 25) 
-        (cond ((= res 'TODO) "TODO") ; Test not implemented
-              (res "Success!")
-              (#t "Failure!")
-              )))))
 
 (define (run-tests & fns)
   (let ((results

@@ -100,7 +100,7 @@ def optimize_cdr(expr_list, env)
 end
 
 # Similar to eval_list, but only returns the last evaluated value.
-def eval_keep_last(expr_list, env)
+def eval_keep_last(expr_list, env, force_eval=false)
   raise "Syntax error: Expression must be a list." unless expr_list.is_a?(ConsList)
 
   return list if expr_list.empty?
@@ -124,11 +124,11 @@ def eval_keep_last(expr_list, env)
       optimize_cdr(expr_list, env)
     end
 
-    eval_ly expr_list.car, env, false, true
+    eval_ly expr_list.car, env, force_eval, true
     expr_list = expr_list.cdr
   end
 
-  eval_ly expr_list.car, env
+  eval_ly expr_list.car, env, force_eval
 end
 
 def ev_define_fn(expr, env, is_macro)
@@ -222,9 +222,9 @@ def ev_define(expr, env, is_macro)
   if first(expr).is_a?(List)
     # Form is `(define (...) ...)` (Function definition)
     ev_define_fn(expr, env, is_macro)
-  elsif first(expr).is_a?(Symbol) && expr.size == 3
+  #elsif first(expr).is_a?(Symbol) && expr.size == 3
     # Form is `(define .. (...) ...)` (Generic function definition)
-    ev_define_with_type(expr, env, is_macro)
+  #  ev_define_with_type(expr, env, is_macro)
   else
     # Form is `(define .. ...)` (Variable definition)
     name = first(expr) # Get the name
@@ -277,11 +277,16 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
     expr
   elsif expr.is_a?(Symbol)
     env.find expr # Get associated value from env
+  elsif expr.is_a?(Lazy) && force_eval
+    puts "HERE"
+    expr.evaluate
   elsif atom?(expr) || expr.is_a?(LyraFn)
     #force_eval ? eager(expr) : expr
     expr
   elsif expr.is_a? Array
-    if expr.all? { |x| !x.is_a?(Symbol) && atom?(x) }
+    if force_eval
+      expr.map { |x| eval_ly x, env, force_eval, true }
+    elsif expr.all? { |x| !x.is_a?(Symbol) && atom?(x) }
       # Nothing to evaluate.
       expr
     else
@@ -307,7 +312,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       pred = eval_ly(second(expr), env, force_eval)
       if !force_eval && pred.is_a?(LazyObj)
         puts pred
-        expr = list(:lazy, expr)
+        expr = LazyObj.new expr, env
         eval_ly(expr, env)
       elsif pred != false && !pred.nil? && !pred.is_a?(EmptyList)
         # The predicate was true
@@ -326,7 +331,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         end
         predicate = eval_ly(first(clause), env, force_eval)
         if !force_eval && predicate.is_a?(LazyObj)
-          expr = list(:lazy, expr)
+          expr = LazyObj.new expr, env
           result = eval_ly(expr,env)
           break
         elsif predicate
@@ -351,6 +356,8 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       #    or `(define (name arg0 arg1 ...) body...)` (For functions)
       # If the body is empty, the function returns nil.
       ev_define(rest(expr), env, false)
+    when :"def-impl"
+      ev_define_with_type(rest(expr), env, false)
     when :"def-generic"
       ev_define_generic(rest(expr), env)
     when :"let*"
@@ -448,7 +455,15 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       if func.native?
         LYRA_CALL_STACK.push func
         args = eval_list(args, env, force_eval)
-        r = func.call(args, env)
+
+        if !force_eval && args.any?{|e|e.is_a?(LazyObj)}
+          #r = LazyObj.new cons(func, args), env # FIXME Buggy
+          r = func.call(args, env)
+        else
+          # Call the function with the new arguments
+          r = func.call(args, env)
+        end
+        
         LYRA_CALL_STACK.pop
         r
       elsif func.is_macro
@@ -476,7 +491,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         # will also tail call.
         if !is_in_call_params && (!LYRA_CALL_STACK.empty?) && ((func == LYRA_CALL_STACK.last) || func == RECUR_FUNC)
           # Evaluate arguments that will be passed to the call.
-          args = eval_list(args, env, force_eval)
+          args = eval_list(args, env, true)
           # Tail call
           raise TailCall.new(args)
         else
@@ -486,7 +501,8 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
           args = eval_list(args, env, force_eval)
 
           if !force_eval && args.any?{|e|e.is_a?(LazyObj)}
-            r = list(:lazy, cons(func, args))
+            #r = LazyObj.new cons(func, args), env # FIXME Buggy
+            r = func.call(args, env)
           else
             # Call the function with the new arguments
             r = func.call(args, env)

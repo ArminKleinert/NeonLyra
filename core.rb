@@ -425,6 +425,8 @@ def setup_core_functions
   add_fn(:"debug-type",1){ |e| e.class.to_s }
   
   add_fn("exit!", 2) { |message, code| $stderr.puts(message); exit(code) }
+  
+  add_fn(:"p", 0, -1) { |*xs| puts xs.map{|e|elem_to_s(e)} }
 
   true
 end
