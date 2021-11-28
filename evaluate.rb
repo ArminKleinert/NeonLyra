@@ -44,6 +44,31 @@ begin
   f.call :"lazy"
 end
 
+# destructure [:a,:b,:c,:"&",:xs], [1,2,3,4,5,6,7,8,9,10]
+#   [[[:a, 1], [:b, 2], [:c, 3], [:xs, 4]], [:xs, [5, 6, 7, 8, 9, 10]]]
+# destructure [:a,:b,:c,:xs], [1,2,3,4,5,6,7,8,9,10]
+#   [[[:a, 1], [:b, 2], [:c, 3], [:xs, 4]], [nil, nil]]
+# destructure [:a,:b,:c], [1,2]
+#   [[[:a, 1], [:b, 2], [:c, nil]], [nil, nil]]
+def destructure(names, args)
+  xs = []
+  rest_args = nil
+  
+  # TODO Make sure that :& is the second to last, if it is given at all.
+  i = names.index :&
+  puts i
+  names = [names[0...i], i.nil? ? nil : names[-1]]
+  
+  args.each do |e|
+    xs << e
+  end
+  
+  rest_args = i.nil? ? nil : xs[names[0].size .. -1]
+  xs = xs[0 ... names[0].size]
+  args.fill(names.size .. args.size)
+  [names[0].zip(xs), [names[1],rest_args]]
+end
+
 # Parses and evaluates a string as Lyra-source code.
 def eval_str(s, env = LYRA_ENV)
   ast = make_ast(tokenize(s))

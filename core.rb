@@ -370,7 +370,7 @@ def setup_core_functions
 
   add_var(:Nothing, nil)
 
-  add_fn(:load!, 1) { |file| eval_str(IO.read(file), Env.global_env) }
+  add_fn(:load!, 1, -1) { |*files| files.map { |f| eval_str(IO.read(f), Env.global_env) }.to_cons_list }
 
   add_fn(:"read-string", 1) do |s|
     tokens = tokenize(s)

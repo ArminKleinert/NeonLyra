@@ -2194,6 +2194,13 @@
     (case 1 (partial = 1) #t #f)
     (case 1 (partial = 0) #f (partial = 1) #t #f)))
 
+(define (test-cycle)
+  (all-true?
+    (eq? '() (cycle '()))
+    (eq? '(1 1 1 1 1) (take 5 (cycle '(1))))
+    (eq? '(1 2 1 2 1) (take 5 (cycle '(1 2))))
+    (eq? '(1 2 3 1 2) (take 5 (cycle '(1 2 3))))))
+
 (define (run-tests & fns)
   (let ((results
           (foldl
@@ -2262,11 +2269,11 @@
   'test-random-nums 'test-xorshift64s-seq 'test-xorshift64-seq 
   'test-xorshift32-seq 'test-lfsr32-seq 'test-with-bounds 'test-shuffle
   'test-product 'test-infix 'test-flatten 'test-flatten1 'test-divmod
-  'test-constantly 'test-case
+  'test-constantly 'test-case 'test-cycle
   ))
 
+(println! (run-tests))
 )
 
-(println! (run-tests))
 
 

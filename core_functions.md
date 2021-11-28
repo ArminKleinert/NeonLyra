@@ -52,8 +52,9 @@ box                  | 1   |  x  |  x  |     | Create a box.
 unbox                | 1   |  x  |  x  |     | Get the contents of a Box.
 set-box!             | 2   |  x  |  x  |     | 
                      |     |     |     |     | 
-load!                | 1   |     |  x  |     | Load file. Attention: load! always uses the global
+load!                | >=1 |     |  x  |     | Load files. Attention: load! always uses the global
                      |     |     |     |     | environment, not the local one.
+                     |     |     |     |     |   (load! "core/random.lyra" "tests.lyra")
 read-string          | 1   |  x  |  x  |     | Parses a string into code.
 eval!                | 1   |     |  x  |     | Executes an object as code.
                      |     |     |     |     | 

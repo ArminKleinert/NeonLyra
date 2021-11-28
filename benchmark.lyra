@@ -48,58 +48,35 @@
 (comment
 Times in milliseconds.
 
-Tests with v0.0.7:
-167.859757
+0.1.1
+Ruby:
+  Many math ops:                                    0.17283199999999999
+  Without -> :                                      0.167156
+  Many math ops (lambda):                           0.18175750000000002
+  Same as partials with composition:                0.3615785
+  (ack 3 4)                                         1270.993801
+  lazy sequences                                    90.884589
+  Sort 5000 elements:                               1123.7094325
+  Shuffle 5000 elements:                            1250.69714
+jruby:
+  Many math ops:                                    1.259
+  Without -> :                                      0.7795
+  Many math ops (lambda):                           0.903
+  Same as partials with composition:                1.6555
+  (ack 3 4)                                         2373.7315
+  lazy sequences                                    188.454
+  Sort 5000 elements:                               1767.841
+  Shuffle 5000 elements:                            1942.1085
+truffleruby
+  Many math ops:                                    3.2715
+  Without -> :                                      2.3735
+  Many math ops (lambda):                           2.4485
+  Same as partials with composition:                3.527
+  (ack 3 4)                                         3539.3155
+  lazy sequences                                    323.72400000000005
+  Sort 5000 elements:                               2212.497
+  Shuffle 5000 elements:                            2260.6495
 
-Tests with generic eq?:
-250.824882
 
-After making all important functions generic:
-370.53632
-
-Tests with v0.0.8 and jRuby support:
-Ruby: 370.876406
-jruby: 720.529
-Truffleruby: 1095.8115
-
-Frozen names:
-Ruby: 355.27617
-jruby: 1073.5075
-Truffleruby: 708.4105
-
-IDs as keys for generics:
-Ruby: 341.11100250000004
-
-Native foldr and foldl:
-Ruby: 273.103618
-jruby: 562.018
-Truffleruby: 827.8824999999999
-
-After adding new tests:
-Ruby: 302.417607
-jruby: 626.0905
-Truffleruby: 926.5335
-
-After adding anonymous arguments (v0.0.9):
-Ruby: 342.32527550000003
-
-After adding anonymous arguments and performance improvements:
-Ruby: 281.233253
-
-After adding lazy lists but without actually using them:
-Ruby: 233.50337
-
-After making most functions lazy and adding iterate:
-Ruby: 253.244277
-jruby: 598.5474999999999
-Truffleruby: 988.9205000000001
-
-After fixing (if lazy ...) and changing how compound functions are initialized (0.1.0):
-Ruby: 248.1495455
-jruby: 552.375
-Truffleruby: 961.738
-
-After adding random.lyra and more sorting functions (Including many tests):
-Ruby: 550.5251805
 )
 
