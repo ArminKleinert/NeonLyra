@@ -58,7 +58,7 @@ class Env
 
   def find(sym)
     v = safe_find(sym)
-    raise "Symbol not found: #{sym}" if NOT_FOUND_IN_LYRA_ENV == v
+    raise LyraError.new("Symbol not found: #{sym}") if NOT_FOUND_IN_LYRA_ENV == v
     v
   end
 

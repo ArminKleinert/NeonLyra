@@ -183,8 +183,8 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
 (define (pair x y) (make-pair x y))
 
 ; Implementations for the generic functions first and second
-(define ::pair first pair-x)
-(define ::pair second pair-y)
+(def-impl ::pair first pair-x)
+(def-impl ::pair second pair-y)
 ```
 
 ## Changelog
@@ -228,11 +228,14 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Performance improvement  
   - Lazy and infinite sequences  
   - Safer macro inlining  
-  - Optimized list concatenation
+  - Optimized list concatenation  
 - 0.1.1
   - Support for random numbers  
   - Added `->`, `->>` and `as->` from Clojure  
   - Infix operations in `infix.lyra`  
   - Simpler export from modules.  
-
+- 0.1.2
+  - Simple Repl  
+  - Fixed bugs with lazy evaluation.  
+  - Generic implementation definition is now done via. `def-impl`  
 

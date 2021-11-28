@@ -11,11 +11,11 @@ FuncMapEntry = Struct.new :fallback, :inner
 def find_fn(func_name, type_name)
   f = FUNC_MAP[func_name]
   if f.nil?
-    raise "Function not found: #{f}"
+    raise LyraError.new("Function not found: #{f}")
   else
     specific = f.inner[type_name]
     if specific.nil?
-      raise "No candidate on function #{f} with type #{type_name}." unless f.fallback
+      raise LyraError.new("No candidate on function #{f} with type #{type_name}.") unless f.fallback
       f.fallback
     else
       specific
@@ -35,7 +35,7 @@ end
 
 def def_generic_fn(func_name, fallback)
   entry = FuncMapEntry.new fallback, {}
-  raise "Function #{func_name} is already defined." if FUNC_MAP.include? func_name
+  raise LyraError.new("Function #{func_name} is already defined.") if FUNC_MAP.include? func_name
   FUNC_MAP[func_name] = entry
 end
 
@@ -83,7 +83,7 @@ def type_id_of(x)
   elsif x.is_a? TypeName
     TYPE_NAME_TYPE
   else
-    raise "No name for type #{x.class} for object #{elem_to_s(x)}"
+    raise LyraError.new("No name for type #{x.class} for object #{elem_to_s(x)}")
   end.type_id
 end
 
@@ -131,6 +131,7 @@ def eager(x)
   x.is_a?(Lazy) ? x.evaluate : x
 end
 
+  A = []
 # Sets up the core functions and variables. The functions defined here are
 # of the type NativeLyraFn instead of LyraFn. They can not make use of tail-
 # recursion and are supposed to be very simple.
@@ -139,15 +140,18 @@ def setup_core_functions
     fn = NativeLyraFn.new(name, min_args, max_args) do |args, _|
       body.call(*args.to_a)
     end
+    A << fn
     Env.global_env.set!(name, fn)
   end
 
   def add_fn_with_env(name, min_args, max_args = min_args, &body)
     fn = NativeLyraFn.new(name, min_args, max_args, &body)
+    A << fn
     Env.global_env.set!(name, fn)
   end
 
   def add_var(name, value)
+    A << name
     Env.global_env.set!(name, value)
   end
 
@@ -402,9 +406,6 @@ def setup_core_functions
     end
     median.call(res) }
 
-  # This is here to register it as a function and make it possible to remove it later.
-  add_fn(:quote, 1) { |_| raise "quote must not be called as a function." }
-
   add_fn(:ljust, 2) { |x, n| elem_to_s(x).ljust(n) }
 
   add_fn_with_env(:"apply-to", 2) { |xs, env| first(xs).call(second(xs).force, env) }
@@ -414,19 +415,15 @@ def setup_core_functions
     add_var t.to_sym, t
   end
 
-  def type_match?(x, t)
-    type_id_of(x) == t.type_id
-  end
-
-  add_fn(:"is-a?", 2) { |x, t| type_id_of(x) == t.type_id }
-
-  add_fn(:"error", 1) { |msg| raise msg }
-  
-  add_fn(:"debug-type",1){ |e| e.class.to_s }
+  add_fn(:"error", 1) { |msg| raise LyraError.new(msg) }
   
   add_fn("exit!", 2) { |message, code| $stderr.puts(message); exit(code) }
   
+  add_fn(:"debug-type",1){ |e| e.class.to_s }
+  
   add_fn(:"p", 0, -1) { |*xs| puts xs.map{|e|elem_to_s(e)} }
+  
+  add_fn(:"A",0) { A }
 
   true
 end

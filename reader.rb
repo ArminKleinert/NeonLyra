@@ -91,7 +91,7 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
       if t == "Nothing"
         t = nil
       elsif t.empty?
-        raise "Empty symbols are not allowed."
+        raise LyraError.new("Empty symbols are not allowed.")
       else
         t = t.to_sym
       end
@@ -103,7 +103,7 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
     end
     return root[0] if stop_after_1
   end
-  raise "Expected ')', got EOF" if level != 0
+  raise LyraError.new("Expected ')', got EOF") if level != 0
   list(*root)
 end
 

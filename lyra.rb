@@ -24,14 +24,23 @@ begin
     puts elem_to_s(eval_str(IO.read(f)))
   end
 
-  #print ">> "
-  #s = gets
-  #while s
-  #  puts elem_to_s(eval_str(s))
-  #  print ">> "
-  #  s = gets
-  #end
-  puts "Bye!"
+  if src_files.empty?
+    puts "Welcome to Lyra #{LYRA_VERSION}. \nPress ctrl+D to quit."
+    loop do
+      begin
+        print ">> "
+        s = gets
+        break unless s
+        puts elem_to_s(eval_str(s))
+      rescue LyraError
+        $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_s(x) }}"
+        $stderr.puts "Error: " + $!.message
+      rescue Interrupt
+        # Ignore
+      end
+    end
+    puts "Bye!"
+  end
 rescue SystemStackError
   $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_s(x) }}"
   raise

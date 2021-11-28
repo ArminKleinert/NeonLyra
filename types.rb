@@ -3,6 +3,9 @@
 
 require 'singleton'
 
+class LyraError < StandardError
+end
+
 module Lazy
 end
 
@@ -200,7 +203,7 @@ class List
     elsif tail.is_a? ConsList
       List.send :new, head, tail, tail.size + 1
     else
-      raise "Illegal cdr"
+      raise LyraError.new("Illegal cdr")
     end
   end
 
@@ -305,7 +308,7 @@ def cons(e, l)
   if l.is_a?(ConsList)
     List.create(e, l)
   else
-    raise "Tail must be a list or function."
+    raise LyraError.new("Tail must be a list or function.")
   end
 end
 
@@ -406,8 +409,8 @@ class CompoundFunc < LyraFn
   def call(args, env)
     # Check argument counts
     args_given = args.size
-    raise "#{@name}: Too few arguments. (Given #{args_given}, expected #{@arg_counts})" if args_given < arg_counts.first
-    raise "#{@name}: Too many arguments. (Given #{args_given}, expected #{@arg_counts})" if arg_counts.last >= 0 && args_given > arg_counts.last
+    raise LyraError.new("#{@name}: Too few arguments. (Given #{args_given}, expected #{@arg_counts})") if args_given < arg_counts.first
+    raise LyraError.new("#{@name}: Too many arguments. (Given #{args_given}, expected #{@arg_counts})") if arg_counts.last >= 0 && args_given > arg_counts.last
 
     begin
       env1 = Env.new(nil, @definition_env, env).set_multi!(@args_expr, args, true, @arg_counts.last < 0)
@@ -459,8 +462,8 @@ class NativeLyraFn < LyraFn
   def call(args, env)
     # Check argument counts
     args_given = args.size
-    raise "#{@name}: Too few arguments. (Given #{args_given}, expected #{@arg_counts})" if args_given < @arg_counts.first
-    raise "#{@name}: Too many arguments. (Given #{args_given}, expected #{@arg_counts})" if @arg_counts.last >= 0 && args_given > @arg_counts.last
+    raise LyraError.new("#{@name}: Too few arguments. (Given #{args_given}, expected #{@arg_counts})") if args_given < @arg_counts.first
+    raise LyraError.new("#{@name}: Too many arguments. (Given #{args_given}, expected #{@arg_counts})") if @arg_counts.last >= 0 && args_given > @arg_counts.last
 
     begin
       # Execute the body and return
