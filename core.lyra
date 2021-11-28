@@ -367,20 +367,15 @@
     Nothing
     (let ((c (eval! (first cases))))
       (cond
-        (= 1 (size cases))
-          c
-        (collection? c)
-          (if (contains? c e)
-            (second cases)
-            (%case e (rest cases)))
-        (function? c)
-          (if (c e)
-            (second cases)
-            (%case e (rest cases)))
-        else
-          (if (eq? c e)
-            (second cases)
-            (%case e (rest cases)))))))
+        (= 1 (size cases)) c
+        (collection? c) (if (contains? c e)
+                          (second cases)
+                          (%case e (rest cases)))
+        (function? c) (if (c e)
+                        (second cases)
+                        (%case e (rest cases)))
+        (eq? c e) (second cases)
+        else (%case e (rest cases))))))
 
 (def-macro (case e & cases)
   (%case (eval! e) cases))

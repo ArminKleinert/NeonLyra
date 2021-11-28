@@ -238,4 +238,5 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Simple Repl  
   - Fixed bugs with lazy evaluation.  
   - Generic implementation definition is now done via. `def-impl`  
+  - Simplified cond format  
 

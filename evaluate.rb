@@ -344,27 +344,11 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
     when :cond
       clauses = rest(expr)
       result = nil
-=begin
-      until clauses.empty?
-        clause = first(clauses)
-        unless clause.size == 2
-          raise LyraError.new("Syntax error: Clause in cond must have exactly 2 bindings.")
-        end
-        predicate = eval_ly(first(clause), env, force_eval)
-        if !force_eval && predicate.is_a?(LazyObj)
-          expr = LazyObj.new expr, env
-          result = eval_ly(expr,env)
-          break
-        elsif predicate
-          result = eval_ly(second(clause), env, force_eval)
-          break
-        end
-        clauses = rest(clauses)
-      end
-=end
-      until clauses.size <= 1
+      until clauses.size == 0
         p = eval_ly(first(clauses), env, force_eval)
-        if !force_eval && p.is_a?(LazyObj)
+        if clauses.size == 1
+          result = p
+        elsif !force_eval && p.is_a?(LazyObj)
           expr = LazyObj.new expr, env
           result = eval_ly(expr, env)
           break

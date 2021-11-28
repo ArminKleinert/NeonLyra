@@ -41,6 +41,9 @@
   (all-true?
     (= 3 (cond #f 0 #f 1 #f 2 #t 3))
     (cond #f 0 #f 1 #f 2 else #t)
+    (cond #t #t #t)
+    (cond #t)
+    (nothing? (cond))
     (cond #t #t else (crash!))))
 
 (define (test-if)
