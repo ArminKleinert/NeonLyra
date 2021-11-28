@@ -2272,7 +2272,7 @@
   'test-constantly 'test-case 'test-cycle
   ))
 
-(println! (run-tests))
+(println! (run-all-tests))
 )
 
 

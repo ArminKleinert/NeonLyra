@@ -247,20 +247,20 @@
 
 (define (%take-drop n st en)
   (if (or (= n 0) (empty? en))
-    (list (->list st) (->list en))
-    (%take-drop (dec n) (vector-add st (first en)) (rest en))))
+    (list (reverse (->list st)) (->list en))
+    (%take-drop (dec n) (cons (first en) st) (rest en))))
 (define (take-drop n xs)
-  (%take-drop n [] xs))
+  (%take-drop n '() xs))
   
 (define (%take-drop-until p st en)
   (if (or (empty? en) (p (first en)))
-    (list (->list st) (->list en))
-    (%take-drop-until p (vector-add st (first en)) (rest en))))
+    (list (reverse (->list st)) (->list en))
+    (%take-drop-until p (cons (first en) st) (rest en))))
 (define (take-drop-until p xs)
-  (%take-drop-until p [] xs))
+  (%take-drop-until p '() xs))
 
 (define (take-drop-while p xs)
-  (%take-drop-until (complement p) [] xs))
+  (%take-drop-until (complement p) '() xs))
 
 (define (take n xs)
   (cond (<= n 0) '()
