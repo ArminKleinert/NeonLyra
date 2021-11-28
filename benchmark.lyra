@@ -3,14 +3,14 @@
 ; xs = (n,m,...)
 ; xs = (m) if only 1 element remains
 (define (ack-h xs)
-  (cond ((= (size xs) 1) ; only result in list
-          (car xs)) ; m
-        ((= (car xs) 0) ; n is 0: (cons m-1 rest)
-          (ack-h (cons 1 (cons (dec (cadr xs)) (cddr xs)))))
-        ((= (cadr xs) 0) ; m is 0: (cons n+1 rest)
-          (ack-h (cons (inc (car xs)) (cddr xs))))
-        (else ; Default: (cons n-1 (cons m (cons m-1 rest)))
-          (ack-h (cons (dec (car xs)) (cons (cadr xs) (cons (dec (cadr xs)) (cddr xs))))))))
+  (cond (= (size xs) 1) ; only result in list
+          (car xs) ; m
+        (= (car xs) 0) ; n is 0: (cons m-1 rest)
+          (ack-h (cons 1 (cons (dec (cadr xs)) (cddr xs))))
+        (= (cadr xs) 0) ; m is 0: (cons n+1 rest)
+          (ack-h (cons (inc (car xs)) (cddr xs)))
+        else ; Default: (cons n-1 (cons m (cons m-1 rest)))
+          (ack-h (cons (dec (car xs)) (cons (cadr xs) (cons (dec (cadr xs)) (cddr xs)))))))
 
 (define (ack m n)
   (ack-h (list n m)))

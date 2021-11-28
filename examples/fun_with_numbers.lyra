@@ -12,9 +12,9 @@
 
 (define (fib-tr n)
   (let ((%fib-tr (lambda (n a b)
-          (cond ((= n 0) a)
-                ((= n 1) b)
-                (else (%fib-tr (dec n) b (+ a b)))))))
+          (cond (= n 0) a
+                (= n 1) b
+                else (%fib-tr (dec n) b (+ a b))))))
     (%fib-tr n 0 1)))
 
 (define (fact n)

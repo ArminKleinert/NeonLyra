@@ -344,6 +344,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
     when :cond
       clauses = rest(expr)
       result = nil
+=begin
       until clauses.empty?
         clause = first(clauses)
         unless clause.size == 2
@@ -359,6 +360,19 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
           break
         end
         clauses = rest(clauses)
+      end
+=end
+      until clauses.size <= 1
+        p = eval_ly(first(clauses), env, force_eval)
+        if !force_eval && p.is_a?(LazyObj)
+          expr = LazyObj.new expr, env
+          result = eval_ly(expr, env)
+          break
+        elsif p
+          result = eval_ly(second(clauses), env, force_eval)
+          break
+        end
+        clauses = rest(rest(clauses))
       end
       result
     when :lambda

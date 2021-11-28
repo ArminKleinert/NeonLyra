@@ -132,9 +132,9 @@
 (define (even? n) (= 0 (rem (->int n) 2)))
 
 (define (foldl1 f xs)
-  (cond ((empty? xs) Nothing)
-        ((= (size xs) 1) (first xs))
-        (else (foldl f (first xs) (rest xs)))))
+  (cond (empty? xs) Nothing
+        (= (size xs) 1) (first xs)
+        else (foldl f (first xs) (rest xs))))
 
 (define (foldl-indexed f s xs)
   ((lambda (f acc i xs)
@@ -144,9 +144,9 @@
     f s 0 xs))
 
 (define (foldr1 f xs)
-  (cond ((empty? xs) Nothing)
-        ((= (size xs) 1) (first xs))
-        (else (f (first xs) (foldr1 f (rest xs))))))
+  (cond (empty? xs) Nothing
+        (= (size xs) 1) (first xs)
+        else (f (first xs) (foldr1 f (rest xs)))))
 
 (define (%foldr-indexed f v i xs)
   (if (empty? xs)
@@ -216,17 +216,17 @@
   (foldr append '() (map f xs)))
 
 (define (filter p xs)
-  (cond ((empty? xs) '())
-        ((p (first xs)) (lazy-seq (first xs) (filter p (rest xs))))
-        (else (filter p (rest xs)))))
+  (cond (empty? xs) '()
+        (p (first xs)) (lazy-seq (first xs) (filter p (rest xs)))
+        else (filter p (rest xs))))
 
 (define (filterv p xs)
   (foldl (lambda (v x) (if (p x) (vector-add v x) v)) '() xs))
 
 (define (%filter-indexed p xs i)
-  (cond ((empty? xs) '())
-        ((p (first xs) i) (lazy-seq (first xs) (%filter-indexed p (rest xs) (inc i))))
-        (else (%filter-indexed p (rest xs) (inc i)))))
+  (cond (empty? xs) '()
+        (p (first xs) i) (lazy-seq (first xs) (%filter-indexed p (rest xs) (inc i)))
+        else (%filter-indexed p (rest xs) (inc i))))
 (define (filter-indexed p xs) (%filter-indexed p xs 0))
 
 (define (remove p xs) (filter (complement p) xs))
@@ -234,9 +234,9 @@
   (filter-indexed (lambda (x i) (not (p x i))) xs))
 
 (define (fmap f p xs)
-  (cond ((empty? xs) '())
-        ((p (first xs)) (lazy-seq (f (first xs)) (fmap f p (rest xs))))
-        (else (fmap f p (rest xs)))))
+  (cond (empty? xs) '()
+        (p (first xs)) (lazy-seq (f (first xs)) (fmap f p (rest xs)))
+        else (fmap f p (rest xs))))
 (define (mapf f p xs)
   (if (empty? xs)
     '()
@@ -263,30 +263,30 @@
   (%take-drop-until (complement p) [] xs))
 
 (define (take n xs)
-  (cond ((<= n 0) '())
-        ((empty? xs) '())
-        (else (cons (first xs) (take (- n 1) (rest xs))))))
+  (cond (<= n 0) '()
+        (empty? xs) '()
+        else (cons (first xs) (take (- n 1) (rest xs)))))
 (define (take-while p xs)
-  (cond ((empty? xs) '())
-        ((p (first xs)) (cons (first xs) (take-while p (rest xs))))
-        (else '())))
+  (cond (empty? xs) '()
+        (p (first xs)) (cons (first xs) (take-while p (rest xs)))
+        else '()))
 (define (take-until p xs)
-  (cond ((empty? xs) '())
-        ((p (first xs)) '())
-        (else (cons (first xs) (take-until p (rest xs))))))
+  (cond (empty? xs) '()
+        (p (first xs)) '()
+        else (cons (first xs) (take-until p (rest xs)))))
 
 (define (drop n xs)
-  (cond ((<= n 0) xs)
-        ((empty? xs) '())
-        (else (drop (- n 1) (rest xs)))))
+  (cond (<= n 0) xs
+        (empty? xs) '()
+        else (drop (- n 1) (rest xs))))
 (define (drop-while p xs)
-  (cond ((empty? xs) '())
-        ((p (first xs)) (drop-while p (rest xs)))
-        (else xs)))
+  (cond (empty? xs) '()
+        (p (first xs)) (drop-while p (rest xs))
+        else xs))
 (define (drop-until p xs)
-  (cond ((empty? xs) '())
-        ((p (first xs)) xs)
-        (else (drop-until p (rest xs)))))
+  (cond (empty? xs) '()
+        (p (first xs)) xs
+        else (drop-until p (rest xs))))
 
 (define (subseq start length xs)
   (take length (drop start xs)))
@@ -301,9 +301,9 @@
 (define (none? p xs)
   (empty? (drop-until p xs)))
 (define (any? p xs)
-  (cond ((empty? xs) #f)
-        ((p (first xs)) #t)
-        (else (any? p (rest xs)))))
+  (cond (empty? xs) #f
+        (p (first xs)) #t
+        else (any? p (rest xs))))
 
 (define (zip-with f l0 l1)
   (if (or (empty? l0) (empty? l1))
@@ -367,20 +367,20 @@
     Nothing
     (let ((c (eval! (first cases))))
       (cond
-        ((= 1 (size cases))
-          c)
-        ((collection? c)
+        (= 1 (size cases))
+          c
+        (collection? c)
           (if (contains? c e)
             (second cases)
-            (%case e (rest cases))))
-        ((function? c)
+            (%case e (rest cases)))
+        (function? c)
           (if (c e)
             (second cases)
-            (%case e (rest cases))))
-        (else
+            (%case e (rest cases)))
+        else
           (if (eq? c e)
             (second cases)
-            (%case e (rest cases))))))))
+            (%case e (rest cases)))))))
 
 (def-macro (case e & cases)
   (%case (eval! e) cases))

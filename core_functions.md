@@ -343,7 +343,7 @@ as->                 | >=2 |  x  |  x  |     | As in Clojure.
 case                 | >=1 |  x  |  x  |     | Similar to switch case.
                      |     |     |     |     | Syntax: (case e c0 r0 c1 r1 ... cn rn default)
                      |     |     |     |     | (case 1) ;=> Nothing
-                     |     |     |     |     | (case 1 #f) ;=> #f
+                     |     |     |     |     | (case 1 #f) ;=> #f ; Default
                      |     |     |     |     | (case 1 1 #t #f) ;=> #t ; Normal matching.
                      |     |     |     |     | (case 1 '(1) #t #f) ;=> #t ; membership in collections is tested too.
                      |     |     |     |     | (case 1 (partial = 1) #t #f) ;=> #t ; Functions for matching.
@@ -462,7 +462,7 @@ Name        | File              |
 ------------+-------------------+-------------------------------------------------------------------
 #t          | core.rb           | Boolean true
 #f          | core.rb           | Boolean false
-else        | core.lyra         | alias for #t (for use in cond expressions)
+else        | core.lyra         | Alias for #t (for use in cond expressions)
 Nothing     | core.rb           | The non-object
 ::nothing   | core.rb           | Type name for the Nothing object.
 ::bool      | core.rb           | Type name for #t and #f.

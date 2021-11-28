@@ -14,8 +14,8 @@
 
 (define (bubble-sort-aux n xs)    
   (let ((xs (->list xs)))
-    (cond ((= n 1) (bubble-up xs))   
-          (else (bubble-sort-aux (- n 1) (bubble-up xs))))))
+    (cond (= n 1) (bubble-up xs)
+          else (bubble-sort-aux (- n 1) (bubble-up xs)))))
 
 (define (bubblesort xs)
   (if (or (empty? xs) (= 1 (size xs)))
@@ -23,14 +23,14 @@
     (bubble-sort-aux (size xs) (->list xs))))
 
 (define (merge xs ys)
-  (cond ((empty? xs) ys)
-        ((empty? ys) xs)
-        ((<= (car xs) (car ys)) (cons (car xs) (merge (cdr xs) ys)))
-        (else (cons (car ys) (merge xs (cdr ys))))))
+  (cond (empty? xs) ys
+        (empty? ys) xs
+        (<= (car xs) (car ys)) (cons (car xs) (merge (cdr xs) ys))
+        else (cons (car ys) (merge xs (cdr ys)))))
 
 (define (merge-lists xss)
-  (cond ((< (size xss) 2) xss)
-        (else (merge-lists (cons (merge (car xss) (cadr xss)) (cddr xss))))))
+  (cond (< (size xss) 2) xss
+        else (merge-lists (cons (merge (car xss) (cadr xss)) (cddr xss)))))
 
 ; (map-eager list xs) puts every element into its own list.
 (define (mergesort xs)
@@ -38,14 +38,14 @@
 
 
 (define (merge-w-c c xs ys)
-  (cond ((empty? xs) ys)
-        ((empty? ys) xs)
-        ((< (c (car xs) (car ys)) 1) (cons (car xs) (merge-w-c c (cdr xs) ys)))
-        (else (cons (car ys) (merge-w-c c xs (cdr ys))))))
+  (cond (empty? xs) ys
+        (empty? ys) xs
+        (< (c (car xs) (car ys)) 1) (cons (car xs) (merge-w-c c (cdr xs) ys))
+        else (cons (car ys) (merge-w-c c xs (cdr ys)))))
 
 (define (merge-lists-w-c c xss)
-  (cond ((< (size xss) 2) xss)
-        (else (merge-lists-w-c c (cons (merge-w-c c (car xss) (cadr xss)) (cddr xss))))))
+  (cond (< (size xss) 2) xss
+        else (merge-lists-w-c c (cons (merge-w-c c (car xss) (cadr xss)) (cddr xss)))))
 
 (define (mergesort-with-comparator c xs)
   (car (merge-lists-w-c c (map-eager list xs))))

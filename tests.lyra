@@ -39,9 +39,9 @@
 
 (define (test-cond)
   (all-true?
-    (= 3 (cond (#f 0) (#f 1) (#f 2) (#t 3)))
-    (cond (#f 0) (#f 1) (#f 2) (else #t))
-    (cond (#t #t) (else (crash!)))))
+    (= 3 (cond #f 0 #f 1 #f 2 #t 3))
+    (cond #f 0 #f 1 #f 2 else #t)
+    (cond #t #t else (crash!))))
 
 (define (test-if)
   (all-true?
@@ -2197,12 +2197,12 @@
             (lambda (res f)
               (let ((r (f)))
                 (cond
-                  ((= r 'TODO)
-                    (list (car res) (cadr res) (cons f (caddr res))))
-                  (r
-                    (list (cons f (car res)) (cadr res) (caddr res)))
-                  (else
-                    (list (car res) (cons f (cadr res)) (caddr res))))))
+                  (= r 'TODO)
+                    (list (car res) (cadr res) (cons f (caddr res)))
+                  r
+                    (list (cons f (car res)) (cadr res) (caddr res))
+                  else
+                    (list (car res) (cons f (cadr res)) (caddr res)))))
             '(() () ())
             fns)))
     (string-concat

@@ -20,10 +20,10 @@
         (else (find key (r tree)))))
 
 (define (set key val tree)
-  (cond ((nothing? tree) (make-tree Nothing key val Nothing))
-        ((= (k tree) key) (make-tree Nothing key val Nothing))
-        ((< (k tree) key) (make-tree (l tree) (k tree) (v tree) (set key val (r tree))))
-        (else (make-tree (set key val (l tree)) (k tree) (v tree) (r tree)))))
+  (cond (nothing? tree) (make-tree Nothing key val Nothing)
+        (= (k tree) key) (make-tree Nothing key val Nothing)
+        (< (k tree) key) (make-tree (l tree) (k tree) (v tree) (set key val (r tree)))
+        else (make-tree (set key val (l tree)) (k tree) (v tree) (r tree))))
 
 (define (empty-tree)
   Nothing)
