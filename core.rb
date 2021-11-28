@@ -180,7 +180,7 @@ def setup_core_functions
   add_fn(:"bit-shr", 2) { |x, y| x >> y }
 
   gen_sym_counter = 0
-  add_fn(:gensym, 0) { "gen_sym_#{LYRA_VERSION}_#{gen_sym_counter += 1}".to_sym }
+  add_fn(:gensym, 1) { |x| "gen_sym_#{x}_#{gen_sym_counter += 1}".to_sym }
   add_fn(:seq, 1) { |x| (!x.is_a?(Enumerable) || x.empty?) ? nil : x.to_cons_list }
 
   add_fn(:"always-true", 0, -1) { |*_| true }

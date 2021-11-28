@@ -67,7 +67,9 @@ class Env
   end
 
   def set!(sym, val)
-    @inner[sym] = val
+    if sym != :"_" # Ignore the _ symbol.
+      @inner[sym] = val
+    end
     self
   end
 

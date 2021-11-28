@@ -293,6 +293,11 @@ def ev_lambda(args_expr, body_expr, definition_env, is_macro = false)
   unless arg_arr.all? { |x| x.is_a? Symbol }
     raise LyraError.new("Syntax error: Arguments for lambda must be symbols.")
   end
+  
+  a = arg_arr.reject{|a| a==:"_"}
+  unless a.uniq.size == a.size
+    raise LyraError.new("Syntax error: Non-unique argument names in lambda expression.")
+  end
 
   # Check for variadic arguments.
   # The arguments of a function are variadic if the second to last

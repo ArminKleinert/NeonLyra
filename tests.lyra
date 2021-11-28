@@ -79,14 +79,14 @@
 
 (define (test-gensym)
   (all-true?
-    (/= (gensym) (gensym))
-    (/= (gensym) (gensym))
-    (/= (gensym) (gensym))
-    (/= (gensym) (gensym))
-    (/= (gensym) (gensym))
-    (/= (gensym) (gensym))
-    (/= (gensym) (gensym))
-    (symbol? (gensym))))
+    (/= (gensym 'x) (gensym 'x))
+    (/= (gensym 'x) (gensym 'x))
+    (/= (gensym 'x) (gensym 'x))
+    (/= (gensym 'x) (gensym 'x))
+    (/= (gensym 'x) (gensym 'x))
+    (/= (gensym 'x) (gensym 'x))
+    (/= (gensym 'x) (gensym 'x))
+    (symbol? (gensym 'x))))
 
 (define (test-seq)
   (all-true?
@@ -1716,8 +1716,8 @@
 (define (test-repeatedly)
   (let ((b (box 0)))
     (all-true?
-      (list? (repeatedly gensym))
-      (not (empty? (repeatedly gensym)))
+      (list? (repeatedly (partial gensym 'x)))
+      (not (empty? (repeatedly (partial gensym 'x))))
       (= 2 (size (take 2 (repeatedly nothing))))
       (all? nothing? (take 2 (repeatedly nothing)))
       (eq? '(1 2 3 4 5) (take 5 (repeatedly (lambda () (box-set! b (inc @b)) @b))))
