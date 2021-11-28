@@ -51,7 +51,7 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 ## Some friendly infos about the syntax 
 
 - `(...)` is used for function calls.  
-- `'expr` quotes an expression and is equivalent to (quote expr)  
+- `'expr` quotes an expression and is equivalent to `(quote expr)`  
 - `[...]` creates a vector. It is not fully the same as `(vector ...)`, but gives the same value.  
 - `'()` is the empty list. (`()` is also valid, but discouraged)  
 - `let` is the parallel let expression.  

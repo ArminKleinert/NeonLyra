@@ -131,7 +131,6 @@ def eager(x)
   x.is_a?(Lazy) ? x.evaluate : x
 end
 
-  A = []
 # Sets up the core functions and variables. The functions defined here are
 # of the type NativeLyraFn instead of LyraFn. They can not make use of tail-
 # recursion and are supposed to be very simple.
@@ -140,18 +139,15 @@ def setup_core_functions
     fn = NativeLyraFn.new(name, min_args, max_args) do |args, _|
       body.call(*args.to_a)
     end
-    A << fn
     Env.global_env.set!(name, fn)
   end
 
   def add_fn_with_env(name, min_args, max_args = min_args, &body)
     fn = NativeLyraFn.new(name, min_args, max_args, &body)
-    A << fn
     Env.global_env.set!(name, fn)
   end
 
   def add_var(name, value)
-    A << name
     Env.global_env.set!(name, value)
   end
 
@@ -422,8 +418,6 @@ def setup_core_functions
   add_fn(:"debug-type",1){ |e| e.class.to_s }
   
   add_fn(:"p", 0, -1) { |*xs| puts xs.map{|e|elem_to_s(e)} }
-  
-  add_fn(:"A",0) { A }
 
   true
 end
