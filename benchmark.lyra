@@ -18,7 +18,7 @@
 (def-macro (test-performance text expr)
   (list 'println! (list 'string-concat (list 'ljust  text 50) (list '->string (list 'measure! 'runs (list 'lambda () expr))))))
 
-(let ((runs 5)
+(let ((runs 50)
       (r (range 0 100)))
       
 
@@ -77,6 +77,33 @@ truffleruby
   Sort 5000 elements:                               2212.497
   Shuffle 5000 elements:                            2260.6495
 
-
+0.1.2
+Ruby:
+  Many math ops:                                    0.159796
+  Without -> :                                      0.161885
+  Many math ops (lambda):                           0.1703845
+  Same as partials with composition:                0.36569799999999997
+  (ack 3 4)                                         1281.8762375000001
+  lazy sequences                                    89.671997
+  Sort 5000 elements:                               1119.8436295000001
+  Shuffle 5000 elements:                            1244.8593765
+jruby:
+  Many math ops:                                    3.9115
+  Without -> :                                      1.6685
+  Many math ops (lambda):                           1.3825
+  Same as partials with composition:                3.3415
+  (ack 3 4)                                         2334.4045
+  lazy sequences                                    184.19299999999998
+  Sort 5000 elements:                               1664.8805
+  Shuffle 5000 elements:                            1873.5955000000004
+truffleruby
+  Many math ops:                                    2.731
+  Without -> :                                      1.9755
+  Many math ops (lambda):                           1.5955
+  Same as partials with composition:                3.1155
+  (ack 3 4)                                         3507.0519999999997
+  lazy sequences                                    321.69000000000005
+  Sort 5000 elements:                               2127.54
+  Shuffle 5000 elements:                            2199.5555
 )
 

@@ -6,8 +6,6 @@ NOT_FOUND_IN_LYRA_ENV = BasicObject.new
 Boxed = Struct.new :val
 GLOBAL_ENV = Boxed.new nil
 
-ALLOW_DUPLICATES = Boxed.new false
-
 class Env
 
   attr_reader :module_name, :next_module_env
@@ -80,6 +78,7 @@ class Env
   end
 
   ANONYMOUS_ARG_NAMES = Array.new(16){|i| :"%#{i}"}.freeze
+  ANONYMOUS_ARG_REST = :"%?"
 
   def set_multi!(keys, values, anonymous_keys, varargs)
     anon_count = 1
@@ -89,12 +88,21 @@ class Env
       else
         set! keys.car, values.car
       end
-      if anonymous_keys && anon_count<17
-        set! ANONYMOUS_ARG_NAMES[anon_count], values.car
-        anon_count += 1
+=begin
+      if anonymous_keys
+        if anon_count <= 15
+          set! ANONYMOUS_ARG_NAMES[anon_count], values.car
+          anon_count += 1
+        elsif anon_count == 16
+          set! ANONYMOUS_ARG_REST, values
+          anon_count += 1
+        end
       end
+=end
       keys = keys.cdr
       values = values.cdr
+    end
+    if anonymous_keys
     end
     self
   end
