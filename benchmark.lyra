@@ -18,7 +18,7 @@
 (def-macro (test-performance text expr)
   (list 'println! (list 'string-concat (list 'ljust  text 50) (list '->string (list 'measure! 'runs (list 'lambda () expr))))))
 
-(let ((runs 50)
+(let ((runs 5)
       (r (range 0 100)))
       
 

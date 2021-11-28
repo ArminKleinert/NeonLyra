@@ -1501,19 +1501,6 @@
     (eq? '((5) (2 3) (6)) (split-by (lambda (x) (< x 2)) '(5 0 2 3 1 6)))
     (eq? '((5) (2 3) (6)) (split-by (lambda (x) (< x 2)) [5 0 2 3 1 6]))))
 
-(define (test-but-last)
-  (all-true?
-    (empty? (but-last '()))
-    (empty? (but-last []))
-    (eq? '(1) (but-last '(1 2)))
-    (eq? [1] (but-last [1 2]))
-    (eq? '(1 1 1) (but-last '(1 1 1 1)))
-    (eq? [1 1 1] (but-last [1 1 1 1]))
-    (eq? '(1 1 2 1) (but-last '(1 1 2 1 1)))
-    (eq? [1 1 2 1] (but-last [1 1 2 1 1]))
-    (eq? '(99 2 1) (but-last '(99 2 1 1)))
-    (eq? [99 2 1] (but-last [99 2 1 1]))))
-
 (define (test-map)
   (all-true?
     (eq? (list) (map ->string (list)))

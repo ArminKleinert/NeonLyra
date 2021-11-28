@@ -6,6 +6,8 @@ NOT_FOUND_IN_LYRA_ENV = BasicObject.new
 Boxed = Struct.new :val
 GLOBAL_ENV = Boxed.new nil
 
+ALLOW_DUPLICATES = Boxed.new false
+
 class Env
 
   attr_reader :module_name, :next_module_env
@@ -68,7 +70,11 @@ class Env
 
   def set!(sym, val)
     if sym != :"_" # Ignore the _ symbol.
-      @inner[sym] = val
+      if @inner.include? sym
+        raise LyraError.new("Symbol already defined: #{sym}")
+      elsif
+        @inner[sym] = val
+      end
     end
     self
   end

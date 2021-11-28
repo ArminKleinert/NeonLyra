@@ -230,7 +230,6 @@ def setup_core_functions
   add_fn(:hash, 1) { |x| x.hash }
   #add_fn(:"eq?", 2) { |x, y| lyra_eq?(x, y) }
 
-  add_fn(:symbol, 1) { |x| x.respond_to?(:to_sym) ? x.to_sym : nil }
   add_fn(:"buildin->symbol", 1) { |x| x.respond_to?(:to_sym) ? x.to_sym : nil }
   add_fn(:"buildin->int", 1) { |x|
     begin
