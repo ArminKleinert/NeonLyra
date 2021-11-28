@@ -10,7 +10,8 @@
   (reduce foldl)
   (true #t)
   (false #f)
-  (nil Nothing))
+  (nil Nothing)
+  nthrest nthnext next fnext ffirst nnext)
 
   (def-macro (when p & body)
     (list 'if p (cons 'begin (cons Nothing body)) (nothing)))
@@ -23,5 +24,12 @@
 
   (def-macro (fn bindings & body)
     (cons 'lambda (cons (->list bindings) body)))
-
+  
+  (define (nthrest xs i) (drop i xs))
+  (define (nthnext xs i) (let ((r (nthrest xs i))) (if (empty? r) Nothing r)))
+  (define (next xs) (let ((r (rest xs))) (if (empty? r) Nothing r)))
+  (define (fnext xs) (first (next xs)))
+  (define (ffirst xs) (first (first xs)))
+  (define (nnext xs) (next (next xs)))
+  (define (nfirst xs) (next (first xs)))
 )

@@ -346,8 +346,12 @@ case                 | >=1 |  x  |  x  |     | Similar to switch case.
                      |     |     |     |     | (case 1) ;=> Nothing
                      |     |     |     |     | (case 1 #f) ;=> #f ; Default
                      |     |     |     |     | (case 1 1 #t #f) ;=> #t ; Normal matching.
-                     |     |     |     |     | (case 1 '(1) #t #f) ;=> #t ; membership in collections is tested too.
-                     |     |     |     |     | (case 1 (partial = 1) #t #f) ;=> #t ; Functions for matching.
+                     |     |     |     |     | (case 1 '(1) #t #f) ;=> #t ; membership in collections.
+                     |     |     |     |     | (case 1 (partial = 1) #t #f) ;=> #t ; Function for matching.
+case-lambda          | >=0 |  x  |  x  |     | Creates a lambda which can accept different numbers
+                     |     |     |     |     | of arguments.
+                     |     |     |     |     | (let ((l (case-lambda ((x)x) ((x y)y) (xs(car xs)))))
+                     |     |     |     |     |   (list (l 9) (l 0 1) (l 2 3 4))) ;=> (9 1 2)
 ```
 
 ### File: core/aliases.lyra
@@ -387,6 +391,13 @@ slurp!               | 1   |     |  x  |     | Alias for file-read!
 spit!                | 2   |     |  x  |     | Alias for file-write!
 count                | 1   |  x  |  x  |     | Alias for size.
 reduce               | 3   |  x  |  x  |     | Alias for foldl.
+nthrest              | 2   |  x  |  x  |     | Alias for drop but the arguments are reversed.
+nthnext              | 2   |  x  |  x  |     | Like nthrest but returns Nothing if the rest is empty.
+next                 | 1   |  x  |  x  |     | Like rest but returns Nothing if the rest is empty.
+ffirst               | 1   |  x  |  x  |     | Same as (first (first ..))
+fnext                | 1   |  x  |  x  |     | Same as (first (next ..))
+nnext                | 1   |  x  |  x  |     | Same as (next (next ..))
+nfirst               | 1   |  x  |  x  |     | Same as (next (first ..))
 ```
 
 ### File: core/random.lyra

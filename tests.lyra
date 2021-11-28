@@ -2188,6 +2188,19 @@
     (eq? '(1 2 1 2 1) (take 5 (cycle '(1 2))))
     (eq? '(1 2 3 1 2) (take 5 (cycle '(1 2 3))))))
 
+(define (test-case-lambda)
+  (let ((l (case-lambda
+            (() 0)
+            ((x) x)
+            ((x y) y)
+            (z (cadr z)))))
+    (all-true?
+      (= 0 (l))
+      (= 4 (l 4))
+      (= 4 (l 0 4))
+      (eq? '(4 4 4) (l 4 4 4)))
+    ))
+
 (define (run-tests & fns)
   (let ((results
           (foldl
