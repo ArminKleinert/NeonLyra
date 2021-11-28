@@ -417,7 +417,7 @@ def setup_core_functions
 
   add_fn(:"error", 1) { |msg| raise LyraError.new(msg) }
   
-  add_fn("exit!", 2) { |message, code| $stderr.puts(message); exit(code) }
+  add_fn(:"exit!", 1){ |s| exit(s) }
   
   add_fn(:"debug-type",1){ |e| e.class.to_s }
   
