@@ -313,6 +313,11 @@ v*                   | >=1 |  x  |  x  |     | Variadic *
 v/                   | >=1 |  x  |  x  |     | Variadic /
 v%                   | >=1 |  x  |  x  |     | Variadic rem
                      |     |     |     |     | 
+divmod               | 2   |  x  |  x  |     | (divmod x y) => (list (/ x y) (rem x y))
+                     |     |     |     |     | 
+constantly           | 2   |  x  |  x  |     | Fills a list with a given element.
+                     |     |     |     |     | (constantly 9 '(1 2 3)) => (9 9 9)
+                     |     |     |     |     | 
 reverse              | 1   |  x  |  x  |     | Reverse a list.
 sum                  | 1   |  x  |  x  |     | Sums the elements of a list. (0 if the list is empty)
 product              | 1   |  x  |  x  |     | Calculate the product of a list. (1 if empty)
@@ -334,6 +339,14 @@ fact-seq             |     |     |     |     | An infinite list of the factorial
 ->                   | >=1 |  x  |  x  |     | As in Clojure.
 ->>                  | >=1 |  x  |  x  |     | As in Clojure.
 as->                 | >=2 |  x  |  x  |     | As in Clojure.
+                     |     |     |     |     | 
+case                 | >=1 |  x  |  x  |     | Similar to switch case.
+                     |     |     |     |     | Syntax: (case e c0 r0 c1 r1 ... cn rn default)
+                     |     |     |     |     | (case 1) ;=> Nothing
+                     |     |     |     |     | (case 1 #f) ;=> #f
+                     |     |     |     |     | (case 1 1 #t #f) ;=> #t ; Normal matching.
+                     |     |     |     |     | (case 1 '(1) #t #f) ;=> #t ; membership in collections is tested too.
+                     |     |     |     |     | (case 1 (partial = 1) #t #f) ;=> #t ; Functions for matching.
 ```
 
 ### File: core/aliases.lyra

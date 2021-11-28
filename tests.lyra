@@ -554,7 +554,7 @@
     (collection? (set-of))
     (collection? (set-of 1))
     (collection? (map-of))
-    (collection? (map-of [1 2]))))
+    (collection? (map-of 1 2))))
 
 (define (test-sequence?)
   (all-true?
@@ -575,7 +575,7 @@
     (not (sequence? (set-of)))
     (not (sequence? (set-of 1)))
     (not (sequence? (map-of)))
-    (not (sequence? (map-of [1 2])))))
+    (not (sequence? (map-of 1 2)))))
 
 (define (test-list?)
   (all-true?
@@ -596,7 +596,7 @@
     (not (list? (set-of)))
     (not (list? (set-of 1)))
     (not (list? (map-of)))
-    (not (list? (map-of [1 2])))))
+    (not (list? (map-of 1 2)))))
 
 (define (test-vector?)
   (all-true?
@@ -617,7 +617,7 @@
     (not (vector? (set-of)))
     (not (vector? (set-of 1)))
     (not (vector? (map-of)))
-    (not (vector? (map-of [1 2])))))
+    (not (vector? (map-of 1 2)))))
 
 (define (test-int?)
   (all-true?
@@ -638,7 +638,7 @@
     (not (int? (set-of)))
     (not (int? (set-of 1)))
     (not (int? (map-of)))
-    (not (int? (map-of [1 2])))))
+    (not (int? (map-of 1 2)))))
 
 (define (test-float?)
   (all-true?
@@ -659,7 +659,7 @@
     (not (float? (set-of)))
     (not (float? (set-of 1)))
     (not (float? (map-of)))
-    (not (float? (map-of [1 2])))))
+    (not (float? (map-of 1 2)))))
 
 (define (test-string?)
   (all-true?
@@ -681,7 +681,7 @@
     (not (string? (set-of)))
     (not (string? (set-of 1)))
     (not (string? (map-of)))
-    (not (string? (map-of [1 2])))))
+    (not (string? (map-of 1 2)))))
 
 (define (test-symbol?)
   (all-true?
@@ -702,7 +702,7 @@
     (not (symbol? (set-of)))
     (not (symbol? (set-of 1)))
     (not (symbol? (map-of)))
-    (not (symbol? (map-of [1 2])))))
+    (not (symbol? (map-of 1 2)))))
 
 (define (test-char?)
   (all-true?
@@ -724,7 +724,7 @@
     (not (char? (set-of)))
     (not (char? (set-of 1)))
     (not (char? (map-of)))
-    (not (char? (map-of [1 2])))))
+    (not (char? (map-of 1 2)))))
 
 (define (test-boolean?)
   (all-true?
@@ -746,7 +746,7 @@
     (not (boolean? (set-of)))
     (not (boolean? (set-of 1)))
     (not (boolean? (map-of)))
-    (not (boolean? (map-of [1 2])))))
+    (not (boolean? (map-of 1 2)))))
 
 (define (test-map?)
   (all-true?
@@ -768,7 +768,7 @@
     (not (map? (set-of)))
     (not (map? (set-of 1)))
     (map? (map-of))
-    (map? (map-of [1 2]))))
+    (map? (map-of 1 2))))
 
 (define (test-set?)
   (all-true?
@@ -790,7 +790,7 @@
     (set? (set-of))
     (set? (set-of 1))
     (not (set? (map-of)))
-    (not (set? (map-of [1 2])))))
+    (not (set? (map-of 1 2)))))
 
 (define (test-empty?)
   (all-true?
@@ -812,7 +812,7 @@
     (empty? (set-of))
     (not (empty? (set-of 1)))
     (empty? (map-of))
-    (not (empty? (map-of [1 2])))))
+    (not (empty? (map-of 1 2)))))
 
 (define (test-compose)
   (all-true?
@@ -948,8 +948,8 @@
   (all-true?
     (nothing? (->map 1))
     (empty? (->map '()))
-    (eq? (map-of [1 2] [3 1]) (->map '(1 2 3 1)))
-    (eq? (map-of [1 2] [3 1]) (->map [1 2 3 1]))))
+    (eq? (map-of 1 2 3 1) (->map '(1 2 3 1)))
+    (eq? (map-of 1 2 3 1) (->map [1 2 3 1]))))
 
 (define (test-->set)
   (all-true?
@@ -1086,54 +1086,54 @@
   (all-true?
     (empty? (map-of))
     (map? (map-of))
-    (eq? (map-keys (map-of [1 2] [3 4] [5 6]))
-         (map-keys (map-of [1 2] [3 4] [5 6])))
-    (eq? (map-of [1 2] [3 4] [5 6])
-         (map-of [5 6] [3 4] [1 2]))))
+    (eq? (map-keys (map-of 1 2 3 4 5 6))
+         (map-keys (map-of 1 2 3 4 5 6)))
+    (eq? (map-of 1 2 3 4 5 6)
+         (map-of 5 6 3 4 1 2))))
 
 (define (test-map-size)
   (all-true?
     (= 0 (size (map-of)))
-    (= 1 (size (map-of [1 2])))
-    (= 2 (size (map-of [1 2] [3 4])))
-    (= 3 (size (map-of [1 2] [3 4] [5 6])))))
+    (= 1 (size (map-of 1 2)))
+    (= 2 (size (map-of 1 2 3 4)))
+    (= 3 (size (map-of 1 2 3 4 5 6)))))
 
 (define (test-map-get)
   (all-true?
     (nothing? (map-get (map-of) 1))
-    (nothing? (map-get (map-of [55 2]) 1))
-    (= 2 (map-get (map-of [1 2]) 1))
-    (= 4 (map-get (map-of [1 2] [3 4]) 3))
-    (= 2 (map-get (map-of [1 2] [3 4] [5 6]) 1))))
+    (nothing? (map-get (map-of 55 2) 1))
+    (= 2 (map-get (map-of 1 2) 1))
+    (= 4 (map-get (map-of 1 2 3 4) 3))
+    (= 2 (map-get (map-of 1 2 3 4 5 6) 1))))
 
 (define (test-map-set)
   (all-true?
-    (eq? (map-of [1 2]) (map-set (map-of) 1 2))
-    (eq? (map-of [1 3]) (map-set (map-of [1 2]) 1 3))
-    (eq? (map-of [1 3] [13 2]) (map-set (map-of [13 2]) 1 3))
-    (eq? (map-of [1 3] [13 2]) (map-set (map-of [1 3] [13 2]) 1 3))))
+    (eq? (map-of 1 2) (map-set (map-of) 1 2))
+    (eq? (map-of 1 3) (map-set (map-of 1 2) 1 3))
+    (eq? (map-of 1 3 13 2) (map-set (map-of 13 2) 1 3))
+    (eq? (map-of 1 3 13 2) (map-set (map-of 1 3 13 2) 1 3))))
 
 (define (test-map-remove)
   (all-true?
     (eq? (map-of) (map-remove (map-of) 1))
-    (eq? (map-of) (map-remove (map-of [1 2]) 1))
-    (eq? (map-of [13 2]) (map-remove (map-of [13 2]) 1))
-    (eq? (map-of [13 2]) (map-remove (map-of [1 3] [13 2]) 1))))
+    (eq? (map-of) (map-remove (map-of 1 2) 1))
+    (eq? (map-of 13 2) (map-remove (map-of 13 2) 1))
+    (eq? (map-of 13 2) (map-remove (map-of 1 3 13 2) 1))))
 
 (define (test-map-keys)
   (all-true?
-    (eq? (map-keys (map-of [1 2] [3 4] [5 6]))
-         (map-keys (map-of [1 2] [3 4] [5 6])))
-    (= (size (map-of [1 2] [3 4] [5 6] [7 8]))
-       (size (map-keys (map-of [1 2] [3 4] [5 6] [7 8]))))))
+    (eq? (map-keys (map-of 1 2 3 4 5 6))
+         (map-keys (map-of 1 2 3 4 5 6)))
+    (= (size (map-of 1 2 3 4 5 6 7 8))
+       (size (map-keys (map-of 1 2 3 4 5 6 7 8))))))
 
 (define (test-map-merge)
   (all-true?
-    (eq? (map-of [1 2]) (map-merge (map-of) (map-of [1 2])))
+    (eq? (map-of 1 2) (map-merge (map-of) (map-of 1 2)))
     (eq? (map-of) (map-merge (map-of) (map-of)))
-    (eq? (map-of [1 2]) (map-merge (map-of [1 15]) (map-of [1 2])))
-    (eq? (map-of [2 3] [1 2]) (map-merge (map-of [1 2]) (map-of [2 3])))
-    (eq? (map-of [2 3] [1 2]) (map-merge (map-of [2 3]) (map-of [1 2])))))
+    (eq? (map-of 1 2) (map-merge (map-of 1 15) (map-of 1 2)))
+    (eq? (map-of 2 3 1 2) (map-merge (map-of 1 2) (map-of 2 3)))
+    (eq? (map-of 2 3 1 2) (map-merge (map-of 2 3) (map-of 1 2)))))
 
 (define (test-set-of)
   (all-true?
@@ -1257,7 +1257,7 @@
     (= 2 (size '(1 2)))
     (= 2 (size [1 2]))
     (= 2 (size (set-of 1 2)))
-    (= 2 (size (map-of [1 2] [2 3])))))
+    (= 2 (size (map-of 1 2 2 3)))))
 
 (define (test-indices-of)
   (all-true?
@@ -2159,6 +2159,38 @@
     (= '(1 2 3) (flatten1 '((1) [2 3])))
     (= '(1 [2 3]) (flatten1 '((1) ([2 3]))))))
 
+(define (test-divmod)
+  (all-true?
+    (= '(4 0) (divmod 20 5))
+    (= '(0 3) (divmod 3 5))
+    (= '(4.0 0) (divmod 20 5.0))
+    (= '(0.6 3.0) (divmod 3 5.0))
+    (= '(4.0 0) (divmod 20.0 5))
+    (= '(0.6 3.0) (divmod 3.0 5))
+    (= '(4.0 0) (divmod 20.0 5.0))
+    (= '(0.6 3.0) (divmod 3.0 5.0))))
+
+(define (test-constantly)
+  (all-true?
+    (= '() (constantly '() '()))
+    (= '(1 1 1) (constantly 1 '(range 0 2)))
+    (= '() (constantly '() [])))
+    (= '(1 1 1) (constantly 1 [0 1 2])))
+
+(define (test-case)
+  (all-true?
+    (nothing? (case 1))
+    (case 1 1 #t #f)
+    (case 1 '(1) #t #f)
+    (case 1 0 #f '(1) #t #f)
+    (case 1 #t)
+    (case 1 (set-of 9 8 7 6) #f #t)
+    (case 1 (set-of 9 8 7 1) #t 1 #f #f)
+    (case 1 (lambda (x) (= x 1)) #t #f)
+    (case 1 (lambda (x) (= x 0)) #f (lambda (x) (= x 1)) #t #f)
+    (case 1 (partial = 1) #t #f)
+    (case 1 (partial = 0) #f (partial = 1) #t #f)))
+
 (define (run-tests & fns)
   (let ((results
           (foldl
@@ -2226,12 +2258,12 @@
   'test-random 'test-xorshift64s 'test-xorshift64 'test-xorshift32 'test-lfsr
   'test-random-nums 'test-xorshift64s-seq 'test-xorshift64-seq 
   'test-xorshift32-seq 'test-lfsr32-seq 'test-with-bounds 'test-shuffle
-  'test-product 'test-infix 'test-flatten 'test-flatten1
+  'test-product 'test-infix 'test-flatten 'test-flatten1 'test-divmod
+  'test-constantly 'test-case
   ))
 
 )
 
 (println! (run-tests))
-
 
 

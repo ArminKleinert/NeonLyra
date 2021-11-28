@@ -287,7 +287,7 @@ def setup_core_functions
     acc
   end
 
-  add_fn(:"map-of", 0, -1) { |*xs| xs.to_h }
+  add_fn(:"map-of", 0, -1) { |*xs| xs.each_slice(2).to_a.to_h }
   add_fn(:"map-size", 1) { |m| m.size }
   add_fn(:"map-get", 2) { |m, k| m.is_a?(Hash) ? m[k] : raise("#{m} is not a map.") }
   add_fn(:"map-set", 3) { |m, k, v| m2 = Hash[m]; m2[k] = v; m2 }

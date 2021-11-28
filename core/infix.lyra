@@ -15,13 +15,13 @@
       ; This includes =, +=, etc for setting variables.
       (default-binds
   (map-of
-    ['associativity-of
+    'associativity-of
       (lambda (op)
         (cond
           ((contains? '(^ ** = += -= *= /= %= mod= <<= >>= &= ^= |=) op) 'right)
-          (else 'left)))]
+          (else 'left)))
 
-    ['precedence-of
+    'precedence-of
     (lambda (op)
       (cond
         ((contains? '(= += -= *= /= %= mod= <<= >>= &= ^= |=) op) 1)
@@ -37,23 +37,23 @@
         ((contains? '(* / % mod) op) 11)
         ((contains? '(! not ++ --) op) 12)
         ((contains? '(.) op)     13)
-        (else                    0)))]
+        (else                    0)))
         
-    ['unary-op? (lambda (sym) (contains? '(! ++ -- not) sym))]
+    'unary-op? (lambda (sym) (contains? '(! ++ -- not) sym))
 
-    ['bin-op? (lambda (sym) (contains? '(= += -= *= /= %= mod= <<= >>= &= ^= |= || or && and | ^ & ** ^ == != < > <= >= + - * / % . mod) sym))]
+    'bin-op? (lambda (sym) (contains? '(= += -= *= /= %= mod= <<= >>= &= ^= |= || or && and | ^ & ** ^ == != < > <= >= + - * / % . mod) sym))
         ))
         
     ; Bindings for Lyra. This includes some of the aliases found in aliases.lyra
     (lyra-binds
   (map-of
-    ['associativity-of
+    'associativity-of
       (lambda (op)
         (cond
           ((contains? '(∈ ∉ empty? ⋅ not) op) 'right)
-          (else 'left)))]
+          (else 'left)))
 
-    ['precedence-of
+    'precedence-of
       (lambda (op)
         (cond
           ((contains? '(∈ ∉) op)                  1)
@@ -67,11 +67,11 @@
           ((contains? '(+ -) op)                  10)
           ((contains? '(* / rem) op)              11)
           ((contains? '(empty? ⋅ inc not dec) op) 12)
-          (else                                   0)))]
+          (else                                   0)))
 
-    ['unary-op? (lambda (sym) (contains? '(empty? inc dec not) sym))]
+    'unary-op? (lambda (sym) (contains? '(empty? inc dec not) sym))
 
-    ['bin-op? (lambda (sym) (contains? '(∈ ∉ or and q? not-eq? bit-or bit-and /= = ≠ < > <= >= ≥ ≤ bit-shl bit-shr + - * / rem ⋅) sym))]
+    'bin-op? (lambda (sym) (contains? '(∈ ∉ or and q? not-eq? bit-or bit-and /= = ≠ < > <= >= ≥ ≤ bit-shl bit-shr + - * / rem ⋅) sym))
         )))
 
 (define (operator? symbol binds)
