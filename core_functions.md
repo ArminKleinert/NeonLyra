@@ -16,11 +16,10 @@ define               | >=2 |  x  |  x  |     | Different formats:
                      |     |     |     |     | (define sym val) Sets the value for sym to val in the 
                      |     |     |     |     | module environment. (value-define)
                      |     |     |     |     | (define (sig) & body) Defines a function. (function-define)
-                     |     |     |     |     | (define type genfunc impl) Adds an implementation for the 
-                     |     |     |     |     | generic function genfunc.
 def-generic          | 3   |  x  |  x  |     | Defines a generic function. It takes a symbol, function 
                      |     |     |     |     | signature and a fallback function.
-def-macro            | >=1 |  x  |  x  |     | Defines a macro. (See redme)
+def-impl             | 3   |  x  |  x  |     | Defines implementations for generic functions.
+def-macro            | >=1 |  x  |  x  |     | Defines a macro. (See readme)
 def-type             | >=1 |  x  |  x  |     | Defines a new type. This adds a couple of other functions
                      |     |     |     |     | automatically. (See readme)
 lambda               | >=2 |  x  |  x  |     | 
@@ -124,9 +123,13 @@ iterate-seq          | 3   |  x  |  x  |     | Iterates a sequence with a functi
                      |     |     |     |     | sequence. The function takes 3 arguments: The accumulator,
                      |     |     |     |     | the current element and the current index. Example:
                      |     |     |     |     |   (iterate-seq (lambda (acc e idx) (+ acc e)) 0 sequence)
+                     |     |     |     |     | Attention! iterate-seq is optimized for vectors and 
+                     |     |     |     |     |   evaluates eagerly!
 iterate-seq-p        | 4   |  x  |  x  |     | Similar to iterate-seq, but the first argument is a
                      |     |     |     |     | predicate. When the predicate returns a falsey value, the
                      |     |     |     |     | iteration breaks.
+                     |     |     |     |     | Attention! iterate-seq-p is optimized for vectors and 
+                     |     |     |     |     |   evaluates eagerly!
                      |     |     |     |     | 
 map-of               | any |  x  |  x  |     | 
 map-size             | 1   |  x  |  x  |     | 

@@ -147,9 +147,9 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
 ; (first "abc")             => "a"
 ; (first 123)               => 123 (No implementation found, so id is used.
 (def-generic xs (first xs) id)
-(define ::list first car)
-(define ::vector first (lambda (v) (vector-nth v 0)))
-(define ::string first (lambda (s) (string-nth s 0)))
+(def-impl ::list first car)
+(def-impl ::vector first (lambda (v) (vector-nth v 0)))
+(def-impl ::string first (lambda (s) (string-nth s 0)))
 
 ; Infinite sequence of numbers counting up.
 (define (foo i) (lazy-seq i (foo (+ i 1))))
