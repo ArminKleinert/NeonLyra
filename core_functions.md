@@ -387,8 +387,8 @@ defn                 | 2   |  x  |  x  |     | Alias for function-define, but pa
                      |     |     |     |     | as a vector.
 fn                   | >=1 |  x  |  x  |     | Alias for lambda, but bindings are given as a vector.
 do                   | any |  x  |  x  |     | Alias for begin.
-slurp!               | 1   |     |  x  |     | Alias for file-read!
-spit!                | 2   |     |  x  |     | Alias for file-write!
+slurp!               | 1   |     |  x  |     | Alias for file-read!.
+spit!                | 2   |     |  x  |     | Alias for file-write!.
 count                | 1   |  x  |  x  |     | Alias for size.
 reduce               | 3   |  x  |  x  |     | Alias for foldl.
 nthrest              | 2   |  x  |  x  |     | Alias for drop but the arguments are reversed.
@@ -398,6 +398,7 @@ ffirst               | 1   |  x  |  x  |     | Same as (first (first ..))
 fnext                | 1   |  x  |  x  |     | Same as (first (next ..))
 nnext                | 1   |  x  |  x  |     | Same as (next (next ..))
 nfirst               | 1   |  x  |  x  |     | Same as (next (first ..))
+enumerate            | 1   |  x  |  x  |     | Alias for zip-to-index.
 ```
 
 ### File: core/random.lyra

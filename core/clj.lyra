@@ -11,6 +11,7 @@
   (true #t)
   (false #f)
   (nil Nothing)
+  (enumerate zip-to-index)
   nthrest nthnext next fnext ffirst nnext)
 
   (def-macro (when p & body)
