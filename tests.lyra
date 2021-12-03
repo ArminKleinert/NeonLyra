@@ -2201,6 +2201,21 @@
       (eq? '(4 4 4) (l 4 4 4)))
     ))
 
+(define (test-flip)
+  (all-true?
+    ((flip fst) #f #t)
+    (eq? '(1 2) ((flip cons) '(2) 1))))
+
+(define (test-fst)
+  (all-true?
+    (nothing? (fst Nothing 0))
+    (fst #t #f)))
+
+(define (test-snd)
+  (all-true?
+    (nothing? (snd 0 Nothing))
+    (snd #f #t)))
+
 (define (run-tests & fns)
   (let ((results
           (foldl
@@ -2269,7 +2284,7 @@
   'test-random-nums 'test-xorshift64s-seq 'test-xorshift64-seq 
   'test-xorshift32-seq 'test-lfsr32-seq 'test-with-bounds 'test-shuffle
   'test-product 'test-infix 'test-flatten 'test-flatten1 'test-divmod
-  'test-constantly 'test-case 'test-cycle
+  'test-constantly 'test-case 'test-cycle 'test-flip 'test-fst 'test-snd
   ))
 
 (println! (run-all-tests))

@@ -173,6 +173,8 @@ ljust                | 2   |  x  |  x  |     | Takes a string and a number. The 
 Name                 |  #  |Pure?|Impl?|Gen? | 
 ---------------------+-----+-----+-----+-----+------------------------------------------------------
 comment              | any |  x  |  x  |     | 
+flip                 | 1   |  x  |  x  |     | Takes a function which takes 2 arguments and returns 
+                     |     |     |     |     | a new function which takes the same arguments reversed.
 fst                  | 2   |  x  |  x  |     | Take 2 arguments and return the first.
 snd                  | 2   |  x  |  x  |     | Take 2 arguments and return the second.
 compare              | 2   |  x  |  x  |  x  | Compares 2 variables x and y.
@@ -228,6 +230,8 @@ foldr-indexed        | 3   |  x  |  x  |     |
                      |     |     |     |     | 
 compose              | 2   |  x  |  x  |     | Given 2 functions f and g, makes a new function for
                      |     |     |     |     | (f (g x))
+compose2             | 2   |  x  |  x  |     | Given 2 functions f and g, makes a new function for
+                     |     |     |     |     | (f (g x y))
 compose-and          | 2   |  x  |  x  |     | Given 2 functions f and g, makes a new function for
                      |     |     |     |     | checking (and (f x) (g x))
 compose-or           | 2   |  x  |  x  |     | Given 2 functions f and g, makes a new function for
