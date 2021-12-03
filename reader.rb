@@ -73,6 +73,8 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
       root << n
     when /^-?[0-9]+\.[0-9]+$/
       root << t.to_f
+    when /^-?[0-9]+\/[0-9]+r$/
+      root << t.to_r
     when /^"(?:\\.|[^\\"])*"$/ then root << parse_str(t)
     when ".?"
       raise ".? on empty AST." if root.empty?

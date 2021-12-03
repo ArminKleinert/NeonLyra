@@ -47,6 +47,7 @@ LIST_TYPE = TypeName.new "::list", 4
 FUNCTION_TYPE = TypeName.new "::function", 5
 INTEGER_TYPE = TypeName.new "::integer", 6
 FLOAT_TYPE = TypeName.new "::float", 7
+RATIO_TYPE = TypeName.new "::rational", 7
 SET_TYPE = TypeName.new "::set", 8
 TYPE_NAME_TYPE = TypeName.new "::typename", 9
 STRING_TYPE = TypeName.new "::string", 10
@@ -76,6 +77,8 @@ def type_id_of(x)
     INTEGER_TYPE
   elsif x.is_a? Float
     FLOAT_TYPE
+  elsif x.is_a? Rational
+    RATIO_TYPE
   elsif x.is_a? Set
     SET_TYPE
   elsif x.is_a? Box
@@ -173,11 +176,15 @@ def setup_core_functions
   add_fn(:"*", 2) { |x, y| x * y }
   add_fn(:"/", 2) { |x, y| x / y }
   add_fn(:"rem", 2) { |x, y| x % y }
-  add_fn(:"bit-and", 2) { |x, y| x & y }
-  add_fn(:"bit-or", 2) { |x, y| x | y }
-  add_fn(:"bit-xor", 2) { |x, y| x ^ y }
-  add_fn(:"bit-shl", 2) { |x, y| x << y }
-  add_fn(:"bit-shr", 2) { |x, y| x >> y }
+  add_fn(:"bit-and", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x & y : Nothing }
+  add_fn(:"bit-or",  2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x | y : Nothing  }
+  add_fn(:"bit-xor", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x ^ y : Nothing }
+  add_fn(:"bit-shl", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x << y : Nothing  }
+  add_fn(:"bit-shr", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x >> y : Nothing  }
+  add_fn(:abs, 1) { |x| x.is_a?(Numeric) ? x.abs : x }
+  
+  add_fn(:numerator, 1) { |x| x.is_a?(Rational) ? x.numerator : x }
+  add_fn(:denumerator, 1) { |x| x.is_a?(Rational) ? x.denumerator : 1 }
 
   gen_sym_counter = 0
   add_fn(:gensym, 1) { |x| "gen_sym_#{x}_#{gen_sym_counter += 1}".to_sym }
@@ -207,20 +214,17 @@ def setup_core_functions
   add_fn(:"nothing?", 1) { |m| m.nil? }
   add_fn(:"nil?", 1) { |x| x.nil? }
   add_fn(:"null?", 1) { |x| x.nil? || x.is_a?(EmptyList) }
-  #add_fn(:"collection?", 1) { |x| x.is_a?(Enumerable) }
-  #add_fn(:"sequence?", 1) { |x| x.is_a?(ConsList) || x.is_a?(Array) }
   add_fn(:"list?", 1) { |x| x.is_a? ConsList }
   add_fn(:"vector?", 1) { |x| x.is_a? Array }
   add_fn(:"int?", 1) { |x| x.is_a? Integer }
   add_fn(:"float?", 1) { |x| x.is_a? Float }
-  #add_fn(:"number?", 1) { |x| x.is_a? Numeric }
+  add_fn(:"rational?", 1) { |x| x.is_a? Rational }
   add_fn(:"string?", 1) { |x| x.is_a? String }
   add_fn(:"symbol?", 1) { |x| x.is_a? Symbol }
   add_fn(:"char?", 1) { |x| x.is_a?(String) && x.size == 1 }
   add_fn(:"boolean?", 1) { |x| (!!x) == x }
   add_fn(:"map?", 1) { |x| x.is_a? Hash }
   add_fn(:"set?", 1) { |x| x.is_a? Set }
-  #add_fn(:"empty?", 1) { |x| x.is_a?(Enumerable) && x.empty? }
   add_fn(:"function?", 1) { |x| x.is_a?(LyraFn) }
   add_fn(:"lazy?", 1) { |x| x.is_a?(Lazy) }
   add_fn(:"lazy-obj?", 1) { |x| x.is_a?(LazyObj) }
@@ -240,6 +244,12 @@ def setup_core_functions
   add_fn(:"buildin->float", 1) { |x|
     begin
       Float(x || "");
+    rescue ArgumentError, TypeError
+      nil
+    end }
+  add_fn(:"buildin->rational", 1) { |x|
+    begin
+      Rational(x || "");
     rescue ArgumentError, TypeError
       nil
     end }
@@ -406,7 +416,7 @@ def setup_core_functions
   add_fn_with_env(:"apply-to", 2) { |xs, env| first(xs).call(second(xs).force, env) }
 
   [NOTHING_TYPE, BOOL_TYPE, VECTOR_TYPE, MAP_TYPE, LIST_TYPE, FUNCTION_TYPE, INTEGER_TYPE,
-   FLOAT_TYPE, SET_TYPE, TYPE_NAME_TYPE, STRING_TYPE, SYMBOL_TYPE, BOX_TYPE].each do |t|
+   FLOAT_TYPE, RATIO_TYPE, SET_TYPE, TYPE_NAME_TYPE, STRING_TYPE, SYMBOL_TYPE, BOX_TYPE].each do |t|
     add_var t.to_sym, t
   end
 

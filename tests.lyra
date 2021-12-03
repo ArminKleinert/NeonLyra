@@ -315,7 +315,9 @@
     (= 3 (+ 2 1))
     (= 5 (+ 2 3))
     (= 1 (+ 0.5 0.5))
-    (= 1.5 (+ 0.5 1))))
+    (= 1.5 (+ 0.5 1))
+    (= 6/5r (+ 3/5r 3/5r))
+    (= 11/5r (+ 6/5r 1))))
 
 (define (test-v+)
   (all-true?
@@ -324,7 +326,8 @@
     (= 3 (v+ 2 1))
     (= 5 (v+ 2 3))
     (= 2.5 (v+ 0.5 0.5 0.5 0.5 0.5))
-    (= 3 (v+ 0.5 1 0.5 1))))
+    (= 3 (v+ 0.5 1 0.5 1))
+    (= 6/5r (v+ 3/5r 3/5r))))
 
 (define (test-v-)
   (all-true?
@@ -365,7 +368,9 @@
     (= 1 (- 2 1))
     (= -1 (- 2 3))
     (= 0 (- 0.5 0.5))
-    (= -0.5 (- 0.5 1))))
+    (= -0.5 (- 0.5 1))
+    (= 0/1r (- 3/5r 3/5r))
+    (= 1/1r (- 6/5r 1/5r))))
 
 (define (test-*)
   (all-true?
@@ -373,7 +378,11 @@
     (= 2 (* 2 1))
     (= 6 (* 2 3))
     (= 0.25 (* 0.5 0.5))
-    (= 0.5 (* 0.5 1))))
+    (= 0.5 (* 0.5 1))
+    (= 0/1r (* 3/5r 0))
+    (= 3/5r (* 3/5r 1))
+    (= 6/5r (* 3/5r 2))
+    ))
 
 (define (test-/)
   (all-true?
@@ -389,7 +398,9 @@
     (= 1 (rem 1 10))
     (= 1 (rem 1 10.0))
     (= 0 (rem 1 0.5))
-    (= 0 (rem 1 0.25))))
+    (= 0 (rem 1 0.25))
+    (= 0.125 (rem 1/8r 0.25))
+    (= 0.125 (rem 1/8r 0.25))))
 
 (define (test-inc)
   (all-true?
@@ -415,6 +426,8 @@
     (= 0 (min 0 0))
     (= 0 (min 0 1.5))
     (= 0.5 (min 1 0.5))
+    (= 0 (min 5/6r 0))
+    (= 1/2r (min 1 1/2r))
     (= 1 (min 1 1.5))
     (= 0 (min 0 0.5))
     (= "0" (min "0" "1"))
@@ -517,6 +530,8 @@
     (nothing? (nothing 1 2 3))
     (not (nothing? '(nothing 1 2 3)))
     (not (nothing? 1))
+    (not (nothing? 2.5))
+    (not (nothing? 3/5r))
     (not (nothing? "1"))
     (not (nothing? 'a))
     (not (nothing? '()))
@@ -542,6 +557,7 @@
   (all-true?
     (not (collection? 1))
     (not (collection? 1.5))
+    (not (collection? 3/5r))
     (not (collection? #t))
     (not (collection? #f))
     (not (collection? 'a))
@@ -563,6 +579,7 @@
   (all-true?
     (not (sequence? 1))
     (not (sequence? 1.5))
+    (not (sequence? 3/5r))
     (not (sequence? #t))
     (not (sequence? #f))
     (not (sequence? 'a))
@@ -584,6 +601,7 @@
   (all-true?
     (not (list? 1))
     (not (list? 1.5))
+    (not (list? 3/5r))
     (not (list? #t))
     (not (list? #f))
     (not (list? 'a))
@@ -605,6 +623,7 @@
   (all-true?
     (not (vector? 1))
     (not (vector? 1.5))
+    (not (vector? 3/5r))
     (not (vector? #t))
     (not (vector? #f))
     (not (vector? 'a))
@@ -624,6 +643,10 @@
 
 (define (test-int?)
   (all-true?
+    (not (int? 1/1r))
+    (not (int? 15/15r))
+    (not (int? 15/7r))
+    (int? 111)
     (int? 1)
     (not (int? 1.5))
     (not (int? #t))
@@ -645,6 +668,8 @@
 
 (define (test-float?)
   (all-true?
+    (not (float? 1/6r))
+    (not (float? 15/15r))
     (not (float? 1))
     (float? 1.5)
     (not (float? #t))
@@ -664,10 +689,36 @@
     (not (float? (map-of)))
     (not (float? (map-of 1 2)))))
 
+(define (test-rational?)
+  (all-true?
+    (rational? 1/1r)
+    (rational? 15/15r)
+    (rational? 3/2r)
+    (not (rational? 1))
+    (not (rational? 4.8))
+    (not (rational? 99))
+    (not (rational? #t))
+    (not (rational? #f))
+    (not (rational? 'a))
+    (not (rational? ""))
+    (not (rational? '()))
+    (not (rational? '(1)))
+    (not (rational? (list)))
+    (not (rational? (list 1)))
+    (not (rational? []))
+    (not (rational? [1]))
+    (not (rational? (vector)))
+    (not (rational? (vector 1)))
+    (not (rational? (set-of)))
+    (not (rational? (set-of 1)))
+    (not (rational? (map-of)))
+    (not (rational? (map-of 1 2)))))
+
 (define (test-string?)
   (all-true?
     (not (string? 1))
     (not (string? 1.5))
+    (not (string? 3/5r))
     (not (string? #t))
     (not (string? #f))
     (not (string? 'a))
@@ -690,6 +741,7 @@
   (all-true?
     (not (symbol? 1))
     (not (symbol? 1.5))
+    (not (symbol? 3/5r))
     (not (symbol? #t))
     (not (symbol? #f))
     (symbol? 'a)
@@ -711,6 +763,7 @@
   (all-true?
     (not (char? 1))
     (not (char? 1.5))
+    (not (char? 3/5r))
     (not (char? #t))
     (not (char? #f))
     (not (char? 'a))
@@ -733,6 +786,7 @@
   (all-true?
     (not (boolean? 1))
     (not (boolean? 1.5))
+    (not (boolean? 3/5r))
     (boolean? #t)
     (boolean? #f)
     (not (boolean? 'a))
@@ -755,6 +809,7 @@
   (all-true?
     (not (map? 1))
     (not (map? 1.5))
+    (not (map? 3/5r))
     (not (map? #t))
     (not (map? #f))
     (not (map? 'a))
@@ -777,6 +832,7 @@
   (all-true?
     (not (set? 1))
     (not (set? 1.5))
+    (not (set? 3/5r))
     (not (set? #t))
     (not (set? #f))
     (not (set? 'a))
@@ -799,6 +855,7 @@
   (all-true?
     (not (empty? 1))
     (not (empty? 1.5))
+    (not (empty? 3/5r))
     (not (empty? #t))
     (not (empty? #f))
     (not (empty? 'a))
@@ -905,6 +962,20 @@
     (= 4.5 (->float "4.5"))
     (all?
       (lambda (e) (nothing? (->float e)))
+      (list 'a "" '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))))
+
+(define (test-->rational)
+  (all-true?
+    (rational? (->rational 1))
+    (= 1/1r (->rational 1))
+    (rational? (->rational 2.5))
+    (= 5/2r (->rational 2.5))
+    (rational? (->rational "3/1"))
+    (= 3/1r (->rational "3/1"))
+    (rational? (->rational 4.5))
+    (= 18/4r (->rational 4.5))
+    (all?
+      (lambda (e) (nothing? (->rational e)))
       (list 'a "" '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))))
 
 (define (test-->string)
@@ -2254,6 +2325,7 @@
   'test-set? 'test-empty? 'test-compose 'test-compose-and
   'test-compose-or 'test-complement 'test-id 'test-id-fn
   'test-hash 'test-eq? 'test-->int 'test-->float
+  'test-->rational 'test-rational?
   'test-->string 'test-->bool 'test-->list 'test-->vector
   'test-->char 'test-->map 'test-->set 'test-list
   'test-list-size 'test-car 'test-cdr 'test-cons 'test-vector
