@@ -257,7 +257,7 @@ map-eager            | 2   |  x  |  x  |     | Eager map. Returns a list.
 mapv                 | 2   |  x  |  x  |     | Eager map. Returns a vector.
 map-indexed          | 2   |  x  |  x  |     | 
 mapv-indexed         | 2   |  x  |  x  |     | 
-map-while            | 3   |  x  |  x  |     | 
+map-while            | 3   |  x  |  x  |     | ^
 map-until            | 3   |  x  |  x  |     | 
 maplist              | 2   |  x  |  x  |     | map but for the consecutive sublists. 
                      |     |     |     |     | (maplist size '('a 'b 'c)) => (3 2 1)
