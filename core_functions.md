@@ -172,7 +172,8 @@ ljust                | 2   |  x  |  x  |     | Takes a string and a number. The 
 ```
 Name                 |  #  |Pure?|Impl?|Gen? | 
 ---------------------+-----+-----+-----+-----+------------------------------------------------------
-comment              | any |  x  |  x  |     | 
+comment              | any |  x  |  x  |     | Takes any number of arguments without evaluating them
+                     |     |     |     |     | and returns Nothing.
 flip                 | 1   |  x  |  x  |     | Takes a function which takes 2 arguments and returns 
                      |     |     |     |     | a new function which takes the same arguments reversed.
 fst                  | 2   |  x  |  x  |     | Take 2 arguments and return the first.
@@ -257,7 +258,7 @@ map-eager            | 2   |  x  |  x  |     | Eager map. Returns a list.
 mapv                 | 2   |  x  |  x  |     | Eager map. Returns a vector.
 map-indexed          | 2   |  x  |  x  |     | 
 mapv-indexed         | 2   |  x  |  x  |     | 
-map-while            | 3   |  x  |  x  |     | ^
+map-while            | 3   |  x  |  x  |     | 
 map-until            | 3   |  x  |  x  |     | 
 maplist              | 2   |  x  |  x  |     | map but for the consecutive sublists. 
                      |     |     |     |     | (maplist size '('a 'b 'c)) => (3 2 1)
@@ -400,7 +401,8 @@ do                   | any |  x  |  x  |     | Alias for begin.
 slurp!               | 1   |     |  x  |     | Alias for file-read!.
 spit!                | 2   |     |  x  |     | Alias for file-write!.
 count                | 1   |  x  |  x  |     | Alias for size.
-reduce               | 3   |  x  |  x  |     | Alias for foldl.
+reduce               | 2-3 |  x  |  x  |     | Alias for foldl and foldl1.
+reductions           | 2-3 |  x  |  x  |     | Alias for scanl and scanl1.
 nthrest              | 2   |  x  |  x  |     | Alias for drop but the arguments are reversed.
 nthnext              | 2   |  x  |  x  |     | Like nthrest but returns Nothing if the rest is empty.
 next                 | 1   |  x  |  x  |     | Like rest but returns Nothing if the rest is empty.

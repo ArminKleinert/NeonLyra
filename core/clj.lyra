@@ -1,17 +1,14 @@
 (module clj
-  (when
-  def
-  defn
-  fn
+  (when def defn fn
   (do begin)
   (slurp! file-read!)
   (spit! file-write!)
   (count size)
-  (reduce foldl)
   (true #t)
   (false #f)
   (nil Nothing)
   (enumerate zip-to-index)
+  reduce reductions
   nthrest nthnext next fnext ffirst nnext)
 
   (def-macro (when p & body)
@@ -33,4 +30,11 @@
   (define (ffirst xs) (first (first xs)))
   (define (nnext xs) (next (next xs)))
   (define (nfirst xs) (next (first xs)))
+  
+  (define reduce
+    (case-lambda ((f s xs) (foldl f s xs))
+                 ((f xs) (foldl1 f xs))))
+  (define reductions
+    (case-lambda ((f s xs) (scanl f s xs))
+                 ((f xs) (scanl1 f xs))))
 )
