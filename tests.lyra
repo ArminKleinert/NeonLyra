@@ -2280,12 +2280,51 @@
 (define (test-fst)
   (all-true?
     (nothing? (fst Nothing 0))
-    (fst #t #f)))
+    (fst #t #f)
+    ((flip fst) #f #t)))
 
 (define (test-snd)
   (all-true?
     (nothing? (snd 0 Nothing))
-    (snd #f #t)))
+    (snd #f #t)
+    ((flip snd) #t #f)))
+
+(define (test-scanl)
+  (all-true?
+    (eq? '(0 1 3 6 10 15) (scanl + 0 '(1 2 3 4 5)))
+    (eq? '(1 2 4 7 11 16) (scanl + 1 '(1 2 3 4 5)))
+    (eq? '(() (1) (2 1) (3 2 1) (4 3 2 1) (5 4 3 2 1)) (scanl (flip cons) '() '(1 2 3 4 5)))))
+
+(define (test-scanl1)
+  (all-true?
+    (eq? '(1 3 6 10 15) (scanl1 + '(1 2 3 4 5)))
+    (eq? '(1 2 4 7 11 16) (scanl1 + '(1 1 2 3 4 5)))
+    (eq? '(() (1) (2 1) (3 2 1) (4 3 2 1) (5 4 3 2 1)) (scanl (flip cons) '() '(1 2 3 4 5)))))
+
+(define (test-scanr)
+  (all-true?
+    (eq? '(15 14 12 9 5) (scanr + 5 '(1 2 3 4)))
+    (eq? '(15 14 12 9 5 0) (scanr + 0 '(1 2 3 4 5)))
+    (eq? '((1 2 3 4 5) (2 3 4 5) (3 4 5) (4 5) (5) ()) (scanr cons '() (list 1 2 3 4 5)))
+    (eq? '(1 (1 2) ((1 2) 3) (((1 2) 3) 4) ((((1 2) 3) 4) 5)) (scanl1 list '(1 2 3 4 5)))))
+
+(define (test-scanr1)
+  (all-true?
+    (eq? '(15 14 12 9 5) (scanr1 + '(1 2 3 4 5)))
+    (eq? '(15 14 12 9 5 0) (scanr1 + '(1 2 3 4 5 0)))
+    (eq? '((1 2 3 4 5) (2 3 4 5) (3 4 5) (4 5) (5) ()) (scanr1 cons (list 1 2 3 4 5 '())))
+    (eq? '((1 (2 (3 (4 5)))) (2 (3 (4 5))) (3 (4 5)) (4 5) 5) (scanr1 list '(1 2 3 4 5)))))
+
+(define (test-condp)
+  (all-true?
+    (condp = 7
+      0 #f
+      7 #t
+      #f)
+    (condp eq? '()
+      '(1 2) #f
+      Nothing #f
+      #t)))
 
 (define (run-tests & fns)
   (let ((results
@@ -2357,6 +2396,7 @@
   'test-xorshift32-seq 'test-lfsr32-seq 'test-with-bounds 'test-shuffle
   'test-product 'test-infix 'test-flatten 'test-flatten1 'test-divmod
   'test-constantly 'test-case 'test-cycle 'test-flip 'test-fst 'test-snd
+  'test-scanl 'test-scanl 'test-scanr 'test-scanr1 'test-condp
   ))
 
 (println! (run-all-tests))

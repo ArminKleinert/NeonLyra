@@ -223,10 +223,15 @@ or                   | 2   |  x  |  x  |     |
 odd?                 | 1   |  x  |  x  |     | 
 even?                | 1   |  x  |  x  |     | 
                      |     |     |     |     | 
-foldl1               | 3   |  x  |  x  |     | 
+foldl1               | 2   |  x  |  x  |     | 
 foldl-indexed        | 3   |  x  |  x  |     | 
-foldr1               | 3   |  x  |  x  |     | 
+foldr1               | 2   |  x  |  x  |     | 
 foldr-indexed        | 3   |  x  |  x  |     | 
+                     |     |     |     |     | 
+scanl                | 3   |  x  |  x  |     | As in Haskell.
+scanl1               | 2   |  x  |  x  |     | As in Haskell.
+scanr                | 3   |  x  |  x  |     | As in Haskell.
+scanr1               | 2   |  x  |  x  |     | As in Haskell.
                      |     |     |     |     | 
 compose              | 2   |  x  |  x  |     | Given 2 functions f and g, makes a new function for
                      |     |     |     |     | (f (g x))
@@ -356,6 +361,7 @@ case-lambda          | >=0 |  x  |  x  |     | Creates a lambda which can accept
                      |     |     |     |     | of arguments.
                      |     |     |     |     | (let ((l (case-lambda ((x)x) ((x y)y) (xs(car xs)))))
                      |     |     |     |     |   (list (l 9) (l 0 1) (l 2 3 4))) ;=> (9 1 2)
+condp                | >=3 |  x  |  x  |     | As in Clojure.
 ```
 
 ### File: core/aliases.lyra
