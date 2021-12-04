@@ -243,4 +243,5 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Easier load! command  
   - Simple implementation for case-lambdas  
   - Ignore `_` arguments  
+  - rational type  
 

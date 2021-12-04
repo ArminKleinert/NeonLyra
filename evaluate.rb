@@ -359,9 +359,9 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       # If the predicate holds true, the then-branch is executed.
       # Otherwise, the else-branch is executed.
       raise LyraError.new("if needs 3 arguments.") if expr.size != 4 # includes the 'if
-      pred = eval_ly(second(expr), env, force_eval)
+      pred = eval_ly(second(expr), env, force_eval, true)
       if !force_eval && pred.is_a?(LazyObj)
-        puts pred
+        #puts pred
         expr = LazyObj.new expr, env
         eval_ly(expr, env)
       elsif pred != false && !pred.nil? && !pred.is_a?(EmptyList)
@@ -375,7 +375,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       clauses = rest(expr)
       result = nil
       until clauses.size == 0
-        p = eval_ly(first(clauses), env, force_eval)
+        p = eval_ly(first(clauses), env, force_eval, true)
         if clauses.size == 1
           result = p
         elsif !force_eval && p.is_a?(LazyObj)
@@ -420,7 +420,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         bindings.each do |b|
           raise LyraError.new("Syntax error: Binding in let* must have 2 parts.") unless b.is_a?(List) && b.size == 2
           raise LyraError.new("Syntax error: Name of binding in let* must be a symbol.") unless b.car.is_a? Symbol
-          env1.set!(b.car, eval_ly(b.cdr.car, env1, force_eval))
+          env1.set!(b.car, eval_ly(b.cdr.car, env1, force_eval, true))
         end
       end
 
@@ -438,7 +438,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         bindings.each do |b|
           raise LyraError.new("Syntax error: Binding in let must have 2 parts.") unless b.is_a?(List) && b.size == 2
           raise LyraError.new("Syntax error: Name of binding in let must be a symbol.") unless b.car.is_a? Symbol
-          env1.set!(b.car, eval_ly(b.cdr.car, env, force_eval))
+          env1.set!(b.car, eval_ly(b.cdr.car, env, force_eval, true))
         end
       end
 
