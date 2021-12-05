@@ -7,14 +7,16 @@ require_relative 'evaluate.rb'
 require_relative 'core.rb'
 
 # Repl stuff
-HISTORY_LOADED = Box.new(false)
-HISTFILE = "#{ENV['HOME']}/.lyra-history"
+if RUBY_PLATFORM != "java"
+  require "reline"
+  HISTORY_LOADED = Box.new(false)
+  HISTFILE = "#{ENV['HOME']}/.lyra-history"
+end
 
 # Read a line using Reline::readline
 # If the history file doesn't exist yet, create it.
 # Otherwise, load it lazily.
 def _readline(prompt)
-  require "reline"
   if defined?(Reline)
     # Create history file
     if !File.exists?(HISTFILE)
@@ -41,7 +43,9 @@ def _readline(prompt)
       line
     end
   else
-    gets.rstrip!
+    print(">> ")
+    res = gets
+    res ? res.rstrip : res
   end
 end
 
