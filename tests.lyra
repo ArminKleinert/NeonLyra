@@ -2232,10 +2232,12 @@
 
 (define (test-constantly)
   (all-true?
-    (eq? '() (constantly '() '()))
-    (eq? '(1 1 1) (constantly 1 '(range 0 2)))
-    (eq? '() (constantly '() [])))
-    (eq? '(1 1 1) (constantly 1 [0 1 2])))
+    (function? (constantly 1))
+    (eq? '() (map (constantly '()) '()))
+    (function? (constantly '()))
+    (eq? '(1 1 1) (map (constantly 1) '(range 0 2)))
+    (eq? '() (map (constantly '()) []))
+    (eq? '(1 1 1) (map (constantly 1) [0 1 2]))))
 
 (define (test-case)
   (all-true?

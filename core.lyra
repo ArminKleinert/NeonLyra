@@ -390,7 +390,7 @@
 
 (define (divmod x y) (list (/ x y) (rem x y)))
 
-(define (constantly x ys) (map (lambda (_) x) ys))
+(define (constantly x) (lambda (& ys) x))
 
 (define (%case e cases)
   (if (empty? cases)
