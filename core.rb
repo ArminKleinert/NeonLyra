@@ -180,16 +180,16 @@ def setup_core_functions
   add_fn(:">", 2) { |x, y| atom?(x) && atom?(y) ? x > y : false }
   add_fn(:"<=", 2) { |x, y| atom?(x) && atom?(y) ? x <= y : false }
   add_fn(:">=", 2) { |x, y| atom?(x) && atom?(y) ? x >= y : false }
-  add_fn(:"+", 2) { |x, y| atom?(x) && atom?(y) ? x + y : Nothing }
-  add_fn(:"-", 2) { |x, y| atom?(x) && atom?(y) ? x - y : Nothing }
-  add_fn(:"*", 2) { |x, y| atom?(x) && atom?(y) ? x * y : Nothing }
-  add_fn(:"/", 2) { |x, y| atom?(x) && atom?(y) ? x / y : Nothing }
-  add_fn(:"rem", 2) { |x, y| atom?(x) && atom?(y) ? x % y : Nothing }
-  add_fn(:"bit-and", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x & y : Nothing }
-  add_fn(:"bit-or",  2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x | y : Nothing  }
-  add_fn(:"bit-xor", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x ^ y : Nothing }
-  add_fn(:"bit-shl", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x << y : Nothing  }
-  add_fn(:"bit-shr", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x >> y : Nothing  }
+  add_fn(:"+", 2) { |x, y| atom?(x) && atom?(y) ? x + y : nil }
+  add_fn(:"-", 2) { |x, y| atom?(x) && atom?(y) ? x - y : nil }
+  add_fn(:"*", 2) { |x, y| atom?(x) && atom?(y) ? x * y : nil }
+  add_fn(:"/", 2) { |x, y| atom?(x) && atom?(y) ? x / y : nil }
+  add_fn(:"rem", 2) { |x, y| atom?(x) && atom?(y) ? x % y : nil }
+  add_fn(:"bit-and", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x & y : nil }
+  add_fn(:"bit-or",  2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x | y : nil }
+  add_fn(:"bit-xor", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x ^ y : nil }
+  add_fn(:"bit-shl", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x << y : nil }
+  add_fn(:"bit-shr", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x >> y : nil }
   add_fn(:abs, 1) { |x| x.is_a?(Numeric) ? x.abs : x }
   
   add_fn(:numerator, 1) { |x| x.is_a?(Rational) ? x.numerator : x }

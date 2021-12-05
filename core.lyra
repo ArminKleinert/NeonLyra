@@ -11,6 +11,7 @@
 (def-generic xs (foldl f v xs) buildin-foldl)
 
 (def-generic xs (append xs ys) buildin-append)
+(def-generic xs (add xs ys) nothing)
 (def-generic xs (contains? xs e) buildin-contains?)
 (def-generic xs (nth xs i) buildin-nth)
 
@@ -91,6 +92,12 @@
 
 (def-impl ::set reverse id)
 (def-impl ::map reverse id)
+
+(def-impl ::list add (lambda (l v) (append l '(x))))
+(def-impl ::string add (lambda (s o) (string-add s (->string o))))
+(def-impl ::vector add vector-add)
+(def-impl ::set add set-add)
+(def-impl ::map add (lambda (m kv) (map-set (first kv) (second kv))))
 
 (define (list-nth l i)
   (if (<= i 0)

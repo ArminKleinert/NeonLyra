@@ -13,7 +13,8 @@
    (≤ <=)
    (∈ included?)
    ∉
-   (<=> complement))
+   (<=> complement)
+   (++ append))
 
 (define ∉ (lambda (e s) (not (included? e s))))
 )

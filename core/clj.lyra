@@ -8,6 +8,7 @@
   (false #f)
   (nil Nothing)
   (enumerate zip-to-index)
+  (conj add)
   reduce reductions
   nthrest nthnext next fnext ffirst nnext)
 
