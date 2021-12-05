@@ -441,7 +441,7 @@ class CompoundFunc < LyraFn
   end
 
   def pure?
-    !@name.end_with?("!")
+    @name[-1] != "!"
   end
 end
 
@@ -485,7 +485,7 @@ class NativeLyraFn < LyraFn
   end
 
   def pure?
-    !@name.end_with?("!")
+    @name[-1] != "!"
   end
 end
 
@@ -599,7 +599,7 @@ class GenericFn < LyraFn
   end
 
   def pure?
-    !@name.end_with?("!")
+    @name[-1] != "!"
   end
 
   def is_macro

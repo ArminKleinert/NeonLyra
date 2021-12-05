@@ -255,12 +255,17 @@ def setup_core_functions
     rescue ArgumentError, TypeError
       nil
     end }
-  add_fn(:"buildin->rational", 1) { |x|
-    begin
-      Rational(x || "");
-    rescue ArgumentError, TypeError
+  add_fn(:"buildin->rational", 1) do |x|
+    if x.is_a?(String) && x.size == 0
       nil
-    end }
+    else
+      begin
+        Rational(x || "");
+      rescue ArgumentError, TypeError
+        nil
+      end
+    end
+  end
   add_fn(:"buildin->string", 1) { |x| elem_to_s x }
   add_fn(:"buildin->bool", 1) { |x| !(x.nil? || x == false || (x.is_a?(EmptyList))) }
   add_fn(:"buildin->list", 1) { |x| x.is_a?(Enumerable) ? x.to_cons_list : nil }

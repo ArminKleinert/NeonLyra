@@ -18,7 +18,7 @@
 (def-macro (test-performance text expr)
   (list 'println! (list 'string-concat (list 'ljust  text 50) (list '->string (list 'measure! 'runs (list 'lambda () expr))))))
 
-(let ((runs 50)
+(let ((runs 5)
       (r (range 0 100)))
       
 
@@ -67,7 +67,7 @@ jruby:
   lazy sequences                                    188.454
   Sort 5000 elements:                               1767.841
   Shuffle 5000 elements:                            1942.1085
-truffleruby
+truffleruby:
   Many math ops:                                    3.2715
   Without -> :                                      2.3735
   Many math ops (lambda):                           2.4485
@@ -79,31 +79,31 @@ truffleruby
 
 0.1.2
 Ruby:
-  Many math ops:                                    0.159796
-  Without -> :                                      0.161885
-  Many math ops (lambda):                           0.1703845
-  Same as partials with composition:                0.36569799999999997
-  (ack 3 4)                                         1281.8762375000001
-  lazy sequences                                    89.671997
-  Sort 5000 elements:                               1119.8436295000001
-  Shuffle 5000 elements:                            1244.8593765
+  Many math ops:                                    0.181013
+  Without -> :                                      0.226936
+  Many math ops (lambda):                           0.185336
+  Same as partials with composition:                0.385166
+  (ack 3 4)                                         1522.117557
+  lazy sequences                                    92.27283899999999
+  Sort 5000 elements:                               1135.8074410000002
+  Shuffle 5000 elements:                            1270.712288
 jruby:
-  Many math ops:                                    3.9115
-  Without -> :                                      1.6685
-  Many math ops (lambda):                           1.3825
-  Same as partials with composition:                3.3415
-  (ack 3 4)                                         2334.4045
-  lazy sequences                                    184.19299999999998
-  Sort 5000 elements:                               1664.8805
-  Shuffle 5000 elements:                            1873.5955000000004
-truffleruby
-  Many math ops:                                    2.731
-  Without -> :                                      1.9755
-  Many math ops (lambda):                           1.5955
-  Same as partials with composition:                3.1155
-  (ack 3 4)                                         3507.0519999999997
-  lazy sequences                                    321.69000000000005
-  Sort 5000 elements:                               2127.54
-  Shuffle 5000 elements:                            2199.5555
+  Many math ops:                                    5.785
+  Without -> :                                      5.718
+  Many math ops (lambda):                           5.1209999999999996
+  Same as partials with composition:                14.291
+  (ack 3 4)                                         2619.4260000000004
+  lazy sequences                                    294.57
+  Sort 5000 elements:                               1832.3100000000002
+  Shuffle 5000 elements:                            1986.322
+truffleruby:
+  Many math ops:                                    3.6170000000000004
+  Without -> :                                      3.632
+  Many math ops (lambda):                           3.837
+  Same as partials with composition:                7.819000000000002
+  (ack 3 4)                                         3860.883
+  lazy sequences                                    757.476
+  Sort 5000 elements:                               2667.729
+  Shuffle 5000 elements:                            3184.793
 )
 
