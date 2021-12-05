@@ -10,7 +10,8 @@
   (enumerate zip-to-index)
   (conj add)
   (distinct unique)
-  reduce reductions
+  (str string-concat)
+  reduce reductions some some? some-fn
   nthrest nthnext next fnext ffirst nnext)
 
   (def-macro (when p & body)
@@ -24,7 +25,7 @@
 
   (def-macro (fn bindings & body)
     (cons 'lambda (cons (->list bindings) body)))
-  
+
   (define (nthrest xs i) (drop i xs))
   (define (nthnext xs i) (let ((r (nthrest xs i))) (if (empty? r) Nothing r)))
   (define (next xs) (let ((r (rest xs))) (if (empty? r) Nothing r)))
@@ -34,9 +35,28 @@
   (define (nfirst xs) (next (first xs)))
   
   (define reduce
-    (case-lambda ((f s xs) (foldl f s xs))
-                 ((f xs) (foldl1 f xs))))
+    (case-lambda* reduce
+      ((f s xs) (foldl f s xs))
+      ((f xs) (foldl1 f xs))))
+
   (define reductions
-    (case-lambda ((f s xs) (scanl f s xs))
-                 ((f xs) (scanl1 f xs))))
+    (case-lambda* reductions
+      ((f s xs) (scanl f s xs))
+      ((f xs) (scanl1 f xs))))
+
+  (define (some p xs)
+    (first (drop-until p xs))); first returns Nothing on empty sequences.
+
+  (define (some? x)
+    (not (nothing? x)))
+
+  ; For some reason, clojure returns nil if some gives negative results,
+  ; but false for some-fn...
+  (define (some-fn p & ps)
+    (lambda (& xs)
+      (->>
+        (repeat xs)
+        (zip-with drop-until (cons p ps))
+        (remove empty?)
+        first first)))
 )
