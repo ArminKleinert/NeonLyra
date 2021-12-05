@@ -2339,6 +2339,20 @@
     (eq? (map-of 1 4  2 1  3 1  5 2  4 1  7 3) freqs)
     ))
 
+(define (test-unique)
+  (all-true?
+    (eq? '(1 2 3 5) (unique '(1 1 1 1 2 2 2 2 3 3 3 2 1 5)))
+    (empty? (unique '()))))
+
+(define (test-unique?)
+  (all-true?
+    (not (unique? '(1 1 1 1 2 2 2 2 3 3 3 2 1 5)))
+    (unique? '())
+    (unique? '(1))
+    (unique? '(1 2 3 4 5))))
+
+
+
 (define (run-tests & fns)
   (let ((results
           (foldl
@@ -2410,7 +2424,7 @@
   'test-product 'test-infix 'test-flatten 'test-flatten1 'test-divmod
   'test-constantly 'test-case 'test-cycle 'test-flip 'test-fst 'test-snd
   'test-scanl 'test-scanl 'test-scanr 'test-scanr1 'test-condp
-  'test-frequencies
+  'test-frequencies 'test-unique 'test-unique?
   ))
 
 (println! (run-all-tests))

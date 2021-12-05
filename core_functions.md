@@ -367,6 +367,8 @@ case-lambda          | >=0 |  x  |     | Creates a lambda which can accept diffe
                      |     |     |     | (let ((l (case-lambda ((x)x) ((x y)y) (xs(car xs)))))
                      |     |     |     |   (list (l 9) (l 0 1) (l 2 3 4))) ;=> (9 1 2)
 condp                | >=3 |  x  |     | As in Clojure.
+                     |     |     |     | 
+frequencies          | >=3 |  x  |     | As in Clojure.
 ```
 
 ### File: core/aliases.lyra

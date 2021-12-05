@@ -14,7 +14,8 @@
    (∈ included?)
    ∉
    (<=> complement)
-   (++ append))
+   (++ append)
+   (uniq unique))
 
 (define ∉ (lambda (e s) (not (included? e s))))
 )
