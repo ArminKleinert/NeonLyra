@@ -2,7 +2,7 @@
 
 Lyra is a lisp I make for fun and learning. NeonLyra is an improved version.
 
-Current version: 0.1.1
+Current version: 0.1.2
 
 Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 
@@ -22,6 +22,7 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 
 - Install Ruby (Tested with Ruby 3.0.2, jruby 9.1.17.0 and Truffleruby 21.2.0.1)  
 - Clone the repo or download it as a zip  
+- Run `ruby lyra.rb` to load `core.lyra` and start the repl.  
 - Run `ruby lyra.rb tests.lyra` to ensure that everything works as intended.  
 - Run `ruby lyra.rb <your source files>` to run your own source files.  
 

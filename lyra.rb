@@ -5,8 +5,44 @@ require_relative 'types.rb'
 require_relative 'reader.rb'
 require_relative 'evaluate.rb'
 require_relative 'core.rb'
+require "reline"
 
-LYRA_VERSION = "0_1_1"
+# Repl stuff
+HISTORY_LOADED = Box.new(false)
+HISTFILE = "#{ENV['HOME']}/.lyra-history"
+
+# Read a line using Reline::readline
+# If the history file doesn't exist yet, create it.
+# Otherwise, load it lazily.
+def _readline(prompt)
+  # Create history file
+  if !File.exists?(HISTFILE)
+    IO.write(HISTFILE, "\n")
+  end
+  # Load history file
+  if !HISTORY_LOADED.value && File.exist?(HISTFILE)
+    HISTORY_LOADED.value = true
+    # Load history
+    if File.readable?(HISTFILE)
+      File.readlines(HISTFILE).each {|l| Reline::HISTORY << l.chomp}
+    end
+  end
+
+  # Read a single line
+  if line = Reline.readline(prompt)
+    # Add the line only if it is not equal to the last one.
+    if Reline::HISTORY.empty? || Reline::HISTORY[-1] != line
+      Reline::HISTORY << line
+      if File.writable?(HISTFILE)
+        File.open(HISTFILE, 'a+') {|f| f.write(line+"\n")}
+      end
+    end
+    line
+  end
+end
+
+
+LYRA_VERSION = "0_1_2"
 
 if ARGV.include? "-args"
   src_files, lyra_args = ARGV.slice_after{|e| e == "-args"}.to_a
@@ -26,12 +62,12 @@ begin
 
   if src_files.empty?
     puts "Welcome to Lyra #{LYRA_VERSION}. \nPress ctrl+D to quit."
+    
     loop do
       begin
-        print ">> "
-        s = gets
-        break unless s
-        puts elem_to_s(eval_str(s))
+        s = _readline(">> ") # Read
+        break unless s # Quit if the line is empty
+        puts elem_to_s(eval_str(s)) # Write the result
       rescue LyraError
         $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_s(x) }}"
         $stderr.puts "Error: " + $!.message
