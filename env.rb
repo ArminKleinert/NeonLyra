@@ -8,7 +8,7 @@ GLOBAL_ENV = Boxed.new nil
 
 class Env
 
-  attr_reader :module_name, :next_module_env
+  attr_reader :module_name, :next_module_env, :inner
 
   def initialize(module_name, parent0 = nil, parent1 = nil, module_env = nil, is_module_env = false)
     @module_name, @next_module_env = module_name, module_env

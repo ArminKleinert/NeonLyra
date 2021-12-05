@@ -29,6 +29,7 @@ begin
   f.call :recur
   RECUR_FUNC = Env.global_env.find :recur
   f.call :"lambda"
+  f.call :"lambda*"
   f.call :"let"
   f.call :"let*"
   f.call :"if" 
@@ -187,8 +188,7 @@ def ev_define_fn(expr, env, is_macro)
   body = rest(expr)
 
   # Create the function
-  res = ev_lambda(args_expr, body, env, is_macro)
-  res.name = name
+  res = ev_lambda(name, args_expr, body, env, is_macro)
 
   # Add the entry to the global environment.
   top_env(env).set!(name, res)
@@ -285,7 +285,7 @@ end
 
 # args_expr has the format `(args...)`
 # body_expr has the format `expr...`
-def ev_lambda(args_expr, body_expr, definition_env, is_macro = false)
+def ev_lambda(name, args_expr, body_expr, definition_env, is_macro = false)
   arg_arr = args_expr.to_a
   arg_count = arg_arr.size
   max_args = arg_count
@@ -319,7 +319,7 @@ def ev_lambda(args_expr, body_expr, definition_env, is_macro = false)
     end
   end
 
-  CompoundFunc.new("", args_expr, body_expr, definition_env, is_macro, arg_count, max_args)
+  CompoundFunc.new(name, args_expr, body_expr, definition_env, is_macro, arg_count, max_args)
 end
 
 # Evaluation function
@@ -397,7 +397,20 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       # If the body is empty, the lambda returns nil.
       args_expr = second(expr)
       body_expr = rest(rest(expr))
-      ev_lambda(args_expr, body_expr, env)
+      ev_lambda(gensym("lambda"), args_expr, body_expr, env)
+    when :"lambda*"
+      raise LyraError.new("lambda* without name.") if expr.cdr.empty?
+      raise LyraError.new("lambda* without bindings.") if expr.cdr.cdr.empty?
+      raise LyraError.new("lambda* name must be a symbol.") if !second(expr).is_a?(Symbol)
+
+      # Defines an anonymous function.
+      # Form: `(lambda* name (arg0 arg1 ...) body...)`
+      # If the body is empty, the lambda returns nil.
+      name = second(expr)
+      args_expr = second(rest(expr))
+      body_expr = rest(rest(rest(expr)))
+      fn = ev_lambda(name.to_sym, args_expr, body_expr, env)
+      fn
     when :define
       # Creates a new function and adds it to the global environment.
       # Form: `(define name value)` (For variables)

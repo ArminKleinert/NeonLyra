@@ -134,6 +134,15 @@ def eager(x)
   x.is_a?(Lazy) ? x.evaluate : x
 end
 
+def lyra_buildin_eq?(x,y)
+  atom?(x) && atom?(y) ? x == y : x.object_id == y.object_id
+end
+
+GENSYM_CNT = [0]
+def gensym(x)
+  "gen_sym_#{x}_#{GENSYM_CNT[0] += 1}".to_sym
+end
+
 # Sets up the core functions and variables. The functions defined here are
 # of the type NativeLyraFn instead of LyraFn. They can not make use of tail-
 # recursion and are supposed to be very simple.
@@ -164,18 +173,18 @@ def setup_core_functions
   # "Primitive" operators. They are overridden in the core library of
   # Lyra as `=`, `<`, `>`, ... and can be extended there later on for
   # different types.
-  add_fn(:"=", 2) { |x, y| x == y }
-  add_fn(:"/=", 2) { |x, y| x != y }
+  add_fn(:"=", 2) { |x, y| lyra_buildin_eq?(x, y) }
+  add_fn(:"/=", 2) { |x, y| !lyra_buildin_eq?(x, y) }
   add_fn(:"ref=", 2) { |x, y| x.object_id == y.object_id }
-  add_fn(:"<", 2) { |x, y| x < y }
-  add_fn(:">", 2) { |x, y| x > y }
-  add_fn(:"<=", 2) { |x, y| x <= y }
-  add_fn(:">=", 2) { |x, y| x >= y }
-  add_fn(:"+", 2) { |x, y| x + y }
-  add_fn(:"-", 2) { |x, y| x - y }
-  add_fn(:"*", 2) { |x, y| x * y }
-  add_fn(:"/", 2) { |x, y| x / y }
-  add_fn(:"rem", 2) { |x, y| x % y }
+  add_fn(:"<", 2) { |x, y| atom?(x) && atom?(y) ? x < y : false }
+  add_fn(:">", 2) { |x, y| atom?(x) && atom?(y) ? x > y : false }
+  add_fn(:"<=", 2) { |x, y| atom?(x) && atom?(y) ? x <= y : false }
+  add_fn(:">=", 2) { |x, y| atom?(x) && atom?(y) ? x >= y : false }
+  add_fn(:"+", 2) { |x, y| atom?(x) && atom?(y) ? x + y : Nothing }
+  add_fn(:"-", 2) { |x, y| atom?(x) && atom?(y) ? x - y : Nothing }
+  add_fn(:"*", 2) { |x, y| atom?(x) && atom?(y) ? x * y : Nothing }
+  add_fn(:"/", 2) { |x, y| atom?(x) && atom?(y) ? x / y : Nothing }
+  add_fn(:"rem", 2) { |x, y| atom?(x) && atom?(y) ? x % y : Nothing }
   add_fn(:"bit-and", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x & y : Nothing }
   add_fn(:"bit-or",  2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x | y : Nothing  }
   add_fn(:"bit-xor", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x ^ y : Nothing }
@@ -186,8 +195,7 @@ def setup_core_functions
   add_fn(:numerator, 1) { |x| x.is_a?(Rational) ? x.numerator : x }
   add_fn(:denumerator, 1) { |x| x.is_a?(Rational) ? x.denumerator : 1 }
 
-  gen_sym_counter = 0
-  add_fn(:gensym, 1) { |x| "gen_sym_#{x}_#{gen_sym_counter += 1}".to_sym }
+  add_fn(:gensym, 1) { |x| gensym(x) }
   add_fn(:seq, 1) { |x| (!x.is_a?(Enumerable) || x.empty?) ? nil : x.to_cons_list }
 
   add_fn(:"always-true", 0, -1) { |*_| true }

@@ -22,7 +22,9 @@ def-impl             | 3   |  x  |  x  |     | Defines implementations for gener
 def-macro            | >=1 |  x  |  x  |     | Defines a macro. (See readme)
 def-type             | >=1 |  x  |  x  |     | Defines a new type. This adds a couple of other functions
                      |     |     |     |     | automatically. (See readme)
-lambda               | >=2 |  x  |  x  |     | 
+lambda*              | >=3 |  x  |  x  |     | Creates a function with a name. The name is bound
+                     |     |     |     |     | inside the function, but not outside of it.
+lambda               | >=2 |  x  |  x  |     | Creates an anonymous function.
 cond                 | >=1 |  x  |  x  |     | 
 if                   | 3   |  x  |  x  |     | 
 let                  | >=1 |  x  |  x  |     | Sets variables for a scope. References are looked up from

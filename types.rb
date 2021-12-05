@@ -398,12 +398,8 @@ class CompoundFunc < LyraFn
     @body_expr = body_expr
     @definition_env = definition_env
     @arg_counts = (min_args..max_args)
-    @name = name.to_s.freeze
+    @name = name.to_sym
     @is_macro = is_macro
-  end
-
-  def name=(n)
-    @name = n.to_s.freeze
   end
 
   def call(args, env)
@@ -413,7 +409,8 @@ class CompoundFunc < LyraFn
     raise LyraError.new("#{@name}: Too many arguments. (Given #{args_given}, expected #{@arg_counts})") if arg_counts.last >= 0 && args_given > arg_counts.last
 
     begin
-      env1 = Env.new(nil, @definition_env, env).set_multi!(@args_expr, args, true, @arg_counts.last < 0)
+      env1 = Env.new(nil, @definition_env, env).set!(@name, self).set_multi!(@args_expr, args, true, @arg_counts.last < 0)
+      #puts "#{@name} #{elem_to_s(self)} #{env1.safe_find(@name)}"
 
       # Execute the body and return
       #body.call(args, env1)
@@ -493,6 +490,8 @@ class NativeLyraFn < LyraFn
 end
 
 class PartialLyraFn < LyraFn
+  attr_reader :name
+  
   def initialize(func, args)
     @func, @args = func, args
     @name = func.name
@@ -552,6 +551,10 @@ class MemoizedLyraFn < LyraFn
   def is_macro
     @func.is_macro
   end
+  
+  def name
+    @func.name
+  end
 end
 
 class GenericFn < LyraFn
@@ -570,11 +573,17 @@ class GenericFn < LyraFn
     if @name == :"->string"
       puts type
     end
-    #puts "#{@name} #{@anchor_idx} #{@implementations.keys} #{args.map{|e|type_name_of(e)}} #{type} #{@implementations.has_key?(type)} #{@implementations[type]} #{@implementations.default}"
-    if fn
-      fn.call args, env
-    else
-      @fallback.call args, env
+
+    begin
+      if fn
+        fn.call args, env
+      else
+        @fallback.call args, env
+      end
+    rescue
+      $stderr.puts "#{@name} failed with error: #{$!}"
+      $stderr.puts "Arguments: #{args}"
+      raise
     end
   end
 
@@ -595,8 +604,11 @@ class GenericFn < LyraFn
   end
 
   def add_implementation!(type, impl)
-    # TODO Check redefinition
-    @implementations[type.type_id] = impl
+    if @implementations[type.type_id]
+      raise LyraError("#{@name} is already defined for type #{type}.")
+    else
+      @implementations[type.type_id] = impl
+    end
   end
 end
 

@@ -108,6 +108,7 @@ Here are some differences to Clojure I could think of:
 - modules (`module`) instead of namespaces (`ns`).  
 - All impure functions must end with the postfix `!` (like `load!`, `readln!`, ...).  
 - Nested `#(...)` is allowed (though discouraged)  
+- Names cannot end with `'`  
 
 The aliases can be imported using `(load! "core/clj.lyra")`. 
 
@@ -239,7 +240,7 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Fixed bugs with lazy evaluation.  
   - Generic implementation definition is now done via. `def-impl`  
   - Simplified cond and load! format  
-  - case, condp, case-lambda expressions  
+  - lambda*, case, condp, case-lambda expressions  
   - Ignore `_` arguments  
   - rational type  
 
