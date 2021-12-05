@@ -2334,6 +2334,11 @@
       Nothing #f
       #t)))
 
+(define (test-frequencies)
+  (let ((freqs (frequencies '(1 2 3 1 5 4 1 7 7 7 5 1))))
+    (eq? (map-of 1 4  2 1  3 1  5 2  4 1  7 3) freqs)
+    ))
+
 (define (run-tests & fns)
   (let ((results
           (foldl
@@ -2405,6 +2410,7 @@
   'test-product 'test-infix 'test-flatten 'test-flatten1 'test-divmod
   'test-constantly 'test-case 'test-cycle 'test-flip 'test-fst 'test-snd
   'test-scanl 'test-scanl 'test-scanr 'test-scanr1 'test-condp
+  'test-frequencies
   ))
 
 (println! (run-all-tests))
