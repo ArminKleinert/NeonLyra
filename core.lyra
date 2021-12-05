@@ -136,7 +136,7 @@
 
 (define (not x) (if x #f #t))
 (def-macro (and x y) (list 'if x y #f))
-(def-macro (or x y) (list 'let (list (list 'x0 x)) (list 'if 'x0 'x0 y)))
+(def-macro (or x y) (let ((s (gensym 'x))) (list 'let (list (list s x)) (list 'if s s y))))
 
 (define (odd? n) (= 1 (rem (->int n) 2)))
 (define (even? n) (= 0 (rem (->int n) 2)))
@@ -380,7 +380,7 @@
     (foldr1 append (cons x xs))))
 
 (define (string-concat & xs)
-  (foldr1 strcat xs))
+  (or (foldr1 strcat (map-eager ->string xs)) ""))
 
 (define (v+ x & xs) (foldl + x xs))
 (define (v- x & xs) (if (empty? xs) (- 0 x) (foldl - x xs)))

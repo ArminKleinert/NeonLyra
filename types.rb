@@ -490,7 +490,6 @@ class NativeLyraFn < LyraFn
 end
 
 class PartialLyraFn < LyraFn
-  attr_reader :name
   
   def initialize(func, args)
     @func, @args = func, args
@@ -503,6 +502,10 @@ class PartialLyraFn < LyraFn
 
   def to_s
     cons(:partial, cons(@func, @args)).to_s
+  end
+  
+  def name
+    to_s
   end
 
   def native?

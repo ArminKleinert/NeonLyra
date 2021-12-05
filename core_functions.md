@@ -11,7 +11,7 @@ Gen?  : Is the function generic?
 
 ```
 Name                 |  #  |Pure?|Gen? | 
----------------------+-----+-----+-----+-----+------------------------------------------------------
+---------------------+-----+-----+-----+------------------------------------------------------------
 define               | >=2 |  x  |     | Different formats:
                      |     |     |     | (define sym val) Sets the value for sym to val in the 
                      |     |     |     | module environment. (value-define)
@@ -46,7 +46,7 @@ lazy-seq             | 2   |  x  |     | Creates a lazy sequence. First takes an
                      |     |     |     | the generator body:
                      |     |     |     |   (define (repeat e) (lazy-seq e (repeat e)))
                      |     |     |     | 
-nothing              | any |  x  |     | Swallows any numer of arguments and returns the Nothing.
+nothing              | any |  x  |     | Swallows any numer of arguments and returns the Nothing
                      |     |     |     | object.
 unwrap               | 1   |  x  |     | 
                      |     |     |     | 
@@ -174,7 +174,7 @@ ljust                | 2   |  x  |     | Takes a string and a number. The string
 
 ```
 Name                 |  #  |Pure?|Gen? | 
----------------------+-----+-----+-----+-----+------------------------------------------------------
+---------------------+-----+-----+-----+------------------------------------------------------------
 comment              | any |  x  |     | Takes any number of arguments without evaluating them
                      |     |     |     | and returns Nothing.
 flip                 | 1   |  x  |     | Takes a function which takes 2 arguments and returns 
@@ -373,7 +373,7 @@ condp                | >=3 |  x  |     | As in Clojure.
 
 ```
 Name                 |  #  |Pure?|Gen? | 
----------------------+-----+-----+-----+-----+------------------------------------------------------
+---------------------+-----+-----+-----+------------------------------------------------------------
 includes?            | 2   |  x  |     | Alias for contains?.
 require!             | 1   |     |     | Alias for load!
 fold                 | 3   |  x  |     | Alias for foldr.
@@ -396,7 +396,7 @@ member?              | 2   |  x  |     | Alias for included?.
 
 ```
 Name                 |  #  |Pure?|Gen? | 
----------------------+-----+-----+-----+-----+------------------------------------------------------
+---------------------+-----+-----+-----+------------------------------------------------------------
 when                 | >=1 |  x  |     | (when p ...) => (if p (begin ...) Nothing)
 def                  | 2   |  x  |     | Alias for value-define.
 defn                 | 2   |  x  |     | Alias for function-define, but parameters are given
@@ -423,7 +423,7 @@ conj                 | 2   |  x  |  x  | Alias for add.
 
 ```
 Name                 |  #  |Pure?|Gen? | 
----------------------+-----+-----+-----+-----+------------------------------------------------------
+---------------------+-----+-----+-----+------------------------------------------------------------
 random               | 1   |  x  |     | Takes a seed and generates a random number based on
                      |     |     |     | it. (64 bits)
 random!              | 0   |     |     | Generates a random number and sets an invisible 
@@ -454,7 +454,7 @@ shuffle              | 2   |  x  |     | Takes a sequence and a seed. Random num
 
 ```
 Name                 |  #  |Pure?|Gen? | 
----------------------+-----+-----+-----+-----+------------------------------------------------------
+---------------------+-----+-----+-----+------------------------------------------------------------
 sort                 | 1   |  x  |     | Sort a list.
 sort-compare         | 2   |  x  |     | Like sort, but uses a comparator (see compare).
 bubblesort           | 1   |  x  |     | Sort a list using bubblesort.
@@ -467,7 +467,7 @@ mergesort-compare    | 2   |  x  |     | Like mergesort, but the first parameter
 
 ```
 Name                 |  #  |Pure?|Gen? | 
----------------------+-----+-----+-----+-----+------------------------------------------------------
+---------------------+-----+-----+-----+------------------------------------------------------------
 infix->prefix        | >=2 |  x  |     | Convert an infix expression into prefix notation and
                      |     |     |     | call it as lyra code.
                      |     |     |     | The first parameter is a map with 4 entries: 

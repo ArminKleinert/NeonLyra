@@ -1524,7 +1524,9 @@
     ; Appending to string transforms the 2. element into a string
     (= "19" (string-concat "" 1 9))
     (= "11a" (string-concat "" 11 'a))
-    (= "21" (string-concat "2" 1 ""))))
+    (= "21" (string-concat "2" 1 ""))
+    
+    (= "" (string-concat))))
     
 (define (test-nth)
   (all-true?
