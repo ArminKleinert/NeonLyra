@@ -437,9 +437,9 @@ def setup_core_functions
   
   add_fn(:"exit!", 1){ |s| exit(s) }
   
-  add_fn(:"debug-type",1){ |e| e.class.to_s }
+  #add_fn(:"debug-type",1){ |e| e.class.to_s }
   
-  add_fn(:"p", 0, -1) { |*xs| puts xs.map{|e|elem_to_s(e)} }
+ #add_fn(:"p", 0, -1) { |*xs| puts xs.map{|e|elem_to_s(e)} }
 
   true
 end

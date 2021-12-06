@@ -165,8 +165,6 @@ implementation of Dijkstra's Shunting-yard Algorithm."
 (def-macro (infix->lyra & exprs)
   (eval-rpn (shunting-yard exprs lyra-binds) lyra-binds))
 
-(define § infix->lyra)
-
 (comment let ((t '(a = 9 + 9 + 9 + 9 * ! 8)))
   (println! (shunting-yard t default-binds))
   (println! (eval-rpn (shunting-yard t default-binds) default-binds)))

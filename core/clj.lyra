@@ -11,8 +11,11 @@
   (conj add)
   (distinct unique)
   (str string-concat)
+  (not-any? none?)
+  (every? all?)
   reduce reductions some some? some-fn
-  nthrest nthnext next fnext ffirst nnext)
+  nthrest nthnext next fnext ffirst nnext
+  keep)
 
   (def-macro (when p & body)
     (list 'if p (cons 'begin (cons Nothing body)) (nothing)))
@@ -59,4 +62,14 @@
         (zip-with drop-until (cons p ps))
         (remove empty?)
         first first)))
+  
+  (define (any? x)
+    #t)
+  
+  (define (keep f xs)
+    (remove nothing? (map f xs)))
 )
+
+
+
+

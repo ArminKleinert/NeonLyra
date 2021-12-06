@@ -573,9 +573,6 @@ class GenericFn < LyraFn
     # Potential for speedup?
     type = type_id_of(args[@anchor_idx])
     fn = @implementations[type]
-    if @name == :"->string"
-      puts type
-    end
 
     begin
       if fn
@@ -633,7 +630,7 @@ class TypeName
 end
 
 def atom?(x)
-  x.is_a?(Numeric) || x.is_a?(String) || x.is_a?(Symbol) || !!x == x || x.is_a?(LyraType) || x.is_a?(Box) || x.is_a?(LazyObj)
+  x.is_a?(Numeric) || x.is_a?(String) || x.is_a?(Symbol) || !!x == x || x.is_a?(LazyObj)
 end
 
 class LyraType
