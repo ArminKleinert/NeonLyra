@@ -11,6 +11,7 @@
   (conj add)
   (distinct unique)
   (str string-concat)
+  (vec ->vector)
   (not-any? none?)
   (every? all?)
   reduce reductions some some? some-fn
