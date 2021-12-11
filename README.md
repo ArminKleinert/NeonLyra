@@ -41,6 +41,7 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 - String  
 - List (car, cdr, size)  
 - Boolean (#t, #f)  
+- Char
 - Nothing (Returned on failed type conversions or similar situations)  
 - Function  
 - Vector  
@@ -246,12 +247,12 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Lazy and infinite sequences  
   - Safer macro inlining  
   - Optimized list concatenation  
-- 0.1.1
+- 0.1.1  
   - Support for random numbers  
   - Added `->`, `->>` and `as->` from Clojure  
   - Infix operations in `infix.lyra`  
   - Simpler export from modules.  
-- 0.1.2
+- 0.1.2  
   - Simple Repl  
   - Fixed bugs with lazy evaluation.  
   - Generic implementation definition is now done via. `def-impl`  
@@ -259,6 +260,7 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - lambda*, case, condp, case-lambda expressions  
   - Ignore `_` arguments  
   - rational type  
-- 0.1.3
-  - Error handling via. try*-catch (Usage is heavily discouraged!)
+- 0.1.3  
+  - Error handling via. try*-catch (Usage is heavily discouraged!)  
+  - char type and char literals (including utf-8 characters)  
 

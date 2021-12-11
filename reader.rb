@@ -21,6 +21,29 @@ def parse_str(token)
   token.gsub(/\\./, { "\\\\" => "\\", "\\n" => "\n", "\\\"" => '"' })[1..-2].freeze
 end
 
+def parse_char(token)
+  case token
+  when /^\\u[0-9][0-9][0-9][0-9]$/
+    LyraChar.conv(eval('"'+token+'"').encode('utf-8'))
+  when /^\\[A-Za-z0-9\/!?$%&()\[\]]$/
+    LyraChar.conv token[1]
+  when "\\newline"
+    LyraChar.conv "\n"
+  when "\\space"
+    LyraChar.conv " "
+  when "\\tab"
+    LyraChar.conv "\t"
+  when "\\backspace"
+    LyraChar.conv 8.chr
+  when "\\return"
+    LyraChar.conv 13.chr
+  when "\\formfeed"
+    LyraChar.conv 12.chr
+  else
+    raise LyraError.new("Invalid char literal: \\#{token}")
+  end
+end
+
 # Builds the abstract syntax tree and converts all expressions into their
 # types.
 # For example, if a token is recognized as a bool, it is parsed into
@@ -84,6 +107,8 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
       root[-1] = list(:eager, root[-1])
     when /^::.+$/
       root << t.to_sym #TypeName.new(t,-1)
+    when /^\\.+$/
+      root << parse_char(t)
     else
       applications = []
       while t.end_with?(".?") || t.end_with?(".!")

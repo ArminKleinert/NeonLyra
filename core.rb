@@ -53,12 +53,16 @@ STRING_TYPE = TypeName.new "::string", 10
 SYMBOL_TYPE = TypeName.new "::symbol", 11
 BOX_TYPE = TypeName.new "::box", 12
 RATIO_TYPE = TypeName.new "::rational", 13
+ERROR_TYPE = TypeName.new "::error", 14
+CHAR_TYPE = TypeName.new "::char", 15
 
 def type_id_of(x)
   if x.nil?
     NOTHING_TYPE
   elsif !!x == x
     BOOL_TYPE
+  elsif x.is_a? LyraChar
+    CHAR_TYPE
   elsif x.is_a? Symbol
     SYMBOL_TYPE
   elsif x.is_a? LyraType
@@ -85,6 +89,8 @@ def type_id_of(x)
     BOX_TYPE
   elsif x.is_a? TypeName
     TYPE_NAME_TYPE
+  elsif x.is_a? LyraError
+    ERROR_TYPE
   else
     raise LyraError.new("No name for type #{x.class} for object #{elem_to_s(x)}")
   end.type_id
@@ -216,6 +222,8 @@ def setup_core_functions
   add_fn(:partial, 1, -1) { |x, *params| params.empty? ? x : PartialLyraFn.new(x, params.to_cons_list) }
 
   add_fn(:nothing, 0, -1) { |*_| nil }
+  
+  add_fn(:"atom?", 1) { |x| atom?(x) }
 
   add_fn_with_env(:"defined?", 1) { |x, env| env.safe_find(x.car) != NOT_FOUND_IN_LYRA_ENV }
   add_fn(:"box?", 1) { |m| m.is_a? Box }
@@ -229,7 +237,7 @@ def setup_core_functions
   add_fn(:"rational?", 1) { |x| x.is_a? Rational }
   add_fn(:"string?", 1) { |x| x.is_a? String }
   add_fn(:"symbol?", 1) { |x| x.is_a? Symbol }
-  add_fn(:"char?", 1) { |x| x.is_a?(String) && x.size == 1 }
+  add_fn(:"char?", 1) { |x| x.is_a?(LyraChar) }
   add_fn(:"boolean?", 1) { |x| (!!x) == x }
   add_fn(:"map?", 1) { |x| x.is_a? Hash }
   add_fn(:"set?", 1) { |x| x.is_a? Set }
@@ -270,7 +278,7 @@ def setup_core_functions
   add_fn(:"buildin->bool", 1) { |x| !(x.nil? || x == false || (x.is_a?(EmptyList))) }
   add_fn(:"buildin->list", 1) { |x| x.is_a?(Enumerable) ? x.to_cons_list : nil }
   add_fn(:"buildin->vector", 1) { |x| x.is_a?(Enumerable) ? x.to_a : nil }
-  add_fn(:"buildin->char", 1) { |x| (x.is_a?(Integer)) ? x.chr : nil }
+  add_fn(:"buildin->char", 1) { |x| LyraChar.conv(x) }
   add_fn(:"buildin->map", 1) { |x| x.is_a?(Enumerable) ? Hash[*x] : nil }
   add_fn(:"buildin->set", 1) { |x| x.is_a?(Enumerable) ? Set[*x] : nil }
 
@@ -429,15 +437,16 @@ def setup_core_functions
   add_fn_with_env(:"apply-to", 2) { |xs, env| first(xs).call(second(xs).force, env) }
 
   [NOTHING_TYPE, BOOL_TYPE, VECTOR_TYPE, MAP_TYPE, LIST_TYPE, FUNCTION_TYPE, INTEGER_TYPE,
-   FLOAT_TYPE, RATIO_TYPE, SET_TYPE, TYPE_NAME_TYPE, STRING_TYPE, SYMBOL_TYPE, BOX_TYPE].each do |t|
+   FLOAT_TYPE, RATIO_TYPE, SET_TYPE, TYPE_NAME_TYPE, STRING_TYPE, SYMBOL_TYPE, BOX_TYPE,
+   ERROR_TYPE, CHAR_TYPE].each do |t|
     add_var t.to_sym, t
   end
 
   add_fn(:"error!", 1,2) { |msg,info| raise LyraError.new(msg,info) }
   
-  add_fn(:"error-msg",1) {|e| e.msg}
-  add_fn(:"error-info",1) {|e| e.info}
-  add_fn(:"error-trace",1) {|e| e.trace}
+  add_fn(:"error-msg",1) { |e| e.msg }
+  add_fn(:"error-info",1) { |e| e.info }
+  add_fn(:"error-trace",1) { |e| e.trace }
   
   add_fn(:"exit!", 1){ |s| exit(s) }
 

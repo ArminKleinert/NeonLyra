@@ -1,5 +1,5 @@
 (module core
-  (comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 list-nth last but-last empty? included? seq-eq? not-eq? symbol else not and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and complement begin def-memo spread apply map map-eager map-indexed mapv mapv-indexed map-while map-until maplist mapcar mapcon mapcat filter filterv filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat string-concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples)
+  (comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 list-nth last but-last empty? included? seq-eq? not-eq? symbol else not and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and complement begin def-memo spread apply map map-eager map-indexed mapv mapv-indexed map-while map-until maplist mapcar mapcon mapcat filter filterv filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat string-concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ)
 
 ;;; Some core things
 
@@ -36,6 +36,24 @@
 (def-generic xs (reverse xs) (lambda (xs) (foldl (lambda (a b) (cons b a)) '() xs)))
 
 (def-generic x (compare x y) (lambda (x y) (if (= x y) 0 (if (< x y) -1 1))))
+
+
+(define (inc n) (+ n 1))
+(define (dec n) (- n 1))
+
+(def-generic x (succ x) id)
+(def-impl ::integer succ inc)
+(def-impl ::float succ inc)
+(def-impl ::rational succ inc)
+(def-impl ::char succ (lambda (c) (int->char (inc (char->int c)))))
+(def-impl ::string succ
+  (lambda (s)
+    (let ((len (- (string-size s) 1)))
+      (if (< len 0)
+        s
+        (string-add
+          (string-range s 0 len)
+          (succ (->char (string-nth s len))))))))
 
 (def-generic x (collection? x)
   (lambda (xs) (or (list? xs) (or (vector? xs) (or (map? xs) (set? xs))))))
@@ -458,9 +476,6 @@
 (define sum (partial foldl + 0))
 (define product (partial foldl * 1))
 
-(define (inc n) (+ n 1))
-(define (dec n) (- n 1))
-
 (define (min n m) (if (< n m) n m))
 (define (max n m) (if (< n m) m n))
 (define (minimum xs) (foldl1 min xs))
@@ -533,6 +548,17 @@
     (list 'lambda* name (list '& args)
     (cons 'cond (flatten1 (reverse (%case-lambda args forms '())))))))
 
+(define xrange
+  (case-lambda* xrange
+    (() (iterate inc 0))
+    ((from) (iterate inc from))
+    ((from to) (xrange from to inc))
+    ((from to step)
+      (cond
+        (>= from to) '()
+        (function? step) (lazy-seq from (xrange (step from) to step))
+        else (lazy-seq from (xrange (+ from step) to step))))))
+
 (define (%condp p e cases)
   (if (empty? cases)
     Nothing
@@ -576,7 +602,6 @@
 (define (unique? xs)
   (eq? xs (unique xs)))
 
-; TODO: Test
 ; (tuples 3 '(1 2 3 4 5)) ;=> ((1 2 3) (2 3 4) (3 4 5))
 (define (tuples n xs)
   (cond 
@@ -584,10 +609,9 @@
     (< (size xs) n) '()
     else (cons (take n xs) (tuples n (rest xs)))))
 
-; TODO: Test
 ; (slices 3 '(1 2 3 4 5 6)) ;=> ((1 2 3) (4 5 6))
 (define (slices n xs)
-  (cond 
+  (cond
     (= n 0) '()
     (< (size xs) n) '()
     else (cons (take n xs) (slices n (drop n xs)))))

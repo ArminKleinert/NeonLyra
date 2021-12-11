@@ -643,7 +643,63 @@ class TypeName
 end
 
 def atom?(x)
-  x.is_a?(Numeric) || x.is_a?(String) || x.is_a?(Symbol) || !!x == x || x.is_a?(LazyObj)
+  x.is_a?(Numeric) || x.is_a?(String) || x.is_a?(Symbol) || !!x == x || x.is_a?(LazyObj) || x.is_a?(LyraChar)
+end
+
+class LyraChar
+  attr_reader :chr
+  
+  def self.conv(s)
+    if s.is_a?(LyraChar)
+      s
+    elsif s.is_a?(String) || s.is_a?(Integer)
+      LyraChar.new(s)
+    else
+      nil
+    end
+  end
+  
+  def initialize(s)
+    if s.is_a?(String)
+      @chr = s.size == 0 ? 0.chr : s[0]
+    elsif s.is_a?(Integer)
+      @chr = s.chr
+    else
+      raise "Illegal argument type for LyraChar.new: #{s.class}"
+    end
+  end
+  
+  def to_i
+    ord
+  end
+  
+  def to_s
+    @chr
+  end
+  
+  def inspect
+    @chr
+  end
+  
+  def ord
+    @chr.ord
+  end
+  
+  def ==(other)
+    if other.is_a?(LyraChar)
+      @chr == other.chr
+    else
+      false
+    end
+  end
+  
+  def eql?(other)
+    if other.is_a?(LyraChar)
+      @chr.eql?(other.chr)
+    else
+      false
+    end
+  end
 end
 
 class LyraType
