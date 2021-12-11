@@ -37,7 +37,7 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 ## Types:
 
 - Symbol  
-- Basic numbers: Integer, Float  
+- Basic numbers: Integer, Float, Rational  
 - String  
 - List (car, cdr, size)  
 - Boolean (#t, #f)  
@@ -48,6 +48,7 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 - Lazy  
 - Box (The only mutable type)  
 - Set  
+- Error  
 
 ## Some friendly infos about the syntax 
 
@@ -160,6 +161,20 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
 ; Infix fun
 (load! "infix.lyra")
 (§ 1 + 2 * 3 = 7) ; => #t
+
+; Error handling
+; Error types raised by the standard library:
+;   'arity, 'reimplementation, 'syntax, 'runtime, 'invalid-call, 'parse-error
+; Attention: Using error! and try* is heavily discouraged!
+(try*
+  (error! "error here" 'syntax)
+  (catch e (lambda (e) (eq? (error-info e) 'syntax)) 'saved))
+(try*
+  (error! "error here" 'syntax)
+  (catch e (lambda (e) (eq? (error-info e) 'not-syntax)) 'saved)) ; Fails
+(try*
+  (error! "error here" 'syntax)
+  (catch e 'saved)) ; Fails
 ```
 
 ## Example of a user-defined type
@@ -244,4 +259,6 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - lambda*, case, condp, case-lambda expressions  
   - Ignore `_` arguments  
   - rational type  
+- 0.1.3
+  - Error handling via. try*-catch (Usage is heavily discouraged!)
 

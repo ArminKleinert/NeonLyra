@@ -36,7 +36,7 @@
         (let ((token (peek reader)))
           (cond
             ((eq? token ender) (begin (next reader) (proc (reverse items))))
-            ((not token) (error (string-concat "Expected '" ender "', got EOF")))
+            ((not token) (error! (string-concat "Expected '" ender "', got EOF") 'parse-error))
             (else (recur (cons (read-form reader level) items))))))))
     (loop '())))
 
@@ -53,11 +53,11 @@
       (if f
         f
     (cond
-      ((not token) (error "End of tokens."))
+      ((not token) (error "End of tokens." 'parse-error))
       ((eq? token "#t") #t)
       ((eq? token "#f") #f)
       ((eq? token "Nothing") Nothing)
-      ((eq? token "\"") (error "Unmatched \"")) ; TODO format-string
+      ((eq? token "\"") (error "Unmatched \"" 'parse-error)) ; TODO format-string
       (else (parse-symbol token))))))))
 
 (define (read-form reader level)
@@ -75,7 +75,7 @@
             (else
               (read-atom reader)))))
     (if (and (> level 0) (empty? (reader-tokens reader)))
-      (error "Unmatched token.")
+      (error "Unmatched token." 'parse-error)
       code)))
 
 (define (build-ast tokens)

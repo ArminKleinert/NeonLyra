@@ -33,7 +33,16 @@ let*                 | >=1 |  x  |     | Sets variables for a scope. Works seque
 quote                | 1   |  x  |     | Return the argument without evaluating it.
 recur                | any |  x  |     | Explicit tail-recursion. Only valid in positions that can
                      |     |     |     | trigger implicit tail-recursion.
-gensym               | 0   |  x  |     | 
+                     |     |     |     | 
+try*                 | 2   |  x  |     | Try to execute something and capture a potential error 
+                     |     |     |     | in the second form.
+catch                | >=2 |  x  |     | Part of try* and only valid inside it. The first argument
+                     |     |     |     | is a name for the error, the second is a validation
+                     |     |     |     | function and the rest are what happens to the error.
+                     |     |     |     | (try* <error> (catch e (lambda (x) #t) 'saved)
+                     |     |     |     | (try* <error> (catch e (lambda (x) #f) ..) ; Fails
+                     |     |     |     | 
+gensym               | 0-1 |  x  |     | 
 module               | >=1 |  x  |     | 
 memoize              | 1   |  x  |     | 
 seq                  | 1   |  x  |     | Returns a equence for all non-empty collections, Nothing
@@ -369,6 +378,10 @@ case-lambda          | >=0 |  x  |     | Creates a lambda which can accept diffe
 condp                | >=3 |  x  |     | As in Clojure.
                      |     |     |     | 
 frequencies          | >=3 |  x  |     | As in Clojure.
+unique               | 1   |  x  |     | Removes duplicates from a sequence but retains order.
+unique?              | 1   |  x  |     | Checks whether a sequence is unique.
+tuples               | 2   |  x  |     | (tuples 3 '(1 2 3 4 5)) ;=> ((1 2 3) (2 3 4) (3 4 5))
+slices               | 3   |  x  |     | (slices 3 '(1 2 3 4 5 6)) ;=> ((1 2 3) (4 5 6))
 ```
 
 ### File: core/aliases.lyra

@@ -97,7 +97,7 @@
 (define (stack-operations stack binds)
   (cond (and (not (null? stack))
               (eq? (car stack) open-bracket))
-         (error "Unbalanced parenthesis")
+         (error! "Unbalanced parenthesis" 'syntax)
         (null? stack) '()
         else (cons (car stack) (%shunting-yard '() (cdr stack) binds))))
 

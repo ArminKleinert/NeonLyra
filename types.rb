@@ -209,7 +209,7 @@ class List
     elsif tail.is_a? ConsList
       List.send :new, head, tail, tail.size + 1
     else
-      raise LyraError.new("Illegal cdr")
+      raise LyraError.new("Illegal cdr.", :"illegal-argument")
     end
   end
 
@@ -314,7 +314,7 @@ def cons(e, l)
   if l.is_a?(ConsList)
     List.create(e, l)
   else
-    raise LyraError.new("Tail must be a list or function.")
+    raise LyraError.new("Tail must be a list or function.", :"illegal-argument")
   end
 end
 
@@ -411,8 +411,8 @@ class CompoundFunc < LyraFn
   def call(args, env)
     # Check argument counts
     args_given = args.size
-    raise LyraError.new("#{@name}: Too few arguments. (Given #{args_given}, expected #{@arg_counts})") if args_given < arg_counts.first
-    raise LyraError.new("#{@name}: Too many arguments. (Given #{args_given}, expected #{@arg_counts})") if arg_counts.last >= 0 && args_given > arg_counts.last
+    raise LyraError.new("#{@name}: Too few arguments. (Given #{args_given}, expected #{@arg_counts})", :arity) if args_given < arg_counts.first
+    raise LyraError.new("#{@name}: Too many arguments. (Given #{args_given}, expected #{@arg_counts})", :arity) if arg_counts.last >= 0 && args_given > arg_counts.last
 
     begin
       env1 = Env.new(nil, @definition_env, env).set!(@name, self).set_multi!(@args_expr, args, true, @arg_counts.last < 0)
@@ -465,8 +465,8 @@ class NativeLyraFn < LyraFn
   def call(args, env)
     # Check argument counts
     args_given = args.size
-    raise LyraError.new("#{@name}: Too few arguments. (Given #{args_given}, expected #{@arg_counts})") if args_given < @arg_counts.first
-    raise LyraError.new("#{@name}: Too many arguments. (Given #{args_given}, expected #{@arg_counts})") if @arg_counts.last >= 0 && args_given > @arg_counts.last
+    raise LyraError.new("#{@name}: Too few arguments. (Given #{args_given}, expected #{@arg_counts})", :arity) if args_given < @arg_counts.first
+    raise LyraError.new("#{@name}: Too many arguments. (Given #{args_given}, expected #{@arg_counts})", :arity) if @arg_counts.last >= 0 && args_given > @arg_counts.last
 
     begin
       # Execute the body and return
@@ -587,8 +587,8 @@ class GenericFn < LyraFn
         @fallback.call args, env
       end
     rescue
-      $stderr.puts "#{@name} failed with error: #{$!}"
-      $stderr.puts "Arguments: #{args}"
+      #$stderr.puts "#{@name} failed with error: #{$!}"
+      #$stderr.puts "Arguments: #{args}"
       raise
     end
   end
@@ -611,7 +611,7 @@ class GenericFn < LyraFn
 
   def add_implementation!(type, impl)
     if @implementations[type.type_id]
-      raise LyraError("#{@name} is already defined for type #{type}.")
+      raise LyraError("#{@name} is already defined for type #{type}.", :reimplementation)
     else
       @implementations[type.type_id] = impl
     end

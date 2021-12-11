@@ -579,18 +579,19 @@
 ; TODO: Test
 ; (tuples 3 '(1 2 3 4 5)) ;=> ((1 2 3) (2 3 4) (3 4 5))
 (define (tuples n xs)
-  (if (< (size xs) n)
-    '()
-    (cons (take n xs) (tuples n (rest xs)))))
+  (cond 
+    (= n 0) '()
+    (< (size xs) n) '()
+    else (cons (take n xs) (tuples n (rest xs)))))
 
 ; TODO: Test
 ; (slices 3 '(1 2 3 4 5 6)) ;=> ((1 2 3) (4 5 6))
 (define (slices n xs)
-  (if (< (size xs) n)
-    '()
-    (cons (take n xs) (slices n (drop n xs)))))
+  (cond 
+    (= n 0) '()
+    (< (size xs) n) '()
+    else (cons (take n xs) (slices n (drop n xs)))))
 
-'ok
 )
 
 

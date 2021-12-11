@@ -433,7 +433,7 @@ def setup_core_functions
     add_var t.to_sym, t
   end
 
-  add_fn(:"error", 1,2) { |msg,info| raise LyraError.new(msg,info) }
+  add_fn(:"error!", 1,2) { |msg,info| raise LyraError.new(msg,info) }
   
   add_fn(:"error-msg",1) {|e| e.msg}
   add_fn(:"error-info",1) {|e| e.info}

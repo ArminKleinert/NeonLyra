@@ -2353,14 +2353,46 @@
 
 (define (test-try*)
   (all-true?
-  (try* (error 1) (catch a #t))
-  (try* (error 1 #t) (catch b (error-info b)))
-  (try* (error 1 #f) (catch c (not (error-info c))))
-  (= 'inner (try* (try* (error 1) (catch d 'inner)) (catch e 'outer)))
-  (= 'inner (error-info (try* (try* (error 1 'inner) (catch f f)) (catch g g))))
-  (= 'outer (try* (try* (error 1) (catch h (lambda (e) #f) 'inner)) (catch i 'outer)))
-  ))
+    (try* (error! 1) (catch a #t))
+    (try* (error! 1 #t) (catch b (error-info b)))
+    (try* (error! 1 #f) (catch c (not (error-info c))))
+    (= 'inner (try* (try* (error! 1) (catch d 'inner)) (catch e 'outer)))
+    (= 'inner (error-info (try* (try* (error! 1 'inner) (catch f f)) (catch g g))))
+    (= 'outer (try* (try* (error! 1) (catch h (lambda (e) #f) 'inner)) (catch i 'outer)))))
 
+(define (test-tuples)
+  (all-true?
+    (eq? '() (tuples 3 '()))
+    (eq? '() (tuples 3 '(1 2)))
+    (eq? '((1 2 3)) (tuples 3 '(1 2 3)))
+    (eq? '((1 2 3) (2 3 4)) (tuples 3 '(1 2 3 4)))
+    (eq? '((1 2 3) (2 3 4) (3 4 5) (4 5 6)) (tuples 3 '(1 2 3 4 5 6)))
+    (eq? '((1) (2) (3) (4) (5) (6)) (tuples 1 '(1 2 3 4 5 6)))
+    (eq? '() (tuples 0 '(1 2 3 4 5 6)))
+    (eq? '() (tuples 3 []))
+    (eq? '() (tuples 3 [1 2]))
+    (eq? '((1 2 3)) (tuples 3 [1 2 3]))
+    (eq? '((1 2 3) (2 3 4)) (tuples 3 [1 2 3 4]))
+    (eq? '((1 2 3) (2 3 4) (3 4 5) (4 5 6)) (tuples 3 [1 2 3 4 5 6]))
+    (eq? '((1) (2) (3) (4) (5) (6)) (tuples 1 [1 2 3 4 5 6]))
+    (eq? '() (tuples 0 [1 2 3 4 5 6]))))
+
+(define (test-slices)
+  (all-true?
+    (eq? '() (slices 3 '()))
+    (eq? '() (slices 3 '(1 2)))
+    (eq? '((1 2 3)) (slices 3 '(1 2 3)))
+    (eq? '((1 2 3)) (slices 3 '(1 2 3 4)))
+    (eq? '((1 2 3) (4 5 6)) (slices 3 '(1 2 3 4 5 6)))
+    (eq? '((1) (2) (3) (4) (5) (6)) (slices 1 '(1 2 3 4 5 6)))
+    (eq? '() (slices 0 '(1 2 3 4 5 6)))
+    (eq? '() (slices 3 []))
+    (eq? '() (slices 3 [1 2]))
+    (eq? '((1 2 3)) (slices 3 [1 2 3]))
+    (eq? '((1 2 3)) (slices 3 [1 2 3 4]))
+    (eq? '((1 2 3) (4 5 6)) (slices 3 [1 2 3 4 5 6]))
+    (eq? '((1) (2) (3) (4) (5) (6)) (slices 1 [1 2 3 4 5 6]))
+    (eq? '() (slices 0 [1 2 3 4 5 6]))))
 
 (define (run-tests & fns)
   (let ((results
@@ -2433,7 +2465,7 @@
   'test-product 'test-infix 'test-flatten 'test-flatten1 'test-divmod
   'test-constantly 'test-case 'test-cycle 'test-flip 'test-fst 'test-snd
   'test-scanl 'test-scanl 'test-scanr 'test-scanr1 'test-condp
-  'test-frequencies 'test-unique 'test-unique? 'test-try*
+  'test-frequencies 'test-unique 'test-unique? 'test-try* 'test-tuples 'test-slices
   ))
 
 (println! (run-all-tests))

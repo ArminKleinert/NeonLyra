@@ -21,7 +21,7 @@ end
 begin
   f = lambda do |name|
       r = CompoundFunc.new(
-        name, list(:xs), list(:"error", "#{name} must not be called directly."),
+        name, list(:xs), list(:"error", "#{name} must not be called directly.", :"invalid-call"),
         nil, false, 0, -1)
       Env.global_env.set! name, r
   end
@@ -86,7 +86,7 @@ def ev_module(expr)
   expr = expr.cdr
   name = expr.car
 
-  raise LyraError.new("Syntax error: Module name must be a symbol but is #{name}.") unless name.is_a?(Symbol)
+  raise LyraError.new("Syntax error: Module name must be a symbol but is #{name}.", :syntax) unless name.is_a?(Symbol)
 
   return name if IMPORTED_MODULES.include? name
   IMPORTED_MODULES << name
@@ -95,8 +95,8 @@ def ev_module(expr)
   expr = expr.cdr
   bindings = expr.car
   forms = expr.cdr
-  raise LyraError.new("Syntax error: Module bindings must be a list.") unless bindings.is_a?(ConsList)
-  raise LyraError.new("Syntax error: Module forms must be a list.") unless bindings.is_a?(ConsList)
+  raise LyraError.new("Syntax error: Module bindings must be a list.", :syntax) unless bindings.is_a?(ConsList)
+  raise LyraError.new("Syntax error: Module forms must be a list.", :syntax) unless bindings.is_a?(ConsList)
 
   eval_keep_last forms, module_env
 
@@ -108,7 +108,7 @@ def ev_module(expr)
     elsif binding.is_a? Symbol
       global.set! binding, eval_ly(binding, module_env)
     else
-      raise LyraError.new("Syntax error: Module binding must be a list or symbol.")
+      raise LyraError.new("Syntax error: Module binding must be a list or symbol.", :syntax)
     end
   end
 
@@ -118,7 +118,7 @@ end
 # Takes a List (list of expressions), calls eval_ly on each element
 # and return a new list.
 def eval_list(expr_list, env, force_eval)
-  raise LyraError.new("Syntax error: Expression must be a list.") unless expr_list.is_a?(ConsList)
+  raise LyraError.new("Syntax error: Expression must be a list.", :syntax) unless expr_list.is_a?(ConsList)
   l = []
   until expr_list.empty?
     l << eval_ly(first(expr_list), env, force_eval, true)
@@ -150,7 +150,7 @@ end
 
 # Similar to eval_list, but only returns the last evaluated value.
 def eval_keep_last(expr_list, env, force_eval=false)
-  raise LyraError.new("Syntax error: Expression must be a list.") unless expr_list.is_a?(ConsList)
+  raise LyraError.new("Syntax error: Expression must be a list.", :syntax) unless expr_list.is_a?(ConsList)
 
   return list if expr_list.empty?
 
@@ -182,7 +182,7 @@ end
 
 def ev_define_fn(expr, env, is_macro)
   unless first(first(expr)).is_a?(Symbol)
-    raise LyraError.new("Syntax error: Name of function in define must be a symbol.")
+    raise LyraError.new("Syntax error: Name of function in define must be a symbol.", :syntax)
   end
 
   name = first(first(expr))
@@ -200,33 +200,33 @@ end
 
 def ev_define_generic(expr, env)
   if expr.size != 3
-    raise LyraError.new("Syntax error: Invalid format of def-generic.")
+    raise LyraError.new("Syntax error: Invalid format of def-generic.", :syntax)
   end
 
   ref_arg = first(expr)
   unless ref_arg.is_a? Symbol
-    raise LyraError.new("Syntax error: Generic function reference argument must be a symbol.")
+    raise LyraError.new("Syntax error: Generic function reference argument must be a symbol.", :syntax)
   end
 
   args_expr = second(expr)
   unless args_expr.is_a?(List)
-    raise LyraError.new("Syntax error: Signature of generic function must be a list.")
+    raise LyraError.new("Syntax error: Signature of generic function must be a list.", :syntax)
   end
 
   name = first(args_expr)
   unless name.is_a?(Symbol)
-    raise LyraError.new("Syntax error: Name of generic function in define must be a symbol.")
+    raise LyraError.new("Syntax error: Name of generic function in define must be a symbol.", :syntax)
   end
 
   args = rest(args_expr)
   anchor_idx = args.to_a.index(ref_arg)
   unless anchor_idx
-    raise "Syntax error: Argument #{ref_arg} not found for generic function #{name}."
+    raise LyraError.new("Syntax error: Argument #{ref_arg} not found for generic function #{name}.", :syntax)
   end
 
   fallback = eval_ly(third(expr), env)
   unless fallback.is_a?(LyraFn)
-    raise LyraError.new("Syntax error: Fallback for generic function #{name} must be a function.")
+    raise LyraError.new("Syntax error: Fallback for generic function #{name} must be a function.", :syntax)
   end
 
   res = GenericFn.new name, args.size, anchor_idx, fallback
@@ -237,7 +237,7 @@ end
 
 def ev_define_with_type(expr, env, is_macro)
   if is_macro || !second(expr).is_a?(Symbol) || expr.size < 3
-    raise LyraError.new("Syntax error: Generic function implementation must have the format (define ::type global_name impl) and must not be a macro.")
+    raise LyraError.new("Syntax error: Generic function implementation must have the format (define ::type global_name impl) and must not be a macro.", :syntax)
   end
   global_name = second(expr)
   impl_name = third(expr)
@@ -245,11 +245,11 @@ def ev_define_with_type(expr, env, is_macro)
 
   fn = eval_ly(global_name, env)
   unless fn.is_a? GenericFn
-    raise LyraError.new("Syntax error: No generic function #{global_name} found.")
+    raise LyraError.new("Syntax error: No generic function #{global_name} found.", :syntax)
   end
 
   unless impl.is_a? LyraFn
-    raise LyraError.new("Syntax error: Implementation of function #{global_name} must be a function.")
+    raise LyraError.new("Syntax error: Implementation of function #{global_name} must be a function.", :syntax)
   end
 
   fn.add_implementation! eval_ly(first(expr), env), impl
@@ -261,10 +261,10 @@ end
 # If `is_macro` is true, the function will not evaluate its arguments right away.
 def ev_define(expr, env, is_macro)
   unless expr.size >= 2
-    raise LyraError.new("Syntax error: No name and no body for define or def-macro.")
+    raise LyraError.new("Syntax error: No name and no body for define or def-macro.", :syntax)
   end
   unless first(expr).is_a?(List) || first(expr).is_a?(Symbol) || first(expr).is_a?(TypeName)
-    raise LyraError.new("Syntax error: First element in define or def-macro must be a list or symbol.")
+    raise LyraError.new("Syntax error: First element in define or def-macro must be a list or symbol.", :syntax)
   end
 
   if first(expr).is_a?(List)
@@ -293,12 +293,12 @@ def ev_lambda(name, args_expr, body_expr, definition_env, is_macro = false)
   max_args = arg_count
 
   unless arg_arr.all? { |x| x.is_a? Symbol }
-    raise LyraError.new("Syntax error: Arguments for lambda must be symbols.")
+    raise LyraError.new("Syntax error: Arguments for lambda must be symbols.", :syntax)
   end
   
   a = arg_arr.reject{|a| a==:"_"}
   unless a.uniq.size == a.size
-    raise LyraError.new("Syntax error: Non-unique argument names in lambda expression.")
+    raise LyraError.new("Syntax error: Non-unique argument names in lambda expression.", :syntax)
   end
 
   # Check for variadic arguments.
@@ -362,7 +362,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       # Form is `(if predicate then-branch else-branch)`.
       # If the predicate holds true, the then-branch is executed.
       # Otherwise, the else-branch is executed.
-      raise LyraError.new("if needs 3 arguments.") if expr.size != 4 # includes the 'if
+      raise LyraError.new("if needs 3 arguments.", :syntax) if expr.size != 4 # includes the 'if
       pred = eval_ly(second(expr), env, force_eval, true)
       if !force_eval && pred.is_a?(LazyObj)
         #puts pred
@@ -394,7 +394,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       end
       result
     when :lambda
-      raise LyraError.new("lambda without bindings.") if expr.cdr.empty?
+      raise LyraError.new("lambda without bindings.", :syntax) if expr.cdr.empty?
 
       # Defines an anonymous function.
       # Form: `(lambda (arg0 arg1 ...) body...)`
@@ -403,9 +403,9 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       body_expr = rest(rest(expr))
       ev_lambda(gensym("lambda"), args_expr, body_expr, env)
     when :"lambda*"
-      raise LyraError.new("lambda* without name.") if expr.cdr.empty?
-      raise LyraError.new("lambda* without bindings.") if expr.cdr.cdr.empty?
-      raise LyraError.new("lambda* name must be a symbol.") if !second(expr).is_a?(Symbol)
+      raise LyraError.new("lambda* without name.", :syntax) if expr.cdr.empty?
+      raise LyraError.new("lambda* without bindings.", :syntax) if expr.cdr.cdr.empty?
+      raise LyraError.new("lambda* name must be a symbol.", :syntax) if !second(expr).is_a?(Symbol)
 
       # Defines an anonymous function.
       # Form: `(lambda* name (arg0 arg1 ...) body...)`
@@ -426,17 +426,17 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
     when :"def-generic"
       ev_define_generic(rest(expr), env)
     when :"let*"
-      raise LyraError.new("Syntax error: let* needs at least 1 argument.") if expr.cdr.empty?
+      raise LyraError.new("Syntax error: let* needs at least 1 argument.", :syntax) if expr.cdr.empty?
       bindings = second(expr)
-      raise LyraError.new("Syntax error: let bindings must be a list.") unless bindings.is_a?(ConsList) || bindings.is_a?(EmptyList)
+      raise LyraError.new("Syntax error: let bindings must be a list.", :syntax) unless bindings.is_a?(ConsList) || bindings.is_a?(EmptyList)
 
       body = rest(rest(expr))
       env1 = env
       unless bindings.empty?
         env1 = Env.new(nil, env)
         bindings.each do |b|
-          raise LyraError.new("Syntax error: Binding in let* must have 2 parts.") unless b.is_a?(List) && b.size == 2
-          raise LyraError.new("Syntax error: Name of binding in let* must be a symbol.") unless b.car.is_a? Symbol
+          raise LyraError.new("Syntax error: Binding in let* must have 2 parts.", :syntax) unless b.is_a?(List) && b.size == 2
+          raise LyraError.new("Syntax error: Name of binding in let* must be a symbol.", :syntax) unless b.car.is_a? Symbol
           env1.set!(b.car, eval_ly(b.cdr.car, env1, force_eval, true))
         end
       end
@@ -496,7 +496,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       # Form: (try* <expr> (catch <ex-name> <validator> <body>)
       #       (try* <expr> (catch <ex-name> <body>)
       if expr.size != 3
-        raise LyraError.new("try* requires 2 expressions.")
+        raise LyraError.new("try* requires 2 expressions.", :syntax)
       end
       
       body = expr.cdr.car
@@ -508,7 +508,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         clause = clause.cdr
         validator = clause.cdr.car
         unless exception_name.is_a?(Symbol)
-          raise "Error in try*: exception name must be a symbol."
+          raise LyraError.new("Error in try*: exception name must be a symbol.", :syntax)
         end
         
         
@@ -543,7 +543,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         end
         res
       else
-        raise LyraError.new("No catch-clause in try*")
+        raise LyraError.new("No catch-clause in try*", :syntax)
       end
     else
       # Here, the expression will have a form like the following:
@@ -565,7 +565,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       # inner list must be executed too.
       func = eval_ly(func, env, force_eval) if func.is_a?(ConsList)
 
-      raise LyraError.new("Runtime error: Expected a function, got #{elem_to_s(func)}") unless func.is_a?(LyraFn)
+      raise LyraError.new("Runtime error: Expected a function, got #{elem_to_s(func)}", :expected_function) unless func.is_a?(LyraFn)
 
       # If the function is not pure, force evaluation.
       force_eval = true unless func.pure?

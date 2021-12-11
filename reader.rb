@@ -40,14 +40,14 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
     when "("
       root << make_ast(tokens, level + 1, ")")
     when ")"
-      raise "Unexpected ')'" if level == 0 || expected != ")"
+      raise LyraError.new("Unexpected ')'", :"parse-error") if level == 0 || expected != ")"
       return list(*root)
     when "["
       root << make_ast(tokens, level + 1, "]")
     when "]"
-      raise "Unexpected ']'" if level == 0 || expected != "]"
+      raise LyraError.new("Unexpected ']'", :"parse-error") if level == 0 || expected != "]"
       return root.to_a
-    when '"' then raise "Unexpected '\"'"
+    when '"' then raise LyraError.new("Unexpected '\"'", :"parse-error")
     when "#t" then root << true
     when "#f" then root << false
     when /^(-?0b[0-1]+|-?0x[0-9a-fA-F]+|-?[0-9]+)$/
@@ -77,10 +77,10 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
       root << t.to_r
     when /^"(?:\\.|[^\\"])*"$/ then root << parse_str(t)
     when ".?"
-      raise ".? on empty AST." if root.empty?
+      raise LyraError.new(".? on empty AST.", :"parse-error") if root.empty?
       root[-1] = list(:unwrap, root[-1])
     when ".!"
-      raise ".! on empty AST." if root.empty?
+      raise LyraError.new(".! on empty AST.", :"parse-error") if root.empty?
       root[-1] = list(:eager, root[-1])
     when /^::.+$/
       root << t.to_sym #TypeName.new(t,-1)
@@ -93,7 +93,7 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
       if t == "Nothing"
         t = nil
       elsif t.empty?
-        raise LyraError.new("Empty symbols are not allowed.")
+        raise LyraError.new("Empty symbols are not allowed.", :"parse-error")
       else
         t = t.to_sym
       end
@@ -105,7 +105,7 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
     end
     return root[0] if stop_after_1
   end
-  raise LyraError.new("Expected ')', got EOF") if level != 0
+  raise LyraError.new("Expected ')', got EOF", :"parse-error") if level != 0
   list(*root)
 end
 
