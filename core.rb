@@ -47,12 +47,12 @@ LIST_TYPE = TypeName.new "::list", 4
 FUNCTION_TYPE = TypeName.new "::function", 5
 INTEGER_TYPE = TypeName.new "::integer", 6
 FLOAT_TYPE = TypeName.new "::float", 7
-RATIO_TYPE = TypeName.new "::rational", 7
 SET_TYPE = TypeName.new "::set", 8
 TYPE_NAME_TYPE = TypeName.new "::typename", 9
 STRING_TYPE = TypeName.new "::string", 10
 SYMBOL_TYPE = TypeName.new "::symbol", 11
 BOX_TYPE = TypeName.new "::box", 12
+RATIO_TYPE = TypeName.new "::rational", 13
 
 def type_id_of(x)
   if x.nil?
@@ -433,13 +433,13 @@ def setup_core_functions
     add_var t.to_sym, t
   end
 
-  add_fn(:"error", 1) { |msg| raise LyraError.new(msg) }
+  add_fn(:"error", 1,2) { |msg,info| raise LyraError.new(msg,info) }
+  
+  add_fn(:"error-msg",1) {|e| e.msg}
+  add_fn(:"error-info",1) {|e| e.info}
+  add_fn(:"error-trace",1) {|e| e.trace}
   
   add_fn(:"exit!", 1){ |s| exit(s) }
-  
-  #add_fn(:"debug-type",1){ |e| e.class.to_s }
-  
- #add_fn(:"p", 0, -1) { |*xs| puts xs.map{|e|elem_to_s(e)} }
 
   true
 end

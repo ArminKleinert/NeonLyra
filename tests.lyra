@@ -2351,6 +2351,15 @@
     (unique? '(1))
     (unique? '(1 2 3 4 5))))
 
+(define (test-try*)
+  (all-true?
+  (try* (error 1) (catch a #t))
+  (try* (error 1 #t) (catch b (error-info b)))
+  (try* (error 1 #f) (catch c (not (error-info c))))
+  (= 'inner (try* (try* (error 1) (catch d 'inner)) (catch e 'outer)))
+  (= 'inner (error-info (try* (try* (error 1 'inner) (catch f f)) (catch g g))))
+  (= 'outer (try* (try* (error 1) (catch h (lambda (e) #f) 'inner)) (catch i 'outer)))
+  ))
 
 
 (define (run-tests & fns)
@@ -2424,7 +2433,7 @@
   'test-product 'test-infix 'test-flatten 'test-flatten1 'test-divmod
   'test-constantly 'test-case 'test-cycle 'test-flip 'test-fst 'test-snd
   'test-scanl 'test-scanl 'test-scanr 'test-scanr1 'test-condp
-  'test-frequencies 'test-unique 'test-unique?
+  'test-frequencies 'test-unique 'test-unique? 'test-try*
   ))
 
 (println! (run-all-tests))

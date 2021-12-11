@@ -1,5 +1,5 @@
 (module core
-  (comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 list-nth last but-last empty? included? seq-eq? not-eq? symbol else not and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and complement begin def-memo spread apply map map-eager map-indexed mapv mapv-indexed map-while map-until maplist mapcar mapcon mapcat filter filterv filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat string-concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2)
+  (comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 list-nth last but-last empty? included? seq-eq? not-eq? symbol else not and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and complement begin def-memo spread apply map map-eager map-indexed mapv mapv-indexed map-while map-until maplist mapcar mapcon mapcat filter filterv filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat string-concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples)
 
 ;;; Some core things
 
@@ -576,10 +576,21 @@
 (define (unique? xs)
   (eq? xs (unique xs)))
 
+; TODO: Test
+; (tuples 3 '(1 2 3 4 5)) ;=> ((1 2 3) (2 3 4) (3 4 5))
+(define (tuples n xs)
+  (if (< (size xs) n)
+    '()
+    (cons (take n xs) (tuples n (rest xs)))))
+
+; TODO: Test
+; (slices 3 '(1 2 3 4 5 6)) ;=> ((1 2 3) (4 5 6))
+(define (slices n xs)
+  (if (< (size xs) n)
+    '()
+    (cons (take n xs) (slices n (drop n xs)))))
+
 'ok
 )
-
-(load! "core/random.lyra")
-(shuffle (append '(1 2) (->list (range 1 10))) 0xCBFFEE)
 
 

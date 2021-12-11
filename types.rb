@@ -4,6 +4,12 @@
 require 'singleton'
 
 class LyraError < StandardError
+  attr_reader :info,:internal_trace
+  def initialize(msg,info=:error)
+    @info = info
+    @internal_trace = LYRA_CALL_STACK
+    super(msg)
+  end
 end
 
 module Lazy
@@ -422,8 +428,8 @@ class CompoundFunc < LyraFn
         retry
       end
     rescue
-      $stderr.puts "#{@name} failed with error: #{$!}"
-      $stderr.puts "Arguments: #{args}"
+      #$stderr.puts "#{@name} failed with error: #{$!}"
+      #$stderr.puts "Arguments: #{args}"
       raise
     end
   end
@@ -466,8 +472,8 @@ class NativeLyraFn < LyraFn
       # Execute the body and return
       body.call(args, env)
     rescue
-      $stderr.puts "#{@name} failed with error: #{$!}"
-      $stderr.puts "Arguments: #{args}"
+      #$stderr.puts "#{@name} failed with error: #{$!}"
+      #$stderr.puts "Arguments: #{args}"
       raise
     end
   end
@@ -609,6 +615,13 @@ class GenericFn < LyraFn
     else
       @implementations[type.type_id] = impl
     end
+  end
+end
+
+class WrappedLyraError
+  attr_reader :msg, :info, :trace
+  def initialize(msg,info,trace)
+    @msg,@info,@trace = msg,info,trace
   end
 end
 

@@ -21,7 +21,7 @@ end
 begin
   f = lambda do |name|
       r = CompoundFunc.new(
-        name, list(:xs), list(:"error", "#{name} must not be called directly"),
+        name, list(:xs), list(:"error", "#{name} must not be called directly."),
         nil, false, 0, -1)
       Env.global_env.set! name, r
   end
@@ -43,6 +43,8 @@ begin
   f.call :"module"
   f.call :"quote"
   f.call :"lazy"
+  f.call :"try*"
+  f.call :"catch"
 end
 
 # destructure [:a,:b,:c,:"&",:xs], [1,2,3,4,5,6,7,8,9,10]
@@ -342,6 +344,8 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
     else
       expr.map { |x| eval_ly x, env, force_eval, true }
     end
+  elsif expr.is_a?(WrappedLyraError)
+    expr
   elsif expr.is_a?(ConsList)
     # The expression is a cons and probably starts with a symbol.
     # The evaluate function will try to treat the symbol as a function
@@ -488,6 +492,59 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         raise LyraError.new("Wrong number of arguments for lazy-seq. (Expected 2, got #{expr.cdr.size})")
       end
       LazyList.create eval_ly(expr.cdr.car, env), lambda { eval_ly(expr.cdr.cdr.car, env) }
+    when :"try*"
+      # Form: (try* <expr> (catch <ex-name> <validator> <body>)
+      #       (try* <expr> (catch <ex-name> <body>)
+      if expr.size != 3
+        raise LyraError.new("try* requires 2 expressions.")
+      end
+      
+      body = expr.cdr.car
+      clause = expr.cdr.cdr.car
+
+      # Try to find catch clause
+      if clause.is_a?(ConsList) && clause.car == :catch
+        exception_name = clause.cdr.car
+        clause = clause.cdr
+        validator = clause.cdr.car
+        unless exception_name.is_a?(Symbol)
+          raise "Error in try*: exception name must be a symbol."
+        end
+        
+        
+        begin
+          # Try to execute body
+          res = eval_ly(body, env, force_eval)
+        rescue LyraError => error
+          # Error caught
+          # Register error in new env
+          env1 = Env.new(nil, env)
+          error1 = WrappedLyraError.new(error.message,error.info,error.internal_trace)
+          env1.set!(exception_name, error1)
+          
+          # If first expression after the error name is a function, use it to try and validate the error.
+          # If this returns a falsy value, the catch is not executed and the error is re-thrown
+          if eval_ly(validator,env1,force_eval).is_a?(LyraFn)
+            clause = clause.cdr
+          else
+            validator = nil
+          end
+          run_clause = true
+          unless validator.nil?
+            run_clause = eval_ly(list(validator, error1), env1, true)
+          end
+          
+          #Run clause if validated or re-throw
+          if run_clause
+            res = eval_keep_last(clause, env1, force_eval)
+          else
+            raise error
+          end
+        end
+        res
+      else
+        raise LyraError.new("No catch-clause in try*")
+      end
     else
       # Here, the expression will have a form like the following:
       # (func arg0 arg1 ...)
