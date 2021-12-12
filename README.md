@@ -176,6 +176,12 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
 (try*
   (error! "error here" 'syntax)
   (catch _ e 'saved))
+; Extended try-catch with optional finally-clause
+(try
+  ...
+  (catch v0 e ...)
+  (catch v1 e ...)
+  (finally ...))
 ```
 
 ## Example of a user-defined type

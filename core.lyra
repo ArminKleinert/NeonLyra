@@ -1,5 +1,5 @@
 (module core
-  (comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 list-nth last but-last empty? included? seq-eq? not-eq? symbol else not and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and complement begin def-memo spread apply map map-eager map-indexed mapv mapv-indexed map-while map-until maplist mapcar mapcon mapcat filter filterv filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat string-concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ)
+  (comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 list-nth last but-last empty? included? seq-eq? not-eq? symbol else not and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and complement begin def-memo spread apply map map-eager map-indexed mapv mapv-indexed map-while map-until maplist mapcar mapcon mapcat filter filterv filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat string-concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try)
 
 ;;; Some core things
 
@@ -615,6 +615,33 @@
     (= n 0) '()
     (< (size xs) n) '()
     else (cons (take n xs) (slices n (drop n xs)))))
+
+(def-macro (try f0 & fs)
+  (let*((forms (take-drop-until
+                (lambda (f) (and (list? f) (eq? (car f) 'catch)))
+                (cons f0 fs)))
+        (body (car forms))
+        (_ (if (all?
+                (lambda (f)
+                  (and
+                    (list? f)
+                    (or (eq? (car f) 'catch)
+                      (eq? (car f) 'finally))))
+                (cadr forms))
+              #t
+              (error! "Syntax error: Invalid format for try-catch-finally" 'syntax)))
+        (catch-finally (take-drop-until
+                        (lambda (f) (eq? (car f) 'finally))
+                        (cadr forms)))
+        (catch-clauses (car catch-finally))
+        (finally-clause (cadr catch-finally))
+        (res-name (gensym 'try)))
+    (list 'let (list (list res-name 
+      (foldl (lambda (bd ct) (list 'try* bd ct)) (cons 'begin body) catch-clauses)))
+      (if (empty? finally-clause) Nothing (cons 'begin (cdar finally-clause)))
+      res-name)
+    ))
+    
 
 )
 

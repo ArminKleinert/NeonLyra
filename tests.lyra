@@ -2364,6 +2364,62 @@
     (= 'inner (error-info (try* (try* (error! 1 'inner) (catch _ f f)) (catch _ g g))))
     (= 'outer (try* (try* (error! 1) (catch (lambda (e) #f) h 'inner)) (catch _ i 'outer)))))
 
+(define (test-try-catch-finally)
+  (all-true?
+    (eq? 'fine
+      (try 'fine))
+    (eq? 'fine
+      (try 'fine (catch _ e 'error)))
+    (eq? 'error
+      (try (error! 'here 'syntax) (catch _ e 'error)))
+    (eq? 'error1
+      (try (error! 'here 'syntax)
+        (catch _ e 'error1)
+        (catch _ e 'error2)))
+    (eq? 'error1
+      (try (error! 'here 'syntax)
+        (catch (lambda (e) (eq? 'syntax (error-info e))) e 'error1)
+        (catch _ e 'error2)))
+    (eq? 'error2
+      (try (error! 'here 'not-that)
+        (catch (lambda (e) (eq? 'syntax (error-info e))) e 'error1)
+        (catch _ e 'error2)))
+    (eq? 'error2
+      (try (error! 'here 'not-that)
+        (catch (lambda (e) (eq? 'syntax (error-info e))) e 'error1)
+        (catch _ e 'error2)
+        (finally 1)))
+    (eq? 'fine
+      (try 'fine
+        (catch (lambda (e) (eq? 'syntax (error-info e))) e 'error1)
+        (catch _ e 'error2)
+        (finally 1)))
+    (let ((b (box 0)))
+      (and
+        (eq? 'fine
+          (try 'fine
+            (catch (lambda (e) (eq? 'syntax (error-info e))) e 'error1)
+            (catch _ e 'error2)
+            (finally (box-set! b 5))))
+        (= 5 @b)))
+    (let ((b (box 0)))
+      (and
+        (eq? 'error1
+          (try (error! 'h 'syntax)
+            (catch (lambda (e) (eq? 'syntax (error-info e))) e 'error1)
+            (catch _ e 'error2)
+            (finally (box-set! b 15))))
+        (= 15 @b)))
+    (let ((b (box 0)))
+      (and
+        (eq? 'error2
+          (try (error! 'h 'not-that)
+            (catch (lambda (e) (eq? 'syntax (error-info e))) e 'error1)
+            (catch _ e 'error2)
+            (finally (box-set! b 25))))
+        (= 25 @b)))
+    ))
+
 (define (test-tuples)
   (all-true?
     (eq? '() (tuples 3 '()))
@@ -2469,7 +2525,8 @@
   'test-product 'test-infix 'test-flatten 'test-flatten1 'test-divmod
   'test-constantly 'test-case 'test-cycle 'test-flip 'test-fst 'test-snd
   'test-scanl 'test-scanl 'test-scanr 'test-scanr1 'test-condp
-  'test-frequencies 'test-unique 'test-unique? 'test-try* 'test-tuples 'test-slices
+  'test-frequencies 'test-unique 'test-unique? 'test-try* 'test-tuples
+  'test-slices 'test-try-catch-finally
   ))
 
 (println! (run-all-tests))

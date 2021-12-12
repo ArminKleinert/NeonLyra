@@ -375,6 +375,8 @@ case-lambda          | >=0 |  x  |     | Creates a lambda which can accept diffe
                      |     |     |     | of arguments.
                      |     |     |     | (let ((l (case-lambda ((x)x) ((x y)y) (xs(car xs)))))
                      |     |     |     |   (list (l 9) (l 0 1) (l 2 3 4))) ;=> (9 1 2)
+try                  | >=2 |  x  |     | Like try*, but can have multiple expressions in the body, 
+                     |     |     |     | multiple catch-clauses and a finally-clause at the end.
 condp                | >=3 |  x  |     | As in Clojure.
                      |     |     |     | 
 frequencies          | >=3 |  x  |     | As in Clojure.
