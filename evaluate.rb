@@ -504,14 +504,15 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
 
       # Try to find catch clause
       if clause.is_a?(ConsList) && clause.car == :catch
+        validator = clause.cdr.car
+        clause = clause.cdr
         exception_name = clause.cdr.car
         clause = clause.cdr
-        validator = clause.cdr.car
         unless exception_name.is_a?(Symbol)
           raise LyraError.new("Error in try*: exception name must be a symbol.", :syntax)
         end
-        
-        
+
+
         begin
           # Try to execute body
           res = eval_ly(body, env, force_eval)
@@ -521,19 +522,19 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
           env1 = Env.new(nil, env)
           error1 = WrappedLyraError.new(error.message,error.info,error.internal_trace)
           env1.set!(exception_name, error1)
-          
+
           # If first expression after the error name is a function, use it to try and validate the error.
           # If this returns a falsy value, the catch is not executed and the error is re-thrown
-          if eval_ly(validator,env1,force_eval).is_a?(LyraFn)
-            clause = clause.cdr
-          else
-            validator = nil
-          end
           run_clause = true
-          unless validator.nil?
-            run_clause = eval_ly(list(validator, error1), env1, true)
+          unless validator.nil? || validator == :"_"
+            validator = eval_ly(validator, env1, true)
+            if validator.is_a?(LyraFn)
+              run_clause = eval_ly(list(validator, error1), env1, true)
+            else
+              raise LyraError.new("Validator in try* must be 'Nothing', '_' or a function.", :syntax)
+            end
           end
-          
+
           #Run clause if validated or re-throw
           if run_clause
             res = eval_keep_last(clause, env1, force_eval)

@@ -39,8 +39,8 @@ try*                 | 2   |  x  |     | Try to execute something and capture a 
 catch                | >=2 |  x  |     | Part of try* and only valid inside it. The first argument
                      |     |     |     | is a name for the error, the second is a validation
                      |     |     |     | function and the rest are what happens to the error.
-                     |     |     |     | (try* <error> (catch e (lambda (x) #t) 'saved)
-                     |     |     |     | (try* <error> (catch e (lambda (x) #f) ..) ; Fails
+                     |     |     |     | (try* <error> (catch (lambda (x) #t) e 'saved)
+                     |     |     |     | (try* <error> (catch (lambda (x) #f) e ..) ; Fails
                      |     |     |     | 
 gensym               | 0-1 |  x  |     | 
 module               | >=1 |  x  |     | 

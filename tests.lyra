@@ -2357,12 +2357,12 @@
 
 (define (test-try*)
   (all-true?
-    (try* (error! 1) (catch a #t))
-    (try* (error! 1 #t) (catch b (error-info b)))
-    (try* (error! 1 #f) (catch c (not (error-info c))))
-    (= 'inner (try* (try* (error! 1) (catch d 'inner)) (catch e 'outer)))
-    (= 'inner (error-info (try* (try* (error! 1 'inner) (catch f f)) (catch g g))))
-    (= 'outer (try* (try* (error! 1) (catch h (lambda (e) #f) 'inner)) (catch i 'outer)))))
+    (try* (error! 1) (catch _ a #t))
+    (try* (error! 1 #t) (catch _ b (error-info b)))
+    (try* (error! 1 #f) (catch _ c (not (error-info c))))
+    (= 'inner (try* (try* (error! 1) (catch _ d 'inner)) (catch _ e 'outer)))
+    (= 'inner (error-info (try* (try* (error! 1 'inner) (catch _ f f)) (catch _ g g))))
+    (= 'outer (try* (try* (error! 1) (catch (lambda (e) #f) h 'inner)) (catch _ i 'outer)))))
 
 (define (test-tuples)
   (all-true?

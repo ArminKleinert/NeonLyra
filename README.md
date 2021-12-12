@@ -169,13 +169,13 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
 ; Attention: Using error! and try* is heavily discouraged!
 (try*
   (error! "error here" 'syntax)
-  (catch e (lambda (e) (eq? (error-info e) 'syntax)) 'saved))
+  (catch (lambda (x) (eq? (error-info x) 'syntax)) e 'saved))
 (try*
   (error! "error here" 'syntax)
-  (catch e (lambda (e) (eq? (error-info e) 'not-syntax)) 'saved)) ; Fails
+  (catch (lambda (x) (eq? (error-info x) 'not-syntax)) e 'saved)) ; Fails
 (try*
   (error! "error here" 'syntax)
-  (catch e 'saved)) ; Fails
+  (catch _ e 'saved))
 ```
 
 ## Example of a user-defined type
