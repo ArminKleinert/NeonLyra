@@ -11,7 +11,9 @@ if RUBY_PLATFORM != "java"
   require "reline"
   HISTORY_LOADED = Box.new(false)
   HISTFILE = "#{ENV['HOME']}/.lyra-history"
+  HISTORY = []
 end
+
 
 # Read a line using Reline::readline
 # If the history file doesn't exist yet, create it.
@@ -27,19 +29,26 @@ def _readline(prompt)
       HISTORY_LOADED.value = true
       # Load history
       if File.readable?(HISTFILE)
-        File.readlines(HISTFILE).each {|l| Reline::HISTORY << l.chomp}
+        File.readlines(HISTFILE).each do |l|
+          l = l.chomp
+          Reline::HISTORY << l
+          HISTORY << l
+        end
       end
     end
 
     # Read a single line
-    if line = Reline.readline(prompt)
+    if line = Reline.readline(prompt, false)
       # Add the line only if it is not equal to the last one.
-      if Reline::HISTORY.empty? || Reline::HISTORY[-1] != line
+      HISTORY.each_with_index { |e,i| Reline::HISTORY[i] = e }
+      if HISTORY.empty? || HISTORY[-1] != line
+        HISTORY << line
         Reline::HISTORY << line
         if File.writable?(HISTFILE)
           File.open(HISTFILE, 'a+') {|f| f.write(line+"\n")}
         end
       end
+      puts Reline::HISTORY
       line
     end
   else

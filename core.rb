@@ -149,6 +149,30 @@ def gensym(x)
   "gen_sym_#{x}_#{GENSYM_CNT[0] += 1}".to_sym
 end
 
+def div(x,y)
+  if atom?(x) && atom?(y)
+    if y == 0 && !(x.is_a?(Float) || y.is_a?(Float))
+      nil
+    else
+      x / y
+    end
+  else
+    nil
+  end
+end
+
+def rem(x,y)
+  if atom?(x) && atom?(y)
+    if y == 0 && !(x.is_a?(Float) || y.is_a?(Float))
+      nil
+    else
+      x % y
+    end
+  else
+    nil
+  end
+end
+
 # Sets up the core functions and variables. The functions defined here are
 # of the type NativeLyraFn instead of LyraFn. They can not make use of tail-
 # recursion and are supposed to be very simple.
@@ -169,10 +193,10 @@ def setup_core_functions
     Env.global_env.set!(name, value)
   end
 
-  add_fn(:"list-size", 1) { |x| x.size }
-  add_fn(:cons, 2) { |x, xs| cons(x, xs) }
-  add_fn(:car, 1) { |x| x.car }
-  add_fn(:cdr, 1) { |x| x.cdr }
+  add_fn(:"list-size", 1) { |x| x.is_a?(ConsList) ? x.size : (raise LyraError.new("Invalid call to list-size.", :"invalid-call")) }
+  add_fn(:cons, 2) { |x, xs| xs.is_a?(ConsList) ? cons(x, xs) : (raise LyraError.new("Invalid call to cons.", :"invalid-call")) }
+  add_fn(:car, 1) { |x| x.is_a?(ConsList) ? x.car : (raise LyraError.new("Invalid call to car.", :"invalid-call")) }
+  add_fn(:cdr, 1) { |x| x.is_a?(ConsList) ? x.cdr : (raise LyraError.new("Invalid call to cdr.", :"invalid-call")) }
 
   add_fn(:"list-concat", 1, -1) { |*xs| list_append *xs }
 
@@ -189,8 +213,8 @@ def setup_core_functions
   add_fn(:"+", 2) { |x, y| atom?(x) && atom?(y) ? x + y : nil }
   add_fn(:"-", 2) { |x, y| atom?(x) && atom?(y) ? x - y : nil }
   add_fn(:"*", 2) { |x, y| atom?(x) && atom?(y) ? x * y : nil }
-  add_fn(:"/", 2) { |x, y| atom?(x) && atom?(y) ? x / y : nil }
-  add_fn(:"rem", 2) { |x, y| atom?(x) && atom?(y) ? x % y : nil }
+  add_fn(:"/", 2) { |x, y| div(x,y) }
+  add_fn(:"rem", 2) { |x, y| rem(x,y) }
   add_fn(:"bit-and", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x & y : nil }
   add_fn(:"bit-or",  2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x | y : nil }
   add_fn(:"bit-xor", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x ^ y : nil }

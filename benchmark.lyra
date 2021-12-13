@@ -14,13 +14,29 @@
 
 (define (ack m n)
   (ack-h (list n m)))
+  
+(define (g n p)
+  (cond (not (< 1 p)) 1
+        (not (< p (dec n))) 1
+        else (foldl (lambda (res q) (+ res (if (> q (- n p)) 0 (g (- n p) q)))) 1 (range 2 p))))
+
+(define (9-billion-names rows)
+  (foldl
+    (lambda (res n)
+      (string-append
+        (apply string-concat res
+          (map-eager
+            (lambda (p) (string-append (->string (g n p)) " "))
+            (range 1 n)))
+        "\n"))
+    ""
+    (range 1 (inc rows))))
 
 (def-macro (test-performance text expr)
   (list 'println! (list 'string-concat (list 'ljust  text 50) (list '->string (list 'measure! 'runs (list 'lambda () expr))))))
 
-(let ((runs 5)
+(let ((runs 25)
       (r (range 0 100)))
-      
 
 (test-performance "Many math ops:" (-> 5 (+ 5)(- 5)(* 5)(/ 5)(+ 5)(- 5)(* 5)(/ 5)(+ 5)(- 5)(* 5)(/ 5)(+ 5)(- 5)(* 5)(/ 5)(+ 5)(- 5)(* 5)(/ 5)(+ 5)(- 5)(* 5)(/ 5)(+ 5)(- 5)(* 5)(/ 5)))
 
@@ -33,6 +49,7 @@
   (test-performance "Same as partials with composition:" (ops 5)))
 
 (test-performance "(ack 3 4)" (ack 3 4))
+
 (test-performance "lazy sequences" (->> -500 (iterate inc) (filter (lambda (n) (> n 0))) (map inc) (filter odd?) (map inc) (map (partial * 211)) (remove (lambda (n) (= (rem n 5) 0))) (take 50)))
 
 (load! "core/sort.lyra")
@@ -42,6 +59,8 @@
 (load! "core/random.lyra")
 (let ((sequence (range 0 5000)))
   (test-performance "Shuffle 5000 elements:" (shuffle sequence 0xC0FFEE)))
+
+(test-performance "9-billion-names (25):" (9-billion-names 25))
 )
 
 
