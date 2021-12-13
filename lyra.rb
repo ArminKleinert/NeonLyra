@@ -48,7 +48,6 @@ def _readline(prompt)
           File.open(HISTFILE, 'a+') {|f| f.write(line+"\n")}
         end
       end
-      puts Reline::HISTORY
       line
     end
   else

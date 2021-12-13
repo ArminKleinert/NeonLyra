@@ -59,6 +59,7 @@
 
 (load! "core/sort.lyra")
 
+; FIXME: Why is the distribution for (shuffle (filter odd? (xrange -1000 1000)) 0xC0FFEE) so bad?
 (define (shuffle seq seed)
   (let ((rands (box (with-bounds (random-nums seed) -1 1))))
     (sort-compare (lambda (x y) (box-set! rands (rest @rands)) (first @rands)) seq)))
