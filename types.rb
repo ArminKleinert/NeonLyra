@@ -717,7 +717,7 @@ class Keyword < LyraFn
   end
 
   def self.create(name)
-    name = name.to_sym
+    name = name[1..-1].to_sym
     res = KEYWORDS[name]
     if res.nil?
       res = Keyword.new(name)

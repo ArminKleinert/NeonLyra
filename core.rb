@@ -176,8 +176,8 @@ end
 
 def div(x,y)
   if atom?(x) && atom?(y)
-    if y == 0 && !(x.is_a?(Float) || y.is_a?(Float))
-      nil
+    if y == 0
+      (0.0 / 0.0) # NaN
     else
       x / y
     end
@@ -188,8 +188,8 @@ end
 
 def rem(x,y)
   if atom?(x) && atom?(y)
-    if y == 0 && !(x.is_a?(Float) || y.is_a?(Float))
-      nil
+    if y == 0
+      (0.0 / 0.0) # NaN
     else
       x % y
     end
@@ -293,7 +293,10 @@ def setup_core_functions
   add_fn(:"function?", 1) { |x| x.is_a?(LyraFn) }
   add_fn(:"lazy?", 1) { |x| x.is_a?(Lazy) }
   add_fn(:"lazy-obj?", 1) { |x| x.is_a?(LazyObj) }
+  add_fn(:"keyword?", 1) { |x| x.is_a?(Keyword) }
 
+  add_fn(:"keyword-name", 1) { |x| x.is_a?(Keyword) ? x.name : nil }
+  
   add_fn(:id, 1) { |x| x }
   add_fn(:"id-fn", 1) { |x| NativeLyraFn.new("", 0) { x } }
   add_fn(:hash, 1) { |x| x.hash }
@@ -325,6 +328,7 @@ def setup_core_functions
   end
   add_fn(:"buildin->string", 1) { |x| elem_to_s x }
   add_fn(:"buildin->pretty-string", 1) { |x| elem_to_pretty x }
+  add_fn(:"buildin->keyword", 1) { |x| x.respond_to?(:to_sym) ? Keyword.create(x) : nil }
   add_fn(:"buildin->bool", 1) { |x| !(x.nil? || x == false || (x.is_a?(EmptyList))) }
   add_fn(:"buildin->list", 1) { |x| x.is_a?(Enumerable) ? x.to_cons_list : nil }
   add_fn(:"buildin->vector", 1) { |x| x.is_a?(Enumerable) ? x.to_a : nil }
@@ -486,9 +490,9 @@ def setup_core_functions
 
   add_fn_with_env(:"apply-to", 2) { |xs, env| first(xs).call(second(xs).force, env) }
 
-  [NOTHING_TYPE, BOOL_TYPE, VECTOR_TYPE, MAP_TYPE, LIST_TYPE, FUNCTION_TYPE, INTEGER_TYPE,
-   FLOAT_TYPE, RATIO_TYPE, SET_TYPE, TYPE_NAME_TYPE, STRING_TYPE, SYMBOL_TYPE, BOX_TYPE,
-   ERROR_TYPE, CHAR_TYPE].each do |t|
+  [NOTHING_TYPE, BOOL_TYPE, VECTOR_TYPE, MAP_TYPE, LIST_TYPE, FUNCTION_TYPE, 
+   INTEGER_TYPE, FLOAT_TYPE, RATIO_TYPE, SET_TYPE, TYPE_NAME_TYPE, STRING_TYPE, 
+   SYMBOL_TYPE, BOX_TYPE, ERROR_TYPE, CHAR_TYPE,KEYWORD_TYPE].each do |t|
     add_var t.to_sym, t
   end
 

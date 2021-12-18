@@ -3,13 +3,18 @@
 
 require_relative 'types.rb'
 
-# [\s,]* Whitespace
-# '\(\) Matches the empty list '() (also called nil)
-# [()] Matches (, )
-# "(?:\\.|[^\\"])*"? Matches 0 or 1 string
-# ;.* Matches comment and rest or line
-# '?[^\s\[\]{}('"`,;)]* Everything else with an optional ' at the beginning.
-LYRA_REGEX = /[\s,]*([()\[\]\{\}]|"(?:\\.|[^\\"])*"?|;.*|@|#\{|#\(|'|[^\s\[\]\{\}('"`,;)]*)/
+# [\s,]*                ignore whitespace and comma
+# \\u[0-9]{4}           utf-8 literals
+# \\.                   Other char literals
+# [()\[\]\{\}]          Special opening and closing brackets.
+# "(?:\\.|[^\\"])*"?    String literals
+# ;.*                   Ignore rest of line after semicolon
+# @                     '@' character
+# #\{                   Special symbol '#{'
+# #\(                   Special symbol '#('
+# '                     Special symbol '
+# [^\s\[\]\{\}('"`,;)]* Anything else, excluding spaces, [, ], (, ), {, }, ', ", `, comma and semicolon
+LYRA_REGEX = /[\s,]*(\\u[0-9]{4}|\\.|[()\[\]\{\}]|"(?:\\.|[^\\"])*"?|;.*|@|#\{|#\(|'|[^\s\[\]\{\}('"`,;)]*)/
 
 # Scan the text using RE, remove empty tokens and remove comments.
 def tokenize(s)
@@ -23,10 +28,12 @@ end
 
 def parse_char(token)
   case token
-  when /^\\u[0-9][0-9][0-9][0-9]$/
+  when /^\\u[0-9]{4}$/
     LyraChar.conv(eval('"'+token+'"').encode('utf-8'))
-  when /^\\[A-Za-z0-9\/!?$%&()\[\]]$/
+  when /^\\[A-Za-z0-9+-\/!?$%&()\|\[\]\{\}]$/
     LyraChar.conv token[1]
+  when "\\*"
+    LyraChar.conv "*"
   when "\\newline"
     LyraChar.conv "\n"
   when "\\space"

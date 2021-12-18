@@ -16,7 +16,7 @@
   (every? all?)
   reduce reductions some some? some-fn
   nthrest nthnext next fnext ffirst nnext
-  keep)
+  keep name)
 
   (def-macro (when p & body)
     (list 'if p (cons 'begin (cons Nothing body)) (nothing)))
@@ -29,6 +29,13 @@
 
   (def-macro (fn bindings & body)
     (cons 'lambda (cons (->list bindings) body)))
+  
+  (define (name x)
+    (case x
+      symbol? (->string x)
+      keyword? (->string (keyword-name x))
+      string? x
+      Nothing))
 
   (define (nthrest xs i) (drop i xs))
   (define (nthnext xs i) (let ((r (nthrest xs i))) (if (empty? r) Nothing r)))

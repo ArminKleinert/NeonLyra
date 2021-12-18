@@ -75,9 +75,9 @@ end
 # Treat the first console argument as a filename,
 # read from the file and evaluate the result.
 begin
-  puts elem_to_s(eval_str(IO.read("core.lyra")))
+  puts elem_to_pretty(eval_str(IO.read("core.lyra")))
   src_files.each do |f|
-    puts elem_to_s(eval_str(IO.read(f)))
+    puts elem_to_pretty(eval_str(IO.read(f)))
   end
 
   if src_files.empty?
@@ -87,9 +87,9 @@ begin
       begin
         s = _readline(">> ") # Read
         break unless s # Quit if the line is empty
-        puts elem_to_s(eval_str(s)) # Write the result
+        puts elem_to_pretty(eval_str(s)) # Write the result
       rescue LyraError
-        $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_s(x) }}"
+        $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_pretty(x) }}"
         $stderr.puts "Error: " + $!.message
       rescue Interrupt
         # Ignore
@@ -98,10 +98,10 @@ begin
     puts "Bye!"
   end
 rescue SystemStackError
-  $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_s(x) }}"
+  $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_pretty(x) }}"
   raise
 rescue
-  $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_s(x) }}"
+  $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_pretty(x) }}"
   $stderr.puts "Error: " + $!.message
   raise
 end

@@ -13,30 +13,29 @@
   (/ 0 0))
 
 (define (test-lambda)
-(and
-  (let* ((f (lambda (n) n))
-         (fr (f 6)))
-    (all-true?
-      (= 2 ((lambda (n) (+ n n)) 1))
-      (< 2 ((lambda (n) (+ n n)) 2))
-      (= 2 ((lambda (n) n) 2))
-      ((lambda (n) #t) 2)
-      (= (f 2) 2) 
-      (= (f 2) 2) 
-      (= (f 2) 2)
-      (= fr 6)))
-
-  (let* ((f (λ n . n))
-         (fr (f 6)))
-    (all-true?
-      (= 2 ((λ n . (+ n n)) 1))
-      (< 2 ((λ n . (+ n n)) 2))
-      (= 2 ((λ n . n) 2))
-      ((λ n . #t) 2)
-      (= (f 2) 2) 
-      (= (f 2) 2) 
-      (= (f 2) 2)
-      (= fr 6)))))
+  (and
+    (let* ((f (lambda (n) n))
+          (fr (f 6)))
+      (all-true?
+        (= 2 ((lambda (n) (+ n n)) 1))
+        (< 2 ((lambda (n) (+ n n)) 2))
+        (= 2 ((lambda (n) n) 2))
+        ((lambda (n) #t) 2)
+        (= (f 2) 2) 
+        (= (f 2) 2) 
+        (= (f 2) 2)
+        (= fr 6)))
+    (let* ((f (λ n . n))
+          (fr (f 6)))
+      (all-true?
+        (= 2 ((λ n . (+ n n)) 1))
+        (< 2 ((λ n . (+ n n)) 2))
+        (= 2 ((λ n . n) 2))
+        ((λ n . #t) 2)
+        (= (f 2) 2) 
+        (= (f 2) 2) 
+        (= (f 2) 2)
+        (= fr 6)))))
 
 (define (test-lambda*)
   (let ((f (lambda* fnname1 (n) (if (= 0 n) 1 (+ n (fnname1 (- n 1)))))))
@@ -57,6 +56,61 @@
     (if #t #t #f)
     (= 2 (if #t 2 3))
     (= 3 (if #f 2 3))))
+
+(define (test-list-literal)
+  (all-true?
+    (list? '(1 2 3 4 5))
+    (eq? (list "abc") '("abc"))
+    (not (eq? (list +) '(+)))
+    (eq? (list 1 1 1 1 1) '(1 1 1 1 1))
+    (= 6 (size '(1 2 3 4 5 6)))
+    (empty? '())))
+
+(define (test-vector-literal)
+  (all-true?
+    (vector? [1 2 3 4 5])
+    (eq? (vector "abc") ["abc"])
+    (eq? (vector +) [+])
+    (eq? (vector 1 1 1 1 1) [1 1 1 1 1])
+    (= 6 (size [1 2 3 4 5 6]))
+    (empty? [])))
+
+(define (test-set-literal)
+  (all-true?
+    (set? #{1 2 3 4 5})
+    (eq? (set-of "abc") #{"abc"})
+    (eq? (set-of +) #{+})
+    (eq? (set-of 1) #{1 1 1 1 1})
+    (= 6 (size #{1 2 3 4 5 6}))
+    (= 1 (size #{1 1 1 1 1 1}))
+    (empty? #{})))
+
+(define (test-map-literal)
+  (all-true?
+    (map? {1 2 3 4 5 6})
+    (eq? (map-of \+ + \- -) {\+ + \- -})
+    (eq? (map-of 1 1 1 1 1 1) {1 1 1 1 1 1})
+    (= 3 (size {1 2 3 4 5 6}))
+    (= 1 (size {1 1 1 1 1 1}))
+    (empty? {})))
+    
+(define (test-char-literal)
+  (all-true?
+    ; Test special characters
+    (eq? "[+ - * / & % ! | ( ) { } [ ]]" (->string [\+ \- \* \/ \& \% \! \| \( \) \{ \} \[ \]]))
+    
+    ; Test numbers
+    (eq? "[0 1 2 3 4 5 6 7 8 9]" (->string [\0 \1 \2 \3 \4 \5 \6 \7 \8 \9]))
+    
+    (= \a \a)))
+    
+(define (test-keyword-literal)
+  (all-true?
+    (= :a :a)
+    (= :abcdef :abcdef)
+    (:a {:a #t :b #f})
+    (not (:a {:a #f :b #t}))
+    (nothing? (:a {:b #t}))))
 
 (define (test-spread)
   (all-true?
@@ -2454,6 +2508,41 @@
     (eq? '((1) (2) (3) (4) (5) (6)) (slices 1 [1 2 3 4 5 6]))
     (eq? '() (slices 0 [1 2 3 4 5 6]))))
 
+(define (test-count-by)
+  (all-true?
+    (= 0 (count-by even? '()))
+    (= 2 (count-by even? '(0 2)))
+    (= 1 (count-by even? '(1 2)))
+    (= 5 (count-by even? '(1 2 1 2 1 2 1 2 1 2)))
+    (= 0 (count-by even? []))
+    (= 2 (count-by even? [0 2]))
+    (= 1 (count-by even? [1 2]))
+    (= 5 (count-by even? [1 2 1 2 1 2 1 2 1 2]))))
+
+(define (test-most?)
+  (all-true?
+    (not (most? odd? '()))
+    (not (most? odd? '(0 2)))
+    (not (most? odd? '(1 2)))
+    (most? odd? '(1 2 1 2 1 2 1 2 1))
+    (not (most? even? '()))
+    (most? even? '(0 2))
+    (not (most? even? '(1 2)))
+    (not (most? even? '(1 2 1 2 1 2 1 2 1)))
+    (not (most? odd? []))
+    (not (most? odd? [0 2]))
+    (not (most? odd? [1 2]))
+    (most? odd? [1 2 1 2 1 2 1 2 1])
+    (not (most? even? []))
+    (most? even? [0 2])
+    (not (most? even? [1 2]))
+    (not (most? even? [1 2 1 2 1 2 1 2 1]))))
+
+(define (test-keyword-name)
+  (all-true?
+    (eq? 'a (keyword-name :a))
+    (all? (compose nothing? keyword-name) [[] '() '(1) 1 "" "a" 'a + Nothing])))
+
 (define (run-tests & fns)
   (let ((results
           (foldl
@@ -2526,7 +2615,9 @@
   'test-constantly 'test-case 'test-cycle 'test-flip 'test-fst 'test-snd
   'test-scanl 'test-scanl 'test-scanr 'test-scanr1 'test-condp
   'test-frequencies 'test-unique 'test-unique? 'test-try* 'test-tuples
-  'test-slices 'test-try-catch-finally
+  'test-slices 'test-try-catch-finally 'test-count-by 'test-most?
+  'test-list-literal 'test-vector-literal 'test-set-literal 'test-map-literal
+  'test-char-literal 'test-keyword-literal 'test-keyword-name
   ))
 
 (println! (run-all-tests))
