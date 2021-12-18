@@ -14,7 +14,7 @@
 
 (define (ack m n)
   (ack-h (list n m)))
-  
+
 (define (g n p)
   (cond (not (< 1 p)) 1
         (not (< p (dec n))) 1
@@ -32,11 +32,65 @@
     ""
     (range 1 (inc rows))))
 
+(define (test-set-stuff)
+  (let ((r (range -199 200))
+        (s (->set (xrange -199 200 1)))
+        (s1 (->set (xrange 0 399 1))))
+    (foldl
+      (lambda (r x)
+        (cond (= 0 x)
+          (= x 0) (set-size s)
+          (= x 1) (set-add s s1)
+          (= x 2) (set-union s s1)
+          (= x 3) (set-difference s s1)
+          (= x 4) (set-intersection s s1)
+          (= x 5) (set-includes? s x)
+          (= x 6) (set-subset? s s1)
+          (= x 7) (set-true-subset? s s1)
+          (= x 8) (set-superset? s s1)
+          (= x 9) (set-true-superset? s s1)
+          (= x 10) (set->vector s)
+          (= x 11) (set-eq? s s1)
+          (= x 12) (set-size s)
+          (= x 13) (set-add s s)
+          (= x 14) (set-union s s)
+          (= x 15) (set-difference s s)
+          (= x 16) (set-intersection s s)
+          (= x 17) (set-includes? s s)
+          (= x 18) (set-subset? s s)
+          (= x 19) (set-true-subset? s s)
+          (= x 20) (set-superset? s s)
+          (= x 21) (set-true-superset? s s)
+          (= x 22) (set->vector s)
+          (= x 23) (set-eq? s s)))
+    0 r)))
+
+(define (test-map-stuff)
+  (let* ((r (range -199 400))
+         (m (->map r))
+         (m1 (->map (range 0 799))))
+    (foldl
+      (lambda (r x)
+        (cond (= 0 x)
+          (= x 0) (map-size m)
+          (= x 1) (map-add m x x)
+          (= x 2) (map-get m x)
+          (= x 3) (map-set m x x)
+          (= x 4) (map-remove m x)
+          (= x 5) (map-keys m x)
+          (= x 6) (map-merge m m1)
+          (= x 7) (map-has-key? m x)
+          (= x 8) (map-entries m)
+          (= x 9) (map->vector m)
+          (= x 9) (map-eq? m m1)
+          (= x 10) (apply-to map-of r)
+          (= x 11) (map-merge m m)))
+      0 r)))
+
 (def-macro (test-performance text expr)
   (list 'println! (list 'string-concat (list 'ljust  text 50) (list '->string (list 'measure! 'runs (list 'lambda () expr))))))
 
-(let ((runs 25)
-      (r (range 0 100)))
+(let ((runs 50))
 
 (test-performance "Many math ops:" (-> 5 (+ 5)(- 5)(* 5)(/ 5)(+ 5)(- 5)(* 5)(/ 5)(+ 5)(- 5)(* 5)(/ 5)(+ 5)(- 5)(* 5)(/ 5)(+ 5)(- 5)(* 5)(/ 5)(+ 5)(- 5)(* 5)(/ 5)(+ 5)(- 5)(* 5)(/ 5)))
 
@@ -47,6 +101,12 @@
 
 (let ((ops (foldr compose id (list (partial + 5)(partial - 5)(partial * 5)(partial / 5)(partial + 5)(partial - 5)(partial * 5)(partial / 5)(partial + 5)(partial - 5)(partial * 5)(partial / 5)(partial + 5)(partial - 5)(partial * 5)(partial / 5)(partial + 5)(partial - 5)(partial * 5)(partial / 5)(partial + 5)(partial - 5)(partial * 5)(partial / 5)(partial + 5)(partial - 5)(partial * 5)(partial / 5)))))
   (test-performance "Same as partials with composition:" (ops 5)))
+  
+(let ((s (->set (xrange -500 500 1)))
+      (s1 (->set (xrange -250 750 1))))
+  (test-performance "set operations" (test-set-stuff)))
+
+(test-performance "map operations" (test-map-stuff))
 
 (test-performance "(ack 3 4)" (ack 3 4))
 
@@ -127,34 +187,41 @@ truffleruby:
 
 0.1.3
 Ruby:
-  Many math ops:                                    0.17009100000000002
-  Without -> :                                      0.167007
-  Many math ops (lambda):                           0.175564
-  Same as partials with composition:                0.367443
-  (ack 3 4)                                         1357.7811740000002
-  lazy sequences                                    96.152513
-  Sort 5000 elements:                               1154.7525
-  Shuffle 5000 elements:                            5506.64276
-  9-billion-names (25):                             1996.0957589999998
+  Many math ops:                                    0.174354
+  Without -> :                                      0.170699
+  Many math ops (lambda):                           0.1830095
+  Same as partials with composition:                0.402227
+  set operations                                    153.952123
+  map operations                                    66.956069
+  (ack 3 4)                                         1395.9497675
+  lazy sequences                                    95.1766455
+  Sort 5000 elements:                               1188.972549
+  Shuffle 5000 elements:                            5665.627157
+  9-billion-names (25):                             2049.2737935
 jruby:
-  Many math ops:                                    2.682
-  Without -> :                                      1.484
-  Many math ops (lambda):                           1.491
-  Same as partials with composition:                5.164000000000001
-  (ack 3 4)                                         2515.112
-  lazy sequences                                    197.173
-  Sort 5000 elements:                               1838.028
-  Shuffle 5000 elements:                            6662.75
-  9-billion-names (25):                             2167.935
+  Many math ops:                                    1.478
+  Without -> :                                      1.4105
+  Many math ops (lambda):                           1.6295
+  Same as partials with composition:                4.679
+  set operations                                    152.3055
+  map operations                                    67.258
+  (ack 3 4)                                         2519.9255
+  lazy sequences                                    197.052
+  Sort 5000 elements:                               1828.251
+  Shuffle 5000 elements:                            6652.0645
+  9-billion-names (25):                             2121.621
 truffleruby:
-  Many math ops:                                    2.7030000000000003
-  Without -> :                                      2.5370000000000004
-  Many math ops (lambda):                           1.971
-  Same as partials with composition:                4.406000000000001
-  (ack 3 4)                                         3580.669
-  lazy sequences                                    432.779
-  Sort 5000 elements:                               2272.506
-  Shuffle 5000 elements:                            4455.437
-  9-billion-names (25):                             1087.973
+  Many math ops:                                    2.377
+  Without -> :                                      2.0745
+  Many math ops (lambda):                           2.062
+  Same as partials with composition:                4.1695
+  set operations                                    70.2375
+  map operations                                    122.561
+  (ack 3 4)                                         3767.6895
+  lazy sequences                                    330.4945
+  Sort 5000 elements:                               2366.332
+  Shuffle 5000 elements:                            4680.691
+  9-billion-names (25):                             921.8655
+
 )
 
