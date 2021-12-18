@@ -334,7 +334,6 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
   elsif expr.is_a?(Lazy) && force_eval
     expr.evaluate
   elsif atom?(expr) || expr.is_a?(LyraFn)
-    #force_eval ? eager(expr) : expr
     expr
   elsif expr.is_a? Array
     if force_eval
@@ -345,6 +344,10 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
     else
       expr.map { |x| eval_ly x, env, force_eval, true }
     end
+  elsif expr.is_a? Hash
+    (expr.map { |k,v| eval_ly [k,v], env, force_eval, true }).to_h
+  elsif expr.is_a? Set
+    (expr.map { |x| eval_ly x, env, force_eval, true }).to_set
   elsif expr.is_a?(WrappedLyraError)
     expr
   elsif expr.is_a?(ConsList)
@@ -567,7 +570,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       # inner list must be executed too.
       func = eval_ly(func, env, force_eval) if func.is_a?(ConsList)
 
-      raise LyraError.new("Runtime error: Expected a function, got #{elem_to_s(func)}", :expected_function) unless func.is_a?(LyraFn)
+      raise LyraError.new("Runtime error: Expected a function, got #{elem_to_pretty(func)}", :expected_function) unless func.is_a?(LyraFn)
 
       # If the function is not pure, force evaluation.
       force_eval = true unless func.pure?

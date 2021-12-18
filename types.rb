@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require 'singleton'
+require 'set'
 
 class LyraError < StandardError
   attr_reader :info,:internal_trace
@@ -83,27 +84,27 @@ module ConsList
   end
 
   def inspect
-    to_s
+    "(#{inject { |x, y| "#{elem_to_pretty(x)} #{elem_to_pretty(y)}" }})"
   end
 
   def nth(i)
-    if i >= size
-      nil
-    else
-      each do |e|
-        if i == 0
-          return e
-        end
-        i -= 1
-      end
-      raise "Should never happen."
-    end
+    self[i]
   end
 
   def [](i)
     if i.is_a? Integer
-      nth(i)
-    else
+      if i >= size
+        nil
+      else
+        each do |e|
+          if i == 0
+            return e
+          end
+          i -= 1
+        end
+        raise "Should never happen."
+      end
+    else # if i is a range
       list(*to_a[i])
     end
   end
@@ -225,7 +226,7 @@ def list_append(*lists)
   if lists.empty?
     EmptyList.instance
   else
-    lists.inject { |l0, l1| ListPair.new(l0, l1) }
+    lists.map(&:to_cons_list).inject { |l0, l1| ListPair.new(l0, l1) }
   end
 end
 
@@ -643,7 +644,7 @@ class TypeName
 end
 
 def atom?(x)
-  x.is_a?(Numeric) || x.is_a?(String) || x.is_a?(Symbol) || !!x == x || x.is_a?(LazyObj) || x.is_a?(LyraChar)
+  x.is_a?(Numeric) || x.is_a?(String) || x.is_a?(Symbol) || !!x == x || x.is_a?(LazyObj) || x.is_a?(LyraChar) || x.is_a?(Keyword)
 end
 
 class LyraChar
@@ -678,7 +679,7 @@ class LyraChar
   end
   
   def inspect
-    @chr
+    '\\' + @chr
   end
   
   def ord
@@ -699,6 +700,82 @@ class LyraChar
     else
       false
     end
+  end
+  
+  def hash
+    @chr.hash
+  end
+end
+
+KEYWORDS = Hash.new
+
+class Keyword < LyraFn
+  attr_reader :name
+
+  def initialize(name)
+    @name = name
+  end
+
+  def self.create(name)
+    name = name.to_sym
+    res = KEYWORDS[name]
+    if res.nil?
+      res = Keyword.new(name)
+      KEYWORDS[name] = res
+    else
+      res
+    end
+  end
+
+  def ==(other)
+    if other.is_a?(Keyword)
+      @name == other.name
+    else
+      false
+    end
+  end
+
+  def eql?(other)
+    self == other
+  end
+
+  def to_s
+    @name
+  end
+
+  def inspect
+    @name
+  end
+
+  def to_sym
+    @name
+  end
+
+  def hash
+    @name.hash
+  end
+
+  def call(args, env)
+    if args.size != 1
+      raise LyraError.new("#{@name}: Keyword can only be called on 1 argument.", :arity)
+    end
+    if args.car.is_a?(Hash)
+      args.car[self]
+    else
+      raise LyraError.new("#{@name}: Keyword can only be on a map.", :"invalid-call")
+    end
+  end
+
+  def native?
+    true
+  end
+
+  def pure?
+    true
+  end
+
+  def is_macro
+    false
   end
 end
 

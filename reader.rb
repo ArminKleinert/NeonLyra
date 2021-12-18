@@ -9,7 +9,7 @@ require_relative 'types.rb'
 # "(?:\\.|[^\\"])*"? Matches 0 or 1 string
 # ;.* Matches comment and rest or line
 # '?[^\s\[\]{}('"`,;)]* Everything else with an optional ' at the beginning.
-LYRA_REGEX = /[\s,]*([()\[\]]|"(?:\\.|[^\\"])*"?|;.*|@|#\(|'|[^\s\[\]('"`,;)]*)/
+LYRA_REGEX = /[\s,]*([()\[\]\{\}]|"(?:\\.|[^\\"])*"?|;.*|@|#\{|#\(|'|[^\s\[\]\{\}('"`,;)]*)/
 
 # Scan the text using RE, remove empty tokens and remove comments.
 def tokenize(s)
@@ -55,9 +55,15 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
   while (t = tokens.shift) != nil
     case t
     when "'"
-      root << list(:quote, make_ast(tokens, level, "", true))
+      root << list(:quote, make_ast(tokens, level+1, "", true))
     when "@"
-      root << list(:unbox, make_ast(tokens, level, "", true))
+      root << list(:unbox, make_ast(tokens, level+1, "", true))
+    when '#{'
+      a = make_ast(tokens, level+1, "}")
+      root << (a.is_a?(Array) ? Set[*a] : Set[a])
+    when "{"
+      a = make_ast(tokens, level+1, "}")
+      root << a.each_slice(2).to_h
     when "#("
       root << list(:lambda, list(:"&", 0.chr.to_sym), make_ast(tokens, level, ")"))
     when "("
@@ -68,7 +74,10 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
     when "["
       root << make_ast(tokens, level + 1, "]")
     when "]"
-      raise LyraError.new("Unexpected ']'", :"parse-error") if level == 0 || expected != "]"
+      raise LyraError.new("Unexpected '#{t}'", :"parse-error") if level == 0 || expected != t
+      return root.to_a
+    when "}"
+      raise LyraError.new("Unexpected '#{t}'", :"parse-error") if level == 0 || expected != t
       return root.to_a
     when '"' then raise LyraError.new("Unexpected '\"'", :"parse-error")
     when "#t" then root << true
@@ -107,6 +116,8 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
       root[-1] = list(:eager, root[-1])
     when /^::.+$/
       root << t.to_sym #TypeName.new(t,-1)
+    when /^:.+$/
+      root << Keyword.create(t)
     when /^\\.+$/
       root << parse_char(t)
     else

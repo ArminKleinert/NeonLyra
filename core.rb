@@ -55,6 +55,7 @@ BOX_TYPE = TypeName.new "::box", 12
 RATIO_TYPE = TypeName.new "::rational", 13
 ERROR_TYPE = TypeName.new "::error", 14
 CHAR_TYPE = TypeName.new "::char", 15
+KEYWORD_TYPE = TypeName.new "::keyword", 15
 
 def type_id_of(x)
   if x.nil?
@@ -91,6 +92,8 @@ def type_id_of(x)
     TYPE_NAME_TYPE
   elsif x.is_a? LyraError
     ERROR_TYPE
+  elsif x.is_a? Keyword
+    KEYWORD_TYPE
   else
     raise LyraError.new("No name for type #{x.class} for object #{elem_to_s(x)}")
   end.type_id
@@ -128,11 +131,33 @@ def elem_to_s(e)
   elsif e.is_a? Array
     "[#{e.map { |x| elem_to_s(x) }.join(" ")}]"
   elsif e.is_a? Hash
-    "Map[" + e.map { |k, v| "#{elem_to_s(k)} #{elem_to_s(v)}" }.join(" , ") + "]"
+    "{" + e.map { |k, v| "#{elem_to_s(k)} #{elem_to_s(v)}" }.join(" ") + "}"
   elsif e.is_a? Set
-    "Set[#{e.map { |x| elem_to_s(x) }.join(" ")}]"
+    '#{' + "#{e.map { |x| elem_to_s(x) }.join(" ")}}"
   else
     e.to_s
+  end
+end
+
+def elem_to_pretty(e)
+  if e == true
+    "true"
+  elsif e == false
+    "false"
+  elsif e.nil?
+    "nil"
+  elsif e.is_a? List
+    "(#{e.map { |x| elem_to_pretty(x) }.join(" ")})"
+  elsif e.is_a? Array
+    "[#{e.map { |x| elem_to_pretty(x) }.join(" ")}]"
+  elsif e.is_a? Hash
+    "{" + e.map { |k, v| "#{elem_to_pretty(k)} #{elem_to_pretty(v)}" }.join(" ") + "}"
+  elsif e.is_a? Set
+    '#{' + e.map { |x| elem_to_pretty(x) }.join(" ") + '}'
+  elsif e.is_a? Symbol
+    e.to_s
+  else
+    e.inspect
   end
 end
 
@@ -299,6 +324,7 @@ def setup_core_functions
     end
   end
   add_fn(:"buildin->string", 1) { |x| elem_to_s x }
+  add_fn(:"buildin->pretty-string", 1) { |x| elem_to_pretty x }
   add_fn(:"buildin->bool", 1) { |x| !(x.nil? || x == false || (x.is_a?(EmptyList))) }
   add_fn(:"buildin->list", 1) { |x| x.is_a?(Enumerable) ? x.to_cons_list : nil }
   add_fn(:"buildin->vector", 1) { |x| x.is_a?(Enumerable) ? x.to_a : nil }

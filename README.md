@@ -50,6 +50,7 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 - Box (The only mutable type)  
 - Set  
 - Error  
+- Keyword  
 
 ## Some friendly infos about the syntax 
 
@@ -65,6 +66,9 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 - `#(...)` is an alternative syntax for anonymous functions  
 - `#t` is literal true  
 - `#f` is literal false  
+- `#{...}` is a literal set.  
+- `{...}` is a literal map.  
+- `:<word>` is a keyword literal. (eg. `:a`)  
 - Numbers can start with the prefixes `0x` or `0b` for hexadecimal or binary literals.
 - Function with names that end in `!` are considered impure. Impure calls eagerly evaluate their parameters. They will also not be optimized away. You can mark any function as pure by not putting a `!` at the end of the name.  
 
@@ -86,13 +90,11 @@ Here are some differences to Clojure I could think of:
 - `nil` is called `Nothing` in reference to Haskell. (`nil` is provided as an alias though)  
 - No meta-data.  
 - No method-access using `.` and `..`.  
-- No `Keyword` type (Maybe in the future).  
 - No `letfn` (All `let` variants can do this, just like in Clojure).  
 - No access to the host language.  
 - No arrays.  
 - No build-in loops.  
-- No keyword access for maps. (I really want it though)  
-- No literals for maps and sets.
+- Keyword access only works for maps. (Not for user-defined types)  
 - No primitive (value) types.  
 - No streams to files or sockets.  
 - No transients.  
@@ -269,4 +271,6 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
 - 0.1.3  
   - Error handling via. try*-catch (Usage is heavily discouraged!)  
   - char type and char literals (including utf-8 characters)  
+  - Keyword type  
+  - Literals for keywords, sets and maps.  
 
