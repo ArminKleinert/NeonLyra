@@ -2665,8 +2665,8 @@
   'test-scanr1 'test-condp 'test-frequencies 'test-unique 'test-unique?
   'test-try* 'test-tuples 'test-slices 'test-try-catch-finally
   'test-count-by 'test-most? 'test-list-literal 'test-vector-literal
-  'test-set-literal 'test-map-literal 'test-char-literal 'test-fn
-  'test-when 'test-name
+  'test-set-literal 'test-map-literal 'test-char-literal 'test-when
+  'test-name 'test-fn
   ))
 
 (println! (run-all-tests))

@@ -224,7 +224,7 @@ def setup_core_functions
   end
 
   add_fn(:"list-size", 1) { |x| x.is_a?(ConsList) ? x.size : (raise LyraError.new("Invalid call to list-size.", :"invalid-call")) }
-  add_fn(:cons, 2) { |x, xs| xs.is_a?(ConsList) ? cons(x, xs) : (raise LyraError.new("Invalid call to cons.", :"invalid-call")) }
+  add_fn(:cons, 2) { |x, xs| xs.is_a?(ConsList) ? cons(x, xs) : (raise LyraError.new("Invalid call to cons. (given #{xs})", :"invalid-call")) }
   add_fn(:car, 1) { |x| x.is_a?(ConsList) ? x.car : (raise LyraError.new("Invalid call to car.", :"invalid-call")) }
   add_fn(:cdr, 1) { |x| x.is_a?(ConsList) ? x.cdr : (raise LyraError.new("Invalid call to cdr.", :"invalid-call")) }
 

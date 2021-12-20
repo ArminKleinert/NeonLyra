@@ -444,7 +444,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         env1 = Env.new(nil, env)
         bindings.each do |b|
           raise LyraError.new("Syntax error: Binding in let* must have 2 parts.", :syntax) unless b.is_a?(List) && b.size == 2
-          raise LyraError.new("Syntax error: Name of binding in let* must be a symbol.", :syntax) unless b.car.is_a? Symbol
+          raise LyraError.new("Syntax error: Name of binding in let* must be a symbol.", :syntax) unless b.car.is_a?(Symbol)
           env1.set!(b.car, eval_ly(b.cdr.car, env1, force_eval, true))
         end
       end
@@ -454,15 +454,20 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
     when :let
       raise LyraError.new("Syntax error: let needs at least 1 argument.") if expr.cdr.empty?
       bindings = second(expr)
-      raise LyraError.new("Syntax error: let bindings must be a list.") unless bindings.is_a?(ConsList)
+      raise LyraError.new("Syntax error: let bindings must be a list.") unless bindings.is_a?(ConsList) || bindings.is_a?(Array)
 
       body = rest(rest(expr))
       env1 = Env.new(nil, env)
-      unless bindings.empty?
+      if bindings.is_a?(Array)
         # Evaluate bindings in order using the old environment.
+        bindings.each_slice(2) do |name,val|
+          raise LyraError.new("Syntax error: Name of binding in let must be a symbol.") unless name.is_a?(Symbol)
+          env1.set!(name, eval_ly(val, env1, force_eval, true))
+        end
+      else
         bindings.each do |b|
           raise LyraError.new("Syntax error: Binding in let must have 2 parts.") unless b.is_a?(List) && b.size == 2
-          raise LyraError.new("Syntax error: Name of binding in let must be a symbol.") unless b.car.is_a? Symbol
+          raise LyraError.new("Syntax error: Name of binding in let must be a symbol.") unless b.car.is_a?(Symbol)
           env1.set!(b.car, eval_ly(b.cdr.car, env, force_eval, true))
         end
       end

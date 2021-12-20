@@ -89,7 +89,7 @@ begin
         break unless s # Quit if the line is empty
         puts elem_to_pretty(eval_str(s)) # Write the result
       rescue LyraError
-        $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_pretty(x) }}"
+        $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_s(x) }}"
         $stderr.puts "Error: " + $!.message
       rescue Interrupt
         # Ignore
@@ -98,10 +98,10 @@ begin
     puts "Bye!"
   end
 rescue SystemStackError
-  $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_pretty(x) }}"
+  $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_s(x) }}"
   raise
 rescue
-  $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_pretty(x) }}"
+  $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_s(x) }}"
   $stderr.puts "Error: " + $!.message
   raise
 end

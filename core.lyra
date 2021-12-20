@@ -111,7 +111,7 @@
 (def-impl ::set reverse id)
 (def-impl ::map reverse id)
 
-(def-impl ::list add (lambda (l v) (append l '(x))))
+(def-impl ::list add (lambda (l v) (append l (list x))))
 (def-impl ::string add (lambda (s o) (string-add s (->string o))))
 (def-impl ::vector add vector-add)
 (def-impl ::set add set-add)
@@ -661,7 +661,13 @@
 
 (def-macro (defmacro bindings & body)
   (va-cons 'def-macro bindings body))
-)
 
+(define into
+  (case-lambda* into
+    (() '())
+    ((to) to)
+    ((to from) (foldl add to from))
+    ((to f from) (foldl add to (f from)))))
+)
 
 
