@@ -1,10 +1,11 @@
 (module tests
   ((run-tests run-all-tests))
 
-(load! "core/random.lyra")
-(load! "core/sort.lyra")
-(load! "core/aliases.lyra")
-(load! "core/infix.lyra")
+(load! "core/random.lyra"
+       "core/sort.lyra"
+       "core/aliases.lyra"
+       "core/infix.lyra"
+       "core/clj.lyra")
 
 (define (all-true? & cases)
   (all? (lambda (e) (if e.! #t #f)) cases))
@@ -2577,6 +2578,24 @@
     (= 5 ((fn f1 ([a b] (+ a b)) ([a] a)) 5)) ; named multi
     ))
 
+(define (test-when)
+  (all-true?
+    (nothing? (when #f))
+    (nothing? (when #t))
+    (when #t #t)
+    (not (when #t #f))))
+
+(define (test-name)
+  (all-true?
+    (string? (name 'a))
+    (eq? "a" (name 'a))
+    (string? (name "a"))
+    (eq? "a" (name "a"))
+    (string? (name :a))
+    (eq? "a" (name :a))
+    (all? nothing?
+      (map name (list '() '(1) 1 0.5 7/5r \a [] [1] +)))))
+
 (define (run-tests & fns)
   (let ((results
           (foldl
@@ -2646,7 +2665,8 @@
   'test-scanr1 'test-condp 'test-frequencies 'test-unique 'test-unique?
   'test-try* 'test-tuples 'test-slices 'test-try-catch-finally
   'test-count-by 'test-most? 'test-list-literal 'test-vector-literal
-  'test-set-literal 'test-map-literal 'test-char-literal
+  'test-set-literal 'test-map-literal 'test-char-literal 'test-fn
+  'test-when 'test-name
   ))
 
 (println! (run-all-tests))

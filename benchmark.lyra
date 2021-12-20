@@ -92,7 +92,7 @@
 (def-macro (test-performance text expr)
   (list 'println! (list 'string-concat (list 'ljust  text 50) (list '->string (list 'measure! 'runs (list 'lambda () expr))))))
 
-(let ((runs 100))
+(let ((runs 2))
 
 (test-performance "Many math ops:" (-> 5 (+ 5)(- 5)(* 5)(/ 5)(+ 5)(- 5)(* 5)(/ 5)(+ 5)(- 5)(* 5)(/ 5)(+ 5)(- 5)(* 5)(/ 5)(+ 5)(- 5)(* 5)(/ 5)(+ 5)(- 5)(* 5)(/ 5)(+ 5)(- 5)(* 5)(/ 5)))
 

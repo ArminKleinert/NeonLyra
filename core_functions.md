@@ -197,6 +197,7 @@ compare              | 2   |  x  |  x  | Compares 2 variables x and y.
                      |     |     |     | 
 list                 | any |  x  |     | Take any number of arguments and return them as a list.
 let1                 | 2   |  x  |     | Sets a single variable.
+defmacro             | >=1 |  x  |     | Alias for def-macro.
                      |     |     |     | 
 size                 | 1   |  x  |  x  | 
 first                | 1   |  x  |  x  | 
@@ -375,6 +376,7 @@ case-lambda          | >=0 |  x  |     | Creates a lambda which can accept diffe
                      |     |     |     | of arguments.
                      |     |     |     | (let ((l (case-lambda ((x)x) ((x y)y) (xs(car xs)))))
                      |     |     |     |   (list (l 9) (l 0 1) (l 2 3 4))) ;=> (9 1 2)
+case-lambda*         | >=1 |  x  |     | case-lambda but takes a name too.
 try                  | >=2 |  x  |     | Like try*, but can have multiple expressions in the body, 
                      |     |     |     | multiple catch-clauses and a finally-clause at the end.
 condp                | >=3 |  x  |     | As in Clojure.
@@ -416,9 +418,10 @@ Name                 |  #  |Pure?|Gen? |
 ---------------------+-----+-----+-----+------------------------------------------------------------
 when                 | >=1 |  x  |     | (when p ...) => (if p (begin ...) Nothing)
 def                  | 2   |  x  |     | Alias for value-define.
-defn                 | 2   |  x  |     | Alias for function-define, but parameters are given
-                     |     |     |     | as a vector.
-fn                   | >=1 |  x  |     | Alias for lambda, but bindings are given as a vector.
+defn                 | 2   |  x  |     | Alias for value-define with the value being a fn.
+fn                   | >=1 |  x  |     | Alias for lambda, lambda*, case-lambda or case-lambda*,
+                     |     |     |     | depending on the exact syntax. For more info, see 
+                     |     |     |     | https://clojuredocs.org/clojure.core/fn
 do                   | any |  x  |     | Alias for begin.
 slurp!               | 1   |     |     | Alias for file-read!.
 spit!                | 2   |     |     | Alias for file-write!.

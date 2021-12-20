@@ -790,6 +790,10 @@ class LyraType
   def to_s
     "[LyraType #{@type_id} #{@name} attrs=#{attrs.to_s}]"
   end
+  
+  def inspect
+    to_s
+  end
 end
 
 LYRA_TYPE_COUNTER = Box.new 20

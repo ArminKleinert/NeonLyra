@@ -600,7 +600,6 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         r1 = func.call(args, env)
         LYRA_CALL_STACK.pop
         puts r1 if $show_expand_macros
-        #puts r1
         if LYRA_CALL_STACK.none?(&:is_macro)
           expr.set_car! :id
           expr.set_cdr! list(r1)

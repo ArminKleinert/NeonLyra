@@ -19,7 +19,7 @@
   keep name)
 
   (def-macro (when p & body)
-    (list 'if p (cons 'begin (cons Nothing body)) (nothing)))
+    (list 'if p (va-cons 'begin Nothing body) Nothing))
 
   (def-macro (def name val)
     (list 'define name val))
@@ -27,7 +27,7 @@
   (define (%defn name bindings body)
     (if (or (string? bindings) (map? bindings))
       (%defn name (car body) (cdr body)) ; ignore docstring or attr-map
-      (list 'define name (cons 'fn (cons name (cons bindings body))))))
+      (list 'define name (va-cons 'fn name bindings body))))
   (def-macro (defn name bindings & body)
     (%defn name bindings body))
 
@@ -36,11 +36,11 @@
     (list? bindings) ; Probably multi-fn
       (%multifn name (cons bindings body))
     (vector? bindings)
-      (cons 'lambda* (cons name (cons (->list bindings) body)))
+      (cons 'lambda* (va-cons name (->list bindings) body))
     else (error! "Syntax error: Invalid format for fn." 'syntax)))
 
 (define (%multifn name body)
-  (cons 'case-lambda* (cons name (map-eager (lambda (xs) (cons (->list (car xs)) (cdr xs))) body))))
+  (va-cons 'case-lambda* name (map-eager (lambda (xs) (cons (->list (car xs)) (cdr xs))) body)))
 
 (def-macro (fn name & body)
   (cond
@@ -52,6 +52,13 @@
       (%multifn (gensym 'fn) (cons name body))
     else
       (error! "Syntax error: Invalid format for fn." 'syntax)))
+  
+  (comment define (name x)
+    (cond
+      (symbol? x) (->string x)
+      (keyword? x) (->string (keyword-name x))
+      (string? x) x
+      else Nothing))
   
   (define (name x)
     (case x
