@@ -90,7 +90,7 @@ Here are some differences to Clojure I could think of:
 - `nil` is called `Nothing` in reference to Haskell. (`nil` is provided as an alias though)  
 - No meta-data.  
 - No method-access using `.` and `..`.  
-- No `letfn` (All `let` variants can do this, just like in Clojure).  
+- No `letfn` (yet).  
 - No access to the host language.  
 - No arrays.  
 - No build-in loops.  
@@ -98,6 +98,7 @@ Here are some differences to Clojure I could think of:
 - No primitive (value) types.  
 - No streams to files or sockets.  
 - No transients.  
+- Math ops are not variadic. Use `v+`, `v-`, ... if necessary. Same goes for `=`, `<`, ...  
 - Only Boxes can be copied.  
 - Still going through a lot of changes.  
 - Tail recursion. (`recur` is available too)  
@@ -273,4 +274,5 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - char type and char literals (including utf-8 characters)  
   - Keyword type  
   - Literals for keywords, sets and maps.  
+  - `loop` macro  
 
