@@ -24,7 +24,9 @@
         (= (f 2) 2) 
         (= (f 2) 2) 
         (= (f 2) 2)
-        (= fr 6)))
+        (= fr 6)
+        ((lambda () #t))
+        (not ((lambda () #f)))))
     (let* ((f (λ n . n))
           (fr (f 6)))
       (all-true?
@@ -2543,6 +2545,28 @@
     (eq? 'a (keyword-name :a))
     (all? (compose nothing? keyword-name) [[] '() '(1) 1 "" "a" 'a + Nothing])))
 
+(define (test-loop)
+  (all-true?
+    ; (loop 1 2 3 0)
+    ; (loop 1 2 2 6)
+    ; (loop 1 2 1 11)
+    ; (loop 1 2 0 15)
+    ; (loop 1 1 2 18)
+    ; (loop 1 1 1 22)
+    ; (loop 1 1 0 25)
+    ; (loop 1 0 1 27)
+    ; (loop 0 1 1 29)
+    ; 29
+    (= 29
+      (loop (a 1 b 2 c 3 res 0)
+        (cond
+          (= a 0) res
+          (= b 0) (recur (- a 1) c a (v+ a b c res))
+          (= c 0) (recur a (- b 1) b (v+ a b c res))
+          else (recur a b (- c 1) (v+ a b c res)))))
+    (not (loop ()))
+    (loop () #t)))
+
 (define (run-tests & fns)
   (let ((results
           (foldl
@@ -2565,63 +2589,57 @@
 
 (define (run-all-tests)
   (run-tests
-  'test-lambda 'test-cond 'test-if 'test-spread 'test-apply 'test-lambda*
-  'test-quote 'test-gensym 'test-seq 'test-lazy-crash
-  'test-lazy 'test-eager 'test-partial 'test-nothing
-  'test-box 'test-unbox 'test-set-box 'test-read-string
-  'test-eval 'test-measure 'test-= 'test-/= 'test-<
-  'test-> 'test-<= 'test->= 'test-+ 'test-- 'test-* 'test-/ 'test-rem 
-  'test-v+ 'test-v- 'test-v* 'test-v/ 'test-v% 'test-set? 'test-map?
-  'test-inc 'test-dec 'test-min 'test-max 'test-map 
-  'test-not 'test-and 'test-or 'test-bit-and 'test-bit-or 
-  'test-bit-xor 'test-bit-shl 'test-bit-shr 'test-defined?
-  'test-nothing? 'test-null? 'test-collection? 'test-sequence?
-  'test-list? 'test-vector? 'test-int? 'test-float?
-  'test-string? 'test-symbol? 'test-char? 'test-boolean?
-  'test-set? 'test-empty? 'test-compose 'test-compose-and
-  'test-compose-or 'test-complement 'test-id 'test-id-fn
-  'test-hash 'test-eq? 'test-->int 'test-->float
-  'test-->rational 'test-rational? 'test-case-lambda 'test-case-lambda*
-  'test-->string 'test-->bool 'test-->list 'test-->vector
-  'test-->char 'test-->map 'test-->set 'test-list
-  'test-list-size 'test-car 'test-cdr 'test-cons 'test-vector
-  'test-vector-size 'test-vector-nth 'test-vector-add 
-  'test-vector-append 'test-iterate-seq 'test-iterate-seq-p
-  'test-map-of 'test-map-size 'test-map-get 'test-map-set
-  'test-map-remove  'test-map-keys 'test-map-merge 'test-set-of
-  'test-set-size 'test-set-add 'test-set-union 'test-any? 
-  'test-set-difference 'test-set-intersection 'test-bubblesort
+  'test-keyword-name 'test-loop 'test-lambda 'test-cond 'test-if 'test-spread
+  'test-apply 'test-lambda* 'test-quote 'test-gensym 'test-seq
+  'test-lazy-crash 'test-lazy 'test-eager 'test-partial 'test-nothing
+  'test-box 'test-unbox 'test-set-box 'test-read-string 'test-eval
+  'test-measure 'test-= 'test-/= 'test-< 'test-> 'test-<= 'test->= 'test-+
+  'test-- 'test-* 'test-/ 'test-rem 'test-v+ 'test-v- 'test-v* 'test-v/
+  'test-v% 'test-set? 'test-map? 'test-inc 'test-dec 'test-min 'test-max
+  'test-map 'test-not 'test-and 'test-or 'test-bit-and 'test-bit-or
+  'test-bit-xor 'test-bit-shl 'test-bit-shr 'test-defined? 'test-nothing?
+  'test-null? 'test-collection? 'test-sequence? 'test-list? 'test-vector?
+  'test-int? 'test-float? 'test-string? 'test-symbol? 'test-char?
+  'test-boolean? 'test-set? 'test-empty? 'test-compose 'test-compose-and
+  'test-compose-or 'test-complement 'test-id 'test-id-fn 'test-hash
+  'test-eq? 'test-->int 'test-->float 'test-->rational 'test-rational?
+  'test-case-lambda 'test-case-lambda* 'test-->string 'test-->bool
+  'test-->list 'test-->vector 'test-->char 'test-->map 'test-->set
+  'test-list 'test-list-size 'test-car 'test-cdr 'test-cons 'test-vector
+  'test-vector-size 'test-vector-nth 'test-vector-add 'test-vector-append
+  'test-iterate-seq 'test-iterate-seq-p 'test-map-of 'test-map-size
+  'test-map-get 'test-map-set 'test-map-remove 'test-map-keys
+  'test-map-merge 'test-set-of 'test-set-size 'test-set-add 'test-set-union
+  'test-any? 'test-set-difference 'test-set-intersection 'test-bubblesort
   'test-mergesort 'test-sort 'test-sort-compare 'test-mergesort-compare
   'test-set-includes? 'test-set-subset? 'test-set-true-subset?
-  'test-set-superset? 'test-set-true-superset? 'test-begin
-  'test-comment 'test-size 'test-indices-of 'test-contains?
-  'test-first 'test-rest 'test-last 'test-but-last 'test-append
-  'test-concat 'test-string-concat 'test-nth 'test-split 'test-split-by
-  'test-maplist 'test-mapcar 'test-mapcon 'test-mapcon
-  'test-map-indexed 'test-fmap 'test-mapf 'test-mapcat 
-  'test-map-while 'test-map-until 'test-filter 'test-filter-indexed 
-  'test-remove 'test-remove-indexed 'test-foldl 'test-foldl1 
-  'test-foldl-indexed 'test-foldr 'test-foldr1 'test-foldr-indexed 
-  'test-repeat 'test-repeatedly 'test-take 'test-take-while 
-  'test-take-until 'test-drop 'test-drop-while 'test-drop-until 
-  'test-take-drop 'test-take-drop-while 'test-take-drop-until
-  'test-zip 'test-zip-with 'test-zip-to-index 'test-all? 'test-none?
-  'test-va-all? 'test-va-none? 'test-va-any? 'test-reverse 
-  'test-sum 'test-minimum 'test-maximum 'test-unwrap 'test-iterate
-  'test-random 'test-xorshift64s 'test-xorshift64 'test-xorshift32 'test-lfsr
-  'test-random-nums 'test-xorshift64s-seq 'test-xorshift64-seq 
-  'test-xorshift32-seq 'test-lfsr32-seq 'test-with-bounds 'test-shuffle
-  'test-product 'test-infix 'test-flatten 'test-flatten1 'test-divmod
-  'test-constantly 'test-case 'test-cycle 'test-flip 'test-fst 'test-snd
-  'test-scanl 'test-scanl 'test-scanr 'test-scanr1 'test-condp
-  'test-frequencies 'test-unique 'test-unique? 'test-try* 'test-tuples
-  'test-slices 'test-try-catch-finally 'test-count-by 'test-most?
-  'test-list-literal 'test-vector-literal 'test-set-literal 'test-map-literal
-  'test-char-literal 'test-keyword-literal 'test-keyword-name
+  'test-set-superset? 'test-set-true-superset? 'test-begin 'test-comment
+  'test-size 'test-indices-of 'test-contains? 'test-first 'test-rest
+  'test-last 'test-but-last 'test-append 'test-concat 'test-string-concat
+  'test-nth 'test-split 'test-split-by 'test-maplist 'test-mapcar
+  'test-mapcon 'test-mapcon 'test-map-indexed 'test-fmap 'test-mapf
+  'test-mapcat 'test-map-while 'test-map-until 'test-filter
+  'test-filter-indexed 'test-remove 'test-remove-indexed 'test-foldl
+  'test-foldl1 'test-foldl-indexed 'test-foldr 'test-foldr1
+  'test-foldr-indexed 'test-repeat 'test-repeatedly 'test-take
+  'test-take-while 'test-take-until 'test-drop 'test-drop-while
+  'test-drop-until 'test-take-drop 'test-take-drop-while
+  'test-take-drop-until 'test-zip 'test-zip-with 'test-zip-to-index
+  'test-all? 'test-none? 'test-va-all? 'test-va-none? 'test-va-any?
+  'test-reverse 'test-sum 'test-minimum 'test-maximum 'test-unwrap
+  'test-iterate 'test-random 'test-xorshift64s 'test-xorshift64
+  'test-xorshift32 'test-lfsr 'test-random-nums 'test-xorshift64s-seq
+  'test-xorshift64-seq 'test-xorshift32-seq 'test-lfsr32-seq
+  'test-with-bounds 'test-shuffle 'test-product 'test-infix 'test-flatten
+  'test-flatten1 'test-divmod 'test-constantly 'test-case 'test-cycle
+  'test-flip 'test-fst 'test-snd 'test-scanl 'test-scanl 'test-scanr
+  'test-scanr1 'test-condp 'test-frequencies 'test-unique 'test-unique?
+  'test-try* 'test-tuples 'test-slices 'test-try-catch-finally
+  'test-count-by 'test-most? 'test-list-literal 'test-vector-literal
+  'test-set-literal 'test-map-literal 'test-char-literal
   ))
 
 (println! (run-all-tests))
 )
-
 
 

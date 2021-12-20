@@ -322,6 +322,10 @@ def ev_lambda(name, args_expr, body_expr, definition_env, is_macro = false)
     end
   end
 
+  if body_expr.is_a?(EmptyList)
+    body_expr = list(nil)
+  end
+  
   CompoundFunc.new(name, args_expr, body_expr, definition_env, is_macro, arg_count, max_args)
 end
 
@@ -595,7 +599,8 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         # is then executed.
         r1 = func.call(args, env)
         LYRA_CALL_STACK.pop
-        puts r1 if $show_expand_macros
+        #puts r1 if $show_expand_macros
+        puts r1
         if LYRA_CALL_STACK.none?(&:is_macro)
           expr.set_car! :id
           expr.set_cdr! list(r1)
