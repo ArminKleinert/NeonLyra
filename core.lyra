@@ -655,7 +655,7 @@
     
 (def-macro (loop bindings & body)
   (cond
-    (odd? (size bindings)) (error! "Syntax error: Loop must have an even number of bindings.")
+    (odd? (size bindings)) (error! "Syntax error: Loop must have an even number of bindings." 'syntax)
     else (let* ((name (gensym 'loop))
                 (args-values (slices 2 bindings))
                 (args (map first args-values))
@@ -663,9 +663,6 @@
           (cons (apply list 'lambda args body) vals))))
 
 )
-
-
-
 
 
 

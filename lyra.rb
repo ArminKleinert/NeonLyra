@@ -62,12 +62,12 @@ LYRA_VERSION = "0_1_2"
 
 if ARGV[0] == "show_expand_macros"
   $show_expand_macros = true
-  ARGV.pop
+  ARGV.shift
 end
 if ARGV.include? "-args"
   src_files, lyra_args = ARGV.slice_after{|e| e == "-args"}.to_a
   Env.global_env.set!(:"*ARGS*", lyra_args ? lyra_args.map(&:freeze).freeze : list())
-  src_files.pop
+  src_files.shift
 else
   src_files = ARGV
 end

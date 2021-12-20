@@ -2567,6 +2567,16 @@
     (not (loop ()))
     (loop () #t)))
 
+(define (test-fn)
+  (all-true?
+    (= 10 ((fn [a b] (+ a b)) 5 5)) ; Normal
+    (= 10 ((fn ([a b] (+ a b)) ([a] a)) 5 5)) ; anonymous multi
+    (= 5 ((fn ([a b] (+ a b)) ([a] a)) 5)) ; anonymous multi
+    (= 10 ((fn f0 [a b] (+ a b)) 5 5)) ; named normal
+    (= 10 ((fn f1 ([a b] (+ a b)) ([a] a)) 5 5)) ; named multi
+    (= 5 ((fn f1 ([a b] (+ a b)) ([a] a)) 5)) ; named multi
+    ))
+
 (define (run-tests & fns)
   (let ((results
           (foldl
