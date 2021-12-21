@@ -389,6 +389,12 @@ unique               | 1   |  x  |     | Removes duplicates from a sequence but 
 unique?              | 1   |  x  |     | Checks whether a sequence is unique.
 tuples               | 2   |  x  |     | (tuples 3 '(1 2 3 4 5)) ;=> ((1 2 3) (2 3 4) (3 4 5))
 slices               | 3   |  x  |     | (slices 3 '(1 2 3 4 5 6)) ;=> ((1 2 3) (4 5 6))
+loop                 | >=1 |  x  |     | 
+defmacro             | >=1 |  x  |     | Alias for def-macro
+into                 | 2   |  x  |     | Appends all elements of the second argument to the first,
+                     |     |     |     | keeping the type of the first.
+partition            | 1-2 |  x  |     | Extended version of both slices and tuples, as in Clojure.
+dedupe               | 1   |  x  |     | Returns a lazy sequence removing consecutive duplicates in coll.
 ```
 
 ### File: core/aliases.lyra

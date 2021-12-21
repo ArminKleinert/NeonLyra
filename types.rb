@@ -104,7 +104,7 @@ module ConsList
   end
 
   def inspect
-    "(#{inject { |x, y| "#{elem_to_pretty(x)} #{elem_to_pretty(y)}" }})"
+    "(#{inject("") { |x, y| "#{x} #{elem_to_pretty(y)}" }[1..-1]})"
   end
 
   def nth(i)
@@ -114,6 +114,8 @@ module ConsList
   def [](i)
     if i.is_a? Integer
       if i >= size
+        nil
+      elsif i < 0
         nil
       else
         each do |e|
@@ -283,7 +285,11 @@ class ListPair
   def compact
     l0 = @list0.is_a?(ListPair) ? @list0.compact : @list0
     l1 = @list1.is_a?(ListPair) ? @list1.compact : @list1
-    l0 + l1
+    l0 = l0.to_a
+    l0.reverse_each do |e|
+      l1 = cons(e, l1)
+    end
+    l1
   end
 end
 

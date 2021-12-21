@@ -1,7 +1,7 @@
 (module core
-  (comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 list-nth last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and complement begin def-memo spread apply map map-eager map-indexed mapv mapv-indexed map-while map-until maplist mapcar mapcon mapcat filter filterv filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq 
+  (comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and complement begin def-memo spread apply map map-eager map-indexed mapv mapv-indexed map-while map-until maplist mapcar mapcon mapcat filter filterv filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq 
   ;all? none? any? 
-  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat string-concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop va-cons v= v/= v< v> v<= v>=)
+  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat string-concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop va-cons v= v/= v< v> v<= v>= partition dedupe)
 
 ;;; Some core things
 
@@ -9,36 +9,62 @@
 
 (def-generic x (unwrap x) buildin-unwrap)
 
-(def-generic xs (foldr f v xs) buildin-foldr)
-(def-generic xs (foldl f v xs) buildin-foldl)
+(define (%foldr f s xs)
+  (if (or (atom? xs) (empty? xs))
+    s
+    (f (first xs) (%foldr f s (rest xs)))))
+
+(define (%foldl f s xs)
+  (if (or (atom? xs) (empty? xs))
+    s
+    (%foldl f (f s (first xs)) (rest xs))))
+
+(def-generic xs (foldr f v xs) %foldr)
+(def-generic xs (foldl f v xs) %foldl)
+
+(define (%add xs y)
+  (append xs (list y)))
 
 (def-generic xs (append xs ys) buildin-append)
-(def-generic xs (add xs ys) nothing)
+(def-generic xs (add xs y) %add)
 (def-generic xs (contains? xs e) buildin-contains?)
-(def-generic xs (nth xs i) buildin-nth)
+(def-generic xs (nth xs i) (lambda (xs i) (if (or (empty? xs) (<= i 0)) (first xs) (recur (rest xs) (- i 1)))))
+;buildin-nth
+
+(def-impl ::list nth buildin-nth)
+(def-impl ::vector nth vector-nth)
+(def-impl ::string nth buildin-nth)
+(def-impl ::set nth (lambda (x i) (vector-nth (->vector x) i)))
+(def-impl ::map nth (lambda (x i) (vector-nth (->vector x) i)))
 
 (def-generic x (->symbol x) buildin->symbol)
-(def-generic x (->int x) buildin->int)
+(def-generic x (->int x) (lambda (x) (buildin->int (buildin->float x))))
 (def-generic x (->float x) buildin->float)
-(def-generic x (->rational x) buildin->rational)
+(def-generic x (->rational x) (lambda (x) (buildin->rational (buildin->float x))))
 (def-generic x (->string x) buildin->string)
 (def-generic x (->bool x) buildin->bool)
 (def-generic x (->list x) buildin->list)
-(def-generic x (->vector x) buildin->vector)
+(def-generic x (->vector x) (lambda (x) (buildin->vector (->list x))))
 (def-generic x (->char x) buildin->char)
-(def-generic x (->map x) buildin->map)
-(def-generic x (->set x) buildin->set)
+(def-generic x (->map x) (lambda (x) (buildin->map (->list x))))
+(def-generic x (->set x) (lambda (x) (buildin->set (->list x))))
 
-(def-generic x (eq? x y) =)
+(def-generic x (eq? x y) (lambda (x y) (if (and (sequence? x) (sequence? y)) (seq-eq? x y) (= x y))))
 
-(def-generic xs (size xs) nothing)
+(define (%size xs res)
+  (if (not (collection? xs))
+    Nothing
+    (if (or (nothing? xs) (empty? xs))
+      0
+      (%size (rest xs) (+ res 1)))))
+
+(def-generic xs (size xs) (lambda (xs) (%size xs 0)))
 (def-generic xs (rest xs) nothing)
 (def-generic xs (first xs) nothing)
 (def-generic xs (second xs) (lambda (xs) (first (rest xs))))
 (def-generic xs (reverse xs) (lambda (xs) (foldl (lambda (a b) (cons b a)) '() xs)))
 
 (def-generic x (compare x y) (lambda (x y) (if (= x y) 0 (if (< x y) -1 1))))
-
 
 (define (inc n) (+ n 1))
 (define (dec n) (- n 1))
@@ -57,13 +83,12 @@
           (string-range s 0 len)
           (succ (->char (string-nth s len))))))))
 
-(def-generic x (collection? x)
-  (lambda (xs) (or (list? xs) (or (vector? xs) (or (map? xs) (set? xs))))))
 (def-generic x (sequence? x)
   (lambda (xs) (or (list? xs) (vector? xs))))
+(def-generic x (collection? x)
+  (lambda (xs) (or (sequence? xs) (or (map? xs) (set? xs)))))
 (def-generic x (number? x)
   (lambda (xs) (or (int? xs) (or (float? xs) (rational? xs)))))
-
 
 (define (%print! xs)
   (if xs (let () (buildin-print! (->string (car xs))) (%print! (cdr xs))) Nothing))
@@ -72,7 +97,6 @@
 (define (println! & xs)
   (%print! xs)
   (buildin-print! "\n"))
-
 
 (define (flip f)
   (lambda (x y) (f y x)))
@@ -84,10 +108,26 @@
 (define (list & xs)
   xs)
 
-
 (def-macro (let1 bindings & body)
   (va-cons 'let (list bindings) body))
 
+(def-impl ::list ->vector buildin->vector)
+(def-impl ::vector ->vector id)
+(def-impl ::string ->vector buildin->vector)
+(def-impl ::set ->vector buildin->vector)
+(def-impl ::map ->vector buildin->vector)
+
+(def-impl ::list ->set buildin->set)
+(def-impl ::vector ->set buildin->set)
+(def-impl ::string ->set buildin->set)
+(def-impl ::set ->set id)
+(def-impl ::map ->set buildin->set)
+
+(def-impl ::list ->map buildin->map)
+(def-impl ::vector ->map buildin->map)
+(def-impl ::string ->map buildin->map)
+(def-impl ::set ->map buildin->map)
+(def-impl ::map ->map id)
 
 (def-impl ::list ->string (lambda (xs) (buildin->string (map-eager ->string xs))))
 (def-impl ::vector ->string (lambda (xs) (buildin->string (mapv ->string xs))))
@@ -119,11 +159,29 @@
 (def-impl ::set add set-add)
 (def-impl ::map add (lambda (m kv) (map-set (first kv) (second kv))))
 
-(define (list-nth l i)
-  (if (<= i 0)
-    (first l)
-    (list-nth (rest l) (dec i))))
-(def-impl ::list nth list-nth)
+(def-impl ::integer ->int id)
+(def-impl ::float ->int buildin->int)
+(def-impl ::rational ->int buildin->int)
+(def-impl ::char ->int buildin->int)
+(def-impl ::string ->int buildin->int)
+
+(def-impl ::integer ->rational buildin->rational)
+(def-impl ::float ->rational buildin->rational)
+(def-impl ::rational ->rational id)
+(def-impl ::char ->rational buildin->rational)
+(def-impl ::string ->rational buildin->rational)
+
+(def-impl ::list foldr buildin-foldr)
+(def-impl ::vector foldr buildin-foldr)
+(def-impl ::string foldr buildin-foldr)
+(def-impl ::set foldr buildin-foldr)
+(def-impl ::map foldr buildin-foldr)
+
+(def-impl ::list foldl buildin-foldl)
+(def-impl ::vector foldl buildin-foldl)
+(def-impl ::string foldl buildin-foldl)
+(def-impl ::set foldl buildin-foldl)
+(def-impl ::map foldl buildin-foldl)
 
 (define (last xs)
   (let ((l (->list xs)))
@@ -602,13 +660,13 @@
   (if (empty? xs)
     (list v)
     (let ((r (scanr f v (rest xs))))
-      (cons (f (first xs) (first r)) r))))
+      (lazy-seq (f (first xs) (first r)) r))))
 
 (define (scanr1 f xs)
   (cond (empty? xs) Nothing
         (= (size xs) 1) (list (first xs))
         else (let ((r (scanr1 f (rest xs))))
-              (cons (f (first xs) (first r)) r))))
+              (lazy-seq (f (first xs) (first r)) r))))
 
 
 (define (frequencies xs)
@@ -616,13 +674,12 @@
     (lambda (acc x)
       (let ((v (or (map-get acc x) 0)))
         (map-set acc x (inc v))))
-    (map-of)
-    xs))
+    {} xs))
 
 (define (%unique xs acc vals)
   (cond (empty? xs) acc
         (contains? vals (first xs)) (%unique (rest xs) acc vals)
-        else (%unique (rest xs) (cons (first xs) acc) (set-add vals (first xs)))))
+        else (%unique (rest xs) (lazy-seq (first xs) acc) (set-add vals (first xs)))))
 (define (unique xs)
   (reverse (%unique xs '() (set-of))))
 
@@ -634,14 +691,14 @@
   (cond 
     (= n 0) '()
     (< (size xs) n) '()
-    else (cons (take n xs) (tuples n (rest xs)))))
+    else (lazy-seq (take n xs) (tuples n (rest xs)))))
 
 ; (slices 3 '(1 2 3 4 5 6)) ;=> ((1 2 3) (4 5 6))
 (define (slices n xs)
   (cond
     (= n 0) '()
     (< (size xs) n) '()
-    else (cons (take n xs) (slices n (drop n xs)))))
+    else (lazy-seq (take n xs) (slices n (drop n xs)))))
 
 (def-macro (try f0 & fs)
   (let*((forms (take-drop-until
@@ -671,12 +728,14 @@
     
 (def-macro (loop bindings & body)
   (cond
-    (odd? (size bindings)) (error! "Syntax error: Loop must have an even number of bindings." 'syntax)
-    else (let* ((name (gensym 'loop))
-                (args-values (slices 2 bindings))
-                (args (map first args-values))
-                (vals (map second args-values)))
-          (cons (apply list 'lambda args body) vals))))
+    (odd? (size bindings))
+      (error! "Syntax error: Loop must have an even number of bindings." 'syntax)
+    else
+      (let* ((name (gensym 'loop))
+             (args-values (slices 2 bindings))
+             (args (map first args-values))
+             (vals (map second args-values)))
+        (cons (apply list 'lambda args body) vals))))
 
 (def-macro (defmacro bindings & body)
   (va-cons 'def-macro bindings body))
@@ -687,6 +746,29 @@
     ((to) to)
     ((to from) (foldl add to from))
     ((to f from) (foldl add to (f from)))))
+
+(define (%partition n step pad xs)
+  (cond
+    (< (size xs) n) (list (list-concat xs (take (- n (size xs)) pad)))
+    else (lazy-seq (take n xs) (%partition n step pad (drop step xs)))))
+
+(define partition
+  (case-lambda* partition
+    ((n xs) (%partition n n '() xs))
+    ((n step xs) (%partition n step '() xs))
+    ((n step pad xs) (%partition n step pad xs))))
+
+(define (%dedupe prev xs)
+  (cond
+    (empty? xs) '()
+    (eq? (car xs) prev) (%dedupe prev (cdr xs))
+    else (lazy-seq (car xs) (%dedupe (car xs) (cdr xs)))))
+(define (dedupe xs)
+  (if (empty? xs)
+    '()
+    (cons (car xs) (%dedupe (car xs) (cdr xs)))))
+
 )
+(load! "queue.lyra")
 
 
