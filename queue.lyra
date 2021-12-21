@@ -42,7 +42,7 @@
             (eq? (deque-back q0) (deque-back q1)))
         (eq? (->list q1) (->list q0)))))
   
-  (def-impl ::deque first peek)
+  (def-impl ::deque first (lambda (q) (car (deque-front q))))
   (def-impl ::deque rest dequeue)
   (def-impl ::deque add enqueue)
   (def-impl ::deque append enqueue-all)

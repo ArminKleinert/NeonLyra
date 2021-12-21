@@ -235,7 +235,7 @@ def setup_core_functions
   add_fn(:car, 1) { |x| x.is_a?(ConsList) ? x.car : (raise LyraError.new("Invalid call to car.", :"invalid-call")) }
   add_fn(:cdr, 1) { |x| x.is_a?(ConsList) ? x.cdr : (raise LyraError.new("Invalid call to cdr.", :"invalid-call")) }
 
-  add_fn(:"list-concat", 1, -1) { |*xs| list_append *xs }
+  add_fn(:"list-concat", 0, -1) { |*xs| list_append *xs }
   
   add_fn(:"not", 1) { |x| !(truthy? x) }
 
@@ -536,6 +536,8 @@ def setup_core_functions
   add_fn(:"error-trace",1) { |e| e.trace }
   
   add_fn(:"exit!", 1){ |s| exit(s) }
+  
+  add_fn(:"callstack", 0) { LYRA_CALL_STACK }
 
   true
 end

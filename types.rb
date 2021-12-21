@@ -613,21 +613,31 @@ class GenericFn < LyraFn
   end
 
   def call(args, env)
+    
     # Potential for speedup?
     type = type_id_of(args[@anchor_idx])
     fn = @implementations[type]
 
+    res = nil
     begin
+      if @name == "gen-test"
+        puts type
+      end
       if fn
-        fn.call args, env
+        LYRA_CALL_STACK.push fn
+        res = fn.call args, env
+        LYRA_CALL_STACK.pop
       else
-        @fallback.call args, env
+        LYRA_CALL_STACK.push @fallback
+        res = @fallback.call args, env
+        LYRA_CALL_STACK.pop
       end
     rescue
       #$stderr.puts "#{@name} failed with error: #{$!}"
       #$stderr.puts "Arguments: #{args}"
       raise
     end
+    res
   end
 
   def to_s

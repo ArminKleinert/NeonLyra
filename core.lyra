@@ -629,9 +629,10 @@
 (def-macro (case-lambda* name & forms)
   (let ((args (gensym 'xs)))
     (list 'lambda* name (list '& args)
-    (cons 'cond
-      (append (flatten1 (reverse (%case-lambda args forms '())))
-              (list #t (list 'error! (string-concat "Wrong arity for case-lambda " name) ''arity)))))))
+      (cons 'cond
+        (append
+          (flatten1 (reverse (%case-lambda args forms '())))
+          (list #t (list 'error! (string-concat "Wrong arity for case-lambda " name) ''arity)))))))
 
 (define xrange
   (case-lambda* xrange
@@ -767,8 +768,6 @@
   (if (empty? xs)
     '()
     (cons (car xs) (%dedupe (car xs) (cdr xs)))))
-
 )
-(load! "queue.lyra")
 
 
