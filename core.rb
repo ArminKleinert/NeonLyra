@@ -203,6 +203,10 @@ def rem(x,y)
   end
 end
 
+def truthy?(x)
+  (x != false && !x.nil? && !x.is_a?(EmptyList))
+end
+
 # Sets up the core functions and variables. The functions defined here are
 # of the type NativeLyraFn instead of LyraFn. They can not make use of tail-
 # recursion and are supposed to be very simple.
@@ -229,6 +233,8 @@ def setup_core_functions
   add_fn(:cdr, 1) { |x| x.is_a?(ConsList) ? x.cdr : (raise LyraError.new("Invalid call to cdr.", :"invalid-call")) }
 
   add_fn(:"list-concat", 1, -1) { |*xs| list_append *xs }
+  
+  add_fn(:"not", 1) { |x| !(truthy? x) }
 
   # "Primitive" operators. They are overridden in the core library of
   # Lyra as `=`, `<`, `>`, ... and can be extended there later on for
@@ -276,7 +282,23 @@ def setup_core_functions
   add_fn(:partial, 1, -1) { |x, *params| params.empty? ? x : PartialLyraFn.new(x, params.to_cons_list) }
 
   add_fn(:nothing, 0, -1) { |*_| nil }
-  
+
+  add_fn(:"buildin-take", 2) do |n, xs|
+    if (xs.empty? || n == 0)
+      list()
+    elsif xs.is_a?(ConsList)
+      ys = []
+      until xs.empty? || n == 0
+        ys << xs.car
+        xs = xs.cdr
+        n -= 1
+      end
+      ys.to_cons_list
+    else
+      xs.to_a[0...n].to_cons_list
+    end
+  end
+
   add_fn(:"atom?", 1) { |x| atom?(x) }
 
   add_fn_with_env(:"defined?", 1) { |x, env| env.safe_find(x.car) != NOT_FOUND_IN_LYRA_ENV }
@@ -306,6 +328,11 @@ def setup_core_functions
   add_fn(:"id-fn", 1) { |x| NativeLyraFn.new("", 0) { x } }
   add_fn(:hash, 1) { |x| x.hash }
   #add_fn(:"eq?", 2) { |x, y| lyra_eq?(x, y) }
+  
+  # Can be bootstrapped.
+  add_fn_with_env(:"all?", 2) { |x, env| x.cdr.car.to_a.all?{|e|truthy?(eval_ly(x.car,env,true)) } }
+  add_fn_with_env(:"none?", 2) { |x, env| !x.cdr.car.to_a.any?{|e|!truthy?(eval_ly(x.car,env,true)) } }
+  add_fn_with_env(:"any?", 2) { |x, env| x.cdr.car.to_a.any?{|e|truthy?(eval_ly(x.car,env,true)) } }
 
   add_fn(:"buildin->symbol", 1) { |x| x.respond_to?(:to_sym) ? x.to_sym : nil }
   add_fn(:"buildin->int", 1) { |x|

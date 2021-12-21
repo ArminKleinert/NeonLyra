@@ -29,12 +29,10 @@ begin
 
   f.call :recur
   RECUR_FUNC = Env.global_env.find :recur
-  f.call :"lambda"
   f.call :"lambda*"
   f.call :"let"
   f.call :"let*"
   f.call :"if" 
-  f.call :"cond"
   f.call :"def-type"
   f.call :"define" 
   f.call :"def-impl" 
@@ -46,6 +44,9 @@ begin
   f.call :"lazy"
   f.call :"try*"
   f.call :"catch"
+  
+  f.call :"lambda"
+  f.call :"cond"
 end
 
 # destructure [:a,:b,:c,:"&",:xs], [1,2,3,4,5,6,7,8,9,10]

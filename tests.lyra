@@ -1048,9 +1048,9 @@
 (define (test-->bool)
   (and
     (all? ->bool
-    (list #t 'a 1 0.5 '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))
+      (list #t 'a 1 0.5 '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))
     (none? ->bool
-    (list #f '() Nothing))))
+      (list #f '() Nothing))))
 
 (define (test-->list)
   (all-true?

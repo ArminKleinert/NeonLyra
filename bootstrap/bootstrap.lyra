@@ -13,6 +13,15 @@
   (foldr1 list-append (cons l0 ls)))
 
 
+(define (%cond cases)
+  (if (= (size cases) 0)
+    Nothing
+    (if (= (size cases) 1)
+      (car cases)
+      (list 'if (car cases) (cadr cases) (%cond (cddr cases))))))
+
+(def-macro (cond & cases)
+  (%cond cases))
 
 
 
@@ -72,6 +81,16 @@
         (set? xs) (set-includes? xs e)
         (map? xs) (map-has-key? xs e)
         else #f))
+
+
+(define (all? p xs)
+  (empty? (drop-while p xs)))
+(define (none? p xs)
+  (empty? (drop-until p xs)))
+(define (any? p xs)
+  (cond (empty? xs) #f
+        (p (first xs)) #t
+        else (any? p (rest xs))))
 
 (comment
 id
