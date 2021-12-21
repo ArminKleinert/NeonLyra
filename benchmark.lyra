@@ -189,40 +189,40 @@ truffleruby:
 
 0.1.3
 Ruby:
-  Many math ops:                                    0.178375
-  Without -> :                                      0.1772515
-  Many math ops (lambda):                           0.177564
-  Same as partials with composition:                0.3737835
-  set operations                                    1001.910856
-  map operations                                    100.345376
-  (ack 3 4)                                         1382.2407325
-  lazy sequences                                    95.110772
-  Sort 5000 elements:                               1186.580156
-  Shuffle 5000 elements:                            5667.235461
-  9-billion-names (25):                             2063.8658285
+  Many math ops:                                    0.1864115
+  Without -> :                                      0.176231
+  Many math ops (lambda):                           0.188421
+  Same as partials with composition:                0.3868515
+  set operations                                    1016.8903055
+  map operations                                    102.933001
+  (ack 3 4)                                         1407.0720605
+  lazy sequences                                    91.081921
+  Sort 5000 elements:                               1197.091987
+  Shuffle 5000 elements:                            5732.311839
+  9-billion-names (25):                             1968.749468
 jruby:
-  Many math ops:                                    0.8554999999999999
-  Without -> :                                      0.6255
-  Many math ops (lambda):                           0.669
-  Same as partials with composition:                2.5855
-  set operations                                    1098.9099999999999
-  map operations                                    104.14099999999999
-  (ack 3 4)                                         2591.7070000000003
-  lazy sequences                                    200.4065
-  Sort 5000 elements:                               1897.904
-  Shuffle 5000 elements:                            6855.460499999999
-  9-billion-names (25):                             2208.2285
+  Many math ops:                                    1.032
+  Without -> :                                      0.71
+  Many math ops (lambda):                           0.615
+  Same as partials with composition:                2.9775
+  set operations                                    1248.1785
+  map operations                                    110.2745
+  (ack 3 4)                                         2685.5895
+  lazy sequences                                    189.463
+  Sort 5000 elements:                               1934.5155
+  Shuffle 5000 elements:                            7105.594
+  9-billion-names (25):                             2210.793
 truffleruby:
-  Many math ops:                                    2.0075
-  Without -> :                                      1.8930000000000002
-  Many math ops (lambda):                           1.5095
-  Same as partials with composition:                3.479
-  set operations                                    390.215
-  map operations                                    54.2235
-  (ack 3 4)                                         3790.926
-  lazy sequences                                    333.6424999999999
-  Sort 5000 elements:                               2389.691
-  Shuffle 5000 elements:                            5031.6455000000005
-  9-billion-names (25):                             918.9955
+  Many math ops:                                    2.0545
+  Without -> :                                      1.9185
+  Many math ops (lambda):                           1.6295
+  Same as partials with composition:                3.581
+  set operations                                    401.0835
+  map operations                                    65.288
+  (ack 3 4)                                         3901.222
+  lazy sequences                                    277.1035
+  Sort 5000 elements:                               2504.6345
+  Shuffle 5000 elements:                            5072.2775
+  9-billion-names (25):                             952.2655
 )
 
