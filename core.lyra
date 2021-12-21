@@ -531,6 +531,14 @@
 
 (def-macro (as-> name x & exprs)
   (%as-> name x exprs))
+  
+(define (%case-lambda-arity bindings)
+  (let* ((num-bindings (size bindings))
+         (variadic (= (nth bindings (- num-bindings 2)) '&))
+         (min-arity (if variadic (- num-bindings 2) num-bindings)))
+    (if variadic
+      (list #t min-arity)
+      (list #f min-arity))))
 
 (define (%case-lambda args forms acc)
   (cond
@@ -540,8 +548,13 @@
       (%case-lambda args (cdr forms)
         (cons
           (cons
-            (list '= (list 'size args) (size (caar forms)))
-            (list (list 'apply-to (va-cons 'lambda (caar forms) (cdar forms)) args)))
+            (let* ((cl-arity (%case-lambda-arity (caar forms)))
+                   (variadic (car cl-arity))
+                   (min-arity (cadr cl-arity)))
+              (if variadic
+                (list '>= (list 'size args) min-arity)
+                (list '= (list 'size args) min-arity)))
+            (list (list 'apply-to (cons 'lambda (cons (caar forms) (cdar forms))) args)))
           acc))
     else
       (cons
@@ -553,7 +566,7 @@
 (def-macro (case-lambda & forms)
   (let ((args (gensym 'xs)))
     (list 'lambda (list '& args)
-    (cons 'cond (flatten1 (reverse (%case-lambda args forms '())))))))
+      (cons 'cond (flatten1 (reverse (%case-lambda args forms '())))))))
 
 (def-macro (case-lambda* name & forms)
   (let ((args (gensym 'xs)))
@@ -674,9 +687,6 @@
     ((to) to)
     ((to from) (foldl add to from))
     ((to f from) (foldl add to (f from)))))
-
-
 )
-
 
 

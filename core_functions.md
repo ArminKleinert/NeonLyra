@@ -42,6 +42,8 @@ catch                | >=2 |  x  |     | Part of try* and only valid inside it. 
                      |     |     |     | (try* <error> (catch (lambda (x) #t) e 'saved)
                      |     |     |     | (try* <error> (catch (lambda (x) #f) e ..) ; Fails
                      |     |     |     | 
+alias                | 1   |  x  |     | Creates an Alias object.
+                     |     |     |     | 
 gensym               | 0-1 |  x  |     | 
 module               | >=1 |  x  |     | 
 memoize              | 1   |  x  |     | 
@@ -57,7 +59,8 @@ lazy-seq             | 2   |  x  |     | Creates a lazy sequence. First takes an
                      |     |     |     | 
 nothing              | any |  x  |     | Swallows any numer of arguments and returns the Nothing
                      |     |     |     | object.
-unwrap               | 1   |  x  |     | 
+unwrap               | 1   |  x  |     | Gets the value of a Box, Alias or gets the value-vector of
+                     |     |     |     | a user-defined type object.
                      |     |     |     | 
 box                  | 1   |  x  |     | Create a box.
 unbox                | 1   |  x  |     | Get the contents of a Box.

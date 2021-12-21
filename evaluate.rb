@@ -335,12 +335,17 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
   if expr.nil? || (expr.is_a?(ConsList) && expr.empty?)
     expr
   elsif expr.is_a?(Symbol)
-    env.find expr # Get associated value from env
+    x = env.find(expr) # Get associated value from env
+    if x.is_a?(Alias)
+      x.get(env)
+    else
+      x
+    end
   elsif expr.is_a?(Lazy) && force_eval
     expr.evaluate
-  elsif atom?(expr) || expr.is_a?(LyraFn)
+  elsif atom?(expr) || expr.is_a?(LyraFn) || expr.is_a?(WrappedLyraError)
     expr
-  elsif expr.is_a? Array
+  elsif expr.is_a?(Array)
     if force_eval
       expr.map { |x| eval_ly x, env, force_eval, true }
     elsif expr.all? { |x| !x.is_a?(Symbol) && atom?(x) }
@@ -349,12 +354,12 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
     else
       expr.map { |x| eval_ly x, env, force_eval, true }
     end
-  elsif expr.is_a? Hash
+  elsif expr.is_a?(Hash)
     (expr.map { |k,v| eval_ly [k,v], env, force_eval, true }).to_h
-  elsif expr.is_a? Set
+  elsif expr.is_a?(Set)
     (expr.map { |x| eval_ly x, env, force_eval, true }).to_set
-  elsif expr.is_a?(WrappedLyraError)
-    expr
+  elsif expr.is_a?(Alias)
+    expr.get(env)
   elsif expr.is_a?(ConsList)
     # The expression is a cons and probably starts with a symbol.
     # The evaluate function will try to treat the symbol as a function
@@ -560,6 +565,11 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       else
         raise LyraError.new("No catch-clause in try*", :syntax)
       end
+    when :alias
+      if expr.size != 2
+        raise LyraError.new("Wrong number of arguments for lazy. (Expected 1, got #{expr.cdr.size})")
+      end
+      Alias.new(expr.cdr.car)
     else
       # Here, the expression will have a form like the following:
       # (func arg0 arg1 ...)

@@ -13,6 +13,26 @@ class LyraError < StandardError
   end
 end
 
+module Unwrapable
+end
+
+class Alias
+  include Unwrapable
+  
+  attr_reader :body
+  def initialize(body)
+    @body = body
+  end
+
+  def get(env)
+    eval_ly(@body, env)
+  end
+  
+  def unwrap
+    @body
+  end
+end
+
 module Lazy
 end
 
@@ -339,9 +359,19 @@ def cdr(e)
   e.is_a?(ConsList) ? e.cdr : EmptyList.instance
 end
 
-Box = Struct.new(:value) do
+class Box
+  include Unwrapable
+  attr_accessor :value
+  def initialize(value)
+    @value = value
+  end
+  
   def to_s
-    "(box #{elem_to_s(value)})"
+    "(box #{elem_to_pretty(@value)})"
+  end
+  
+  def unwrap
+    @value
   end
 end
 
@@ -780,6 +810,8 @@ class Keyword < LyraFn
 end
 
 class LyraType
+  include Unwrapable
+  
   attr_reader :name, :type_id, :attrs
 
   def initialize(type_id, name, attrs)
@@ -788,11 +820,15 @@ class LyraType
   end
   
   def to_s
-    "[LyraType #{@type_id} #{@name} attrs=#{attrs.to_s}]"
+    "[LyraType #{@type_id} #{@name} attrs=#{@attrs.to_s}]"
   end
   
   def inspect
     to_s
+  end
+  
+  def unwrap
+    @attrs
   end
 end
 

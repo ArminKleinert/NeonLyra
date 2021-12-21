@@ -2326,13 +2326,26 @@
             (() 0)
             ((x) x)
             ((x y) y)
-            (z (cons 3 z)))))
+            (z z))))
     (all-true?
       (eq? 0 (l))
       (eq? 4 (l 4))
       (eq? 4 (l 0 4))
       (eq? '(3 4 4 4) (l 4 4 4)))
-    ))
+    )
+  (let ((l (case-lambda
+            ((a b c d & xs) (cons (v+ a b c d) xs))
+            ((x & xs) (cons (+ x 1) xs))
+            (z '()))))
+    (all-true?
+      (eq? '(5 6 7) (l 1 1 1 2 6 7)) ; (a b c d & xs) case
+      (eq? '(5 6) (l 1 1 1 2 6)) ; (a b c d & xs) case
+      (eq? '(5) (l 1 1 1 2)) ; (a b c d & xs) case
+      (eq? '(5 6 7) (l 4 6 7)) ; (x & xs) case
+      (eq? '(5 6) (l 4 6)) ; (x & xs) case
+      (eq? '(5) (l 4)) ; (x & xs) case
+      (eq? '() (l)) ; z case (empty)
+    )))
 
 (define (test-case-lambda*)
   (let ((l (case-lambda* test-cl-star
@@ -2596,6 +2609,18 @@
     (all? nothing?
       (map name (list '() '(1) 1 0.5 7/5r \a [] [1] +)))))
 
+(define (test-alias)
+  (let ((a (alias @b))
+        (b (box 1)))
+    (all-true?
+      (= a 1)
+      (begin (box-set! b 2) #t)
+      (= a 2)
+      (let ((b (box 0))) (= a 0))
+      (= a 2)
+      (= a.? 2)
+      (= (unwrap a) 2))))
+
 (define (run-tests & fns)
   (let ((results
           (foldl
@@ -2666,7 +2691,7 @@
   'test-try* 'test-tuples 'test-slices 'test-try-catch-finally
   'test-count-by 'test-most? 'test-list-literal 'test-vector-literal
   'test-set-literal 'test-map-literal 'test-char-literal 'test-when
-  'test-name 'test-fn
+  'test-name 'test-fn 'test-alias
   ))
 
 (println! (run-all-tests))

@@ -56,6 +56,7 @@ RATIO_TYPE     = TypeName.new "::rational", 13
 ERROR_TYPE     = TypeName.new "::error",    14
 CHAR_TYPE      = TypeName.new "::char",     15
 KEYWORD_TYPE   = TypeName.new "::keyword",  16
+ALIAS_TYPE     = TypeName.new "::alias",    17
 
 def type_of(x)
   if x.nil?
@@ -94,6 +95,8 @@ def type_of(x)
     ERROR_TYPE
   elsif x.is_a? Keyword
     KEYWORD_TYPE
+  elsif x.is_a? Alias
+    ALIAS_TYPE
   else
     raise LyraError.new("No name for type #{x.class} for object #{elem_to_s(x)}")
   end
@@ -270,11 +273,7 @@ def setup_core_functions
   add_fn(:box, 1) { |x| Box.new(x) }
   add_fn(:unbox, 1) { |b| b.is_a?(Box) ? b.value : nil }
   add_fn(:"buildin-unwrap", 1) { |b|
-    if b.is_a?(Box)
-      b.value
-    else
-      b.is_a?(LyraType) ? b.attrs : b
-    end } # Intended for use with any boxing type
+    b.is_a?(Unwrapable) ? b.unwrap : b } # Intended for use with any boxing type
   add_fn(:"box-set!", 2) { |b, x| b.value = x; b }
 
   add_fn(:eager, 1) { |x| eager x }
@@ -524,11 +523,11 @@ def setup_core_functions
 
   [NOTHING_TYPE, BOOL_TYPE, VECTOR_TYPE, MAP_TYPE, LIST_TYPE, FUNCTION_TYPE, 
    INTEGER_TYPE, FLOAT_TYPE, RATIO_TYPE, SET_TYPE, TYPE_NAME_TYPE, STRING_TYPE, 
-   SYMBOL_TYPE, BOX_TYPE, ERROR_TYPE, CHAR_TYPE,KEYWORD_TYPE].each do |t|
+   SYMBOL_TYPE, BOX_TYPE, ERROR_TYPE, CHAR_TYPE,KEYWORD_TYPE, ALIAS_TYPE].each do |t|
     add_var t.to_sym, t
   end
   
-  add_fn(:"class", 1) { |x| type_of(x) }
+  add_fn_with_env(:"class", 1) { |x,env| type_of(x.car) }
 
   add_fn(:"error!", 1,2) { |msg,info| raise LyraError.new(msg,info) }
   

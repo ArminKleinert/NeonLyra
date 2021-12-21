@@ -275,4 +275,21 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Keyword type  
   - Literals for keywords, sets and maps.  
   - `loop` macro  
+  - Better `case-lambda`  
+  - Alias type  
+
+## Known bugs
+
+- Defining generic, tail-recursive funtions for different types can become infinite loops.
+```
+(def-type typ1 fg)
+(let ((a (make-typ1 1)))
+  (def-impl ::typ1 unwrap typ1-fg)
+  (def-impl ::typ1 ->string (lambda (x) (->string (unwrap x))))
+  (println! a) ; Should call should unwrap a into an int and then call (->string 1), but instead does tail-recursion.
+  )
+; For now, this can be worked around as
+(def-impl ::typ1 ->string (lambda (x) (id (->string (unwrap x)))))
+; Because the call to id disables tail-recursion.
+```
 
