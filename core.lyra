@@ -1,7 +1,7 @@
 (module core
   (comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and complement begin def-memo spread apply map map-eager map-indexed mapv mapv-indexed map-while map-until maplist mapcar mapcon mapcat filter filterv filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq 
   ;all? none? any? 
-  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat string-concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop va-cons v= v/= v< v> v<= v>= partition dedupe)
+  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat string-concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop va-cons v= v/= v< v> v<= v>= partition dedupe times)
 
 ;;; Some core things
 
@@ -25,17 +25,16 @@
 (define (%add xs y)
   (append xs (list y)))
 
+(define (%contains? xs e)
+  (cond (empty? xs) #f
+        (eq? (first xs) e) #t
+        else (%contains? (rest xs) e)))
+
 (def-generic xs (append xs ys) buildin-append)
 (def-generic xs (add xs y) %add)
-(def-generic xs (contains? xs e) buildin-contains?)
+(def-generic xs (contains? xs e) %contains?)
 (def-generic xs (nth xs i) (lambda (xs i) (if (or (empty? xs) (<= i 0)) (first xs) (recur (rest xs) (- i 1)))))
 ;buildin-nth
-
-(def-impl ::list nth buildin-nth)
-(def-impl ::vector nth vector-nth)
-(def-impl ::string nth buildin-nth)
-(def-impl ::set nth (lambda (x i) (vector-nth (->vector x) i)))
-(def-impl ::map nth (lambda (x i) (vector-nth (->vector x) i)))
 
 (def-generic x (->symbol x) buildin->symbol)
 (def-generic x (->int x) (lambda (x) (buildin->int (buildin->float x))))
@@ -110,6 +109,18 @@
 
 (def-macro (let1 bindings & body)
   (va-cons 'let (list bindings) body))
+
+(def-impl ::list nth buildin-nth)
+(def-impl ::vector nth vector-nth)
+(def-impl ::string nth buildin-nth)
+(def-impl ::set nth (lambda (x i) (vector-nth (->vector x) i)))
+(def-impl ::map nth (lambda (x i) (vector-nth (->vector x) i)))
+
+(def-impl ::list contains? buildin-contains?)
+(def-impl ::vector contains? buildin-contains?)
+(def-impl ::string contains? buildin-contains?)
+(def-impl ::set contains? buildin-contains?)
+(def-impl ::map contains? buildin-contains?)
 
 (def-impl ::list ->vector buildin->vector)
 (def-impl ::vector ->vector id)
@@ -364,8 +375,17 @@
 (define (take-drop-while p xs)
   (%take-drop-until (complement p) '() xs))
 
+(define (%take n xs)
+  (if (or (= 0 n) (empty? xs))
+    '()
+    (cons (first xs) (%take (dec n) (rest xs)))))
 (define (take n xs)
-  (buildin-take n xs))
+  (cond
+    (atom? xs)
+      Nothing
+    (or (list? xs) (or (vector? xs) (or (set? xs) (map? xs))))
+      (buildin-take n xs)
+    else (%take n xs)))
 (define (take-while p xs)
   (cond (empty? xs) '()
         (p (first xs)) (cons (first xs) (take-while p (rest xs)))
@@ -768,6 +788,9 @@
   (if (empty? xs)
     '()
     (cons (car xs) (%dedupe (car xs) (cdr xs)))))
+
+(define (times f n)
+  (lambda (x) (loop (n1 n y x) (if (<= n1 0) y (recur (dec n1) (f y))))))
 )
 
 

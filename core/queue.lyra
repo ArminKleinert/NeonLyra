@@ -1,5 +1,5 @@
 (module queue-module
-  (deque queue push ->deque ->queue enqueue dequeue peek pop)
+  (deque queue push ->deque ->queue enqueue dequeue peek pop queue? deque? enqueue-all)
 
   (def-type deque front back)
   
@@ -53,7 +53,7 @@
   (def-impl ::deque sequence? (lambda (x) #t))
   
   (def-impl ::deque ->list (lambda (q) (append (deque-front q) (reverse (deque-back q)))))
-  (def-impl ::deque ->vector (lambda (q) (append [] (deque-front q) (reverse (deque-back q)))))
+  (def-impl ::deque ->vector (lambda (q) (concat [] (deque-front q) (reverse (deque-back q)))))
   
   (def-impl ::deque size (lambda (q) (+ (size (deque-front q)) (size (deque-back q)))))
   
