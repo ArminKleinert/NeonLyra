@@ -2,7 +2,7 @@
 
 Lyra is a lisp I make for fun and learning. NeonLyra is an improved version.
 
-Current version: 0.1.2
+Current version: 0.1.3
 
 Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 
@@ -281,6 +281,7 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - `loop` macro  
   - Better `case-lambda`  
   - Alias type  
+  - queue type (in core/queue.lyra)  
 
 ## Known bugs
 
