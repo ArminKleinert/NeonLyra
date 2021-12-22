@@ -50,14 +50,11 @@
 
 (def-generic x (eq? x y) (lambda (x y) (if (and (sequence? x) (sequence? y)) (seq-eq? x y) (= x y))))
 
-(define (%size xs res)
-  (if (not (collection? xs))
-    Nothing
-    (if (or (nothing? xs) (empty? xs))
-      0
-      (%size (rest xs) (+ res 1)))))
+(define (%size xs)
+  (let ((c (->list xs)))
+    (if c (list-size (->list xs)) 0)))
 
-(def-generic xs (size xs) (lambda (xs) (%size xs 0)))
+(def-generic xs (size xs) (lambda (xs) (%size xs)))
 (def-generic xs (rest xs) nothing)
 (def-generic xs (first xs) nothing)
 (def-generic xs (second xs) (lambda (xs) (first (rest xs))))

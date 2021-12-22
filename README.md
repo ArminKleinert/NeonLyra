@@ -212,6 +212,10 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
 ; Implementations for the generic functions first and second
 (def-impl ::pair first pair-x)
 (def-impl ::pair second pair-y)
+
+; To define a collection, the following function must be defined:
+;   Essential: first, rest, ->list, append
+;   Also: sequence? or collection?
 ```
 
 ## Changelog

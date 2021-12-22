@@ -59,7 +59,7 @@ lazy-seq             | 2   |  x  |     | Creates a lazy sequence. First takes an
                      |     |     |     | 
 nothing              | any |  x  |     | Swallows any numer of arguments and returns the Nothing
                      |     |     |     | object.
-unwrap               | 1   |  x  |     | Gets the value of a Box, Alias or gets the value-vector of
+unwrap               | 1   |  x  |  x  | Gets the value of a Box, Alias or gets the value-vector of
                      |     |     |     | a user-defined type object.
                      |     |     |     | 
 box                  | 1   |  x  |     | Create a box.
@@ -202,22 +202,24 @@ list                 | any |  x  |     | Take any number of arguments and return
 let1                 | 2   |  x  |     | Sets a single variable.
 defmacro             | >=1 |  x  |     | Alias for def-macro.
                      |     |     |     | 
-size                 | 1   |  x  |  x  | 
-first                | 1   |  x  |  x  | 
-second               | 1   |  x  |  x  | 
-rest                 | 1   |  x  |  x  | 
-foldl                | 3   |  x  |  x  | 
-foldr                | 3   |  x  |  x  | 
-last                 | 1   |  x  |     | 
-but-last             | 1   |  x  |     | 
-empty?               | 1   |  x  |     | 
+size                 | 1   |  x  |  x  | Get the size of a collection. 
+first                | 1   |  x  |  x  | Get the first element of a collection.
+second               | 1   |  x  |  x  | Get the second element of a collection.
+                     |     |     |     | By default: (first (rest xs))
+rest                 | 1   |  x  |  x  | Get all but the first element of a collection.
+foldl                | 3   |  x  |  x  | Typical foldl.
+foldr                | 3   |  x  |  x  | Typical foldr.
+last                 | 1   |  x  |     | Get the last element of a collection.
+but-last             | 1   |  x  |     | Get all but the last element of a collection.
+empty?               | 1   |  x  |     | Check whether a collection is empty. #f by default.
 append               | 2   |  x  |  x  | Append 2 collections.
 add                  | 2   |  x  |  x  | Add a single element to a collection.
 contains?            | 2   |  x  |  x  | 
 included?            | 2   |  x  |     | Reverse of contains?.
 nth                  | 2   |  x  |  x  | 
 seq-eq?              | 2   |  x  |     | Comparison function for lists.
-eq?                  | 2   |  x  |  x  | General comparison function.
+eq?                  | 2   |  x  |  x  | General comparison function. Predefined as = for
+                     |     |     |     | non-collections. Same behavior as seq-eq? for collections.
                      |     |     |     | 
 ->symbol             | 1   |  x  |  x  | 
 ->int                | 1   |  x  |  x  | 
@@ -513,6 +515,34 @@ infix->lyra          | >=1 |  x  |     | Take an infix expression, convert it to
 §                    | >=1 |  x  |     | Alias for infix->lyra
 show-infix-as-prefix | >=2 |  x  |     | Similar to infix->prefix but does not execute the 
                      |     |     |     | code.
+```
+
+### File: core/infix.lyra
+
+```
+Name                 |  #  |Pure?|Gen? | 
+---------------------+-----+-----+-----+------------------------------------------------------------
+queue                | >=0 |  x  |     | Create a new queue.
+deque                | >=0 |  x  |     | Create a new deque.
+queue?               | 1   |  x  |     | 
+deque?               | 1   |  x  |     | 
+                     |     |     |     | 
+enqueue              | 2   |  x  |     | 
+enqueue-all          | 2   |  x  |     | 
+dequeue              | 1   |  x  |     | 
+                     |     |     |     | 
+peek                 | 1   |  x  |     | Take the last element of a vector or the first for other 
+                     |     |     |     | collection types.
+pop                  | 1   |  x  |     | Remove the last element of a vector or the first for other 
+                     |     |     |     | collection types.
+push                 | 1   |  x  |     | Add an element to the end of a collection or the front of
+                     |     |     |     | a list.
+                     |     |     |     | 
+->queue              | 1   |  x  |     | Convert a sequence to a queue.
+->deque              | 1   |  x  |     | Convert a sequence to a deque.
+
+Other definitions:
+  first, rest, add, append, sequence?, ->list, ->vector, size, reverse, eq?
 ```
 
 ## Variables
