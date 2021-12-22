@@ -1,6 +1,19 @@
 (module queue-module
   (deque queue push ->deque ->queue enqueue dequeue peek pop queue? deque? enqueue-all)
 
+  ; deque and queue are implemented as the same type.
+  ; A deque is implemented as 2 lists: One for the front and one the back. 
+  ; If something is added, it is prepended to the second list.
+  ;
+  ; (let ((q (queue 1 2))
+  ;       (q1 (enqueue-all (queue 1 2) '(4 3))))
+  ;   q ; (make-deque (1 2) ())
+  ;   (enqueue q 3) ; (make-deque (1 2) (4 3))
+  ;   (deque q1) ; (make-deque (2) (4 3))
+  ;   (deque (deque q1)) ; (make-deque (3 4) ())
+  ;   )
+  ; 
+  ; first, rest, append and ->list are implemented, so all sequence operations work.
   (def-type deque front back)
   
   (define (deque & xs)
@@ -36,17 +49,19 @@
       (add xs e)))
   
   (define (deque-eq? q0 q1)
-    (id
-      (if (deque? q1)
-        (and (eq? (deque-front q0) (deque-front q1))
-            (eq? (deque-back q0) (deque-back q1)))
-        (eq? (->list q1) (->list q0)))))
-  
+    (eq? (->list q1) (->list q0)))
+
   (def-impl ::deque first (lambda (q) (car (deque-front q))))
   (def-impl ::deque rest dequeue)
   (def-impl ::deque add enqueue)
   (def-impl ::deque append enqueue-all)
-  
+  (def-impl ::deque prepend (lambda (q xs) (make-deque (append (->list xs) (deque-front q)) (deque-back q))))
+  (def-impl ::deque add-front (lambda (q x) (make-deque (cons x (deque-front q)) (deque-back q))))
+  (def-impl ::deque last
+    (lambda (q)
+      (cond (empty? (deque-back q)) (last (deque-front q))
+            else (car (deque-back q)))))
+
   (def-generic xs (->deque xs) (partial enqueue-all (deque)))
   (def-generic xs (->queue xs) ->deque)
   

@@ -1,7 +1,7 @@
 (module core
   (comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and complement begin def-memo spread apply map map-eager map-indexed mapv mapv-indexed map-while map-until maplist mapcar mapcon mapcat filter filterv filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq 
   ;all? none? any? 
-  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat string-concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop va-cons v= v/= v< v> v<= v>= partition dedupe times)
+  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat string-concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop va-cons v= v/= v< v> v<= v>= partition dedupe times prepend add-front)
 
 ;;; Some core things
 
@@ -31,7 +31,9 @@
         else (%contains? (rest xs) e)))
 
 (def-generic xs (append xs ys) buildin-append)
+(def-generic xs (prepend xs ys) (lambda (xs ys) (buildin-append ys xs)))
 (def-generic xs (add xs y) %add)
+(def-generic xs (add-front xs y) (lambda (xs y) (append (list y) xs)))
 (def-generic xs (contains? xs e) %contains?)
 (def-generic xs (nth xs i) (lambda (xs i) (if (or (empty? xs) (<= i 0)) (first xs) (recur (rest xs) (- i 1)))))
 ;buildin-nth
@@ -161,11 +163,13 @@
 (def-impl ::set reverse id)
 (def-impl ::map reverse id)
 
-(def-impl ::list add (lambda (l v) (append l (list x))))
 (def-impl ::string add (lambda (s o) (string-add s (->string o))))
 (def-impl ::vector add vector-add)
 (def-impl ::set add set-add)
 (def-impl ::map add (lambda (m kv) (map-set (first kv) (second kv))))
+
+(def-impl ::list add-front (lambda (l o) (cons o l)))
+(def-impl ::string add-front (lambda (s o) (string-add (string-add "" (->string o)) s)))
 
 (def-impl ::integer ->int id)
 (def-impl ::float ->int buildin->int)
@@ -191,9 +195,10 @@
 (def-impl ::set foldl buildin-foldl)
 (def-impl ::map foldl buildin-foldl)
 
-(define (last xs)
-  (let ((l (->list xs)))
-    (if (list? l) (first (drop (dec (size l)) l)) (nothing))))
+(def-generic xs (last xs)
+  (lambda (xs)
+    (let ((l (->list xs))) (if (list? l) (first (drop (dec (size l)) l)) (nothing)))))
+
 (define (but-last xs)
   (let ((l (->list xs)))
     (if (list? l) (take (dec (size l)) l) (nothing))))

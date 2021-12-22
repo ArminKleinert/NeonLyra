@@ -1544,6 +1544,41 @@
     (nothing? (append 88 [1 2]))
     (nothing? (append 88 88))))
 
+(define (test-prepend)
+  (all-true?
+    ; Prepending strings
+    (= "" (prepend "" ""))
+    (= "1" (prepend "" "1"))
+    (= "12" (prepend "2" "1"))
+    
+    ; Prepending to string transforms the 2. element into a string
+    (= "1" (prepend "" 1))
+    (= "11" (prepend "" 11))
+    (= "12" (prepend "2" 1))
+    
+    ; Prepending empty sequences
+    (empty? (prepend '() '()))
+    (empty? (prepend [] []))
+    (empty? (prepend '() []))
+    (empty? (prepend [] '()))
+
+    ; Prepending sequences
+    (eq? '(1 2 1 2) (prepend '(1 2) '(1 2)))
+    (eq? [1 2 1 2] (prepend [1 2] [1 2]))
+    (eq? '(1 2 1 2) (prepend '(1 2) [1 2]))
+    (eq? [1 2 1 2] (prepend [1 2] '(1 2)))
+    (eq? '(3 2 1 2) (prepend '(1 2) '(3 2)))
+    (eq? [3 2 1 2] (prepend [1 2] [3 2]))
+    (eq? '(3 2 1 2) (prepend '(1 2) [3 2]))
+    (eq? [3 2 1 2] (prepend [1 2] '(3 2)))
+    
+    ; Prepending any atom type will return Nothing
+    (nothing? (prepend '(1 2) 88))
+    (nothing? (prepend [1 2] 88))
+    (nothing? (prepend 88 '(1 2)))
+    (nothing? (prepend 88 [1 2]))
+    (nothing? (prepend 88 88))))
+
 (define (test-concat)
   (all-true?
     ; Appending empty sequences
@@ -2857,6 +2892,8 @@
     (collection? (queue))
     (not (list? (queue)))
     (eq? (queue) (rest (queue)))
+    (eq? Nothing (last (queue)))
+    (eq? 1 (last (enqueue (queue) 1)))
     
     (eq? (queue 1 2) (queue 1 2))
     (= 2 (size (queue 1 2)))
@@ -2889,7 +2926,9 @@
     (collection? (queue 1 2))
     (not (list? (queue 1 2)))
     (eq? (queue 2) (rest (queue 1 2)))
-    (eq? (queue) (rest (rest (queue 1 2))))))
+    (eq? (queue) (rest (rest (queue 1 2))))
+    (eq? Nothing (last (queue)))
+    (eq? 2 (last (enqueue (queue 1) 2)))))
   
 (define (test-other-deque-ops)
   (all-true?
@@ -2921,6 +2960,8 @@
     (collection? (deque))
     (not (list? (deque)))
     (eq? (deque) (rest (deque)))
+    (eq? Nothing (last (deque)))
+    (eq? 1 (last (enqueue (deque) 1)))
     
     (eq? (deque 1 2) (deque 1 2))
     (= 2 (size (deque 1 2)))
@@ -2953,7 +2994,45 @@
     (collection? (deque 1 2))
     (not (list? (deque 1 2)))
     (eq? (deque 2) (rest (deque 1 2)))
-    (eq? (deque) (rest (rest (deque 1 2))))))
+    (eq? (deque) (rest (rest (deque 1 2))))
+    (eq? Nothing (last (deque)))
+    (eq? 2 (last (enqueue (deque 1) 2)))))
+
+(define (test-add)
+  (let ((l0 (list))
+        (l1 (list 1 2 3))
+        (v0 [])
+        (v1 [1 2 3]))
+    (eq? '(1) (add l0 1))
+    (eq? '((1)) (add l0 '(1)))
+    (eq? '([1]) (add l0 [1]))
+    (eq? '(1 2 3 1) (add l1 1))
+    (eq? '(1 2 3 (1)) (add l1 '(1)))
+    (eq? '(1 2 3 [1]) (add l1 [1]))
+    (eq? [1] (add v0 1))
+    (eq? ['(1)] (add v0 '(1)))
+    (eq? [[1]] (add v0 [1]))
+    (eq? [1 2 3 1] (add v1 1))
+    (eq? [1 2 3 '(1)] (add v1 '(1)))
+    (eq? [1 2 3 [1]] (add v1 [1]))))
+
+(define (test-add-front)
+  (let ((l0 (list))
+        (l1 (list 1 2 3))
+        (v0 [])
+        (v1 [1 2 3]))
+    (eq? '(1) (add-front l0 1))
+    (eq? '((1)) (add-front l0 '(1)))
+    (eq? '([1]) (add-front l0 [1]))
+    (eq? '(1 1 2 3) (add-front l1 1))
+    (eq? '((1) 1 2 3) (add-front l1 '(1)))
+    (eq? '([1] 1 2 3) (add-front l1 [1]))
+    (eq? '(1) (add-front v0 1))
+    (eq? '((1)) (add-front v0 '(1)))
+    (eq? '([1]) (add-front v0 [1]))
+    (eq? '(1 1 2 3) (add-front v1 1))
+    (eq? '((1) 1 2 3) (add-front v1 '(1)))
+    (eq? '([1] 1 2 3) (add-front v1 [1]))))
 
 (define (run-tests & fns)
   (let ((results
@@ -3025,10 +3104,11 @@
   'test-try* 'test-tuples 'test-slices 'test-try-catch-finally
   'test-count-by 'test-most? 'test-list-literal 'test-vector-literal
   'test-set-literal 'test-map-literal 'test-char-literal 'test-when
-  'test-name 'test-fn 'test-alias 'test-dedupe
+  'test-name 'test-fn 'test-alias 'test-dedupe 'test-prepend
   'test-times 'test-queue 'test-deque 'test-enqueue 'test-enqueue-all
   'test-dequeue 'test-queue? 'test-deque? 'test-push 'test-peek 'test-pop
   'test-->queue 'test-->deque 'test-other-queue-ops 'test-other-deque-ops
+  'test-add 'test-add-front
   ))
 
 (println! (run-all-tests))
