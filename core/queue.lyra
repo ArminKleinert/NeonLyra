@@ -53,7 +53,7 @@
   (def-impl ::deque sequence? (lambda (x) #t))
   
   (def-impl ::deque ->list (lambda (q) (append (deque-front q) (reverse (deque-back q)))))
-  (def-impl ::deque ->vector (lambda (q) (concat [] (deque-front q) (reverse (deque-back q)))))
+  (def-impl ::deque ->vector (lambda (q) (append [] (append (deque-front q) (reverse (deque-back q))))))
   
   (def-impl ::deque size (lambda (q) (+ (size (deque-front q)) (size (deque-back q)))))
   

@@ -780,14 +780,13 @@
     ((n step pad xs) (%partition n step pad xs))))
 
 (define (%dedupe prev xs)
-  (cond
-    (empty? xs) '()
-    (eq? (car xs) prev) (%dedupe prev (cdr xs))
-    else (lazy-seq (car xs) (%dedupe (car xs) (cdr xs)))))
+  (cond (empty? xs) xs
+        (eq? (first xs) prev) (%dedupe prev (rest xs))
+        else (lazy-seq (first xs) (%dedupe (first xs) (rest xs)))))
 (define (dedupe xs)
-  (if (empty? xs)
-    '()
-    (cons (car xs) (%dedupe (car xs) (cdr xs)))))
+  (cond (or (set? xs) (map? xs)) xs
+        (empty? xs) xs
+        else (lazy-seq (first xs) (%dedupe (first xs) (rest xs)))))
 
 (define (times f n)
   (lambda (x) (loop (n1 n y x) (if (<= n1 0) y (recur (dec n1) (f y))))))

@@ -2622,6 +2622,24 @@
       (= a.? 2)
       (= (unwrap a) 2))))
 
+(define (test-dedupe)
+  (all-true?
+    (eq? '() (dedupe '()))
+    (eq? '() (dedupe []))
+    (eq? '() (dedupe (queue)))
+    (eq? '(1) (dedupe '(1 1)))
+    (eq? '(1) (dedupe [1 1]))
+    (eq? '(1) (dedupe (queue 1 1)))
+    (eq? '(1 2 1) (dedupe '(1 2 1 1)))
+    (eq? '(1 2 1) (dedupe [1 2 1 1]))
+    (eq? '(1 2 1) (dedupe (queue 1 2 1 1)))
+    (eq? '(1 2 1) (dedupe '(1 1 2 2 1 1)))
+    (eq? '(1 2 1) (dedupe [1 1 2 2 1 1]))
+    (eq? '(1 2 1) (dedupe (queue 1 1 2 2 1 1)))
+    (eq? '(1 2 1 2 1 2) (dedupe '(1 2 1 2 1 2)))
+    (eq? '(1 2 1 2 1 2) (dedupe [1 2 1 2 1 2]))
+    (eq? '(1 2 1 2 1 2) (dedupe (queue 1 2 1 2 1 2)))))
+
 (define (test-times)
   (all-true?
     (function? (times inc -1))
@@ -3007,7 +3025,7 @@
   'test-try* 'test-tuples 'test-slices 'test-try-catch-finally
   'test-count-by 'test-most? 'test-list-literal 'test-vector-literal
   'test-set-literal 'test-map-literal 'test-char-literal 'test-when
-  'test-name 'test-fn 'test-alias
+  'test-name 'test-fn 'test-alias 'test-dedupe
   'test-times 'test-queue 'test-deque 'test-enqueue 'test-enqueue-all
   'test-dequeue 'test-queue? 'test-deque? 'test-push 'test-peek 'test-pop
   'test-->queue 'test-->deque 'test-other-queue-ops 'test-other-deque-ops
