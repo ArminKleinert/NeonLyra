@@ -2437,15 +2437,29 @@
     (eq? '((1 (2 (3 (4 5)))) (2 (3 (4 5))) (3 (4 5)) (4 5) 5) (scanr1 list '(1 2 3 4 5)))))
 
 (define (test-condp)
-  (all-true?
-    (condp = 7
-      0 #f
-      7 #t
-      #f)
-    (condp eq? '()
-      '(1 2) #f
-      Nothing #f
-      #t)))
+  (let ((f0 (lambda (e) (condp = 1 0 2 9 11)))
+        (f1 (lambda (e) (condp = 1 0 2 9)))
+        (f2 (lambda (e) (condp = 1 0 2 9 e e))))
+    (all-true?
+      (condp = 7
+        0 #f
+        7 #t
+        #f)
+      (condp eq? '()
+        '(1 2) #f
+        Nothing #f
+        #t)
+      (= 0 (f0 1))
+      (= 9 (f0 2))
+      (= 11 (f0 0))
+      (= 0 (f1 1))
+      (= 9 (f1 2))
+      (nothing? (f1 0))
+      (= 0 (f0 1))
+      (= 9 (f0 2))
+      (= 4 (f0 0))
+      (= 5 (f0 5))
+      )))
 
 (define (test-frequencies)
   (let ((freqs (frequencies '(1 2 3 1 5 4 1 7 7 7 5 1))))

@@ -669,7 +669,7 @@
       (cond
         (= 1 (size cases)) c
         (p c e) (second cases)
-        else (%condp p e (rest cases))))))
+        else (%condp p e (rest (rest cases)))))))
 
 (def-macro (condp p e & cases)
   (%condp p (eval! e) cases))
