@@ -1,74 +1,94 @@
 (module bootstrap-set
-  ((set-of set-of)
-   (set->list set->list)
-   (set-size set-size)
-   (set-add set-add)
-   (set-union set-union)
-   (set-difference set-difference)
-   (set-intersection set-intersection)
-   (set-includes? set-includes?)
-   (set-subset? set-subset?)
-   (set-true-subset? set-true-subset?)
-   (set-superset? set-superset?)
-   (set-true-superset? set-true-superset?)
-   (set-remove set-remove)
-   (set-eq? set-eq?))
+  (set-of1
+   set->list1
+   set-size1
+   set-add1
+   set-union1
+   set-difference1
+   set-intersection1
+   set-includes?1
+   set-subset?1
+   set-true-subset?1
+   set-superset?1
+   set-true-superset?1
+   set-remove1
+   set-eq?1
+   set-powerset1
+   list->set1)
 
 ;;;;;
 ; Simple but bad list-set implementation.
 
 ; set? is automatically defined
-(def-type set vals)
+(def-type set1 vals)
 
-(define (list->set xs)
-  (make-set xs))
+(define (uniq xss)
+  (foldl
+    (lambda (res xs) (cons xs (remove (partial eq? xs) res)))
+    '() xss))
 
-(define (set-of & vals)
-  (list->set vals))
+(define (list->set1 xs)
+  (make-set1 (uniq xs)))
 
-(define set->list set-vals)
+(define (set-of1 & vals)
+  (list->set1 vals))
 
-(define (set-size set)
-  (list-size (set->list set)))
+(define set->list1 set1-vals)
 
-(define (set->vector set)
-  (list->vector (set->list set)))
+(define (set-size1 set)
+  (list-size (set->list1 set)))
 
-(define (set-add set v)
-  (if (set-includes? set v)
+(define (set->vector1 set)
+  (list->vector (set->list1 set)))
+
+(define (set-add1 set v)
+  (if (set-includes?1 set v)
     set
-    (make-set (set->list v))))
+    (make-set1 (cons v (set->list1 set)))))
 
-(define (set-union set0 set1)
-  (make-set (list-concat (set-difference set0 set1) set1)))
+(define (set-union1 set0 set1)
+  (make-set1 (list-concat (set-difference1 set0 set1) set1)))
 
-(define (set-difference set0 set1)
-  (make-set
+(define (set-difference1 set0 set1)
+  (make-set1
     (list-concat
-      (remove (lambda (e) (set-includes? set1 e)) (set->list set0)))))
+      (remove (lambda (e) (set-includes?1 set1 e)) (set->list1 set0)))))
 
-(define (set-intersection set0 set1)
-  (make-set (filter (lambda (e) (set-includes? set1 e)) (set->list set0))))
+(define (set-intersection1 set0 set1)
+  (make-set1 (filter (lambda (e) (set-includes?1 set1 e)) (set->list1 set0))))
 
-(define (set-includes? set v)
-  (list-includes? (set->list set)))
+(define (set-includes?1 set v)
+  (contains? (set->list1 set) v))
 
-(define (set-subset? xs ys)
-  (all? (lambda (e) (set-includes? ys e)) xs))
+(define (set-subset?1 xs ys)
+  (all? (lambda (e) (set-includes?1 ys e)) xs))
 
-(define (set-true-subset? xs ys)
-  (and (< (set-size xs) (set-size ys)) (set-subset? xs ys)))
+(define (set-true-subset?1 xs ys)
+  (and (< (set-size1 xs) (set-size1 ys)) (set-subset? xs ys)))
 
-(define (set-superset? xs ys)
+(define (set-superset?1 xs ys)
   (set-subset? ys xs))
 
-(define (set-true-superset? xs ys)
-  (set-true-subset? ys xs))
+(define (set-true-superset?1 xs ys)
+  (set-true-subset?1 ys xs))
 
-(define (set-remove set v)
-  (make-set (remove (lambda (e) (= e v)) (set->list set))))
+(define (set-remove1 set v)
+  (make-set1 (remove (lambda (e) (= e v)) (set->list1 set))))
 
-(define (set-eq? xs ys)
-  (and (= (set-size xs) (set-size ys))
-       (= 0 (set-size (set-difference xs ys)))))
+(define (set-eq?1 xs ys)
+  (and (= (set-size1 xs) (set-size1 ys))
+       (= 0 (set-size1 (set-difference1 xs ys)))))
+
+(let*((%powerset
+        (lambda (xs) (if (empty? xs) '()
+          (foldr append '() 
+            (map powerset1 (map (lambda (x) (remove (partial eq? x) xs)) xs))))))
+      (powerset1
+        (lambda (xs) (uniq (add (%powerset xs) xs)))))
+(define (set-powerset1 xss)
+  (list->set1 (powerset1 (set->list1 set))))
+)
+
+(def-impl ::set1 eq? (lambda (s0 s1) (and (set1? s1) (set-eq?1 s0 s1))))
+(def-impl ::set1 ->list set->list1)
 )

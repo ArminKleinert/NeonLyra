@@ -1,0 +1,25 @@
+(module 
+  ()
+
+(def-type skipL levels)
+(def-type skipI k v next down)
+
+(define (%lookup si comp k)
+  (let ((cr (comp (skipI-k si) k)))
+    (cond
+      (= cr 0) (skipI-v si)
+      (nothing? (skipI-next si)) (%lookup (skipI-down si) comp k)
+      (> 
+
+(define (skip-list)
+
+)
+)
+
+
+
+
+
+
+
+

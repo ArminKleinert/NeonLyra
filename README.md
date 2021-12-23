@@ -63,7 +63,6 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 - `<expr>.?` becomes `(unwrap <expr>)`  
 - `<expr>.!` becomes `(eager <expr>)`  
 - `@<expr>` becomes `(unbox <expr>)`  
-- `#(...)` is an alternative syntax for anonymous functions  
 - `#t` is literal true  
 - `#f` is literal false  
 - `#{...}` is a literal set.  
@@ -113,7 +112,7 @@ Here are some differences to Clojure I could think of:
 - `seq` returns `Nothing` for all types that aren't collections.  
 - modules (`module`) instead of namespaces (`ns`).  
 - All impure functions must end with the postfix `!` (like `load!`, `readln!`, ...).  
-- Nested `#(...)` is allowed (though discouraged)  
+- `#(...)` is not available (for now)  
 - Names cannot end with `'`  
 
 The aliases can be imported using `(load! "core/clj.lyra")`. 
@@ -209,13 +208,20 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
 ; The name 'pair' can still be safely used.
 (define (pair x y) (make-pair x y))
 
-; Implementations for the generic functions first and second
+; Implementations for the generic functions first, second and eq?
 (def-impl ::pair first pair-x)
 (def-impl ::pair second pair-y)
+(def-impl ::pair eq?
+  (lambda (p p1) (and (pair? p1) (eq? (unwrap-pair p) (unwrap-pair p1)))))
 
-; To define a collection, the following function must be defined:
-;   Essential: first, rest, ->list, append
-;   Also: sequence? or collection?
+; To define a collection, the ->list function must be defined
+;   and give predictable output.
+;   Defining ->list creates definitions for a bunch of functions.
+;   Also, 'collection? returns true for any object which can be 
+;   transformed into a list.  However, sequence? has to be defined
+;   separately. Only defining ->list is very slow. It is advised
+;   to at least define size, first and rest also.
+; As for any type you define, it is advisable to also implement eq?.
 ```
 
 ## Changelog
@@ -249,12 +255,6 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - More tests  
   - Better implementation for some functions  
   - Fixed foldr1  
-  - Beta features (Might be removed in the next version):  
-    - Function arguments are now also bound to the variables `%0` to `%15` (or less if the function call receives less arguments).  
-      So `(lambda (x y) (+ x y))` and `(lambda (x y) (+ %0 %1))` are equivalent.  
-    - New `#(...)` syntax for anonymous functions.  
-      - The function is variadic and its arguments are bound to the variables `%0` to `%15`. Such a function must not receive more than that number of arguments.  
-      - `#(+ %0 %1)` becomes `(lambda (& \x00) (+ %0 %1))`  
 - 0.1.0  
   - Performance improvement  
   - Lazy and infinite sequences  
@@ -282,6 +282,10 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Better `case-lambda`  
   - Alias type  
   - queue type (in core/queue.lyra)  
+  - Removed `#()` and `%`  
+- 0.1.4  
+  - To define a collection type, only `->list` has to be defined.  
+  
 
 ## Known bugs
 

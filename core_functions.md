@@ -542,7 +542,7 @@ push                 | 1   |  x  |     | Add an element to the end of a collecti
 ->deque              | 1   |  x  |     | Convert a sequence to a deque.
 
 Other definitions:
-  first, rest, add, append, sequence?, ->list, ->vector, size, reverse, eq?
+  first, rest, add, append, prepend, add-front, last, sequence?, ->list, ->vector, size, reverse, eq?
 ```
 
 ## Variables

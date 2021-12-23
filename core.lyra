@@ -30,7 +30,7 @@
         (eq? (first xs) e) #t
         else (%contains? (rest xs) e)))
 
-(def-generic xs (append xs ys) buildin-append)
+(def-generic xs (append xs ys) (lambda (xs ys) (buildin-append (->list xs) (->list ys))))
 (def-generic xs (prepend xs ys) (lambda (xs ys) (buildin-append ys xs)))
 (def-generic xs (add xs y) %add)
 (def-generic xs (add-front xs y) (lambda (xs y) (append (list y) xs)))
@@ -52,13 +52,10 @@
 
 (def-generic x (eq? x y) (lambda (x y) (if (and (sequence? x) (sequence? y)) (seq-eq? x y) (= x y))))
 
-(define (%size xs)
-  (let ((c (->list xs)))
-    (if c (list-size (->list xs)) 0)))
 
-(def-generic xs (size xs) (lambda (xs) (%size xs)))
-(def-generic xs (rest xs) nothing)
-(def-generic xs (first xs) nothing)
+(def-generic xs (size xs) (lambda (xs) (let ((l (->list xs))) (if l (list-size l) 0))))
+(def-generic xs (rest xs) (lambda (xs) (let ((l (->list xs))) (if l (cdr l) Nothing))))
+(def-generic xs (first xs) (lambda (xs) (let ((l (->list xs))) (if l (car l) Nothing))))
 (def-generic xs (second xs) (lambda (xs) (first (rest xs))))
 (def-generic xs (reverse xs) (lambda (xs) (foldl (lambda (a b) (cons b a)) '() xs)))
 
@@ -84,7 +81,7 @@
 (def-generic x (sequence? x)
   (lambda (xs) (or (list? xs) (vector? xs))))
 (def-generic x (collection? x)
-  (lambda (xs) (or (sequence? xs) (or (map? xs) (set? xs)))))
+  (lambda (xs) (or (or (sequence? xs) (or (map? xs) (set? xs))) (not (nothing? (->list xs))))))
 (def-generic x (number? x)
   (lambda (xs) (or (int? xs) (or (float? xs) (rational? xs)))))
 
@@ -486,7 +483,7 @@
   (or (foldr1 strcat (map-eager ->string xs)) ""))
 
 (define (v= x & xs) (cond (empty? xs) #t (= x (car xs)) (apply-to v= (cdr xs)) #f))
-(define (v/= x & xs) (not (unique? (cons x xs))))
+(define (v/= x & xs) (unique? (cons x xs)))
 (define (v< x & xs) (cond (empty? xs) #t (< x (car xs)) (apply-to v< (cdr xs)) #f))
 (define (v> x & xs) (cond (empty? xs) #t (> x (car xs)) (apply-to v> (cdr xs)) #f))
 (define (v<= x & xs) (cond (empty? xs) #t (<= x (car xs)) (apply-to v<= (cdr xs)) #f))
