@@ -746,11 +746,16 @@
                         (cadr forms)))
         (catch-clauses (car catch-finally))
         (finally-clause (cadr catch-finally))
-        (res-name (gensym 'try)))
-    (list 'let (list (list res-name 
-      (foldl (lambda (bd ct) (list 'try* bd ct)) (cons 'begin body) catch-clauses)))
-      (if (empty? finally-clause) Nothing (cons 'begin (cdar finally-clause)))
-      res-name)
+        (res-name (gensym 'try))
+        (err-name (gensym 'error)))
+    (list 'try*
+      (list 'let (list (list res-name 
+        (foldl (lambda (bd ct) (list 'try* bd ct)) (cons 'begin body) catch-clauses)))
+        (if (empty? finally-clause) Nothing (cons 'begin (cdar finally-clause)))
+        res-name)
+      (list 'catch '(lambda(_)#t) err-name
+        (if (empty? finally-clause) Nothing (cons 'begin (cdar finally-clause)))
+        (list 'error! (list 'error-msg err-name) (list 'error-info err-name) (list 'error-trace err-name))))
     ))
     
 (def-macro (loop bindings & body)

@@ -6,9 +6,13 @@ require 'set'
 
 class LyraError < StandardError
   attr_reader :info,:internal_trace
-  def initialize(msg,info=:error)
+  def initialize(msg,info=:error, trace=nil)
     @info = info
-    @internal_trace = LYRA_CALL_STACK
+    if trace.nil?
+      @internal_trace = LYRA_CALL_STACK
+    else
+      @internal_trace = trace
+    end
     super(msg)
   end
 end

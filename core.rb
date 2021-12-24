@@ -529,7 +529,7 @@ def setup_core_functions
   
   add_fn_with_env(:"class", 1) { |x,env| type_of(x.car) }
 
-  add_fn(:"error!", 1,2) { |msg,info| raise LyraError.new(msg,info) }
+  add_fn(:"error!", 1,3) { |msg,info,trace| raise LyraError.new(msg,info,trace) }
   
   add_fn(:"error-msg",1) { |e| e.msg }
   add_fn(:"error-info",1) { |e| e.info }

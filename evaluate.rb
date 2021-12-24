@@ -533,6 +533,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         end
 
 
+
         begin
           # Try to execute body
           res = eval_ly(body, env, force_eval)
@@ -540,7 +541,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
           # Error caught
           # Register error in new env
           env1 = Env.new(nil, env)
-          error1 = WrappedLyraError.new(error.message,error.info,error.internal_trace)
+          error1 = WrappedLyraError.new(error.message, error.info, error.internal_trace)
           env1.set!(exception_name, error1)
 
           # If first expression after the error name is a function, use it to try and validate the error.
@@ -557,7 +558,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
 
           #Run clause if validated or re-throw
           if run_clause
-            res = eval_keep_last(clause, env1, force_eval)
+              res = eval_keep_last(clause, env1, force_eval)
           else
             raise error
           end
