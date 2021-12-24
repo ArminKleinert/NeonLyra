@@ -1,0 +1,43 @@
+(module syntax-analysis
+  ()
+
+; Reference type
+(def-type ref id)
+
+; Unresolved reference
+(def-type unres-ref name)
+
+(define (analysis-find-defs exprs)
+  (map
+    (lambda (expr)
+      (cond
+        (not (list? expr)) #f
+        (not (eq? (car expr) 'define)) #f
+        (symbol? (cadr expr)) ; Value define
+          (list :val (cadr expr) (caddr expr))
+        else
+          (list :fn (caadr expr) (cdadr expr) (cddr expr))
+      ))
+    exprs))
+
+(define (analysis-find-macros exprs)
+  (map
+    (lambda (expr)
+      (cond
+        (not (list? expr)) #f
+        (not (eq? (car expr) 'def-macro)) #f
+        (not (list? (cadr expr))) (list :syntax-error 'def-macro)
+        else
+          (list :macro (caadr expr) (cdadr expr) (cddr expr))
+      ))
+    exprs))
+
+(def-macro (analyse exprs info)
+  (let ((defs (analysis-find-defs exprs)))
+))
+)
+
+
+
+
+

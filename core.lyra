@@ -1,7 +1,7 @@
 (module core
   (comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and complement begin def-memo spread apply map map-eager map-indexed mapv mapv-indexed map-while map-until maplist mapcar mapcon mapcat filter filterv filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq 
   ;all? none? any? 
-  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat string-concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop va-cons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations)
+  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat string-concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop va-cons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path)
 
 ;;; Some core things
 
@@ -498,20 +498,26 @@
 (define (constantly x) (lambda (& ys) x))
 
 (define (%case e n cases)
-  (cond
-    (empty? cases) Nothing
-    (= 1 (size cases)) (first cases)
-    else
-      (list 'let (list (list n (first cases)))
-        (list 'cond
-          (list 'and (list 'collection? n) (list 'contains? n e)) (second cases)
-          (list 'and (list 'function? n) (list n e)) (second cases)
-          (list 'eq? n e) (second cases)
-          else (%case e n (rest (rest cases)))))))
+  (let ((fc (first cases)))
+    (cond
+      (empty? cases) Nothing
+      (= 1 (size cases)) (first cases)
+      (and (not (symbol? (first cases))) (atom? (first cases)))
+        (list 'if (list 'eq? fc e) (second cases) (%case e n (rest (rest cases))))
+      (and (not (list? (first cases))) (collection? (first cases)))
+        (list 'if (list 'contains? fc e) (second cases) (%case e n (rest (rest cases))))
+      else
+        (list 'let (list (list n (first cases)))
+          (list 'cond
+            (list 'and (list 'collection? n) (list 'contains? n e)) (second cases)
+            (list 'and (list 'function? n) (list n e)) (second cases)
+            (list 'eq? n e) (second cases)
+            'else (%case e n (rest (rest cases))))))))
 
 (def-macro (case e & cases)
-  (let ((n (gensym 'case)))
-    (%case e n cases)))
+  (let ((n (gensym 'case))
+        (e-name (gensym 'case-elem)))
+    (list 'let (list (list e-name e)) (%case e-name n cases))))
 
 
 
@@ -804,5 +810,48 @@
                       (%insert p n (car l)))
                     (range 0 (size p))))
             (permutations (cdr l)))))))
+
+(define (%walk-with-path f coll _path)
+  (cond
+    (vector? coll)
+    (->vector
+      (map-indexed
+        (lambda (v i)
+          (let ((path (cons i _path)))
+            (%walk-with-path f (f v path) path)))
+        coll))
+    
+    (sequence? coll)
+    (map-indexed
+      (lambda (v i)
+        (let ((path (cons i _path)))
+          (%walk-with-path f (f v path) path)))
+      coll)
+    
+    (set? coll)
+    (->set
+    (map-indexed
+      (lambda (v i)
+        (let ((path (cons i _path)))
+          (%walk-with-path f (f v path) path)))
+      coll))
+    
+    (map? coll)
+    (->map (flatten1
+    (map-indexed
+      (lambda (v i)
+        (let ((path (cons i _path)))
+          (%walk-with-path f (f v path) path)))
+      coll)))
+
+    ; coll is not a collection
+    else (f coll _path)
+    ))
+
+(define (walk-with-path f xs)
+  (%walk-with-path f xs '()))
 )
+
+
+
 

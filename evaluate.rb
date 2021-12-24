@@ -44,6 +44,7 @@ begin
   f.call :"lazy"
   f.call :"try*"
   f.call :"catch"
+  f.call :"expand-macro"
   
   f.call :"lambda"
   f.call :"cond"
@@ -565,6 +566,20 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       else
         raise LyraError.new("No catch-clause in try*", :syntax)
       end
+    when :"expand-macro"
+      func = eval_ly(expr.cdr.car, env, force_eval, true)
+      args = expr.cdr.cdr
+      if func.nil? || !func.is_a?(LyraFn) || !func.is_macro
+        raise LyraError.new("expand-macro expects a macro as its first argument.", :"invalid-call")
+      end
+      LYRA_CALL_STACK.push func
+      # The macro is first called and the resulting expression
+      # is then executed.
+      r1 = func.call(args, env)
+      LYRA_CALL_STACK.pop
+      expr.set_car! :id
+      expr.set_cdr! list(r1)
+      r1
     when :alias
       if expr.size != 2
         raise LyraError.new("Wrong number of arguments for lazy. (Expected 1, got #{expr.cdr.size})")
@@ -615,7 +630,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         # is then executed.
         r1 = func.call(args, env)
         LYRA_CALL_STACK.pop
-        puts r1 if $show_expand_macros
+        puts elem_to_pretty(r1) if $show_expand_macros
         if LYRA_CALL_STACK.none?(&:is_macro)
           expr.set_car! :id
           expr.set_cdr! list(r1)
