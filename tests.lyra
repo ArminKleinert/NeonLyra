@@ -3068,6 +3068,42 @@
       (eq? many-perms (permutations '(1 2 3 4 5 6))) ; Same input, same output
       )))
 
+(define (test-get)
+  (all-true?
+    (nothing? (get 0 1))
+    (nothing? (get '(1) 1))
+    (= 1 (get '(1) 0))
+    (= 5 (get '(1 2 3 4 5) 4))
+    (= 5 (get (iterate inc 0) 5))
+    
+    (nothing? (get [1] 1))
+    (= 1 (get [1] 0))
+    (= 5 (get [1 2 3 4 5] 4))
+    
+    (nothing? (get {0 1 2 3} 1))
+    (= 1 (get {0 1 1 2 2 3} 0))
+    (= 5 (get {0 1 1 2 4 5} 4))
+    
+    ; For sets, the definition is not clear because they are not
+    ; ordered. The only requirement is that the output is consistent.
+    (= (get #{0 1 2 3 4} 4) (get #{0 1 2 3 4} 4))
+    
+    (= 5 (get (queue 1 2 3 4 5) 4))
+    ))
+
+(define (test-get-in)
+  (all-true?
+    (= 0 (get-in 0 '()))
+    (nothing? (get-in 0 '(1)))
+    
+    (= 0 (get-in '(0 (1 {0 8 3 9}) [6 7 8]) '(0)))
+    (eq? [6 7 8] (get-in '(0 (1 {0 8 3 9}) [6 7 8]) '(2)))
+    (= 7 (get-in '(0 (1 {0 8 3 9}) [6 7 8]) '(2 1)))
+    (eq? '(1 {0 8 3 9}) (get-in '(0 (1 {0 8 3 9}) [6 7 8]) '(1)))
+    (eq? {0 8 3 9} (get-in '(0 (1 {0 8 3 9}) [6 7 8]) '(1 1)))
+    (= 8 (get-in '(0 (1 {0 8 3 9}) [6 7 8]) '(1 1 0)))
+    ))
+
 (define (run-tests & fns)
   (let ((results
           (foldl
@@ -3142,7 +3178,7 @@
   'test-times 'test-queue 'test-deque 'test-enqueue 'test-enqueue-all
   'test-dequeue 'test-queue? 'test-deque? 'test-push 'test-peek 'test-pop
   'test-->queue 'test-->deque 'test-other-queue-ops 'test-other-deque-ops
-  'test-add 'test-add-front 'test-permutations
+  'test-add 'test-add-front 'test-permutations 'test-get 'test-get-in
   ))
 
 (println! (run-all-tests))

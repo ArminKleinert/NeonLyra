@@ -1,7 +1,7 @@
 (module core
   (comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and complement begin def-memo spread apply map map-eager map-indexed mapv mapv-indexed map-while map-until maplist mapcar mapcon mapcat filter filterv filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq 
   ;all? none? any? 
-  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat string-concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop va-cons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path)
+  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat string-concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop va-cons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in)
 
 ;;; Some core things
 
@@ -36,7 +36,8 @@
 (def-generic xs (add-front xs y) (lambda (xs y) (append (list y) xs)))
 (def-generic xs (contains? xs e) %contains?)
 (def-generic xs (nth xs i) (lambda (xs i) (if (or (empty? xs) (<= i 0)) (first xs) (recur (rest xs) (- i 1)))))
-;buildin-nth
+
+(def-generic xs (get xs k) nth)
 
 (def-generic x (->symbol x) buildin->symbol)
 (def-generic x (->int x) (lambda (x) (buildin->int (buildin->float x))))
@@ -110,6 +111,8 @@
 (def-impl ::string nth buildin-nth)
 (def-impl ::set nth (lambda (x i) (vector-nth (->vector x) i)))
 (def-impl ::map nth (lambda (x i) (vector-nth (->vector x) i)))
+
+(def-impl ::map get map-get)
 
 (def-impl ::list contains? buildin-contains?)
 (def-impl ::vector contains? buildin-contains?)
@@ -811,6 +814,13 @@
                     (range 0 (size p))))
             (permutations (cdr l)))))))
 
+
+(define (get-in xs ks)
+  (cond (empty? ks) xs
+        (get-in (get xs (first ks)) (rest ks))))
+
+
+; Not even in testing yet!
 (define (%walk-with-path f coll _path)
   (cond
     (vector? coll)
@@ -847,11 +857,8 @@
     ; coll is not a collection
     else (f coll _path)
     ))
-
 (define (walk-with-path f xs)
   (%walk-with-path f xs '()))
 )
-
-
 
 
