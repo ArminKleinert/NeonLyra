@@ -210,6 +210,10 @@ def truthy?(x)
   (x != false && !x.nil? && !x.is_a?(EmptyList))
 end
 
+def string_to_chars(s)
+  s.is_a?(String) ? s.chars.map{|c| LyraChar.conv(c)} : nil
+end
+
 # Sets up the core functions and variables. The functions defined here are
 # of the type NativeLyraFn instead of LyraFn. They can not make use of tail-
 # recursion and are supposed to be very simple.
@@ -321,7 +325,7 @@ def setup_core_functions
   add_fn(:"lazy-obj?", 1) { |x| x.is_a?(LazyObj) }
   add_fn(:"keyword?", 1) { |x| x.is_a?(Keyword) }
 
-  add_fn(:"keyword-name", 1) { |x| x.is_a?(Keyword) ? x.name : nil }
+  add_fn(:"keyword-name", 1) { |x| x.is_a?(Keyword) ? x.to_s[1..-1].to_sym : nil }
   
   add_fn(:id, 1) { |x| x }
   add_fn(:"id-fn", 1) { |x| NativeLyraFn.new("", 0) { x } }
@@ -329,9 +333,9 @@ def setup_core_functions
   #add_fn(:"eq?", 2) { |x, y| lyra_eq?(x, y) }
   
   # Can be bootstrapped.
-  add_fn_with_env(:"all?", 2) { |x, env| x.cdr.car.to_a.all?{|e|truthy?(eval_ly(x.car,env,true)) } }
-  add_fn_with_env(:"none?", 2) { |x, env| !x.cdr.car.to_a.any?{|e|!truthy?(eval_ly(x.car,env,true)) } }
-  add_fn_with_env(:"any?", 2) { |x, env| x.cdr.car.to_a.any?{|e|truthy?(eval_ly(x.car,env,true)) } }
+  #add_fn_with_env(:"all?", 2) { |x, env| x.cdr.car.to_a.all?{|e|truthy?(eval_ly(x.car,env,true)) } }
+  #add_fn_with_env(:"none?", 2) { |x, env| !x.cdr.car.to_a.any?{|e|!truthy?(eval_ly(x.car,env,true)) } }
+  #add_fn_with_env(:"any?", 2) { |x, env| x.cdr.car.to_a.any?{|e|truthy?(eval_ly(x.car,env,true)) } }
 
   add_fn(:"buildin->symbol", 1) { |x| x.respond_to?(:to_sym) ? x.to_sym : nil }
   add_fn(:"buildin->int", 1) { |x|
@@ -384,6 +388,7 @@ def setup_core_functions
   add_fn(:"string-includes?", 2) { |xs, ys| xs.include? ys }
   add_fn(:"string-eq?", 2) { |v, v1| v == v1 }
   add_fn(:"string-split-at", 2) { |s, pat| s.split(pat) }
+  add_fn(:"string-chars", 1) { |s| string_to_chars(s) }
 
   add_fn_with_env(:"iterate-seq", 3) do |xs, env|
     func, acc, vec = xs.to_a

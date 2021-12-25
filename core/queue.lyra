@@ -15,39 +15,41 @@
   ; 
   ; first, rest, append and ->list are implemented, so all sequence operations work.
   (def-type deque front back)
-  
+
   (define (deque & xs)
     (make-deque xs '()))
 
   (define queue deque)
   (define queue? deque?)
-  
+
   (define (enqueue q x)
-    (make-deque (deque-front q) (cons x (deque-back q))))
-  
+    (if (empty? (deque-front q))
+      (make-deque (add (reverse (deque-back q)) x) '())
+      (make-deque (deque-front q) (cons x (deque-back q)))))
+
   (define (dequeue q)
     (if (= (size (deque-front q)) 1)
       (make-deque (reverse (deque-back q)) '())
       (make-deque (cdr (deque-front q)) (deque-back q))))
-  
+
   (define (enqueue-all q xs)
     (foldl enqueue q xs))
-  
+
   (define (peek xs)
     (if (vector? xs)
       (vector-nth xs (- (size xs) 1))
       (first xs)))
-  
+
   (define (pop xs)
     (if (vector? xs)
       (vector-range xs 0 (- (vector-size xs) 1))
       (rest xs)))
-  
+
   (define (push xs e)
     (if (list? xs)
       (cons e xs)
       (add xs e)))
-  
+
   (define (deque-eq? q0 q1)
     (eq? (->list q1) (->list q0)))
 
@@ -64,7 +66,7 @@
 
   (def-generic xs (->deque xs) (partial enqueue-all (deque)))
   (def-generic xs (->queue xs) ->deque)
-  
+
   (def-impl ::deque sequence? (lambda (x) #t))
   
   (def-impl ::deque ->list (lambda (q) (append (deque-front q) (reverse (deque-back q)))))
@@ -79,4 +81,6 @@
         (make-deque (deque-back q) (deque-front q)))))
 
   (def-impl ::deque eq? deque-eq?)
+
+  (def-impl ::deque ->string (lambda (q) (->string (cons 'deque (->list q)))))
 )

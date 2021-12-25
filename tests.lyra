@@ -616,7 +616,7 @@
     (not (collection? #t))
     (not (collection? #f))
     (not (collection? 'a))
-    (not (collection? ""))
+    (collection? "")
     (collection? '())
     (collection? '(1))
     (collection? (list))
@@ -638,7 +638,7 @@
     (not (sequence? #t))
     (not (sequence? #f))
     (not (sequence? 'a))
-    (not (sequence? ""))
+    (sequence? "")
     (sequence? '())
     (sequence? '(1))
     (sequence? (list))
@@ -1055,8 +1055,9 @@
 
 (define (test-->list)
   (all-true?
+    (eq? '(\a \b \c) (->list "abc"))
     (all? nothing?
-      (map ->list (list 1 0.5 'a "a")))
+      (map ->list (list 1 0.5 'a)))
     (all? (lambda (e) (and (empty? e) (list? e)))
       (map ->list (list '() [] (set-of) (map-of))))
     (all? (lambda (e) (and (list? e) (eq? '(1) e)))
@@ -1064,8 +1065,9 @@
 
 (define (test-->vector)
   (all-true?
+    (eq? [\a \b \c] (->vector "abc"))
     (all? nothing?
-      (map ->vector (list 1 0.5 'a "a")))
+      (map ->vector (list 1 0.5 'a)))
     (all? (lambda (e) (and (empty? e) (vector? e)))
       (map ->vector (list '() [] (set-of) (map-of))))
     (all? (lambda (e) (and (vector? e) (eq? [1] e)))
@@ -1087,7 +1089,7 @@
 (define (test-->set)
   (all-true?
     (all? nothing?
-      (map ->set (list 1 0.5 'a "a")))
+      (map ->set (list 1 0.5 'a)))
     (all? (lambda (e) (and (empty? e) (set? e)))
       (map ->set (list '() [] (set-of) (map-of))))
     (all? (lambda (e) (and (set? e) (eq? (set-of 1) e)))
@@ -2007,12 +2009,21 @@
     (eq? '((0 4) (1 5) (2 6)) (zip-to-index '(4 5 6)))
     (eq? '((0 4) (1 5) (2 6)) (zip-to-index [4 5 6]))))
 
+(define (test-v-zip-with)
+  (all-true?
+    
+  ))
+
 (define (test-all?)
   (all-true?
     (all? (partial > 5) '())
     (all? (partial > 6) '(1 2 3 4 5))
     (not (all? (partial > 3) '(1 2 3 4 5)))
     (not (all? (partial < 6) '(1 2 3 4 5)))
+    
+    (all? nothing? '(Nothing Nothing Nothing Nothing))
+    (all? empty? '(() () () () () ()))
+    (not (all? empty? (take 6 (repeat '(1 2 3 4 5 6)))))
     
     (∀ (partial > 5) '())
     (∀ (partial > 6) '(1 2 3 4 5))
@@ -2437,9 +2448,9 @@
     (eq? '((1 (2 (3 (4 5)))) (2 (3 (4 5))) (3 (4 5)) (4 5) 5) (scanr1 list '(1 2 3 4 5)))))
 
 (define (test-condp)
-  (let ((f0 (lambda (e) (condp = 1 0 2 9 11)))
-        (f1 (lambda (e) (condp = 1 0 2 9)))
-        (f2 (lambda (e) (condp = 1 0 2 9 e e))))
+  (let ((f0 (lambda (e) (condp = e 1 0 2 9 11)))
+        (f1 (lambda (e) (condp = e 1 0 2 9)))
+        (f2 (lambda (e) (condp = e 1 0 2 9 e e))))
     (all-true?
       (condp = 7
         0 #f
@@ -2457,8 +2468,8 @@
       (nothing? (f1 0))
       (= 0 (f0 1))
       (= 9 (f0 2))
-      (= 4 (f0 0))
-      (= 5 (f0 5))
+      (= 0 (f2 0))
+      (= 5 (f2 5))
       )))
 
 (define (test-frequencies)
@@ -2490,7 +2501,7 @@
         (error-info (try* (try* (error! 1 'inner) (catch _ f f)) (catch _ g g))))
       (= 'outer
         (try* (try* (error! 1) (catch (lambda (e) #f) h 'inner)) (catch _ i 'outer)))
-      ))
+      )))
 
 (define (test-try-catch-finally)
   (all-true?
@@ -2706,7 +2717,7 @@
     (= 100 ((times inc 45) 55))
     (= -5 ((times dec 5) 0))
     (= 0 ((times boolean? 0) 0))
-    (= #f ((times boolean? 0) 0))
+    (= #f ((times boolean? 1) 0))
     (= #t ((times boolean? 3) 0))))
 
 (define (test-queue)
@@ -2747,9 +2758,9 @@
 (define (test-enqueue-all)
   (all-true?
     (eq? (queue) (enqueue-all (queue) '()))
-    (eq? (queue) (enqueue-all (queue 1 2 3) (deque)))
+    (eq? (queue 1 2 3) (enqueue-all (queue 1 2 3) (deque)))
     (eq? (queue) (enqueue-all (queue) (queue)))
-    (eq? (queue) (enqueue-all (queue) [1 2 3 4 5 6 7 8 9]))
+    (eq? (queue 1 2 3 4 5 6 7 8 9) (enqueue-all (queue) [1 2 3 4 5 6 7 8 9]))
     (eq? (queue 1 2 3) (enqueue-all (queue 1 2 3) '()))
     (eq? (queue 1 2 3) (enqueue-all (queue 1 2 3) (deque)))
     (eq? (queue 1 2 3) (enqueue-all (queue 1 2 3) (queue)))
@@ -2757,7 +2768,7 @@
     
     (eq? (deque) (enqueue-all (deque) '()))
     (eq? (deque) (enqueue-all (deque) (deque)))
-    (eq? (deque) (enqueue-all (deque) [1 2 3 4 5 6 7 8 9]))
+    (eq? (deque 1 2 3 4 5 6 7 8 9) (enqueue-all (deque) [1 2 3 4 5 6 7 8 9]))
     (eq? (deque 1 2 3) (enqueue-all (deque 1 2 3) '()))
     (eq? (deque 1 2 3) (enqueue-all (deque 1 2 3) (deque)))
     (eq? (deque 1 2 3) (enqueue-all (deque 1 2 3) (queue)))
@@ -2782,9 +2793,9 @@
     (eq? (deque 1 2 3 4 5 6 7 8 9) (enqueue-all (deque 1 2 3 4) [5 6 7 8 9]))))
 
 (define (test-dequeue)
-(let* ((q (queue 1 2 3))
+  (let* ((q (queue 1 2 3))
          (q1 (enqueue q 4))
-         (q2 (enqueue (enqueue q 5) 6)))
+         (q2 (enqueue (enqueue q1 5) 6)))
     (all-true?
       (= (size q) 3)
       (= (size q1) 4)
@@ -2797,8 +2808,7 @@
       (= 5 (first (dequeue (dequeue (dequeue (dequeue q2))))))
       (= 6 (first (dequeue (dequeue (dequeue (dequeue (dequeue q2)))))))
       (nothing? (first (dequeue (dequeue (dequeue (dequeue (dequeue (dequeue q2))))))))
-      (empty? (dequeue (dequeue (dequeue (dequeue (dequeue (dequeue q2)))))))))
-)
+      (empty? (dequeue (dequeue (dequeue (dequeue (dequeue (dequeue q2))))))))))
 
 (define (test-queue?)
   (all-true?
@@ -2866,22 +2876,24 @@
   (let ((q (queue))
         (q1 (queue 1 2 3)))
     (all-true?
-      (eq? q
+      (eq? (deque \a \b \c) (->queue "abc"))
+      (all? (partial eq? q)
         (map ->queue (list (queue) '() [] #{} {})))
-      (nothing?
-        (map ->queue (list 'a 1 0.5 1/2r "a" \a +)))
-      (eq? q1
+      (all? nothing?
+        (map ->queue (list 'a 1 0.5 1/2r \a +)))
+      (all? (partial eq? q1)
         (map ->queue (list (queue 1 2 3) '(1 2 3) [1 2 3]))))))
 
 (define (test-->deque)
   (let ((q (deque))
-        (q1 (deque 1 2 3)))
+        (q1 (queue 1 2 3)))
     (all-true?
-      (eq? q
+      (eq? (deque \a \b \c) (->deque "abc"))
+      (all? (partial eq? q)
         (map ->deque (list (deque) '() [] #{} {})))
-      (nothing?
-        (map ->deque (list 'a 1 0.5 1/2r "a" \a +)))
-      (eq? q1
+      (all? nothing?
+        (map ->deque (list 'a 1 0.5 1/2r \a +)))
+      (all? (partial eq? q1)
         (map ->deque (list (deque 1 2 3) '(1 2 3) [1 2 3]))))))
 
 (define (test-other-queue-ops)
@@ -2895,7 +2907,7 @@
     (eq? (set-of) (->set (queue)))
     (eq? '() (take 2 (queue)))
     (eq? '() (drop 2 (queue)))
-    (nothing? (nth 2 (queue)))
+    (nothing? (nth (queue) 2))
     (eq? (queue) (rest (queue)))
     (eq? '() (queue))
     (eq? [] (queue))
@@ -2928,11 +2940,11 @@
     (eq? (queue) (drop 2 (queue 1 2)))
     (eq? '(1 2) (take 2 (queue 1 2 3 4)))
     (eq? (queue 3 4) (drop 2 (queue 1 2 3 4)))
-    (= 2 (nth 1 (queue 1 2)))
-    (nothing? (nth 2 (queue 1 2)))
+    (= 2 (nth (queue 1 2) 1))
+    (nothing? (nth (queue 1 2) 2))
     (eq? (queue 2) (rest (queue 1 2)))
-    (eq? '(1) (queue 1 2))
-    (eq? [2] (queue 1 2))
+    (eq? '(1 2) (queue 1 2))
+    (eq? [1 2] (queue 1 2))
     (eq? (queue 1 2 3) (add (queue 1 2) 3))
     (eq? (queue 1 2 1 2) (append (queue 1 2) '(1 2)))
     (eq? (queue 2 1) (reverse (queue 1 2)))
@@ -2941,9 +2953,9 @@
     (contains? (queue 1 2) 1)
     (eq? '(1 2) (->list (queue 1 2)))
     (eq? [1 2] (->vector (queue 1 2)))
-    (eq? (set-of) (->set (queue 1 2)))
-    (eq? (queue) (->queue (queue 1 2)))
-    (eq? (deque) (->deque (queue 1 2)))
+    (eq? (set-of 1 2) (->set (queue 1 2)))
+    (eq? (queue 1 2) (->queue (queue 1 2)))
+    (eq? (deque 1 2) (->deque (queue 1 2)))
     (sequence? (queue 1 2))
     (collection? (queue 1 2))
     (not (list? (queue 1 2)))
@@ -2951,7 +2963,7 @@
     (eq? (queue) (rest (rest (queue 1 2))))
     (eq? Nothing (last (queue)))
     (eq? 2 (last (enqueue (queue 1) 2)))))
-  
+
 (define (test-other-deque-ops)
   (all-true?
     (eq? (deque) (deque))
@@ -2963,7 +2975,7 @@
     (eq? (set-of) (->set (deque)))
     (eq? '() (take 2 (deque)))
     (eq? '() (drop 2 (deque)))
-    (nothing? (nth 2 (deque)))
+    (nothing? (nth (deque) 2))
     (eq? (deque) (rest (deque)))
     (eq? '() (deque))
     (eq? [] (deque))
@@ -2996,22 +3008,22 @@
     (eq? (deque) (drop 2 (deque 1 2)))
     (eq? '(1 2) (take 2 (deque 1 2 3 4)))
     (eq? (deque 3 4) (drop 2 (deque 1 2 3 4)))
-    (= 2 (nth 1 (deque 1 2)))
+    (= 2 (nth (deque 1 2) 1))
     (nothing? (nth 2 (deque 1 2)))
     (eq? (deque 2) (rest (deque 1 2)))
-    (eq? '(1) (deque 1 2))
-    (eq? [2] (deque 1 2))
+    (eq? '(1 2) (deque 1 2))
+    (eq? [1 2] (deque 1 2))
     (eq? (deque 1 2 3) (add (deque 1 2) 3))
     (eq? (deque 1 2 1 2) (append (deque 1 2) '(1 2)))
     (eq? (deque 2 1) (reverse (deque 1 2)))
     (= 3 (foldl + 0 (deque 1 2)))
     (= 3 (foldr + 0 (deque 1 2)))
     (contains? (deque 1 2) 1)
-    (eq? '() (->list (deque 1 2)))
-    (eq? [] (->vector (deque 1 2)))
-    (eq? (set-of) (->set (deque 1 2)))
-    (eq? (queue) (->queue (deque 1 2)))
-    (eq? (deque) (->deque (deque 1 2)))
+    (eq? '(1 2) (->list (deque 1 2)))
+    (eq? [1 2] (->vector (deque 1 2)))
+    (eq? (set-of 1 2) (->set (deque 1 2)))
+    (eq? (queue 1 2) (->queue (deque 1 2)))
+    (eq? (deque 1 2) (->deque (deque 1 2)))
     (sequence? (deque 1 2))
     (collection? (deque 1 2))
     (not (list? (deque 1 2)))

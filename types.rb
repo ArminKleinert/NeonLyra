@@ -662,7 +662,7 @@ class GenericFn < LyraFn
 
   def add_implementation!(type, impl)
     if @implementations[type.type_id]
-      raise LyraError("#{@name} is already defined for type #{type}.", :reimplementation)
+      raise LyraError.new("#{@name} is already defined for type #{type}.", :reimplementation)
     else
       @implementations[type.type_id] = impl
     end
@@ -694,7 +694,7 @@ class TypeName
 end
 
 def atom?(x)
-  x.is_a?(Numeric) || x.is_a?(String) || x.is_a?(Symbol) || !!x == x || x.is_a?(LazyObj) || x.is_a?(LyraChar) || x.is_a?(Keyword)
+  x.is_a?(Numeric) || x.is_a?(String) || x.is_a?(Symbol) || !!x == x || x.is_a?(LazyObj) || x.is_a?(LyraChar) || x.is_a?(Keyword) || x.is_a?(LyraFn)
 end
 
 class LyraChar
@@ -767,7 +767,7 @@ class Keyword < LyraFn
   end
 
   def self.create(name)
-    name = name[1..-1].to_sym
+    name = name.to_sym
     res = KEYWORDS[name]
     if res.nil?
       res = Keyword.new(name)
@@ -798,7 +798,7 @@ class Keyword < LyraFn
   end
 
   def to_sym
-    @name
+    @name[1..-1]
   end
 
   def hash
