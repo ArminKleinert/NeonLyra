@@ -90,6 +90,14 @@
 (def-generic x (number? x)
   (lambda (xs) (or (int? xs) (or (float? xs) (rational? xs)))))
 
+(def-generic xs (delete-at i xs)
+  (lambda (i xs0)
+    (let ((xs (->list xs0)))
+      (cond
+        (= i 0) (cdr xs)
+        (< i 0) xs
+        else (lazy-seq (car xs) (delete-at i (cdr xs)))))))
+
 (define (%print! xs)
   (if xs (let () (buildin-print! (->string (car xs))) (%print! (cdr xs))) Nothing))
 (define (print! & xs)
@@ -171,7 +179,6 @@
 (def-impl ::map reverse id)
 
 (def-impl ::string prepend (lambda (s o) (string-append (->string o) s)))
-
 
 (def-impl ::string add (lambda (s o) (string-add s (->string o))))
 (def-impl ::vector add vector-add)
@@ -467,6 +474,7 @@
     '()
     (cons (apply-to f (map-eager first xs)) (v-zip-with f (remove empty? (map-eager rest xs))))))
 
+
 (define (split-by f xs)
   (foldr
     (lambda (x v) (if (f x) (cons '() v) (cons (cons x (car v)) (cdr v))))
@@ -635,7 +643,7 @@
 
 (def-macro (as-> name x & exprs)
   (%as-> name x exprs))
-  
+
 (define (%case-lambda-arity bindings)
   (let* ((num-bindings (size bindings))
          (variadic (= (nth bindings (- num-bindings 2)) '&))
@@ -780,11 +788,11 @@
         (if (empty? finally-clause) Nothing (cons 'begin (cdar finally-clause)))
         (list 'error! (list 'error-msg err-name) (list 'error-info err-name) (list 'error-trace err-name))))
     ))
-    
+
 (def-macro (loop bindings & body)
   (cond
     (odd? (size bindings))
-      (error! "Syntax error: Loop must have an even number of bindings." 'syntax)
+      (error! "Syntax error: loop must have an even number of bindings." 'syntax)
     else
       (let* ((name (gensym 'loop))
              (args-values (slices 2 bindings))
@@ -858,14 +866,14 @@
           (let ((path (cons i _path)))
             (%walk-with-path f (f v path) path)))
         coll))
-    
+
     (sequence? coll)
     (map-indexed
       (lambda (v i)
         (let ((path (cons i _path)))
           (%walk-with-path f (f v path) path)))
       coll)
-    
+
     (set? coll)
     (->set
     (map-indexed
@@ -873,7 +881,7 @@
         (let ((path (cons i _path)))
           (%walk-with-path f (f v path) path)))
       coll))
-    
+
     (map? coll)
     (->map (flatten1
     (map-indexed

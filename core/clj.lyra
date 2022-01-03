@@ -4,8 +4,6 @@
   (slurp! file-read!)
   (spit! file-write!)
   (count size)
-  (true #t)
-  (false #f)
   (nil Nothing)
   (enumerate zip-to-index)
   (conj add)

@@ -14,7 +14,7 @@ require_relative 'types.rb'
 # #\(                   Special symbol '#('
 # '                     Special symbol '
 # [^\s\[\]\{\}('"`,;)]* Anything else, excluding spaces, [, ], (, ), {, }, ', ", `, comma and semicolon
-LYRA_REGEX = /[\s,]*(\\u[0-9]{4}|\\.|[()\[\]\{\}]|"(?:\\.|[^\\"])*"?|;.*|@|#\{|#\(|'|[^\s\[\]\{\}('"`,;)]*)/
+LYRA_REGEX = /[\s,]*(\\u[0-9]{4}|\\.|[()\[\]\{\}]|"(?:\\.|[^\\"])*"?|;.*|@|#\{|#\(|[^\s\[\]\{\}('"`,;)]*'{0,1}|')/
 
 # Scan the text using RE, remove empty tokens and remove comments.
 def tokenize(s)
@@ -87,8 +87,8 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
       raise LyraError.new("Unexpected '#{t}'", :"parse-error") if level == 0 || expected != t
       return root.to_a
     when '"' then raise LyraError.new("Unexpected '\"'", :"parse-error")
-    when "#t" then root << true
-    when "#f" then root << false
+    when "#t", "true" then root << true
+    when "#f", "false" then root << false
     when /^(-?0b[0-1]+|-?0x[0-9a-fA-F]+|-?[0-9]+)$/
       mult = 1
       base = 1

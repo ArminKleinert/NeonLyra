@@ -113,7 +113,6 @@ Here are some differences to Clojure I could think of:
 - modules (`module`) instead of namespaces (`ns`).  
 - All impure functions must end with the postfix `!` (like `load!`, `readln!`, ...).  
 - `#(...)` is not available (for now)  
-- Names cannot end with `'`  
 
 The aliases can be imported using `(load! "core/clj.lyra")`. 
 
@@ -285,6 +284,8 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Removed `#()` and `%`  
 - 0.1.4  
   - To define a collection type, only `->list` has to be defined.  
+  - Names can now end with `'`  
+  - `true` and `false` are now boolean literals too.  
   
 
 ## Known bugs

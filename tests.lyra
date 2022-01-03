@@ -3111,6 +3111,7 @@
 (define (test-get-in)
   (all-true?
     (= 0 (get-in 0 '()))
+    (eq? [0] (get-in [0] '()))
     (nothing? (get-in 0 '(1)))
     
     (= 0 (get-in '(0 (1 {0 8 3 9}) [6 7 8]) '(0)))

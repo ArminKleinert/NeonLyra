@@ -3,6 +3,7 @@ lox
 bootstrap/necessary
 exclude
 wishlist
+tempstorage
 
 *.gem
 *.rbc
