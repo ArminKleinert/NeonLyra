@@ -1742,8 +1742,11 @@
       (mapf (lambda (n) (* n n)) odd? [1 2 3 4 5 6]))))
 
 (define (test-maplist)
-  (eq? '(0 1 1)
-      (maplist (lambda (x) (if (∈ (car x) (cdr x)) 0 1)) (list 'a 'b 'a))))
+  (all-true?
+    (eq? '(0 1 1)
+      (maplist (lambda (x) (if (included? (car x) (cdr x)) 0 1)) (list 'a 'b 'a)))
+    (eq? '(3 2 1)
+      (maplist (lambda (xs) (size xs)) (list 'a 'b 'a)))))
 
 (define (test-mapcar)
   (all-true?
@@ -2011,8 +2014,13 @@
 
 (define (test-v-zip-with)
   (all-true?
-    
-  ))
+    (eq? '(12 15 18) (v-zip-with v+ '((1 2 3) (4 5 6) (7 8 9))))
+    (eq? '(12 10 12) (v-zip-with v+ '((1 2 3) (4) (7 8 9))))
+    (eq? '(12 15 18 10) (v-zip-with v+ '((1 2 3) (4 5 6 10) (7 8 9))))
+
+    (eq? '((1 4 7) (2 5 8) (3 6 9)) (v-zip-with list '((1 2 3) (4 5 6) (7 8 9))))
+    (eq? '((1 4 7) (2 8) (3 9)) (v-zip-with list '((1 2 3) (4) (7 8 9))))
+    (eq? '((1 4 7) (2 5 8) (3 6 9) (10)) (v-zip-with list '((1 2 3) (4 5 6 10) (7 8 9))))))
 
 (define (test-all?)
   (all-true?
@@ -3122,6 +3130,18 @@
     (= 8 (get-in '(0 (1 {0 8 3 9}) [6 7 8]) '(1 1 0)))
     ))
 
+(define (test-subseq)
+  (all-true?
+    (eq? '(2 3) (subseq 1 2 '(1 2 3 4)))
+    (eq? '() (subseq 0 0 '(1 2 3 4)))))
+
+(define (test-replace-subseq)
+  (all-true?
+    (eq? '() (replace-subseq 0 4 '() '(1 2 3 4)))
+    (eq? '(1 3 4 4) (replace-subseq 1 2 '(3 4) '(1 2 3 4)))
+    (eq? '(1 3 4 5 6 4) (replace-subseq 1 2 '(3 4 5 6) '(1 2 3 4)))
+    ))
+
 (define (run-tests & fns)
   (let ((results
           (foldl
@@ -3197,6 +3217,7 @@
   'test-dequeue 'test-queue? 'test-deque? 'test-push 'test-peek 'test-pop
   'test-->queue 'test-->deque 'test-other-queue-ops 'test-other-deque-ops
   'test-add 'test-add-front 'test-permutations 'test-get 'test-get-in
+  'test-subseq 'test-replace-subseq 'test-v-zip-with
   ))
 
 (println! (run-all-tests))
