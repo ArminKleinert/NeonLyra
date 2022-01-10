@@ -1,0 +1,65 @@
+(module string
+  (string? string-size string-range string-nth string-add string-append string-concat string-includes? string-eq? string-split-at string-chars strcat)
+  
+(define T (lambda (_) #t))
+
+(define  (list->vector x) (buildin->vector x))
+
+(define string? buildin-string?)
+
+(define string-size buildin-string-size)
+(define string-range buildin-string-range)
+(define string-nth buildin-string-nth)
+(define string-add buildin-string-add)
+(define string-append buildin-string-append)
+(define string-includes? buildin-string-includes?)
+(define string-eq? buildin-string-eq?)
+(define string-split-at buildin-string-split-at)
+(define string-chars buildin-string-chars)
+
+(define strcat buildin-strcat)
+
+; Similar to concat, but turns each element into a string.
+; Required for xs: foldr1, map-eager
+; Required for elements of xs: ->string
+(define (string-concat & xs)
+  (or (foldr1 strcat (map-eager ->string xs)) ""))
+
+(def-impl ::string nth buildin-nth)
+(def-impl ::string contains? buildin-contains?)
+(def-impl ::string append buildin-append)
+(def-impl ::string ->set buildin->set)
+(def-impl ::string ->map buildin->map)
+(def-impl ::string size string-size)
+(def-impl ::string first (lambda (v) (string-nth v 0)))
+(def-impl ::string rest (lambda (v) (string-range v 1 (string-size v))))
+(def-impl ::string foldr (lambda (f v s) (buildin-foldr f v (string-chars s))))
+(def-impl ::string foldl (lambda (f v s) (buildin-foldl f v (string-chars s))))
+(def-impl ::string eq? string-eq?)
+(def-impl ::string add (lambda (s o) (string-add s (->string o))))
+(def-impl ::string add-front (lambda (s o) (string-add (string-add "" (->string o)) s)))
+(def-impl ::string ->int buildin->int)
+(def-impl ::string ->rational buildin->rational)
+(def-impl ::string ->float buildin->float)
+
+; Implementations for ->vector and ->list for strings.
+(def-impl ::string ->vector string-chars)
+(def-impl ::string ->list (lambda (s) (->list (string-chars s))))
+
+; Strings are sequences.
+(def-impl ::string sequence? (lambda (_) #t))
+
+; Special implementation for prepend for strings.
+(def-impl ::string prepend (lambda (s o) (string-append (->string o) s)))
+
+(def-impl ::string succ
+  (lambda (s)
+    (let ((len (- (string-size s) 1)))
+      (if (< len 0)
+        s
+        (string-add
+          (string-range s 0 len)
+          (succ (->char (string-nth s len))))))))
+
+)
+

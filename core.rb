@@ -310,11 +310,11 @@ def setup_core_functions
   add_fn(:"nil?", 1) { |x| x.nil? }
   add_fn(:"null?", 1) { |x| x.nil? || x.is_a?(EmptyList) }
   add_fn(:"list?", 1) { |x| x.is_a? ConsList }
-  add_fn(:"vector?", 1) { |x| x.is_a? Array }
+  add_fn(:"buildin-vector?", 1) { |x| x.is_a? Array }
   add_fn(:"int?", 1) { |x| x.is_a? Integer }
   add_fn(:"float?", 1) { |x| x.is_a? Float }
   add_fn(:"rational?", 1) { |x| x.is_a? Rational }
-  add_fn(:"string?", 1) { |x| x.is_a? String }
+  add_fn(:"buildin-string?", 1) { |x| x.is_a? String }
   add_fn(:"symbol?", 1) { |x| x.is_a? Symbol }
   add_fn(:"char?", 1) { |x| x.is_a?(LyraChar) }
   add_fn(:"boolean?", 1) { |x| (!!x) == x }
@@ -371,24 +371,24 @@ def setup_core_functions
   add_fn(:"buildin->map", 1) { |x| x.is_a?(Enumerable) ? Hash[*x] : nil }
   add_fn(:"buildin->set", 1) { |x| x.is_a?(Enumerable) ? Set[*x] : nil }
 
-  add_fn(:"vector", 0, -1) { |*xs| xs }
-  add_fn(:"vector-size", 1) { |xs| xs.size }
-  add_fn(:"vector-range", 3) { |xs, s, e| r = xs[s...e]; r.nil? ? [] : r }
-  add_fn(:"vector-nth", 2) { |xs, i| xs[i] }
-  add_fn(:"vector-add", 2) { |xs, y| xs + [y] }
-  add_fn(:"vector-append", 2) { |xs, ys| (xs.nil? || ys.nil?) ? nil : xs + ys }
-  add_fn(:"vector-includes?", 2) { |xs, ys| xs.include? ys }
-  add_fn(:"vector-eq?", 2) { |v, v1| v == v1 }
+  add_fn(:"buildin-vector", 0, -1) { |*xs| xs }
+  add_fn(:"buildin-vector-size", 1) { |xs| xs.size }
+  add_fn(:"buildin-vector-range", 3) { |xs, s, e| r = xs[s...e]; r.nil? ? [] : r }
+  add_fn(:"buildin-vector-nth", 2) { |xs, i| xs[i] }
+  add_fn(:"buildin-vector-add", 2) { |xs, y| xs + [y] }
+  add_fn(:"buildin-vector-append", 2) { |xs, ys| (xs.nil? || ys.nil?) ? nil : xs + ys }
+  add_fn(:"buildin-vector-includes?", 2) { |xs, ys| xs.include? ys }
+  add_fn(:"buildin-vector-eq?", 2) { |v, v1| v == v1 }
 
-  add_fn(:"string-size", 1) { |xs| xs.size }
-  add_fn(:"string-range", 3) { |xs, s, e| r = xs[s...e]; r.nil? ? [] : r }
-  add_fn(:"string-nth", 2) { |xs, i| xs[i] }
-  add_fn(:"string-add", 2) { |xs, y| xs + y }
-  add_fn(:"string-append", 2) { |xs, ys| (xs.nil? || ys.nil?) ? nil : xs + ys }
-  add_fn(:"string-includes?", 2) { |xs, ys| xs.include? ys }
-  add_fn(:"string-eq?", 2) { |v, v1| v == v1 }
-  add_fn(:"string-split-at", 2) { |s, pat| s.split(pat) }
-  add_fn(:"string-chars", 1) { |s| string_to_chars(s) }
+  add_fn(:"buildin-string-size", 1) { |xs| xs.size }
+  add_fn(:"buildin-string-range", 3) { |xs, s, e| r = xs[s...e]; r.nil? ? [] : r }
+  add_fn(:"buildin-string-nth", 2) { |xs, i| xs[i] }
+  add_fn(:"buildin-string-add", 2) { |xs, y| xs + y }
+  add_fn(:"buildin-string-append", 2) { |xs, ys| (xs.nil? || ys.nil?) ? nil : xs + ys }
+  add_fn(:"buildin-string-includes?", 2) { |xs, ys| xs.include? ys }
+  add_fn(:"buildin-string-eq?", 2) { |v, v1| v == v1 }
+  add_fn(:"buildin-string-split-at", 2) { |s, pat| s.split(pat) }
+  add_fn(:"buildin-string-chars", 1) { |s| string_to_chars(s) }
 
   add_fn_with_env(:"iterate-seq", 3) do |xs, env|
     func, acc, vec = xs.to_a
@@ -462,7 +462,7 @@ def setup_core_functions
 
   add_fn(:"buildin-nth", 2) { |c, i| c.is_a?(Enumerable) ? c[i] : nil }
 
-  add_fn(:strcat, 2) { |s, e| s.to_s + elem_to_s(e) }
+  add_fn(:"buildin-strcat", 2) { |s, e| s.to_s + elem_to_s(e) }
 
   add_fn(:"buildin-append", 2) do |x, y|
     if x.is_a? String

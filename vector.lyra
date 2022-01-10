@@ -1,0 +1,47 @@
+(module vector
+  (list->vector mapv mapv-indexed filterv vector? vector vector-size vector-range vector-nth vector-add vector-append vector-includes? vector-eq?)
+  
+(define T (lambda (_) #t))
+
+(define  (list->vector x) (buildin->vector x))
+
+(define vector? buildin-vector?)
+(define vector buildin-vector)
+(define vector-size buildin-vector-size)
+(define vector-range buildin-vector-range)
+(define vector-nth buildin-vector-nth)
+(define vector-add buildin-vector-add)
+(define vector-append buildin-vector-append)
+(define vector-includes? buildin-vector-includes?)
+(define vector-eq? buildin-vector-eq?)
+
+
+; eager map which returns a vector. Relies on foldl and vector-add.
+(define (mapv f xs) (foldl (lambda (v x) (vector-add v (f x))) [] xs))
+; eager mapv with index. Requires: foldl-indexed.
+(define (mapv-indexed f xs) (foldl-indexed (lambda (v x i) (vector-add v (f x i))) [] xs))
+
+; Eagerly filter and return vector.
+; Required: foldl
+(define (filterv p xs)
+  (foldl (lambda (v x) (if (p x) (vector-add v x) v)) '() xs))
+
+
+(def-impl ::vector ->vector id)
+(def-impl ::vector ->set buildin->set)
+(def-impl ::vector ->map buildin->map)
+(def-impl ::vector ->string (lambda (xs) (buildin->string (mapv ->string xs))))
+(def-impl ::vector first (lambda (v) (vector-nth v 0)))
+(def-impl ::vector rest (lambda (v) (vector-range v 1 (vector-size v))))
+(def-impl ::vector add vector-add)
+(def-impl ::vector foldr buildin-foldr)
+(def-impl ::vector foldl buildin-foldl)
+(def-impl ::vector eq? (lambda (v0 v1) (seq-eq? (->vector v0) (->vector v1))))
+(def-impl ::vector sequence? T)
+(def-impl ::vector collection? T)
+(def-impl ::vector nth vector-nth)
+(def-impl ::vector contains? buildin-contains?)
+(def-impl ::vector size vector-size)
+(def-impl ::vector append buildin-append)
+)
+

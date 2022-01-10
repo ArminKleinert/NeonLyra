@@ -1,29 +1,56 @@
 (module vector
 ()
+(define factor 8)
+(def-type vectr size inner)
 
-(define factor 5)
-(def-type vect size inner)
-
-(define (%list->vect xs)
+(define (%list->vectr xs)
   (if (empty? xs)
     '()
-    (cons (take factor xs) (%list->vect (drop factor xs)))))
+    (cons (take factor xs) (%list->vectr (drop factor xs)))))
 
-(define (list->vect xs)
-  (make-vect (size xs) (%list->vect xs)))
+(define (list->vectr xs)
+  (make-vectr (size xs) (%list->vectr xs)))
 
-(define (vect->list v)
-  (foldr (lambda (x res) (append x res)) '() (vect-inner v)))
+(define (vectr->list v)
+  (foldr append '() (vectr-inner v)))
 
-(define (vect-get v i)
-  (let ((bucket-idx (/ i factor))
-        (idx (rem i factor)))
-    (nth (nth (vect-inner v) bucket-idx) idx)))
+(define (vectr & xs)
+  (list->vectr xs))
 
-(println! (list->vect (doall! (range 50 100))))
+(define (%vectr-range inner s e)
+  (take (- e s)
+    (drop s
+      (foldr append '()
+        (take
+          (+ (max (/ e factor) (/ factor e)) 1)
+          inner)))))
+(define (vectr-range v s e)
+  (list->vectr (%vectr-range (vectr-inner v) s e)))
 
-(println! (vect->list (list->vect (doall! (range 50 100)))))
+(define (vectr-nth v i)
+  (car (%vectr-range (vectr-inner v) i (+ i 1))))
 
-(println! (vect-get (list->vect (doall! (range 49 100))) 5))
-(println! (vect-get (list->vect (doall! (range 49 100))) 0))
+(define (vectr-nth v i)
+  (car (%vectr-range (vectr-inner v) i (+ i 1))))
+
+(define (vectr-first v)
+  (car (car (vectr-inner v))))
+
+(define (vectr-second v)
+  (car (%vectr-range (vector-inner v) 1 2)))
+
+(define (vectr-rest v)
+  (vectr-range v 1 (vectr-size v)))
+
+(define (vectr-eq? v0 v1)
+  (eq? (vectr-inner v0) (vectr-inner v1)))
+
 )
+  add_fn(:"vector", 0, -1) { |*xs| xs }
+  add_fn(:"vector-size", 1) { |xs| xs.size }
+  add_fn(:"vector-range", 3) { |xs, s, e| r = xs[s...e]; r.nil? ? [] : r }
+  add_fn(:"vector-nth", 2) { |xs, i| xs[i] }
+  add_fn(:"vector-add", 2) { |xs, y| xs + [y] }
+  add_fn(:"vector-append", 2) { |xs, ys| (xs.nil? || ys.nil?) ? nil : xs + ys }
+  add_fn(:"vector-includes?", 2) { |xs, ys| xs.include? ys }
+  add_fn(:"vector-eq?", 2) { |v, v1| v == v1 }

@@ -1,7 +1,7 @@
 (module core
-  (comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and complement begin def-memo spread apply map map-eager map-indexed mapv mapv-indexed map-while map-until maplist mapcar mapcon mapcat filter filterv filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq 
+  (comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and complement begin def-memo spread apply map map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq 
   all? none? any? 
-  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat string-concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop va-cons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in)
+  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop va-cons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in)
 
 ;;; Some core things
 
@@ -76,10 +76,10 @@
 (def-generic x (->int x) (lambda (x) (buildin->int (buildin->float x))))
 (def-generic x (->float x) buildin->float)
 (def-generic x (->rational x) (lambda (x) (buildin->rational (buildin->float x))))
-(def-generic x (->string x) buildin->string)
+(def-generic x (->string x) buildin->string) ; TODO
 (def-generic x (->bool x) buildin->bool)
 (def-generic x (->list x) buildin->list)
-(def-generic x (->vector x) (lambda (x) (buildin->vector (->list x))))
+(def-generic x (->vector x) (lambda (x) (list->vector (->list x))))
 (def-generic x (->char x) buildin->char)
 (def-generic x (->map x) (lambda (x) (buildin->map (->list x))))
 (def-generic x (->set x) (lambda (x) (buildin->set (->list x))))
@@ -92,7 +92,7 @@
 (def-generic xs (size xs) (lambda (xs) (let ((l (->list xs))) (if l (list-size l) 0))))
 
 ; Get the rest of the elements of a collection.
-; Default requires -list. If ->list is not available, returns Nothing.
+; Default requires ->list. If ->list is not available, returns Nothing.
 (def-generic xs (rest xs) (lambda (xs) (let ((l (->list xs))) (if l (cdr l) Nothing))))
 
 ; Get the first element of a collection.
@@ -118,26 +118,17 @@
 ; Calculate successor of a variable.
 ; For numbers, this defaults to inc.
 ; chars have their internal value incremented by 1.
-; Strings have the internal value of the last char incremented.
 ; Other variables are their own successors (eg. a function has no successor).
 (def-generic x (succ x) id)
 (def-impl ::integer succ inc)
 (def-impl ::float succ inc)
 (def-impl ::rational succ inc)
 (def-impl ::char succ (lambda (c) (int->char (inc (char->int c)))))
-(def-impl ::string succ
-  (lambda (s)
-    (let ((len (- (string-size s) 1)))
-      (if (< len 0)
-        s
-        (string-add
-          (string-range s 0 len)
-          (succ (->char (string-nth s len))))))))
 
 ; Check whether a variable is a sequence. 
 ; Needs to be implemented for sequence types or some functions might not work.
 (def-generic x (sequence? x)
-  (lambda (xs) (or (list? xs) (vector? xs))))
+  (lambda (xs) (list? xs)))
 
 ; Check whether a variable is a collection.
 ; By default, a variable is a collection if it is a sequence or if it is 
@@ -198,8 +189,6 @@
   (va-cons 'let (list bindings) body))
 
 ; Implementations for nth.
-(def-impl ::vector nth vector-nth)
-(def-impl ::string nth buildin-nth)
 (def-impl ::set nth (lambda (x i) (vector-nth (->vector x) i)))
 (def-impl ::map nth (lambda (x i) (vector-nth (->vector x) i)))
 
@@ -208,59 +197,45 @@
 
 ; Implementations for contains?.
 (def-impl ::list contains? buildin-contains?)
-(def-impl ::vector contains? buildin-contains?)
-(def-impl ::string contains? buildin-contains?)
 (def-impl ::set contains? buildin-contains?)
 (def-impl ::map contains? buildin-contains?)
 
 ; Implementations for append.
-(def-impl ::vector append buildin-append)
-(def-impl ::string append buildin-append)
 (def-impl ::set append buildin-append)
 (def-impl ::map append buildin-append)
 
 ; Implementations for ->vector
 (def-impl ::list ->vector buildin->vector)
-(def-impl ::vector ->vector id)
 (def-impl ::set ->vector buildin->vector)
 (def-impl ::map ->vector buildin->vector)
 
 ; Implementations for ->set
 (def-impl ::list ->set buildin->set)
-(def-impl ::vector ->set buildin->set)
-(def-impl ::string ->set buildin->set)
 (def-impl ::set ->set id)
 (def-impl ::map ->set buildin->set)
 
 ; Implementations for ->map
 (def-impl ::list ->map buildin->map)
-(def-impl ::vector ->map buildin->map)
-(def-impl ::string ->map buildin->map)
 (def-impl ::set ->map buildin->map)
 (def-impl ::map ->map id)
 
 ; Implementations for ->string.
 (def-impl ::list ->string (lambda (xs) (buildin->string (map-eager ->string xs))))
-(def-impl ::vector ->string (lambda (xs) (buildin->string (mapv ->string xs))))
+(def-impl ::set ->string (lambda (xs) (buildin->string (->set (map-eager ->string xs)))))
+(def-impl ::map ->string (lambda (xs) (buildin->string xs)))
 
 ; Implementations for size.
 (def-impl ::list size list-size)
-(def-impl ::vector size vector-size)
-(def-impl ::string size string-size)
 (def-impl ::set size set-size)
 (def-impl ::map size map-size)
 
 ; Implementations for first.
 (def-impl ::list first car)
-(def-impl ::vector first (lambda (v) (vector-nth v 0)))
-(def-impl ::string first (lambda (v) (string-nth v 0)))
 (def-impl ::set first (lambda (s) (vector-nth (set->vector s) 0)))
 (def-impl ::map first (lambda (m) (vector-nth (map->vector m) 0)))
 
 ; Implementations for res.t
 (def-impl ::list rest cdr)
-(def-impl ::vector rest (lambda (v) (vector-range v 1 (vector-size v))))
-(def-impl ::string rest (lambda (v) (string-range v 1 (string-size v))))
 (def-impl ::set rest (lambda (s) (let ((v (set->vector s))) (vector-range v 1 (vector-size v)))))
 (def-impl ::map rest (lambda (m) (let ((v (mao->vector m))) (vector-range v 1 (vector-size v)))))
 
@@ -269,18 +244,12 @@
 (def-impl ::set reverse id)
 (def-impl ::map reverse id)
 
-; Special implementation for prepend for strings.
-(def-impl ::string prepend (lambda (s o) (string-append (->string o) s)))
-
 ; Implementations for add.
-(def-impl ::string add (lambda (s o) (string-add s (->string o))))
-(def-impl ::vector add vector-add)
 (def-impl ::set add set-add)
 (def-impl ::map add (lambda (m kv) (map-set (first kv) (second kv))))
 
 ; Implementations for add-front.
 (def-impl ::list add-front (lambda (l o) (cons o l)))
-(def-impl ::string add-front (lambda (s o) (string-add (string-add "" (->string o)) s)))
 (def-impl ::set add-front set-add)
 (def-impl ::map add-front (lambda (m kv) (map-set (first kv) (second kv))))
 
@@ -289,35 +258,22 @@
 (def-impl ::float ->int buildin->int)
 (def-impl ::rational ->int buildin->int)
 (def-impl ::char ->int buildin->int)
-(def-impl ::string ->int buildin->int)
 
 ; Implementations for ->rational.
 (def-impl ::integer ->rational buildin->rational)
 (def-impl ::float ->rational buildin->rational)
 (def-impl ::rational ->rational id)
 (def-impl ::char ->rational buildin->rational)
-(def-impl ::string ->rational buildin->rational)
 
 ; Implementations for foldr
 (def-impl ::list foldr buildin-foldr)
-(def-impl ::vector foldr buildin-foldr)
-(def-impl ::string foldr (lambda (f v s) (buildin-foldr f v (string-chars s))))
 (def-impl ::set foldr buildin-foldr)
 (def-impl ::map foldr buildin-foldr)
 
 ; Implementations for foldl
 (def-impl ::list foldl buildin-foldl)
-(def-impl ::vector foldl buildin-foldl)
-(def-impl ::string foldl (lambda (f v s) (buildin-foldl f v (string-chars s))))
 (def-impl ::set foldl buildin-foldl)
 (def-impl ::map foldl buildin-foldl)
-
-; Implementations for ->vector and ->list for strings.
-(def-impl ::string ->vector string-chars)
-(def-impl ::string ->list (lambda (s) (->list (string-chars s))))
-
-; Strings are sequences.
-(def-impl ::string sequence? (lambda (_) #t))
 
 ; Get last element of a collection.
 ; Default implementation requires ->list, first, rest, size.
@@ -351,10 +307,8 @@
 
 ; Implementations for eq?.
 (def-impl ::list eq? seq-eq?)
-(def-impl ::vector eq? (lambda (v0 v1) (seq-eq? (->vector v0) (->vector v1))))
 (def-impl ::set eq? set-eq?)
 (def-impl ::map eq? map-eq?)
-(def-impl ::string eq? string-eq?)
 
 ; Check for non-equality. This is the reverse of eq?.
 (define (not-eq? x y) (not (eq? x y)))
@@ -486,11 +440,6 @@
     (lazy-seq (f (first xs) i) (%map-indexed f (rest xs) (inc i)))))
 (define (map-indexed f xs) (%map-indexed f xs 0))
 
-; eager map which returns a vector. Relies on foldl and vector-add.
-(define (mapv f xs) (foldl (lambda (v x) (vector-add v (f x))) [] xs))
-; eager mapv with index. Requires: foldl-indexed.
-(define (mapv-indexed f xs) (foldl-indexed (lambda (v x i) (vector-add v (f x i))) [] xs))
-
 ; map while/until a predicate if true. Uses map and take-while/take-until.
 (define (map-while f p xs) (map f (take-while p xs)))
 (define (map-until f p xs) (map f (take-until p xs)))
@@ -526,11 +475,6 @@
   (cond (empty? xs) '()
         (p (first xs)) (lazy-seq (first xs) (filter p (rest xs)))
         else (filter p (rest xs))))
-
-; Eagerly filter and return vector.
-; Required: foldl
-(define (filterv p xs)
-  (foldl (lambda (v x) (if (p x) (vector-add v x) v)) '() xs))
 
 ; Filter lazily with index.
 ; Required: empty?, first, rest
@@ -599,8 +543,8 @@
   (cond
     (atom? xs)
       Nothing
-    (or (list? xs) (or (vector? xs) (or (set? xs) (map? xs))))
-      (buildin-take n xs)
+    ;(or (list? xs) (or (vector? xs) (or (set? xs) (map? xs))))
+    ;  (buildin-take n xs)
     else (%take n xs)))
 
 ; Take while a predicate is true.
@@ -760,12 +704,6 @@
   (if (list? (car xs))
     (apply-to list-concat (cons x xs))
     (foldr1 append (cons x xs))))
-
-; Similar to concat, but turns each element into a string.
-; Required for xs: foldr1, map-eager
-; Required for elements of xs: ->string
-(define (string-concat & xs)
-  (or (foldr1 strcat (map-eager ->string xs)) ""))
 
 ; Variadic versions of =, /=, <, >, <=, >=
 (define (v= x & xs) (cond (empty? xs) #t (= x (car xs)) (apply-to v= (cdr xs)) #f))
@@ -978,17 +916,17 @@
 ;   (() "0") ; 0 args
 ;   ((x) "1") ; 1 arg
 ;   ((x y) "2") ; 2 args
-;   ((x y z & zs) "3 or more") ; 2+ args
+;   ((w x y z & zs) "4 or more") ; 4+ args
 ;   (default "0 or more"))) ; Varargs going into a list called 'default
 ; When called, the function decides which function to call by the number of arguments it got.
-; (list (f) (f 6) (f 6 7) (f 6 7 8 9) (f 5 4 3)) ; ("0" "1" "2" "3 or more" "0 or more")
+; (list (f) (f 6) (f 6 7) (f 6 7 8 9) (f 5 4 3)) ; ("0" "1" "2" "4 or more" "0 or more")
 (def-macro (case-lambda* name & forms)
   (let ((args (gensym 'xs)))
     (list 'lambda* name (list '& args)
       (cons 'cond
         (append
           (flatten1 (reverse (%case-lambda args forms '())))
-          (list #t (list 'error! (string-concat "Wrong arity for case-lambda " name) ''arity)))))))
+          (list #t (list 'error! (list 'string-concat "Wrong arity for case-lambda " name) ''arity)))))))
 
 
 ; Extended range function.
@@ -1013,7 +951,7 @@
 
 ;; condp
 
-; (let ((f0 (lambda (e) (condp <= e 1 0 5 9 11))))
+; (let ((f0 (lambda (e) (condp <= e  1 0  5 9  11))))
 ;   (f0 0) ; 0
 ;   (f0 1) ; 0
 ;   (f0 3) ; 9
@@ -1255,4 +1193,4 @@
   (%walk-with-path f xs '()))
 )
 
-
+(load! "vector.lyra" "string.lyra")

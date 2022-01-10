@@ -624,9 +624,6 @@ class GenericFn < LyraFn
 
     res = nil
     begin
-      if @name == "gen-test"
-        puts type
-      end
       if fn
         LYRA_CALL_STACK.push fn
         res = fn.call args, env
