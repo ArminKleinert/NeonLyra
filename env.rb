@@ -102,8 +102,6 @@ class Env
       keys = keys.cdr
       values = values.cdr
     end
-    if anonymous_keys
-    end
     self
   end
 

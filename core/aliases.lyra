@@ -13,7 +13,7 @@
    (≤ <=)
    (∈ included?)
    ∉
-   (<=> complement)
+   (<=> compare)
    (++ append)
    (uniq unique))
 

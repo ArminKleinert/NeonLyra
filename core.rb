@@ -319,7 +319,7 @@ def setup_core_functions
   add_fn(:"char?", 1) { |x| x.is_a?(LyraChar) }
   add_fn(:"boolean?", 1) { |x| (!!x) == x }
   add_fn(:"map?", 1) { |x| x.is_a? Hash }
-  add_fn(:"set?", 1) { |x| x.is_a? Set }
+  add_fn(:"buildin-set?", 1) { |x| x.is_a? Set }
   add_fn(:"function?", 1) { |x| x.is_a?(LyraFn) }
   add_fn(:"lazy?", 1) { |x| x.is_a?(Lazy) }
   add_fn(:"lazy-obj?", 1) { |x| x.is_a?(LazyObj) }
@@ -420,19 +420,19 @@ def setup_core_functions
   add_fn(:"map->vector", 1) { |m| m.to_a }
   add_fn(:"map-eq?", 2) { |m, m1| m == m1 }
 
-  add_fn(:"set-of", 0, -1) { |*xs| xs.to_set }
-  add_fn(:"set-size", 1) { |s| s.size }
-  add_fn(:"set-add", 2) { |s, e| s.add e }
-  add_fn(:"set-union", 2) { |s0, s1| s0 | s1 }
-  add_fn(:"set-difference", 2) { |s0, s1| s0 - s1 }
-  add_fn(:"set-intersection", 2) { |s0, s1| s0 & s1 }
-  add_fn(:"set-includes?", 2) { |s, e| s.include? e }
-  add_fn(:"set-subset?", 2) { |s0, s1| s0 <= s1 }
-  add_fn(:"set-true-subset?", 2) { |s0, s1| s0 < s1 }
-  add_fn(:"set-superset?", 2) { |s0, s1| s0 >= s1 }
-  add_fn(:"set-true-superset?", 2) { |s0, s1| s0 > s1 }
-  add_fn(:"set->vector", 1) { |s| s.to_a }
-  add_fn(:"set-eq?", 2) { |s, s1| s == s1 }
+  add_fn(:"buildin-set-of", 0, -1) { |*xs| xs.to_set }
+  add_fn(:"buildin-set-size", 1) { |s| s.size }
+  add_fn(:"buildin-set-add", 2) { |s, e| s.add e }
+  add_fn(:"buildin-set-union", 2) { |s0, s1| s0 | s1 }
+  add_fn(:"buildin-set-difference", 2) { |s0, s1| s0 - s1 }
+  add_fn(:"buildin-set-intersection", 2) { |s0, s1| s0 & s1 }
+  add_fn(:"buildin-set-includes?", 2) { |s, e| s.include? e }
+  add_fn(:"buildin-set-subset?", 2) { |s0, s1| s0 <= s1 }
+  add_fn(:"buildin-set-true-subset?", 2) { |s0, s1| s0 < s1 }
+  add_fn(:"buildin-set-superset?", 2) { |s0, s1| s0 >= s1 }
+  add_fn(:"buildin-set-true-superset?", 2) { |s0, s1| s0 > s1 }
+  add_fn(:"buildin-set->vector", 1) { |s| s.to_a }
+  add_fn(:"buildin-set-eq?", 2) { |s, s1| s == s1 }
 
   def foldr(f, v, xs, env)
     xs.to_a.reverse_each do |e|

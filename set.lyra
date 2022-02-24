@@ -1,0 +1,41 @@
+(module set
+  (list->set set? set-of set-size set-add set-union set-difference set-intersection set-includes? set-subset? set-true-subset? set-superset? set-true-superset? set->vector set-eq?)
+
+(define  (list->set x) (buildin->set x))
+
+(define set? buildin-set?)
+(define set-of buildin-set-of)
+(define set-size buildin-set-size)
+(define set-add buildin-set-add)
+(define set-union buildin-set-union)
+(define set-difference buildin-set-difference)
+(define set-intersection buildin-set-intersection)
+(define set-includes? buildin-set-includes?)
+(define set-subset? buildin-set-subset?)
+(define set-true-subset? buildin-set-true-subset?)
+(define set-superset? buildin-set-superset?)
+(define set-true-superset? buildin-set-true-superset?)
+(define set->vector buildin-set->vector)
+(define set-eq? buildin-set-eq?)
+
+(def-impl ::set collection? T)
+(def-impl ::set ->vector buildin->vector)
+(def-impl ::set ->set id)
+(def-impl ::set ->map buildin->map)
+(def-impl ::set nth (lambda (x i) (vector-nth (->vector x) i)))
+(def-impl ::set contains? buildin-contains?)
+(def-impl ::set append buildin-append)
+(def-impl ::set size set-size)
+(def-impl ::set ->string (lambda (xs) (buildin->string (->set (map-eager ->string xs)))))
+(def-impl ::set first (lambda (s) (vector-nth (set->vector s) 0)))
+(def-impl ::set rest (lambda (s) (let ((v (set->vector s))) (vector-range v 1 (vector-size v)))))
+(def-impl ::set reverse id)
+(def-impl ::set add set-add)
+(def-impl ::set add-front set-add)
+(def-impl ::set foldr buildin-foldr)
+(def-impl ::set foldl buildin-foldl)
+(def-impl ::set eq? set-eq?)
+)
+
+
+  

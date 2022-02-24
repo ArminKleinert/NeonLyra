@@ -187,6 +187,7 @@ ljust                | 2   |  x  |     | Takes a string and a number. The string
 ```
 Name                 |  #  |Pure?|Gen? | 
 ---------------------+-----+-----+-----+------------------------------------------------------------
+T                    | any |  x  |     | Takes any number of arguments and return #t.
 comment              | any |  x  |     | Takes any number of arguments without evaluating them
                      |     |     |     | and returns Nothing.
 flip                 | 1   |  x  |     | Takes a function which takes 2 arguments and returns 

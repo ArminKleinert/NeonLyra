@@ -1,56 +1,85 @@
 (module vector
-()
-(define factor 8)
-(def-type vectr size inner)
+(list->vector vector->list vector vector-range vector-nth vector-second vector-rest vector-eq? mapv mapv-indexed filterv vector?)
 
-(define (%list->vectr xs)
+(define factor 8)
+(def-type vector size inner)
+
+(define (%list->vector xs)
   (if (empty? xs)
     '()
-    (cons (take factor xs) (%list->vectr (drop factor xs)))))
+    (cons (take factor xs) (%list->vector (drop factor xs)))))
 
-(define (list->vectr xs)
-  (make-vectr (size xs) (%list->vectr xs)))
+(define (list->vector xs)
+  (make-vector (size xs) (%list->vector xs)))
 
-(define (vectr->list v)
-  (foldr append '() (vectr-inner v)))
+(define (vector->list v)
+  (foldr append '() (vector-inner v)))
 
-(define (vectr & xs)
-  (list->vectr xs))
+(define (vector & xs)
+  (list->vector xs))
 
-(define (%vectr-range inner s e)
+(define (%vector-range inner s e)
   (take (- e s)
     (drop s
       (foldr append '()
         (take
           (+ (max (/ e factor) (/ factor e)) 1)
           inner)))))
-(define (vectr-range v s e)
-  (list->vectr (%vectr-range (vectr-inner v) s e)))
+(define (vector-range v s e)
+  (list->vector (%vector-range (vector-inner v) s e)))
 
-(define (vectr-nth v i)
-  (car (%vectr-range (vectr-inner v) i (+ i 1))))
+(define (vector-nth v i)
+  (car (%vector-range (vector-inner v) i (+ i 1))))
 
-(define (vectr-nth v i)
-  (car (%vectr-range (vectr-inner v) i (+ i 1))))
+(define (vector-first v)
+  (car (car (vector-inner v))))
 
-(define (vectr-first v)
-  (car (car (vectr-inner v))))
+(define (vector-second v)
+  (car (%vector-range (vector-inner v) 1 2)))
 
-(define (vectr-second v)
-  (car (%vectr-range (vector-inner v) 1 2)))
+(define (vector-rest v)
+  (vector-range v 1 (vector-size v)))
 
-(define (vectr-rest v)
-  (vectr-range v 1 (vectr-size v)))
+(define (vector-eq? v0 v1)
+  (eq? (vector-inner v0) (vector-inner (->vector v1))))
 
-(define (vectr-eq? v0 v1)
-  (eq? (vectr-inner v0) (vectr-inner v1)))
+; Optimize please!
+(define (vector-append v0 c1)
+  (list->vector (append (vector->list v1) (->list c1))))
+
+
+(define (vector->string v)
+  (let ((base-str (->string (->list v))))
+    (string-add "["
+      (string-add (string-range base-str 1 (- (string-size base-str) 1))
+                  "]"))))
+
+
+(define (mapv f xs)
+  (list->vector (map f (->list xs))))
+
+(define (mapv-indexed f xs)
+  (foldl-indexed (lambda (v x i) (vector-add v (f x i))) (vector) xs))
+
+(define (filterv p xs)
+  (list->vector (filter p (->list xs))))
+
+(def-impl ::vector ->vector id)
+(def-impl ::vector size vector-size)
+(def-impl ::vector ->list vector->list)
+(def-impl ::vector ->set (lambda (v) (->set (vector->list v))))
+(def-impl ::vector ->map (lambda (v) (->map (vector->list v))))
+(def-impl ::vector ->string vector->string)
+(def-impl ::vector first vector-first)
+(def-impl ::vector second vector-second)
+(def-impl ::vector rest (lambda (v) (vector-range v 1 (vector-size v))))
+(def-impl ::vector add (lambda (v e) (vector-append v e)))
+(def-impl ::vector append vector-append)
+(def-impl ::vector eq? vector-eq?)
+(def-impl ::vector sequence? T)
+(def-impl ::vector collection? T)
+(def-impl ::vector nth vector-nth)
 
 )
-  add_fn(:"vector", 0, -1) { |*xs| xs }
-  add_fn(:"vector-size", 1) { |xs| xs.size }
-  add_fn(:"vector-range", 3) { |xs, s, e| r = xs[s...e]; r.nil? ? [] : r }
-  add_fn(:"vector-nth", 2) { |xs, i| xs[i] }
-  add_fn(:"vector-add", 2) { |xs, y| xs + [y] }
-  add_fn(:"vector-append", 2) { |xs, ys| (xs.nil? || ys.nil?) ? nil : xs + ys }
-  add_fn(:"vector-includes?", 2) { |xs, ys| xs.include? ys }
-  add_fn(:"vector-eq?", 2) { |v, v1| v == v1 }
+
+
