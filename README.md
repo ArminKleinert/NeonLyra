@@ -290,4 +290,4 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
 
 ## Known bugs
 
-
+- Sets and maps only work for atomic types.
