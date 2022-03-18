@@ -856,9 +856,7 @@
   (let* ((num-bindings (size bindings))
          (variadic (= (nth bindings (- num-bindings 2)) '&))
          (min-arity (if variadic (- num-bindings 2) num-bindings)))
-    (if variadic
-      (list #t min-arity)
-      (list #f min-arity))))
+    (list variadic min-arity)))
 
 ; Main helper function for case-lambda and case-lambda*
 (define (%case-lambda args forms acc)
