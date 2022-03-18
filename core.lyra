@@ -791,14 +791,6 @@
 (define (flatten1 xs)
   (apply-to list-concat (map (lambda (x) (if (collection? x) (->list x) (list x))) xs)))
 
-; Sum up elements of a collection using +.
-; Required: foldl
-(define sum (partial foldl + 0))
-
-; Calculate the product of the elements of a collection using *.
-; Required: foldl
-(define product (partial foldl * 1))
-
 ; Get minimum/maximum of n m (using < or >)
 (define (min n m) (if (< n m) n m))
 (define (max n m) (if (< n m) m n))
@@ -915,6 +907,20 @@
           (flatten1 (reverse (%case-lambda args forms '())))
           (list #t (list 'error! (list 'string-concat "Wrong arity for case-lambda " name) ''arity)))))))
 
+
+; Sum up elements of a collection using +.
+; Required: foldl
+(define sum
+  (case-lambda* sum
+    ((coll) (foldl + 0 coll))
+    ((f coll) (foldl + 0 (map f coll)))))
+
+; Calculate the product of the elements of a collection using *.
+; Required: foldl
+(define product
+  (case-lambda* product
+    ((coll) (foldl * 1 coll))
+    ((f coll) (foldl * 1 (map f coll)))))
 
 ; Extended range function.
 ; Takes 0 to 3 input numbers.

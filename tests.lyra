@@ -2091,18 +2091,41 @@
     (eq? '(3 (2 4) (1)) (reverse '((1) (2 4) 3)))))
 
 (define (test-sum)
-  (all-true?
-    (= 0 (sum '()))
-    (= 1 (sum '(1)))
-    (= 15 (sum '(1 2 3 4 5)))
-    (= 15.5 (sum '(1 2 0.5 3 4 5)))))
+  (let ((f (lambda (n) (* n 2))))
+    (all-true?
+      (= 0 (sum '()))
+      (= 1 (sum '(1)))
+      (= 15 (sum '(1 2 3 4 5)))
+      (= 15.5 (sum '(1 2 0.5 3 4 5)))
+
+      (= 0 (sum inc '()))
+      (= 2 (sum inc '(1)))
+      (= 20 (sum inc '(1 2 3 4 5)))
+      (= 21.5 (sum inc '(1 2 0.5 3 4 5)))
+
+      (= 0 (sum f '()))
+      (= 2 (sum f '(1)))
+      (= 30 (sum f '(1 2 3 4 5)))
+      (= 31 (sum f '(1 2 0.5 3 4 5))))))
 
 (define (test-product)
-  (all-true?
-    (= 1 (product '()))
-    (= 2 (product '(2)))
-    (= 120 (product '(1 2 3 4 5)))
-    (= 60.0 (product '(1 2 0.5 3 4 5)))))
+  (let ((f (lambda (n) (* n 2))))
+    (all-true?
+      (= 1 (product '()))
+      (= 2 (product '(2)))
+      (= 120 (product '(1 2 3 4 5)))
+      (= 60.0 (product '(1 2 0.5 3 4 5)))
+
+      (= 1 (product inc '()))
+      (= 3 (product inc '(2)))
+      (= 720 (product inc '(1 2 3 4 5)))
+      (= 1080.0 (product inc '(1 2 0.5 3 4 5)))
+
+      (= 1 (product f '()))
+      (= 4 (product f '(2)))
+      (= 3840 (product f '(1 2 3 4 5)))
+      (= 3840.0 (product f '(1 2 0.5 3 4 5)))
+      (= 1920 (product f '(1 2 0.25 3 4 5))))))
 
 (define (test-minimum)
   (all-true?
@@ -3219,6 +3242,7 @@
   'test-subseq 'test-replace-subseq 'test-v-zip-with
   ))
 
+(println! "Starting tests...")
 (println! (run-all-tests))
 )
 
