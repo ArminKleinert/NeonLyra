@@ -14,7 +14,6 @@ if RUBY_PLATFORM != "java"
   HISTORY = []
 end
 
-
 # Read a line using Reline::readline
 # If the history file doesn't exist yet, create it.
 # Otherwise, load it lazily.
@@ -40,12 +39,12 @@ def _readline(prompt)
     # Read a single line
     if line = Reline.readline(prompt, false)
       # Add the line only if it is not equal to the last one.
-      HISTORY.each_with_index { |e,i| Reline::HISTORY[i] = e }
+      HISTORY.each_with_index { |e, i| Reline::HISTORY[i] = e }
       if HISTORY.empty? || HISTORY[-1] != line
         HISTORY << line
         Reline::HISTORY << line
         if File.writable?(HISTFILE)
-          File.open(HISTFILE, 'a+') {|f| f.write(line+"\n")}
+          File.open(HISTFILE, 'a+') { |f| f.write(line + "\n") }
         end
       end
       line
@@ -57,7 +56,6 @@ def _readline(prompt)
   end
 end
 
-
 LYRA_VERSION = "0_1_3"
 
 if ARGV[0] == "show_expand_macros"
@@ -65,7 +63,7 @@ if ARGV[0] == "show_expand_macros"
   ARGV.shift
 end
 if ARGV.include? "-args"
-  src_files, lyra_args = ARGV.slice_after{|e| e == "-args"}.to_a
+  src_files, lyra_args = ARGV.slice_after { |e| e == "-args" }.to_a
   Env.global_env.set!(:"*ARGS*", lyra_args ? lyra_args.map(&:freeze).freeze : list())
   src_files.shift
 else
@@ -82,7 +80,7 @@ begin
 
   if src_files.empty?
     puts "Welcome to Lyra #{LYRA_VERSION}. \nPress ctrl+D to quit."
-    
+
     loop do
       begin
         s = _readline(">> ") # Read

@@ -70,14 +70,13 @@ class Env
     if sym != :"_" # Ignore the _ symbol.
       if @inner.include? sym
         raise LyraError.new("Symbol already defined: #{sym}")
-      elsif
-        @inner[sym] = val
+      elsif @inner[sym] = val
       end
     end
     self
   end
 
-  ANONYMOUS_ARG_NAMES = Array.new(16){|i| :"%#{i}"}.freeze
+  ANONYMOUS_ARG_NAMES = Array.new(16) { |i| :"%#{i}" }.freeze
   ANONYMOUS_ARG_REST = :"%?"
 
   def set_multi!(keys, values, anonymous_keys, varargs)

@@ -39,24 +39,24 @@ def def_generic_fn(func_name, fallback)
   FUNC_MAP[func_name] = entry
 end
 
-NOTHING_TYPE   = TypeName.new "::nothing",  0
-BOOL_TYPE      = TypeName.new "::bool",     1
-VECTOR_TYPE    = TypeName.new "::vector",   2
-MAP_TYPE       = TypeName.new "::map",      3
-LIST_TYPE      = TypeName.new "::list",     4
-FUNCTION_TYPE  = TypeName.new "::function", 5
-INTEGER_TYPE   = TypeName.new "::integer",  6
-FLOAT_TYPE     = TypeName.new "::float",    7
-SET_TYPE       = TypeName.new "::set",      8
+NOTHING_TYPE = TypeName.new "::nothing", 0
+BOOL_TYPE = TypeName.new "::bool", 1
+VECTOR_TYPE = TypeName.new "::vector", 2
+MAP_TYPE = TypeName.new "::map", 3
+LIST_TYPE = TypeName.new "::list", 4
+FUNCTION_TYPE = TypeName.new "::function", 5
+INTEGER_TYPE = TypeName.new "::integer", 6
+FLOAT_TYPE = TypeName.new "::float", 7
+SET_TYPE = TypeName.new "::set", 8
 TYPE_NAME_TYPE = TypeName.new "::typename", 9
-STRING_TYPE    = TypeName.new "::string",   10
-SYMBOL_TYPE    = TypeName.new "::symbol",   11
-BOX_TYPE       = TypeName.new "::box",      12
-RATIO_TYPE     = TypeName.new "::rational", 13
-ERROR_TYPE     = TypeName.new "::error",    14
-CHAR_TYPE      = TypeName.new "::char",     15
-KEYWORD_TYPE   = TypeName.new "::keyword",  16
-ALIAS_TYPE     = TypeName.new "::alias",    17
+STRING_TYPE = TypeName.new "::string", 10
+SYMBOL_TYPE = TypeName.new "::symbol", 11
+BOX_TYPE = TypeName.new "::box", 12
+RATIO_TYPE = TypeName.new "::rational", 13
+ERROR_TYPE = TypeName.new "::error", 14
+CHAR_TYPE = TypeName.new "::char", 15
+KEYWORD_TYPE = TypeName.new "::keyword", 16
+ALIAS_TYPE = TypeName.new "::alias", 17
 
 def type_of(x)
   if x.nil?
@@ -101,7 +101,6 @@ def type_of(x)
     raise LyraError.new("No name for type #{x.class} for object #{elem_to_s(x)}")
   end
 end
-  
 
 def type_id_of(x)
   type_of(x).type_id
@@ -173,16 +172,17 @@ def eager(x)
   x.is_a?(Lazy) ? x.evaluate : x
 end
 
-def lyra_buildin_eq?(x,y)
+def lyra_buildin_eq?(x, y)
   atom?(x) && atom?(y) ? x == y : x.object_id == y.object_id
 end
 
 GENSYM_CNT = [0]
+
 def gensym(x)
   "gen_sym_#{x}_#{GENSYM_CNT[0] += 1}".to_sym
 end
 
-def div(x,y)
+def div(x, y)
   if atom?(x) && atom?(y)
     if y == 0
       (0.0 / 0.0) # NaN
@@ -194,7 +194,7 @@ def div(x,y)
   end
 end
 
-def rem(x,y)
+def rem(x, y)
   if atom?(x) && atom?(y)
     if y == 0
       (0.0 / 0.0) # NaN
@@ -211,7 +211,7 @@ def truthy?(x)
 end
 
 def string_to_chars(s)
-  s.is_a?(String) ? s.chars.map{|c| LyraChar.conv(c)} : nil
+  s.is_a?(String) ? s.chars.map { |c| LyraChar.conv(c) } : nil
 end
 
 # Sets up the core functions and variables. The functions defined here are
@@ -240,7 +240,7 @@ def setup_core_functions
   add_fn(:cdr, 1) { |x| x.is_a?(ConsList) ? x.cdr : (raise LyraError.new("Invalid call to cdr.", :"invalid-call")) }
 
   add_fn(:"list-concat", 0, -1) { |*xs| list_append *xs }
-  
+
   add_fn(:"not", 1) { |x| !(truthy? x) }
 
   # "Primitive" operators. They are overridden in the core library of
@@ -256,15 +256,15 @@ def setup_core_functions
   add_fn(:"+", 2) { |x, y| atom?(x) && atom?(y) ? x + y : nil }
   add_fn(:"-", 2) { |x, y| atom?(x) && atom?(y) ? x - y : nil }
   add_fn(:"*", 2) { |x, y| atom?(x) && atom?(y) ? x * y : nil }
-  add_fn(:"/", 2) { |x, y| div(x,y) }
-  add_fn(:"rem", 2) { |x, y| rem(x,y) }
+  add_fn(:"/", 2) { |x, y| div(x, y) }
+  add_fn(:"rem", 2) { |x, y| rem(x, y) }
   add_fn(:"bit-and", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x & y : nil }
-  add_fn(:"bit-or",  2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x | y : nil }
+  add_fn(:"bit-or", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x | y : nil }
   add_fn(:"bit-xor", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x ^ y : nil }
   add_fn(:"bit-shl", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x << y : nil }
   add_fn(:"bit-shr", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x >> y : nil }
   add_fn(:abs, 1) { |x| x.is_a?(Numeric) ? x.abs : x }
-  
+
   add_fn(:numerator, 1) { |x| x.is_a?(Rational) ? x.numerator : x }
   add_fn(:denumerator, 1) { |x| x.is_a?(Rational) ? x.denumerator : 1 }
 
@@ -326,12 +326,12 @@ def setup_core_functions
   add_fn(:"keyword?", 1) { |x| x.is_a?(Keyword) }
 
   add_fn(:"keyword-name", 1) { |x| x.is_a?(Keyword) ? x.to_s[1..-1].to_sym : nil }
-  
+
   add_fn(:id, 1) { |x| x }
   add_fn(:"id-fn", 1) { |x| NativeLyraFn.new("", 0) { x } }
   add_fn(:hash, 1) { |x| x.hash }
   #add_fn(:"eq?", 2) { |x, y| lyra_eq?(x, y) }
-  
+
   # Can be bootstrapped.
   #add_fn_with_env(:"all?", 2) { |x, env| x.cdr.car.to_a.all?{|e|truthy?(eval_ly(x.car,env,true)) } }
   #add_fn_with_env(:"none?", 2) { |x, env| !x.cdr.car.to_a.any?{|e|!truthy?(eval_ly(x.car,env,true)) } }
@@ -526,22 +526,22 @@ def setup_core_functions
 
   add_fn_with_env(:"apply-to", 2) { |xs, env| first(xs).call(second(xs).force, env) }
 
-  [NOTHING_TYPE, BOOL_TYPE, VECTOR_TYPE, MAP_TYPE, LIST_TYPE, FUNCTION_TYPE, 
-   INTEGER_TYPE, FLOAT_TYPE, RATIO_TYPE, SET_TYPE, TYPE_NAME_TYPE, STRING_TYPE, 
-   SYMBOL_TYPE, BOX_TYPE, ERROR_TYPE, CHAR_TYPE,KEYWORD_TYPE, ALIAS_TYPE].each do |t|
+  [NOTHING_TYPE, BOOL_TYPE, VECTOR_TYPE, MAP_TYPE, LIST_TYPE, FUNCTION_TYPE,
+   INTEGER_TYPE, FLOAT_TYPE, RATIO_TYPE, SET_TYPE, TYPE_NAME_TYPE, STRING_TYPE,
+   SYMBOL_TYPE, BOX_TYPE, ERROR_TYPE, CHAR_TYPE, KEYWORD_TYPE, ALIAS_TYPE].each do |t|
     add_var t.to_sym, t
   end
-  
-  add_fn_with_env(:"class", 1) { |x,env| type_of(x.car) }
 
-  add_fn(:"error!", 1,3) { |msg,info,trace| raise LyraError.new(msg,info,trace) }
-  
-  add_fn(:"error-msg",1) { |e| e.msg }
-  add_fn(:"error-info",1) { |e| e.info }
-  add_fn(:"error-trace",1) { |e| e.trace }
-  
-  add_fn(:"exit!", 1){ |s| exit(s) }
-  
+  add_fn_with_env(:"class", 1) { |x, env| type_of(x.car) }
+
+  add_fn(:"error!", 1, 3) { |msg, info, trace| raise LyraError.new(msg, info, trace) }
+
+  add_fn(:"error-msg", 1) { |e| e.msg }
+  add_fn(:"error-info", 1) { |e| e.info }
+  add_fn(:"error-trace", 1) { |e| e.trace }
+
+  add_fn(:"exit!", 1) { |s| exit(s) }
+
   add_fn(:"callstack", 0) { LYRA_CALL_STACK }
 
   true

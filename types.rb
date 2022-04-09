@@ -5,8 +5,9 @@ require 'singleton'
 require 'set'
 
 class LyraError < StandardError
-  attr_reader :info,:internal_trace
-  def initialize(msg,info=:error, trace=nil)
+  attr_reader :info, :internal_trace
+
+  def initialize(msg, info = :error, trace = nil)
     @info = info
     if trace.nil?
       @internal_trace = LYRA_CALL_STACK
@@ -22,8 +23,9 @@ end
 
 class Alias
   include Unwrapable
-  
+
   attr_reader :body
+
   def initialize(body)
     @body = body
   end
@@ -31,7 +33,7 @@ class Alias
   def get(env)
     eval_ly(@body, env)
   end
-  
+
   def unwrap
     @body
   end
@@ -64,7 +66,7 @@ class LazyObj
     #elem_to_s(evaluate)
     "(lazy #{elem_to_s(expr)})"
   end
-  
+
   def inspect
     to_s
   end
@@ -130,7 +132,8 @@ module ConsList
         end
         raise "Should never happen."
       end
-    else # if i is a range
+    else
+      # if i is a range
       list(*to_a[i])
     end
   end
@@ -372,14 +375,15 @@ end
 class Box
   include Unwrapable
   attr_accessor :value
+
   def initialize(value)
     @value = value
   end
-  
+
   def to_s
     "(box #{elem_to_pretty(@value)})"
   end
-  
+
   def unwrap
     @value
   end
@@ -537,7 +541,7 @@ class NativeLyraFn < LyraFn
 end
 
 class PartialLyraFn < LyraFn
-  
+
   def initialize(func, args)
     @func, @args = func, args
     @name = func.name
@@ -550,7 +554,7 @@ class PartialLyraFn < LyraFn
   def to_s
     cons(:partial, cons(@func, @args)).to_s
   end
-  
+
   def name
     to_s
   end
@@ -601,7 +605,7 @@ class MemoizedLyraFn < LyraFn
   def is_macro
     @func.is_macro
   end
-  
+
   def name
     @func.name
   end
@@ -617,7 +621,7 @@ class GenericFn < LyraFn
   end
 
   def call(args, env)
-    
+
     # Potential for speedup?
     type = type_id_of(args[@anchor_idx])
     fn = @implementations[type]
@@ -668,8 +672,9 @@ end
 
 class WrappedLyraError
   attr_reader :msg, :info, :trace
-  def initialize(msg,info,trace)
-    @msg,@info,@trace = msg,info,trace
+
+  def initialize(msg, info, trace)
+    @msg, @info, @trace = msg, info, trace
   end
 end
 
@@ -696,7 +701,7 @@ end
 
 class LyraChar
   attr_reader :chr
-  
+
   def self.conv(s)
     if s.is_a?(LyraChar)
       s
@@ -706,7 +711,7 @@ class LyraChar
       nil
     end
   end
-  
+
   def initialize(s)
     if s.is_a?(String)
       @chr = s.size == 0 ? 0.chr : s[0]
@@ -716,23 +721,23 @@ class LyraChar
       raise "Illegal argument type for LyraChar.new: #{s.class}"
     end
   end
-  
+
   def to_i
     ord
   end
-  
+
   def to_s
     @chr
   end
-  
+
   def inspect
     '\\' + @chr
   end
-  
+
   def ord
     @chr.ord
   end
-  
+
   def ==(other)
     if other.is_a?(LyraChar)
       @chr == other.chr
@@ -740,7 +745,7 @@ class LyraChar
       false
     end
   end
-  
+
   def eql?(other)
     if other.is_a?(LyraChar)
       @chr.eql?(other.chr)
@@ -748,7 +753,7 @@ class LyraChar
       false
     end
   end
-  
+
   def hash
     @chr.hash
   end
@@ -828,22 +833,22 @@ end
 
 class LyraType
   include Unwrapable
-  
+
   attr_reader :name, :type_id, :attrs
 
   def initialize(type_id, name, attrs)
     @type_id, @name, @attrs = type_id, name, attrs
     @attrs.freeze
   end
-  
+
   def to_s
     "[LyraType #{@type_id} #{@name} attrs=#{@attrs.to_s}]"
   end
-  
+
   def inspect
     to_s
   end
-  
+
   def unwrap
     @attrs
   end

@@ -21,10 +21,10 @@ end
 
 begin
   f = lambda do |name|
-      r = CompoundFunc.new(
-        name, list(:xs), list(:"error", "#{name} must not be called directly.", :"invalid-call"),
-        nil, false, 0, -1)
-      Env.global_env.set! name, r
+    r = CompoundFunc.new(
+      name, list(:xs), list(:"error", "#{name} must not be called directly.", :"invalid-call"),
+      nil, false, 0, -1)
+    Env.global_env.set! name, r
   end
 
   f.call :recur
@@ -32,20 +32,20 @@ begin
   f.call :"lambda*"
   f.call :"let"
   f.call :"let*"
-  f.call :"if" 
+  f.call :"if"
   f.call :"def-type"
-  f.call :"define" 
-  f.call :"def-impl" 
+  f.call :"define"
+  f.call :"def-impl"
   f.call :"def-generic"
-  f.call :"def-macro" 
-  f.call :"lazy-seq"            
+  f.call :"def-macro"
+  f.call :"lazy-seq"
   f.call :"module"
   f.call :"quote"
   f.call :"lazy"
   f.call :"try*"
   f.call :"catch"
   f.call :"expand-macro"
-  
+
   f.call :"lambda"
   f.call :"cond"
 end
@@ -59,20 +59,20 @@ end
 def destructure(names, args)
   xs = []
   rest_args = nil
-  
+
   # TODO Make sure that :& is the second to last, if it is given at all.
   i = names.index :&
   puts i
   names = [names[0...i], i.nil? ? nil : names[-1]]
-  
+
   args.each do |e|
     xs << e
   end
-  
-  rest_args = i.nil? ? nil : xs[names[0].size .. -1]
-  xs = xs[0 ... names[0].size]
-  args.fill(names.size .. args.size)
-  [names[0].zip(xs), [names[1],rest_args]]
+
+  rest_args = i.nil? ? nil : xs[names[0].size..-1]
+  xs = xs[0...names[0].size]
+  args.fill(names.size..args.size)
+  [names[0].zip(xs), [names[1], rest_args]]
 end
 
 # Parses and evaluates a string as Lyra-source code.
@@ -152,7 +152,7 @@ def optimize_cdr(expr_list, env)
 end
 
 # Similar to eval_list, but only returns the last evaluated value.
-def eval_keep_last(expr_list, env, force_eval=false)
+def eval_keep_last(expr_list, env, force_eval = false)
   raise LyraError.new("Syntax error: Expression must be a list.", :syntax) unless expr_list.is_a?(ConsList)
 
   return list if expr_list.empty?
@@ -273,9 +273,9 @@ def ev_define(expr, env, is_macro)
   if first(expr).is_a?(List)
     # Form is `(define (...) ...)` (Function definition)
     ev_define_fn(expr, env, is_macro)
-  #elsif first(expr).is_a?(Symbol) && expr.size == 3
+    #elsif first(expr).is_a?(Symbol) && expr.size == 3
     # Form is `(define .. (...) ...)` (Generic function definition)
-  #  ev_define_with_type(expr, env, is_macro)
+    #  ev_define_with_type(expr, env, is_macro)
   else
     # Form is `(define .. ...)` (Variable definition)
     name = first(expr) # Get the name
@@ -298,8 +298,8 @@ def ev_lambda(name, args_expr, body_expr, definition_env, is_macro = false)
   unless arg_arr.all? { |x| x.is_a? Symbol }
     raise LyraError.new("Syntax error: Arguments for lambda must be symbols.", :syntax)
   end
-  
-  a = arg_arr.reject{|a| a==:"_"}
+
+  a = arg_arr.reject { |a| a == :"_" }
   unless a.uniq.size == a.size
     raise LyraError.new("Syntax error: Non-unique argument names in lambda expression.", :syntax)
   end
@@ -327,7 +327,7 @@ def ev_lambda(name, args_expr, body_expr, definition_env, is_macro = false)
   if body_expr.is_a?(EmptyList)
     body_expr = list(nil)
   end
-  
+
   CompoundFunc.new(name, args_expr, body_expr, definition_env, is_macro, arg_count, max_args)
 end
 
@@ -356,7 +356,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       expr.map { |x| eval_ly x, env, force_eval, true }
     end
   elsif expr.is_a?(Hash)
-    (expr.map { |k,v| eval_ly [k,v], env, force_eval, true }).to_h
+    (expr.map { |k, v| eval_ly [k, v], env, force_eval, true }).to_h
   elsif expr.is_a?(Set)
     (expr.map { |x| eval_ly x, env, force_eval, true }).to_set
   elsif expr.is_a?(Alias)
@@ -467,7 +467,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       env1 = Env.new(nil, env)
       if bindings.is_a?(Array)
         # Evaluate bindings in order using the old environment.
-        bindings.each_slice(2) do |name,val|
+        bindings.each_slice(2) do |name, val|
           raise LyraError.new("Syntax error: Name of binding in let must be a symbol.") unless name.is_a?(Symbol)
           env1.set!(name, eval_ly(val, env1, force_eval, true))
         end
@@ -503,7 +503,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         raise LyraError.new("Wrong number of arguments for lazy. (Expected 1, got #{expr.cdr.size})")
       end
       if force_eval
-        eval_ly(expr.cdr.car, env,force_eval)
+        eval_ly(expr.cdr.car, env, force_eval)
       else
         LazyObj.new expr.cdr.car, env
       end
@@ -518,7 +518,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       if expr.size != 3
         raise LyraError.new("try* requires 2 expressions.", :syntax)
       end
-      
+
       body = expr.cdr.car
       clause = expr.cdr.cdr.car
 
@@ -531,8 +531,6 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         unless exception_name.is_a?(Symbol)
           raise LyraError.new("Error in try*: exception name must be a symbol.", :syntax)
         end
-
-
 
         begin
           # Try to execute body
@@ -558,7 +556,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
 
           #Run clause if validated or re-throw
           if run_clause
-              res = eval_keep_last(clause, env1, force_eval)
+            res = eval_keep_last(clause, env1, force_eval)
           else
             raise error
           end
@@ -615,14 +613,14 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         LYRA_CALL_STACK.push func
         args = eval_list(args, env, force_eval)
 
-        if !force_eval && args.any?{|e|e.is_a?(LazyObj)}
+        if !force_eval && args.any? { |e| e.is_a?(LazyObj) }
           #r = LazyObj.new cons(func, args), env # FIXME Buggy
           r = func.call(args, env)
         else
           # Call the function with the new arguments
           r = func.call(args, env)
         end
-        
+
         LYRA_CALL_STACK.pop
         r
       elsif func.is_macro
@@ -659,7 +657,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
           # Evaluate arguments that will be passed to the call.
           args = eval_list(args, env, force_eval)
 
-          if !force_eval && args.any?{|e|e.is_a?(LazyObj)}
+          if !force_eval && args.any? { |e| e.is_a?(LazyObj) }
             #r = LazyObj.new cons(func, args), env # FIXME Buggy
             r = func.call(args, env)
           else

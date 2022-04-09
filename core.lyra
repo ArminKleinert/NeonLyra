@@ -1,7 +1,7 @@
 (module core
   (T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and complement begin def-memo spread apply map map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq 
   all? none? any? 
-  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop va-cons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in)
+  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop va-cons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for)
 
 ;;; Some core things
 
@@ -907,14 +907,14 @@
 
 
 ; Sum up elements of a collection using +.
-; Required: foldl
+; Required: foldl, map
 (define sum
   (case-lambda* sum
     ((coll) (foldl + 0 coll))
     ((f coll) (foldl + 0 (map f coll)))))
 
 ; Calculate the product of the elements of a collection using *.
-; Required: foldl
+; Required: foldl, map
 (define product
   (case-lambda* product
     ((coll) (foldl * 1 coll))
@@ -1182,6 +1182,52 @@
     ))
 (define (walk-with-path f xs)
   (%walk-with-path f xs '()))
+
+
+(define (%combinations x xss)
+  (cond 
+    (empty? xss)
+      x
+    (= (size xss) 1)
+      (map (lambda (y) (cons y x)) (first xss))
+    else
+      (mapcat (lambda (a) (%combinations (cons a x) (rest xss))) (first xss))))
+
+; Lazily calculates all combinations of any number of lists while preserving order:
+; (combinations '(1 2) '(3 4) '(5 6)) 
+; => ((1 3 5) (1 3 6) (1 4 5) (1 4 6) (2 3 5) (2 3 6) (2 4 5) (2 4 6))
+(define (combinations & xss)
+  (let ((r (rest xss)))
+    (map reverse (mapcat (lambda (x) (%combinations (list x) r)) (car xss)))))
+
+(define (%for-binds bindings)
+  (if (vector? bindings)
+    (if (odd? (size bindings))
+      (error! "Syntax error: for must have an even number of bindings." 'syntax)
+      (%for-binds (slices 2 bindings)))
+    (let ((defs (filter (lambda (b) (symbol? (car b))) bindings))
+          (lets (map cadr (filter (lambda (b) (= (car b) :let)) bindings)))
+          (whiles (map cadr (filter (lambda (b) (= (car b) :while)) bindings)))
+          (whens (map cadr (filter (lambda (b) (= (car b) :when)) bindings))))
+      (list defs lets whiles whens))))
+
+(define (%for bindings body)
+  (let* ((binds (%for-binds bindings))
+        (defs (car binds))
+        (lets (cadr binds))
+        (whiles (caddr binds))
+        (whens (cadddr binds))
+        )
+    (list 'map
+      (list 'lambda (map car defs)
+        (list 'let* (map ->list lets)
+          (
+      )
+  ))))
+(def-macro (for bindings body)
+  (->string (%for bindings body))
+  )
 )
 
 (cons 'core (load! "string.lyra" "vector.lyra" "set.lyra"))
+

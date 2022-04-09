@@ -29,7 +29,7 @@ end
 def parse_char(token)
   case token
   when /^\\u[0-9]{4}$/
-    LyraChar.conv(eval('"'+token+'"').encode('utf-8'))
+    LyraChar.conv(eval('"' + token + '"').encode('utf-8'))
   when /^\\[A-Za-z0-9+-\/!?$%&()\|\[\]\{\}]$/
     LyraChar.conv token[1]
   when "\\*"
@@ -62,14 +62,14 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
   while (t = tokens.shift) != nil
     case t
     when "'"
-      root << list(:quote, make_ast(tokens, level+1, "", true))
+      root << list(:quote, make_ast(tokens, level + 1, "", true))
     when "@"
-      root << list(:unbox, make_ast(tokens, level+1, "", true))
+      root << list(:unbox, make_ast(tokens, level + 1, "", true))
     when '#{'
-      a = make_ast(tokens, level+1, "}")
+      a = make_ast(tokens, level + 1, "}")
       root << (a.is_a?(Array) ? Set[*a] : Set[a])
     when "{"
-      a = make_ast(tokens, level+1, "}")
+      a = make_ast(tokens, level + 1, "}")
       root << a.each_slice(2).to_h
     when "#("
       root << list(:lambda, list(:"&", 0.chr.to_sym), make_ast(tokens, level, ")"))
