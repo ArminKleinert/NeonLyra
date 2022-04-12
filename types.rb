@@ -626,7 +626,6 @@ class GenericFn < LyraFn
     type = type_id_of(args[@anchor_idx])
     fn = @implementations[type]
 
-    res = nil
     begin
       if fn
         LYRA_CALL_STACK.push fn
@@ -811,11 +810,7 @@ class Keyword < LyraFn
     if args.size != 1
       raise LyraError.new("#{@name}: Keyword can only be called on 1 argument.", :arity)
     end
-    if args.car.is_a?(Hash)
-      args.car[self]
-    else
-      raise LyraError.new("#{@name}: Keyword can only be on a map.", :"invalid-call")
-    end
+    env.safe_find("get").call(list(args[0], self), env)
   end
 
   def native?

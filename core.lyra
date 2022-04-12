@@ -1,5 +1,5 @@
 (module core
-  (T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and complement begin def-memo spread apply map map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq 
+  (T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq 
   all? none? any? 
   zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop va-cons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for)
 
@@ -414,9 +414,15 @@
     '()
     (lazy-seq (f (first xs)) (map f (rest xs)))))
 
-; Eager map using foldr.
+(define (map-split f xs)
+  (if (empty? xs)
+    '()
+    (lazy-seq (apply-to f (first xs)) (map-split f (rest xs)))))
+
 (define (map-eager f xs)
-  (foldr (lambda (x v) (cons (f x) v)) '() xs))
+  (if (empty? xs)
+    '()
+    (cons (f (first xs)) (map-eager f (rest xs)))))
 
 ; map with index.
 ; Requires empty?, first, rest.
@@ -453,7 +459,10 @@
 
 ; map and then append.
 (define (mapcat f xs)
-  (foldr append '() (map f xs)))
+  (if (empty? xs)
+    '()
+    (let ((l (map f xs)))
+      (map car (lazy-seq (car l) (cdr l))))))
 
 ; Lazy filter.
 ; Required: empty?, first, rest
@@ -531,7 +540,8 @@
       Nothing
     ;(or (list? xs) (or (vector? xs) (or (set? xs) (map? xs))))
     ;  (buildin-take n xs)
-    else (%take n xs)))
+    else (%take n xs))
+  )
 
 ; Take while a predicate is true.
 ; Required: empty?, first, rest
@@ -1184,6 +1194,8 @@
   (%walk-with-path f xs '()))
 
 
+;;; for macro
+
 (define (%combinations x xss)
   (cond 
     (empty? xss)
@@ -1200,6 +1212,15 @@
   (let ((r (rest xss)))
     (map reverse (mapcat (lambda (x) (%combinations (list x) r)) (car xss)))))
 
+(define (%for-lazy-take xs)
+  (if (empty? xs)
+    '()
+    (let ((x (car xs)))
+      (cond
+        (car x) '() ; Ended with while
+        (cadr x) (%for-lazy-take (cdr xs)) ; Ignores with when
+        else (lazy-seq (caddr x) (%for-lazy-take (cdr xs)))))))
+
 (define (%for-binds bindings)
   (if (vector? bindings)
     (if (odd? (size bindings))
@@ -1213,21 +1234,57 @@
 
 (define (%for bindings body)
   (let* ((binds (%for-binds bindings))
-        (defs (car binds))
-        (lets (cadr binds))
-        (whiles (caddr binds))
-        (whens (cadddr binds))
-        )
-    (list 'map
-      (list 'lambda (map car defs)
+          (defs (car binds))
+          
+          (lets (cadr binds))
+          (whiles (caddr binds))
+          (whens (cadddr binds)))
+   (list %for-lazy-take
+    (list map-split
+      (list 'lambda* (gensym 'for) (map car defs)
         (list 'let* (map ->list lets)
-          (
-      )
-  ))))
+          (concat
+            '(cond)
+            (if (empty? whiles)
+              '()
+              (list
+                (list any? not (cons list whiles))
+                (list list #t Nothing Nothing)))
+            (if (empty? whens)
+              '()
+              (list
+                (list any? not (cons list whens))
+                (list list #f #t Nothing)))
+          (list else (cons list (list #f #f body))))))
+      (cons combinations (map cadr defs))
+      ))))
 (def-macro (for bindings body)
-  (->string (%for bindings body))
-  )
+  (%for bindings body))
+
 )
 
 (cons 'core (load! "string.lyra" "vector.lyra" "set.lyra"))
+
+(define (%combinations1 x xss)
+  (println! (string-concat (->string x) " " (->string xss)))
+  (cond 
+    (empty? xss)
+      x
+    (= (size xss) 1)
+      (begin
+        (println! (map (lambda (y) (cons y x)) (first xss)))
+        (map (lambda (y) (cons y x)) (first xss)))
+    else
+      (mapcon (lambda (a) (%combinations1 (cons a x) (rest xss))) (first xss))))
+
+; (combinations '(1 2) '(3 4) '(5 6)) 
+; => ((1 3 5) (1 3 6) (1 4 5) (1 4 6) (2 3 5) (2 3 6) (2 4 5) (2 4 6))
+(define (combinations1 & xss)
+  (map reverse
+    (mapcon (lambda (x) (%combinations1 (list x) (rest xss)))
+      (car xss))))
+
+(combinations1 '(1 2) '(3 4) '(5 6))
+
+
 
