@@ -457,12 +457,12 @@
 (define (mapcon f xs)
   (foldr append '() (maplist f xs)))
 
-; map and then append.
+; map and then append (lazy).
 (define (mapcat f xs)
   (if (empty? xs)
     '()
-    (let ((l (map f xs)))
-      (map car (lazy-seq (car l) (cdr l))))))
+    (let ((x (f (first xs))))
+      (lazy-seq (first x) (list-concat (rest x) (mapcat f (rest xs)))))))
 
 ; Lazy filter.
 ; Required: empty?, first, rest
@@ -533,7 +533,7 @@
 (define (%take n xs)
   (if (or (= 0 n) (empty? xs))
     '()
-    (cons (first xs) (%take (dec n) (rest xs)))))
+    (lazy-seq (first xs) (%take (dec n) (rest xs)))))
 (define (take n xs)
   (cond
     (atom? xs)
@@ -1196,21 +1196,22 @@
 
 ;;; for macro
 
-(define (%combinations x xss)
-  (cond 
-    (empty? xss)
-      x
-    (= (size xss) 1)
-      (map (lambda (y) (cons y x)) (first xss))
-    else
-      (mapcat (lambda (a) (%combinations (cons a x) (rest xss))) (first xss))))
+
 
 ; Lazily calculates all combinations of any number of lists while preserving order:
 ; (combinations '(1 2) '(3 4) '(5 6)) 
 ; => ((1 3 5) (1 3 6) (1 4 5) (1 4 6) (2 3 5) (2 3 6) (2 4 5) (2 4 6))
-(define (combinations & xss)
-  (let ((r (rest xss)))
-    (map reverse (mapcat (lambda (x) (%combinations (list x) r)) (car xss)))))
+(define (%combinations x xs)
+  (cond
+    (empty? xs) (list x)
+    (empty? (rest xs)) (map (lambda (y) (cons y x)) (first xs))
+    else (mapcat (lambda (a) (%combinations (cons a x) (rest xs))) (first xs))))
+
+(define (combinations & xs1)
+  (let ((xs (remove empty? xs1)))
+    (if (empty? xs)
+      '()
+      (map reverse (mapcat (lambda (x) (%combinations (list x) (rest xs))) (first xs))))))
 
 (define (%for-lazy-take xs)
   (if (empty? xs)
@@ -1242,7 +1243,7 @@
    (list %for-lazy-take
     (list map-split
       (list 'lambda* (gensym 'for) (map car defs)
-        (list 'let* (map ->list lets)
+        (list 'let* (mapcat ->list lets)
           (concat
             '(cond)
             (if (empty? whiles)
@@ -1264,27 +1265,5 @@
 )
 
 (cons 'core (load! "string.lyra" "vector.lyra" "set.lyra"))
-
-(define (%combinations1 x xss)
-  (println! (string-concat (->string x) " " (->string xss)))
-  (cond 
-    (empty? xss)
-      x
-    (= (size xss) 1)
-      (begin
-        (println! (map (lambda (y) (cons y x)) (first xss)))
-        (map (lambda (y) (cons y x)) (first xss)))
-    else
-      (mapcon (lambda (a) (%combinations1 (cons a x) (rest xss))) (first xss))))
-
-; (combinations '(1 2) '(3 4) '(5 6)) 
-; => ((1 3 5) (1 3 6) (1 4 5) (1 4 6) (2 3 5) (2 3 6) (2 4 5) (2 4 6))
-(define (combinations1 & xss)
-  (map reverse
-    (mapcon (lambda (x) (%combinations1 (list x) (rest xss)))
-      (car xss))))
-
-(combinations1 '(1 2) '(3 4) '(5 6))
-
 
 

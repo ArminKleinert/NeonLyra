@@ -135,6 +135,8 @@
 (comment
 Times in milliseconds.
 
+ruby lyra.rb benchmark.lyra && jruby lyra.rb benchmark.lyra && truffleruby lyra.rb benchmark.lyra
+
 0.1.1
 Ruby:
   Many math ops:                                    0.17283199999999999

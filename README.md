@@ -2,7 +2,7 @@
 
 Lyra is a lisp I make for fun and learning. NeonLyra is an improved version.
 
-Current version: 0.1.3
+Current version: 0.1.4
 
 Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 
@@ -286,6 +286,7 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - To define a collection type, only `->list` has to be defined.  
   - Names can now end with `'`  
   - `true` and `false` are now boolean literals too.  
+  - `for` macro for list comprehension.  
   
 
 ## Known bugs
