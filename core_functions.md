@@ -537,7 +537,7 @@ show-infix-as-prefix | >=2 |  x  |     | Similar to infix->prefix but does not e
                      |     |     |     | code.
 ```
 
-### File: core/infix.lyra
+### File: core/queue.lyra
 
 ```
 Name                 |  #  |Pure?|Gen? | 
