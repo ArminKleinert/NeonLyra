@@ -232,5 +232,44 @@ truffleruby:
   Sort 5000 elements:                               2504.6345
   Shuffle 5000 elements:                            5072.2775
   9-billion-names (25):                             952.2655
+
+0.1.4
+Ruby:
+  Generic utility (Do not change):                  46.4985775
+  Many math ops:                                    0.17629
+  Without -> :                                      0.171247
+  Many math ops (lambda):                           0.1802815
+  Same as partials with composition:                0.3844305
+  set operations                                    1009.651065
+  map operations                                    104.21095700000001
+  (ack 3 4)                                         1429.0281425
+  lazy sequences                                    48.237935
+  Sort 5000 elements:                               1976.7411665
+  Shuffle 5000 elements:                            6649.8351395
+  9-billion-names (25):                             2056.820817
+jruby (Needed to be executed with a console argument to give it more stack-space):
+  Generic utility (Do not change):                  165.89100000000002
+  Many math ops:                                    0.591
+  Without -> :                                      0.528
+  Many math ops (lambda):                           0.516
+  Same as partials with composition:                1.2015
+  set operations                                    1453.0865000000001
+  map operations                                    281.47249999999997
+  (ack 3 4)                                         5192.512
+  lazy sequences                                    273.33900000000006
+  Sort 5000 elements:                               6978.484
+truffleruby:
+  Generic utility (Do not change):                  151.798
+  Many math ops:                                    0.8910000000000001
+  Without -> :                                      0.802
+  Many math ops (lambda):                           0.7145000000000001
+  Same as partials with composition:                2.1980000000000004
+  set operations                                    389.0665
+  map operations                                    61.03499999999997
+  (ack 3 4)                                         3880.0265
+  lazy sequences                                    254.784
+  Sort 5000 elements:                               2622.209
+  Shuffle 5000 elements:                            4988.6715
+  9-billion-names (25):                             802.0735
 )
 

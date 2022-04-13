@@ -16,18 +16,18 @@
   nthrest nthnext next fnext ffirst nnext
   keep name)
 
-  (def-macro (when p & body)
-    (list 'if p (va-cons 'begin Nothing body) Nothing))
+(def-macro (when p & body)
+  (list 'if p (va-cons 'begin Nothing body) Nothing))
 
-  (def-macro (def name val)
-    (list 'define name val))
+(def-macro (def name val)
+  (list 'define name val))
 
-  (define (%defn name bindings body)
-    (if (or (string? bindings) (map? bindings))
-      (%defn name (car body) (cdr body)) ; ignore docstring or attr-map
-      (list 'define name (va-cons 'fn name bindings body))))
-  (def-macro (defn name bindings & body)
-    (%defn name bindings body))
+(define (%defn name bindings body)
+  (if (or (string? bindings) (map? bindings))
+    (%defn name (car body) (cdr body)) ; ignore docstring or attr-map
+    (list 'define name (va-cons 'fn name bindings body))))
+(def-macro (defn name bindings & body)
+  (%defn name bindings body))
 
 (define (%fn name bindings body)
   (cond
@@ -51,59 +51,52 @@
     else
       (error! "Syntax error: Invalid format for fn." 'syntax)))
   
-  (comment define (name x)
-    (cond
-      (symbol? x) (->string x)
-      (keyword? x) (->string (keyword-name x))
-      (string? x) x
-      else Nothing))
-  
-  (define (name x)
-    (case x
-      symbol? (->string x)
-      keyword? (->string (keyword-name x))
-      string? x
-      Nothing))
+(define (name x)
+  (case x
+    symbol? (->string x)
+    keyword? (->string (keyword-name x))
+    string? x
+    Nothing))
 
-  (define (nthrest xs i) (drop i xs))
-  (define (nthnext xs i) (let ((r (nthrest xs i))) (if (empty? r) Nothing r)))
-  (define (next xs) (let ((r (rest xs))) (if (empty? r) Nothing r)))
-  (define (fnext xs) (first (next xs)))
-  (define (ffirst xs) (first (first xs)))
-  (define (nnext xs) (next (next xs)))
-  (define (nfirst xs) (next (first xs)))
-  
-  (define reduce
-    (case-lambda* reduce
-      ((f s xs) (foldl f s xs))
-      ((f xs) (foldl1 f xs))))
+(define (nthrest xs i) (drop i xs))
+(define (nthnext xs i) (let ((r (nthrest xs i))) (if (empty? r) Nothing r)))
+(define (next xs) (let ((r (rest xs))) (if (empty? r) Nothing r)))
+(define (fnext xs) (first (next xs)))
+(define (ffirst xs) (first (first xs)))
+(define (nnext xs) (next (next xs)))
+(define (nfirst xs) (next (first xs)))
 
-  (define reductions
-    (case-lambda* reductions
-      ((f s xs) (scanl f s xs))
-      ((f xs) (scanl1 f xs))))
+(define reduce
+  (case-lambda* reduce
+    ((f s xs) (foldl f s xs))
+    ((f xs) (foldl1 f xs))))
 
-  (define (some p xs)
-    (first (drop-until p xs))); first returns Nothing on empty sequences.
+(define reductions
+  (case-lambda* reductions
+    ((f s xs) (scanl f s xs))
+    ((f xs) (scanl1 f xs))))
 
-  (define (some? x)
-    (not (nothing? x)))
+(define (some p xs)
+  (first (drop-until p xs))); first returns Nothing on empty sequences.
 
-  ; For some reason, clojure returns nil if some gives negative results,
-  ; but false for some-fn...
-  (define (some-fn p & ps)
-    (lambda (& xs)
-      (->>
-        (repeat xs)
-        (zip-with drop-until (cons p ps))
-        (remove empty?)
-        first first)))
-  
-  (define (any? x)
-    #t)
-  
-  (define (keep f xs)
-    (remove nothing? (map f xs)))
+(define (some? x)
+  (not (nothing? x)))
+
+; For some reason, clojure returns nil if some gives negative results,
+; but false for some-fn...
+(define (some-fn p & ps)
+  (lambda (& xs)
+    (->>
+      (repeat xs)
+      (zip-with drop-until (cons p ps))
+      (remove empty?)
+      first first)))
+
+(define (any? x)
+  #t)
+
+(define (keep f xs)
+  (remove nothing? (map f xs)))
 )
 
 

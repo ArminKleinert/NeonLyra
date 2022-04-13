@@ -3327,6 +3327,25 @@
           (string-concat x '+ y '= z))))
     ))
 
+(define (test-juxt)
+  (all-true?
+    (function? (juxt id))
+    (eq? '(2) ((juxt inc) 1))
+    (eq? '(0 2) ((juxt dec inc) 1))
+    (eq? '(0 1 2) ((juxt dec id inc) 1))
+    (eq? '(0 1 2 "1") ((juxt dec id inc ->string) 1))))
+
+(define (test-every-pred)
+  (all-true?
+    (function? (every-pred id))
+    (eq? #t ((every-pred number?) 1))
+    (eq? #t ((every-pred number? int?) 1))
+    (eq? #t ((every-pred number? int? ->bool) 1))
+
+    (eq? #f ((every-pred number? float?) 1))
+    (eq? #f ((every-pred number? float? ->bool) 1))
+    (eq? #f ((every-pred number? not) 1))))
+
 (define (run-tests & fns)
   (let ((results
           (foldl
@@ -3403,7 +3422,7 @@
   'test-->queue 'test-->deque 'test-other-queue-ops 'test-other-deque-ops
   'test-add 'test-add-front 'test-permutations 'test-get 'test-get-in
   'test-subseq 'test-replace-subseq 'test-v-zip-with 'test-combinations
-  'test-for 'test-for-vec-binds
+  'test-for 'test-for-vec-binds 'test-juxt 'test-every-pred
   ))
 
 (println! "Starting tests...")

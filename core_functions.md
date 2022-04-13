@@ -288,11 +288,20 @@ mapcon               | 2   |  x  |     | Calls maplist, expects the result to be
 mapcat               | 2   |  x  |     | Calls map, expects the result to be a sequence of lists
                      |     |     |     | and appends them.
                      |     |     |     | 
+juxt                 | >=1 |  x  |     | (juxt f0 f1..) is the same as
+                     |     |     |     |    (lambda (x) (list (f0 x) (f1 x) ..))
+                     |     |     |     | Eg. ((juxt dec id inc) 1) ;=> (0 1 2)
+                     |     |     |     | 
 filter               | 2   |  x  |     | Lazy filter. Returns a list.
 filterv              | 2   |  x  |     | Eager filter. Returns a vector.
 filter-indexed       | 2   |  x  |     | 
 remove               | 2   |  x  |     | 
 remove-indexed       | 2   |  x  |     |  
+                     |     |     |     | 
+every-pred           | >=1 |  x  |     | Takes any number of predicate functions and returns a new 
+                     |     |     |     | function which checks if all those predicates are true on
+                     |     |     |     | a given element.
+                     |     |     |     | 
 fmap                 | 3   |  x  |     | filter, then map (like (filter p (map f xs)))
 mapf                 | 3   |  x  |     | map, then filter (like (map f (filter p xs)))
                      |     |     |     | 
@@ -377,7 +386,8 @@ case                 | >=1 |  x  |     | Similar to switch case.
                      |     |     |     | (case 1 #f) ;=> #f ; Default
                      |     |     |     | (case 1 1 #t #f) ;=> #t ; Normal matching.
                      |     |     |     | (case 1 '(1) #t #f) ;=> #t ; membership in collections.
-                     |     |     |     | (case 1 (partial = 1) #t #f) ;=> #t ; Function for matching.
+                     |     |     |     | (case 1 (partial = 1) #t #f) ;=> #t 
+                     |     |     |     | ; Function for matching.
 case-lambda          | >=0 |  x  |     | Creates a lambda which can accept different numbers
                      |     |     |     | of arguments.
                      |     |     |     | (let ((l (case-lambda ((x)x) ((x y)y) (xs(car xs)))))
@@ -397,7 +407,16 @@ defmacro             | >=1 |  x  |     | Alias for def-macro
 into                 | 2   |  x  |     | Appends all elements of the second argument to the first,
                      |     |     |     | keeping the type of the first.
 partition            | 1-2 |  x  |     | Extended version of both slices and tuples, as in Clojure.
-dedupe               | 1   |  x  |     | Returns a lazy sequence removing consecutive duplicates in coll.
+dedupe               | 1   |  x  |     | Returns a lazy sequence removing consecutive duplicates in
+                     |     |     |     | coll.
+                     |     |     |     |
+combinations         | Any |  x  |     | Returns a lazy sequence of ordered combinations of any
+                     |     |     |     | number of lists.
+                     |     |     |     | (combinations [1 2] [3 4]) ;=> ((1 3) (1 4) (2 3) (2 4))
+for                  | 2   |  x  |     | List comprehension. Similar to Clojure.
+                     |     |     |     | Also supports :let and :while.
+                     |     |  x  |     | (for ((x [1 2]) (y [3 4]) (:let ((z (+ x y))))) [x y z])
+                     |     |     |     |   ; => ([1 3 4] [1 4 5] [2 3 5] [2 4 6])
 ```
 
 ### File: core/aliases.lyra
