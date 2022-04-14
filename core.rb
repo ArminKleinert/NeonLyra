@@ -355,7 +355,7 @@ def setup_core_functions
       nil
     else
       begin
-        Rational(x || "");
+        Rational(x);
       rescue ArgumentError, TypeError
         nil
       end

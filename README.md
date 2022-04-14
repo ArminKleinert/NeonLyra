@@ -290,7 +290,7 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - `loop` macro  
   - Better `case-lambda`  
   - Alias type  
-  - queue type (in core/queue.lyra)  
+  - queue type (in `core/queue.lyra`)  
   - Removed `#()` and `%`  
 - 0.1.4  
   - To define a collection type, only `->list` has to be defined.  
@@ -299,6 +299,7 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - `for` macro for list comprehension.  
 - 0.1.5
   - `#()` and `%n` are back  
+  - Bugfix in `->rational` for truffleruby  
   
 
 ## Known bugs
