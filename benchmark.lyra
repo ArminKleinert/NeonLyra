@@ -248,16 +248,18 @@ Ruby:
   Shuffle 5000 elements:                            6649.8351395
   9-billion-names (25):                             2056.820817
 jruby (Needed to be executed with a console argument to give it more stack-space):
-  Generic utility (Do not change):                  165.89100000000002
-  Many math ops:                                    0.591
-  Without -> :                                      0.528
-  Many math ops (lambda):                           0.516
-  Same as partials with composition:                1.2015
-  set operations                                    1453.0865000000001
-  map operations                                    281.47249999999997
-  (ack 3 4)                                         5192.512
-  lazy sequences                                    273.33900000000006
-  Sort 5000 elements:                               6978.484
+  Generic utility (Do not change):                  218.6605
+  Many math ops:                                    0.5974999999999999
+  Without -> :                                      0.539
+  Many math ops (lambda):                           0.5189999999999999
+  Same as partials with composition:                1.427
+  set operations                                    1593.4085
+  map operations                                    335.7105
+  (ack 3 4)                                         6306.3665
+  lazy sequences                                    267.2785
+  Sort 5000 elements:                               7310.377
+  Shuffle 5000 elements:                            21421.813499999997
+  9-billion-names (25):                             6280.6044999999995
 truffleruby:
   Generic utility (Do not change):                  151.798
   Many math ops:                                    0.8910000000000001

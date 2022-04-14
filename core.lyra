@@ -731,7 +731,7 @@
 
 ; Returns a function which always returns x.
 (define (constantly x) (lambda (& ys) x))
-(define (const x) (lambda (& ys) x))
+(define const constantly)
 
 
 ;; case macro
@@ -1063,7 +1063,7 @@
         (foldl (lambda (bd ct) (list 'try* bd ct)) (cons 'begin body) catch-clauses)))
         (if (empty? finally-clause) Nothing (cons 'begin (cdar finally-clause)))
         res-name)
-      (list 'catch '(lambda(_)#t) err-name
+      (list 'catch (constantly #t) err-name
         (if (empty? finally-clause) Nothing (cons 'begin (cdar finally-clause)))
         (list 'error! (list 'error-msg err-name) (list 'error-info err-name) (list 'error-trace err-name))))
     ))

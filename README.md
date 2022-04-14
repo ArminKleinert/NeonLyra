@@ -65,6 +65,7 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 - `@<expr>` becomes `(unbox <expr>)`  
 - `#t` is literal true  
 - `#f` is literal false  
+- `#(...)` shortened form for lambda. Arguments are called `%1`, `%2`, ..., `%15` and are initialized as `Nothing` unless specified. Arguments beyond 15 are in `%&`. The total argument list is `%&&`.  
 - `#{...}` is a literal set.  
 - `{...}` is a literal map.  
 - `:<word>` is a keyword literal. (eg. `:a`)  
@@ -112,7 +113,7 @@ Here are some differences to Clojure I could think of:
 - `seq` returns `Nothing` for all types that aren't collections.  
 - modules (`module`) instead of namespaces (`ns`).  
 - All impure functions must end with the postfix `!` (like `load!`, `readln!`, ...).  
-- `#(...)` is not available (for now)  
+- Nested `#(...)` is allowed.  
 
 The aliases can be imported using `(load! "core/clj.lyra")`. 
 
@@ -130,6 +131,15 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
 
 ; sum using a lambda
 (define sum (lambda (xs) (foldl + 0 xs)))
+
+# sum using a hash-lambda
+(define sum #(foldl + 0 %1))
+
+# sum with optional transformation function
+(define sum
+  (case-lambda
+    ((xs) (foldl + 0 xs))
+    ((f xs) (foldl #(+ (f %1) %2) 0 xs))))
 
 ; Example macro for a Clojure-like 'when'
 (def-macro (when p & body) (list 'if p (cons 'begin body) Nothing))
@@ -287,6 +297,8 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Names can now end with `'`  
   - `true` and `false` are now boolean literals too.  
   - `for` macro for list comprehension.  
+- 0.1.5
+  - `#()` and `%n` are back  
   
 
 ## Known bugs

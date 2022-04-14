@@ -76,31 +76,37 @@ class Env
     self
   end
 
-  ANONYMOUS_ARG_NAMES = Array.new(16) { |i| :"%#{i}" }.freeze
-  ANONYMOUS_ARG_REST = :"%?"
+  ANONYMOUS_ARG_NAMES = Array.new(16) { |i| :"%#{i+1}" }.freeze
+  ANONYMOUS_ARG_REST = :"%&"
+  ANONYMOUS_ARG_ALL = :"%&&"
 
-  def set_multi!(keys, values, anonymous_keys, varargs)
-    anon_count = 1
+  def set_multi!(keys, values, varargs)
     until keys.empty?
       if varargs && keys.cdr.empty?
         set! keys.car, values
       else
         set! keys.car, values.car
       end
-=begin
-      if anonymous_keys
-        if anon_count <= 15
-          set! ANONYMOUS_ARG_NAMES[anon_count], values.car
-          anon_count += 1
-        elsif anon_count == 16
-          set! ANONYMOUS_ARG_REST, values
-          anon_count += 1
-        end
-      end
-=end
       keys = keys.cdr
       values = values.cdr
     end
+    self
+  end
+
+  def set_multi_anonymous!(values)
+    anon_count = 0
+    
+    set! ANONYMOUS_ARG_ALL, values
+    
+    until values.empty? || anon_count >= 15
+      set! ANONYMOUS_ARG_NAMES[anon_count], values.car
+      anon_count += 1
+      values = values.cdr
+    end
+    ANONYMOUS_ARG_NAMES[anon_count .. -1].each do |k|
+      set! k, nil
+    end
+    set! ANONYMOUS_ARG_REST, values
     self
   end
 

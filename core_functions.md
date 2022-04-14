@@ -355,8 +355,8 @@ v%                   | >=1 |  x  |     | Variadic rem
                      |     |     |     | 
 divmod               | 2   |  x  |     | (divmod x y) => (list (/ x y) (rem x y))
                      |     |     |     | 
-constantly           | 2   |  x  |     | Fills a list with a given element.
-                     |     |     |     | (constantly 9 '(1 2 3)) => (9 9 9)
+constantly           | 1   |  x  |     | Takes an element x and returns a new function which, for any given input, returns x.
+const                | 1   |  x  |     | Alias for constantly
                      |     |     |     | 
 reverse              | 1   |  x  |     | Reverse a list.
 sum                  | 1   |  x  |     | Sums the elements of a list. (0 if the list is empty)
@@ -572,6 +572,8 @@ Name        | File              |
 ------------+-------------------+-------------------------------------------------------------------
 #t          | core.rb           | Boolean true
 #f          | core.rb           | Boolean false
+true        | core.rb           | #t
+false       | core.rb           | #f
 else        | core.lyra         | Alias for #t (for use in cond expressions)
 Nothing     | core.rb           | The non-object
 ::nothing   | core.rb           | Type name for the Nothing object.
@@ -587,7 +589,5 @@ Nothing     | core.rb           | The non-object
 ::string    | core.rb           | Type name for strings.
 ::symbol    | core.rb           | Type name for symbols.
 ::box       | core.rb           | Type name for boxes.
-true        | core/clj.lyra     | #t
-false       | core/clj.lyra     | #f
 nil         | core/clj.lyra     | Nothing
 ```

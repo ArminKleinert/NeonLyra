@@ -72,7 +72,7 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
       a = make_ast(tokens, level + 1, "}")
       root << a.each_slice(2).to_h
     when "#("
-      root << list(:lambda, list(:"&", 0.chr.to_sym), make_ast(tokens, level, ")"))
+      root << list(:lambda, list(:"&", 0.chr.to_sym), make_ast(tokens, level+1, ")"))
     when "("
       root << make_ast(tokens, level + 1, ")")
     when ")"

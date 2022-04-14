@@ -3346,6 +3346,114 @@
     (eq? #f ((every-pred number? float? ->bool) 1))
     (eq? #f ((every-pred number? not) 1))))
 
+(define (test-hash-lambda)
+  (let ((f #(list %1 %2 %3 %4 %5 %6 %7 %8 %9 %10 %11 %12 %13 %14 %15 %& %&&)))
+    (all-true?
+      (eq?
+        (list Nothing Nothing Nothing Nothing Nothing Nothing
+              Nothing Nothing Nothing Nothing Nothing Nothing
+              Nothing Nothing Nothing '()
+              '(Nothing Nothing Nothing Nothing Nothing Nothing
+                Nothing Nothing Nothing Nothing Nothing Nothing
+                Nothing Nothing Nothing))
+        (f))
+      (eq?
+        (list 1 Nothing Nothing Nothing Nothing Nothing
+              Nothing Nothing Nothing Nothing Nothing Nothing
+              Nothing Nothing Nothing '()
+              '(1))
+        (f 1))
+      (eq?
+        (list 1 3 Nothing Nothing Nothing Nothing
+              Nothing Nothing Nothing Nothing Nothing Nothing
+              Nothing Nothing Nothing '()
+              '(1 3))
+        (f 1 3))
+      (eq?
+        (list 1 3 5 Nothing Nothing Nothing
+              Nothing Nothing Nothing Nothing Nothing Nothing
+              Nothing Nothing Nothing '()
+              '(1 3 5))
+        (f 1 3 5))
+      (eq?
+        (list 1 3 5 7 Nothing Nothing
+              Nothing Nothing Nothing Nothing Nothing Nothing
+              Nothing Nothing Nothing '()
+              '(1 3 5 7))
+        (f 1 3 5 7))
+      (eq?
+        (list 1 3 5 7 9 Nothing
+              Nothing Nothing Nothing Nothing Nothing Nothing
+              Nothing Nothing Nothing '()
+              '(1 3 5 7 9))
+        (f 1 3 5 7 9))
+      (eq?
+        (list 1 3 5 7 9 11
+              Nothing Nothing Nothing Nothing Nothing Nothing
+              Nothing Nothing Nothing '()
+              '(1 3 5 7 9 11))
+        (f 1 3 5 7 9 11))
+      (eq?
+        (list 1 3 5 7 9 11 13
+              Nothing Nothing Nothing Nothing Nothing
+              Nothing Nothing Nothing '()
+              '(1 3 5 7 9 11 13))
+        (f 1 3 5 7 9 11 13))
+      (eq?
+        (list 1 3 5 7 9 11 13 15
+              Nothing Nothing Nothing Nothing
+              Nothing Nothing Nothing '()
+              '(1 3 5 7 9 11 13 15))
+        (f 1 3 5 7 9 11 13 15))
+      (eq?
+        (list 1 3 5 7 9 11 13 15 17
+              Nothing Nothing Nothing
+              Nothing Nothing Nothing '()
+              '(1 3 5 7 9 11 13 15 17))
+        (f 1 3 5 7 9 11 13 15 17))
+      (eq?
+        (list 1 3 5 7 9 11 13 15 17 19
+              Nothing Nothing Nothing Nothing Nothing '()
+              '(1 3 5 7 9 11 13 15 17 19))
+        (f 1 3 5 7 9 11 13 15 17 19))
+      (eq?
+        (list 1 3 5 7 9 11 13 15 17 19 21
+              Nothing Nothing Nothing Nothing '()
+              '(1 3 5 7 9 11 13 15 17 19 21))
+        (f 1 3 5 7 9 11 13 15 17 19 21))
+      (eq?
+        (list 1 3 5 7 9 11 13 15 17 19 21 23
+              Nothing Nothing Nothing '()
+              '(1 3 5 7 9 11 13 15 17 19 21 23))
+        (f 1 3 5 7 9 11 13 15 17 19 21 23))
+      (eq?
+        (list 1 3 5 7 9 11 13 15 17 19 21 23 25
+              Nothing Nothing '()
+              '(1 3 5 7 9 11 13 15 17 19 21 23 25))
+        (f 1 3 5 7 9 11 13 15 17 19 21 23 25))
+      (eq?
+        (list 1 3 5 7 9 11 13 15 17 19 21 23 25 27
+              Nothing '()
+              '(1 3 5 7 9 11 13 15 17 19 21 23 25 27))
+        (f 1 3 5 7 9 11 13 15 17 19 21 23 25 27))
+      (eq?
+        (list 1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 '()
+              '(1 3 5 7 9 11 13 15 17 19 21 23 25 27 29))
+        (f 1 3 5 7 9 11 13 15 17 19 21 23 25 27 29))
+      (eq?
+        (list 1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 '(31)
+              '(1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31))
+        (f 1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31))
+      (eq?
+        (list 1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 '(31 33)
+              '(1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31 33))
+        (f 1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31 33))
+      (eq?
+        (list 1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 '(31 33 35)
+              '(1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31 33 35))
+        (f 1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31 33 35))
+    )))
+
 (define (run-tests & fns)
   (let ((results
           (foldl
@@ -3368,6 +3476,7 @@
 
 (define (run-all-tests)
   (run-tests
+   'test-hash-lambda
   'test-keyword-name 'test-loop 'test-lambda 'test-cond 'test-if 'test-spread
   'test-apply 'test-lambda* 'test-quote 'test-gensym 'test-seq
   'test-lazy-crash 'test-lazy 'test-eager 'test-partial 'test-nothing

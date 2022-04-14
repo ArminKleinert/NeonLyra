@@ -294,6 +294,7 @@ def ev_lambda(name, args_expr, body_expr, definition_env, is_macro = false)
   arg_arr = args_expr.to_a
   arg_count = arg_arr.size
   max_args = arg_count
+  is_hash_lambda = false # Enable % arguments.
 
   unless arg_arr.all? { |x| x.is_a? Symbol }
     raise LyraError.new("Syntax error: Arguments for lambda must be symbols.", :syntax)
@@ -309,6 +310,9 @@ def ev_lambda(name, args_expr, body_expr, definition_env, is_macro = false)
   # symbol in the argument list is `&`.
   if arg_count >= 2
     varargs = arg_arr[-2] == :"&"
+    if arg_arr[-1] == 0.chr.to_sym
+      is_hash_lambda = true
+    end
     if varargs
       # Remove the `&` from the arguments.
       last = arg_arr[-1]
@@ -328,7 +332,7 @@ def ev_lambda(name, args_expr, body_expr, definition_env, is_macro = false)
     body_expr = list(nil)
   end
 
-  CompoundFunc.new(name, args_expr, body_expr, definition_env, is_macro, arg_count, max_args)
+  CompoundFunc.new(name, args_expr, body_expr, definition_env, is_macro, arg_count, max_args, is_hash_lambda)
 end
 
 # Evaluation function
