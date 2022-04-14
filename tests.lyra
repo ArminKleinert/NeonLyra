@@ -29,13 +29,13 @@
         (= fr 6)
         ((lambda () #t))
         (not ((lambda () #f)))))
-    (let* ((f (λ n . n))
+    (let* ((f (λ (n) n))
           (fr (f 6)))
       (all-true?
-        (= 2 ((λ n . (+ n n)) 1))
-        (< 2 ((λ n . (+ n n)) 2))
-        (= 2 ((λ n . n) 2))
-        ((λ n . #t) 2)
+        (= 2 ((λ (n) (+ n n)) 1))
+        (< 2 ((λ (n) (+ n n)) 2))
+        (= 2 ((λ (n) n) 2))
+        ((λ (n) #t) 2)
         (= (f 2) 2) 
         (= (f 2) 2) 
         (= (f 2) 2)
@@ -78,6 +78,14 @@
     (eq? (vector 1 1 1 1 1) [1 1 1 1 1])
     (= 6 (size [1 2 3 4 5 6]))
     (empty? [])))
+
+(define (test-tuple-literal)
+  (all-true?
+    (vector? [1 2 3 4 5])
+    (eq? (tuple "abc") (. "abc"))
+    (eq? (tuple +) (. +))
+    (eq? (tuple 1 1 1 1 1) (1 1 1 1 . 1))
+    (= 6 (size (1 2 3 4 5 . 6)))))
 
 (define (test-set-literal)
   (all-true?
@@ -160,7 +168,8 @@
     (nothing? (seq (lazy 6)))
     (nothing? (seq '()))
     (sequence? (seq (list 1 2 3 4 5)))
-    (sequence? (seq (vector 1 2 3 4 5)))))
+    (sequence? (seq (vector 1 2 3 4 5)))
+    (sequence? (seq (tuple 1 2 3 4 5)))))
 
 ; If this does not crash, then we know that the expression was not evaluated.
 (define (test-lazy-crash)
@@ -245,8 +254,11 @@
     (list? (read-string "(a c b)"))
     (all? symbol? (read-string "(a c b)"))
     (vector? (read-string "[1 2 3 4 5 6]"))
+    (tuple? (read-string "(1 2 3 4 5 . 6)"))
     (boolean? (read-string "#t"))
     (boolean? (read-string "#f"))
+    (boolean? (read-string "true"))
+    (boolean? (read-string "false"))
     (int? (read-string "1"))
     (float? (read-string "0.7"))))
 
@@ -625,6 +637,7 @@
     (collection? [1])
     (collection? (vector))
     (collection? (vector 1))
+    (collection? (tuple 1))
     (collection? (set-of))
     (collection? (set-of 1))
     (collection? (map-of))
@@ -647,6 +660,7 @@
     (sequence? [1])
     (sequence? (vector))
     (sequence? (vector 1))
+    (sequence? (tuple 1))
     (not (sequence? (set-of)))
     (not (sequence? (set-of 1)))
     (not (sequence? (map-of)))
@@ -695,6 +709,26 @@
     (not (vector? (set-of 1)))
     (not (vector? (map-of)))
     (not (vector? (map-of 1 2)))))
+
+(define (test-tuple?)
+  (all-true?
+    (not (tuple? 1))
+    (not (tuple? 1.5))
+    (not (tuple? 3/5r))
+    (not (tuple? #t))
+    (not (tuple? #f))
+    (not (tuple? 'a))
+    (not (tuple? ""))
+    (not (tuple? '()))
+    (not (tuple? '(1)))
+    (not (tuple? (list)))
+    (not (tuple? (list 1)))
+    (tuple? (. 1))
+    (tuple? (tuple 1))
+    (not (tuple? (set-of)))
+    (not (tuple? (set-of 1)))
+    (not (tuple? (map-of)))
+    (not (tuple? (map-of 1 2)))))
 
 (define (test-int?)
   (all-true?
@@ -1130,6 +1164,35 @@
     (eq? '(1 2) (cons 1 '(2)))
     (list? (cons 1 '(2)))
     (eq? (list (list 1 2 3)) (cons (list 1 2 3) (list)))))
+
+(define (test-tuple)
+  (all-true?
+    (eq? (tuple 1 2 3) (tuple 1 2 3))
+    (tuple? (tuple 1 2 3))
+    (= 3 (tuple-size (tuple 1 2 3)))))
+
+(define (test-tuple-size)
+  (all-true?
+    (= 1 (tuple-size (tuple 1)))
+    (= 2 (tuple-size (tuple 1 2)))))
+
+(define (test-tuple-car)
+  (all-true?
+    (= 1 (car (1 . 2)))
+    (= 1 (car (tuple 1 2 3)))
+    (eq? (tuple 1) (car (tuple (tuple 1) 23)))
+    (eq? '() (car (car (tuple (tuple 1)))))))
+
+(define (test-tuple-cdr)
+  (all-true?
+    (eq? (2 . 3) (cdr (1 2 . 3)))
+    (eq? (tuple 1) (cdr (tuple (tuple 1))))))
+
+(define (test-tuple-cons)
+  (all-true?
+    (eq? (1 . 2) (cons 1 (. 2)))
+    (tuple? (cons 1 (. 2)))
+    (eq? (list (tuple 1 2 . 3)) (cons (tuple 1 2 . 3) (list)))))
 
 (define (test-vector)
   (all-true?
@@ -1634,6 +1697,11 @@
     (= 1 (nth '(1 2 3) 0))
     (= 2 (nth '(1 2 3) 1))
     (= 3 (nth '(1 2 3) 2))
+    
+    (nothing? (nth (1 2 . 3) 15))
+    (= 1 (nth (1 2 . 3) 0))
+    (= 2 (nth (1 2 . 3) 1))
+    (= 3 (nth (1 2 . 3) 2))
     
     ; Test on infinite sequence
     (= 6 (nth (iterate inc 0) 6))
@@ -3532,6 +3600,7 @@
   'test-add 'test-add-front 'test-permutations 'test-get 'test-get-in
   'test-subseq 'test-replace-subseq 'test-v-zip-with 'test-combinations
   'test-for 'test-for-vec-binds 'test-juxt 'test-every-pred
+  'test-tuple 'test-tuple-size 'test-tuple-car 'test-tuple-cdr 'test-tuple-cons
   ))
 
 (println! "Starting tests...")

@@ -57,7 +57,7 @@ end
 # a bool, a string becomes a string, etc.
 # If an `(` is found, a cons is opened. It is closed when a `)` is 
 # encountered.
-def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
+def make_ast(tokens, level = 0, expected = "",  stop_after_1 = false)
   root = []
   while (t = tokens.shift) != nil
     case t
@@ -77,7 +77,12 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
       root << make_ast(tokens, level + 1, ")")
     when ")"
       raise LyraError.new("Unexpected ')'", :"parse-error") if level == 0 || expected != ")"
-      return list(*root)
+      #return expected_type == :tuple ? tuple(*root) : list(*root)
+      if root[-2] == :"."
+        return tuple(*(root[0..-3] + [root[-1]]))
+      else
+        return list(*root)
+      end
     when "["
       root << make_ast(tokens, level + 1, "]")
     when "]"

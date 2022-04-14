@@ -297,7 +297,7 @@ def ev_lambda(name, args_expr, body_expr, definition_env, is_macro = false)
   is_hash_lambda = false # Enable % arguments.
 
   unless arg_arr.all? { |x| x.is_a? Symbol }
-    raise LyraError.new("Syntax error: Arguments for lambda must be symbols.", :syntax)
+    raise LyraError.new("Syntax error: Arguments for lambda must be symbols but are #{args_expr}", :syntax)
   end
 
   a = arg_arr.reject { |a| a == :"_" }
@@ -358,6 +358,15 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       expr
     else
       expr.map { |x| eval_ly x, env, force_eval, true }
+    end
+  elsif expr.is_a?(Tuple)
+    if force_eval
+      tuple(*(expr.map { |x| eval_ly x, env, force_eval, true }))
+    elsif expr.all? { |x| !x.is_a?(Symbol) && atom?(x) }
+      # Nothing to evaluate.
+      expr
+    else
+      tuple(*(expr.map { |x| eval_ly x, env, force_eval, true }))
     end
   elsif expr.is_a?(Hash)
     (expr.map { |k, v| eval_ly [k, v], env, force_eval, true }).to_h

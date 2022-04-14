@@ -1,5 +1,5 @@
 (module core
-  (T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq 
+  (T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set ->tuple eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq 
   all? none? any? 
   zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop va-cons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred)
 
@@ -85,6 +85,7 @@
 (def-generic x (->char x) buildin->char)
 (def-generic x (->map x) (lambda (x) (buildin->map (->list x))))
 (def-generic x (->set x) (lambda (x) (list->set (->list x))))
+(def-generic x (->tuple x) (lambda (x) (buildin->tuple (->list x))))
 
 ; More general equality function. Defaults to = but uses seq-eq? if sequence? is true for both x and y.
 (def-generic x (eq? x y) (lambda (x y) (if (and (sequence? x) (sequence? y)) (seq-eq? x y) (= x y))))
@@ -835,11 +836,8 @@
     '() seq))
 
 ; TODO: Docs
-(def-macro (λ & args)
-  (let* ((args1 (split '. args))
-         (bindings (first args1))
-         (body (rest args1)))
-    (cons 'lambda (apply concat (list bindings) body))))
+(def-macro (λ bindings & body)
+  (cons 'lambda (cons bindings body)))
 
 ; Evaluate a list using the eager behaviour of impure functions.
 (define (doall! xs) xs)
@@ -1274,6 +1272,6 @@
 
 )
 
-(cons 'core (load! "string.lyra" "vector.lyra" "set.lyra"))
+(cons 'core (load! "string.lyra" "vector.lyra" "set.lyra" "tuple.lyra"))
 
 

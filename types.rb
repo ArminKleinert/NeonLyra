@@ -344,12 +344,75 @@ class LazyList
   end
 end
 
+class Tuple
+  include Enumerable, Unwrapable
+  
+  attr_reader :contents
+  attr_reader :last
+  
+  def self.create(contents, e = EmptyList.instance)
+    if contents.empty? && e == EmptyList.instance
+      list(*contents)
+    else
+      Tuple.new contents, e
+    end
+  end
+  
+  def initialize(contents, last)
+    @contents = contents.to_a
+    @last = last
+  end
+  
+  def to_a
+    @contents + [@last]
+  end
+  
+  def empty?
+    false
+  end
+  
+  def each(&block)
+    @contents.each(&block)
+    block.call(@last)
+  end
+  
+  def size
+    @contents.size + 1
+  end
+  
+  def car
+    @contents.empty? ? EmptyList.instance : @contents[0]
+  end
+  
+  def cdr
+    if size == 1
+      @last
+    else
+      Tuple.new(@contents[1..-1], @last)
+    end
+  end
+  
+  def unwrap
+    @contents.to_cons_list + list(@last)
+  end
+  
+  def [](i)
+    (@contents + [@last])[i]
+  end
+end
+
 def cons(e, l)
   if l.is_a?(ConsList)
     List.create(e, l)
+  elsif l.is_a?(Tuple)
+    Tuple.create([e] + l.contents, l.last)
   else
-    raise LyraError.new("Tail must be a list or function.", :"illegal-argument")
+    raise LyraError.new("Tail must be a list.", :"illegal-argument")
   end
+end
+
+def cons?(l)
+  l.respond_to?(:car) && l.respond_to?(:cdr)
 end
 
 def list(*args)
@@ -364,12 +427,30 @@ def list(*args)
   end
 end
 
+def tuple(*args)
+  if args.empty?
+    EmptyList.instance
+  elsif args.size == 1
+    Tuple.create [], args[-1]
+  else
+    Tuple.new args[0..-2], args[-1]
+  end
+end
+
 def car(e)
-  e.is_a?(ConsList) ? e.car : EmptyList.instance
+  if e.respond_to?(:car) 
+    e.car
+  else
+    EmptyList.instance
+  end
 end
 
 def cdr(e)
-  e.is_a?(ConsList) ? e.cdr : EmptyList.instance
+  if e.respond_to?(:cdr) 
+    e.cdr
+  else
+    EmptyList.instance
+  end
 end
 
 class Box
