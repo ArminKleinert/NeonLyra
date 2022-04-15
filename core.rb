@@ -142,7 +142,7 @@ def elem_to_s(e)
     "[#{e.map { |x| elem_to_s(x) }.join(" ")}]"
   elsif e.is_a? Tuple
     e = e.to_a
-    "(#{e.to_a.map { |x| elem_to_s(x) }.join(" ")} . #{elem_to_s(e.last)})"
+    "(#{e.to_a.map { |x| elem_to_s(x) }.join(", ")})"
   elsif e.is_a? Hash
     "{" + e.map { |k, v| "#{elem_to_s(k)} #{elem_to_s(v)}" }.join(" ") + "}"
   elsif e.is_a? Set
@@ -164,8 +164,7 @@ def elem_to_pretty(e)
   elsif e.is_a? Array
     "[#{e.map { |x| elem_to_pretty(x) }.join(" ")}]"
   elsif e.is_a? Tuple
-    e = e.to_a
-    "(#{e.to_a.map { |x| elem_to_pretty(x) }.join(" ")} . #{elem_to_pretty(e.last)})"
+    "(#{e.contents.map { |x| elem_to_pretty(x) }.join(", ")})"
   elsif e.is_a? Hash
     "{" + e.map { |k, v| "#{elem_to_pretty(k)} #{elem_to_pretty(v)}" }.join(" ") + "}"
   elsif e.is_a? Set
@@ -380,6 +379,8 @@ def setup_core_functions
   add_fn(:"buildin->char", 1) { |x| LyraChar.conv(x) }
   add_fn(:"buildin->map", 1) { |x| x.is_a?(Enumerable) ? Hash[*x] : nil }
   add_fn(:"buildin->set", 1) { |x| x.is_a?(Enumerable) ? Set[*x] : nil }
+  
+  add_fn(:"tuple", 1, -1) { |*xs| arr_to_tuple xs }
 
   add_fn(:"buildin-vector", 0, -1) { |*xs| xs }
   add_fn(:"buildin-vector-size", 1) { |xs| xs.size }

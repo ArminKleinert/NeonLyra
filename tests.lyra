@@ -80,12 +80,11 @@
     (empty? [])))
 
 (define (test-tuple-literal)
-  (all-true?
-    (vector? [1 2 3 4 5])
-    (eq? (tuple "abc") (. "abc"))
-    (eq? (tuple +) (. +))
-    (eq? (tuple 1 1 1 1 1) (1 1 1 1 . 1))
-    (= 6 (size (1 2 3 4 5 . 6)))))
+  (comment all-true?
+    (eq? (tuple 1 + 3) (1, +, 3))
+    (eq? (tuple 1 1 1 1 1) (1, 1, 1, 1, 1))
+    (tuple? (1, 1, 1, 1, 1))
+    (= 6 (size (1, 2, 3, 4, 5, 6)))))
 
 (define (test-set-literal)
   (all-true?
@@ -169,7 +168,7 @@
     (nothing? (seq '()))
     (sequence? (seq (list 1 2 3 4 5)))
     (sequence? (seq (vector 1 2 3 4 5)))
-    (sequence? (seq (1 2 3 4 . 5)))))
+    (sequence? (seq (tuple 1 2 3 4 5)))))
 
 ; If this does not crash, then we know that the expression was not evaluated.
 (define (test-lazy-crash)
@@ -249,12 +248,12 @@
       ))
 
 (define (test-read-string)
-  (all-true?
+  (comment all-true?
     (nothing? (read-string "Nothing"))
     (list? (read-string "(a c b)"))
     (all? symbol? (read-string "(a c b)"))
     (vector? (read-string "[1 2 3 4 5 6]"))
-    (tuple? (read-string "(1 2 3 4 5 . 6)"))
+    ;(tuple? (read-string "(1, 2, 3, 4, 5, 6)"))
     (boolean? (read-string "#t"))
     (boolean? (read-string "#f"))
     (boolean? (read-string "true"))
@@ -637,8 +636,8 @@
     (collection? [1])
     (collection? (vector))
     (collection? (vector 1))
-    (collection? (. 1))
-    (collection? (1 2 . 3))
+    (collection? (tuple 1))
+    (collection? (tuple 1 2 3))
     (collection? (set-of))
     (collection? (set-of 1))
     (collection? (map-of))
@@ -661,8 +660,8 @@
     (sequence? [1])
     (sequence? (vector))
     (sequence? (vector 1))
-    (sequence? (. 1))
-    (sequence? (1 2 . 3))
+    (sequence? (tuple 1))
+    (sequence? (tuple 1 2 3))
     (not (sequence? (set-of)))
     (not (sequence? (set-of 1)))
     (not (sequence? (map-of)))
@@ -725,7 +724,6 @@
     (not (tuple? '(1)))
     (not (tuple? (list)))
     (not (tuple? (list 1)))
-    (tuple? (. 1))
     (tuple? (tuple 1))
     (not (tuple? (set-of)))
     (not (tuple? (set-of 1)))
@@ -1169,26 +1167,27 @@
 
 (define (test-tuple-size)
   (all-true?
-    (= 1 (tuple-size (. 1)))
-    (= 2 (tuple-size (1 . 2)))))
+    (= 1 (tuple-size (tuple 1)))
+    (= 2 (tuple-size (tuple 1 2)))))
 
 (define (test-tuple-car)
   (all-true?
-    (= 1 (car (1 . 2)))
-    (= 1 (car (1 2 . 3)))
-    (eq? (. 1) (car ((. 1) . 23)))
-    (eq? '() (car (car (. (. 1)))))))
+    (= 1 (car (tuple 1 2)))
+    (= 1 (car (tuple 1 2 3)))
+    (eq? (tuple 1) (car (tuple (tuple 1) 2 3)))
+    (eq? 1 (car (car (tuple (tuple 1)))))))
+
 
 (define (test-tuple-cdr)
   (all-true?
-    (eq? (2 . 3) (cdr (1 2 . 3)))
-    (eq? (. 1) (cdr (. (. 1))))))
+    (eq? (tuple 2 3) (cdr (tuple 1 2 3)))
+    (eq? '() (cdr (tuple (tuple 1))))))
 
 (define (test-tuple-cons)
   (all-true?
-    (eq? (1 . 2) (cons 1 (. 2)))
-    (tuple? (cons 1 (. 2)))
-    (eq? (list (1 2 . 3)) (cons (1 2 . 3) (list)))))
+    (eq? (tuple 1 2) (cons 1 (tuple 2)))
+    (tuple? (cons 1 (tuple 2)))
+    (eq? (list (tuple 1 2 3)) (cons (tuple 1 2 3) (list)))))
 
 (define (test-vector)
   (all-true?
@@ -1694,10 +1693,10 @@
     (= 2 (nth '(1 2 3) 1))
     (= 3 (nth '(1 2 3) 2))
     
-    (nothing? (nth (1 2 . 3) 15))
-    (= 1 (nth (1 2 . 3) 0))
-    (= 2 (nth (1 2 . 3) 1))
-    (= 3 (nth (1 2 . 3) 2))
+    (nothing? (nth (tuple 1 2 3) 15))
+    (= 1 (nth (tuple 1 2 3) 0))
+    (= 2 (nth (tuple 1 2 3) 1))
+    (= 3 (nth (tuple 1 2 3) 2))
     
     ; Test on infinite sequence
     (= 6 (nth (iterate inc 0) 6))
@@ -3597,6 +3596,7 @@
   'test-subseq 'test-replace-subseq 'test-v-zip-with 'test-combinations
   'test-for 'test-for-vec-binds 'test-juxt 'test-every-pred
   'test-tuple-size 'test-tuple-car 'test-tuple-cdr 'test-tuple-cons
+  'test-tuple-literal
   ))
 
 (println! "Starting tests...")

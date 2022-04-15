@@ -3,7 +3,7 @@
 
 require_relative 'types.rb'
 
-# [\s,]*                ignore whitespace and comma
+# [\s]*                ignore whitespace and comma
 # \\u[0-9]{4}           utf-8 literals
 # \\.                   Other char literals
 # [()\[\]\{\}]          Special opening and closing brackets.
@@ -14,11 +14,45 @@ require_relative 'types.rb'
 # #\(                   Special symbol '#('
 # '                     Special symbol '
 # [^\s\[\]\{\}('"`,;)]* Anything else, excluding spaces, [, ], (, ), {, }, ', ", `, comma and semicolon
+#LYRA_REGEX = /[\s,]*(\\u[0-9]{4}|\\,|\\.|[()\[\]\{\}]|"(?:\\.|[^\\"])*"?|;.*|@|#\{|#\(|[^\s\[\]\{\}('"`;)]*'{0,1}|')/
 LYRA_REGEX = /[\s,]*(\\u[0-9]{4}|\\.|[()\[\]\{\}]|"(?:\\.|[^\\"])*"?|;.*|@|#\{|#\(|[^\s\[\]\{\}('"`,;)]*'{0,1}|')/
 
 # Scan the text using RE, remove empty tokens and remove comments.
+=begin
 def tokenize(s)
-  s.scan(LYRA_REGEX).flatten.reject { |w| w.empty? || w.start_with?(";") }
+  tokens = s.scan(LYRA_REGEX).flatten.reject { |w| w.empty? || w.start_with?(";") }
+  tokens = tokens.inject([]) do |res, t|
+    if t.empty?
+      res
+    elsif t.start_with?('"') && t.end_with?('"')
+      res + [t]
+    else
+      ts = "#{t}".split(/([,\.])/)
+      ts.flatten!(1)
+      res + ts
+    end
+  end
+  tokens.reject!{|x| x.empty?}
+  tokens
+end
+=end
+
+def tokenize(s)
+  tokens = s.scan(LYRA_REGEX).flatten.reject { |w| w.empty? || w.start_with?(";") }
+end
+
+def slice_arr_as_tuple(arr, e)
+  res = [[]]
+  arr.each do |x|
+    if x == e
+      res << []
+    else
+      res[-1] << x
+    end
+  end
+  res.map!{|a| a.empty? ? [nil] : a}
+  res.flatten!(1)
+  res
 end
 
 # Un-escapes a string and removed the '"' from beginning and end.
@@ -77,11 +111,14 @@ def make_ast(tokens, level = 0, expected = "",  stop_after_1 = false)
       root << make_ast(tokens, level + 1, ")")
     when ")"
       raise LyraError.new("Unexpected ')'", :"parse-error") if level == 0 || expected != ")"
-      if root[-2] == :"."
-        return tuple(root[0..-3], root[-1])
+=begin
+      if root.include? :","
+        return arr_to_tuple(slice_arr_as_tuple(root, :","))
       else
         return list(*root)
       end
+=end
+      return list(*root)
     when "["
       root << make_ast(tokens, level + 1, "]")
     when "]"

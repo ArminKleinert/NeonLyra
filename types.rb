@@ -348,23 +348,21 @@ class Tuple
   include Enumerable, Unwrapable
   
   attr_reader :contents
-  attr_reader :last
   
-  def self.create(contents, e = EmptyList.instance)
-    if contents.empty? && e == EmptyList.instance
-      list(*contents)
+  def self.create(contents)
+    if contents.empty?
+      EmptyList.instance
     else
-      Tuple.new contents, e
-    end
+      Tuple.new contents
+    end  
   end
   
-  def initialize(contents, last)
+  def initialize(contents)
     @contents = contents.to_a
-    @last = last
   end
   
   def to_a
-    @contents + [@last]
+    @contents
   end
   
   def empty?
@@ -373,31 +371,26 @@ class Tuple
   
   def each(&block)
     @contents.each(&block)
-    block.call(@last)
   end
   
   def size
-    @contents.size + 1
+    @contents.size
   end
   
   def car
-    @contents.empty? ? EmptyList.instance : @contents[0]
+    @contents[0]
   end
   
   def cdr
-    if size == 1
-      @last
-    else
-      Tuple.new(@contents[1..-1], @last)
-    end
+    arr_to_tuple(@contents[1..-1])
   end
   
   def unwrap
-    @contents.to_cons_list + list(@last)
+    @contents.to_cons_list
   end
   
   def [](i)
-    (@contents + [@last])[i]
+    @contents[i]
   end
 end
 
@@ -405,7 +398,7 @@ def cons(e, l)
   if l.is_a?(ConsList)
     List.create(e, l)
   elsif l.is_a?(Tuple)
-    Tuple.create([e] + l.contents, l.last)
+    Tuple.create([e] + l.contents)
   else
     raise LyraError.new("Tail must be a list.", :"illegal-argument")
   end
@@ -427,8 +420,12 @@ def list(*args)
   end
 end
 
-def tuple(front, last)
-  Tuple.create front, last
+def arr_to_tuple(arr)
+  Tuple.create arr
+end
+
+def tuple(*arr)
+  Tuple.create arr
 end
 
 def car(e)
