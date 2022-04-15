@@ -77,9 +77,8 @@ def make_ast(tokens, level = 0, expected = "",  stop_after_1 = false)
       root << make_ast(tokens, level + 1, ")")
     when ")"
       raise LyraError.new("Unexpected ')'", :"parse-error") if level == 0 || expected != ")"
-      #return expected_type == :tuple ? tuple(*root) : list(*root)
       if root[-2] == :"."
-        return tuple(*(root[0..-3] + [root[-1]]))
+        return tuple(root[0..-3], root[-1])
       else
         return list(*root)
       end

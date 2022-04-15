@@ -1,15 +1,13 @@
 (module tuple
-  (list->tuple tuple tuple-size tuple-nth tuple-includes? tuple-eq?)
+  (list->tuple tuple-size tuple-nth tuple-includes? tuple-eq?)
 
 (define  (list->tuple x) (apply-to tuple x))
 
-(define tuple buildin-tuple)
 (define tuple-size buildin-vector-size)
 (define tuple-nth buildin-nth)
 (define tuple-includes? contains?)
 (define tuple-eq? (lambda(t0 t1) (and (tuple? t0) (eq? t0 t1))))
 
-(def-impl ::tuple ->tuple id)
 (def-impl ::tuple ->set buildin->set)
 (def-impl ::tuple ->map buildin->map)
 (def-impl ::tuple ->vector buildin->vector)

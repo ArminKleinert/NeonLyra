@@ -360,14 +360,9 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       expr.map { |x| eval_ly x, env, force_eval, true }
     end
   elsif expr.is_a?(Tuple)
-    if force_eval
-      tuple(*(expr.map { |x| eval_ly x, env, force_eval, true }))
-    elsif expr.all? { |x| !x.is_a?(Symbol) && atom?(x) }
-      # Nothing to evaluate.
-      expr
-    else
-      tuple(*(expr.map { |x| eval_ly x, env, force_eval, true }))
-    end
+    # TODO: x has some value value here? What is it and why is it set???
+    # TODO: Optimize!
+    tuple((expr.contents.map{|x| eval_ly x, env, force_eval, true }), eval_ly(expr.last, env, force_eval, true))
   elsif expr.is_a?(Hash)
     (expr.map { |k, v| eval_ly [k, v], env, force_eval, true }).to_h
   elsif expr.is_a?(Set)

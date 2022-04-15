@@ -169,7 +169,7 @@
     (nothing? (seq '()))
     (sequence? (seq (list 1 2 3 4 5)))
     (sequence? (seq (vector 1 2 3 4 5)))
-    (sequence? (seq (tuple 1 2 3 4 5)))))
+    (sequence? (seq (1 2 3 4 . 5)))))
 
 ; If this does not crash, then we know that the expression was not evaluated.
 (define (test-lazy-crash)
@@ -637,7 +637,8 @@
     (collection? [1])
     (collection? (vector))
     (collection? (vector 1))
-    (collection? (tuple 1))
+    (collection? (. 1))
+    (collection? (1 2 . 3))
     (collection? (set-of))
     (collection? (set-of 1))
     (collection? (map-of))
@@ -660,7 +661,8 @@
     (sequence? [1])
     (sequence? (vector))
     (sequence? (vector 1))
-    (sequence? (tuple 1))
+    (sequence? (. 1))
+    (sequence? (1 2 . 3))
     (not (sequence? (set-of)))
     (not (sequence? (set-of 1)))
     (not (sequence? (map-of)))
@@ -1165,34 +1167,28 @@
     (list? (cons 1 '(2)))
     (eq? (list (list 1 2 3)) (cons (list 1 2 3) (list)))))
 
-(define (test-tuple)
-  (all-true?
-    (eq? (tuple 1 2 3) (tuple 1 2 3))
-    (tuple? (tuple 1 2 3))
-    (= 3 (tuple-size (tuple 1 2 3)))))
-
 (define (test-tuple-size)
   (all-true?
-    (= 1 (tuple-size (tuple 1)))
-    (= 2 (tuple-size (tuple 1 2)))))
+    (= 1 (tuple-size (. 1)))
+    (= 2 (tuple-size (1 . 2)))))
 
 (define (test-tuple-car)
   (all-true?
     (= 1 (car (1 . 2)))
-    (= 1 (car (tuple 1 2 3)))
-    (eq? (tuple 1) (car (tuple (tuple 1) 23)))
-    (eq? '() (car (car (tuple (tuple 1)))))))
+    (= 1 (car (1 2 . 3)))
+    (eq? (. 1) (car ((. 1) . 23)))
+    (eq? '() (car (car (. (. 1)))))))
 
 (define (test-tuple-cdr)
   (all-true?
     (eq? (2 . 3) (cdr (1 2 . 3)))
-    (eq? (tuple 1) (cdr (tuple (tuple 1))))))
+    (eq? (. 1) (cdr (. (. 1))))))
 
 (define (test-tuple-cons)
   (all-true?
     (eq? (1 . 2) (cons 1 (. 2)))
     (tuple? (cons 1 (. 2)))
-    (eq? (list (tuple 1 2 . 3)) (cons (tuple 1 2 . 3) (list)))))
+    (eq? (list (1 2 . 3)) (cons (1 2 . 3) (list)))))
 
 (define (test-vector)
   (all-true?
@@ -3600,7 +3596,7 @@
   'test-add 'test-add-front 'test-permutations 'test-get 'test-get-in
   'test-subseq 'test-replace-subseq 'test-v-zip-with 'test-combinations
   'test-for 'test-for-vec-binds 'test-juxt 'test-every-pred
-  'test-tuple 'test-tuple-size 'test-tuple-car 'test-tuple-cdr 'test-tuple-cons
+  'test-tuple-size 'test-tuple-car 'test-tuple-cdr 'test-tuple-cons
   ))
 
 (println! "Starting tests...")

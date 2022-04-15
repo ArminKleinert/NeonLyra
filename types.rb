@@ -427,14 +427,8 @@ def list(*args)
   end
 end
 
-def tuple(*args)
-  if args.empty?
-    EmptyList.instance
-  elsif args.size == 1
-    Tuple.create [], args[-1]
-  else
-    Tuple.new args[0..-2], args[-1]
-  end
+def tuple(front, last)
+  Tuple.create front, last
 end
 
 def car(e)

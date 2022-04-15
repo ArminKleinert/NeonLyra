@@ -380,13 +380,6 @@ def setup_core_functions
   add_fn(:"buildin->char", 1) { |x| LyraChar.conv(x) }
   add_fn(:"buildin->map", 1) { |x| x.is_a?(Enumerable) ? Hash[*x] : nil }
   add_fn(:"buildin->set", 1) { |x| x.is_a?(Enumerable) ? Set[*x] : nil }
-  add_fn(:"buildin->tuple", 1) { |x| if x.is_a?(Tuple)
-                                          x
-                                      else
-                                        x.is_a?(Enumerable) ? Tuple.new(*x.to_a) : nil 
-                                      end}
-  
-  add_fn(:"buildin-tuple", 1, -1) { |*x| tuple(*x) }
 
   add_fn(:"buildin-vector", 0, -1) { |*xs| xs }
   add_fn(:"buildin-vector-size", 1) { |xs| xs.size }
