@@ -51,6 +51,7 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 - Set  
 - Error  
 - Keyword  
+- Tuple  
 
 ## Some friendly infos about the syntax 
 
@@ -68,6 +69,7 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 - `#(...)` shortened form for lambda. Arguments are called `%1`, `%2`, ..., `%15` and are initialized as `Nothing` unless specified. Arguments beyond 15 are in `%&`. The total argument list is `%&&`.  
 - `#{...}` is a literal set.  
 - `{...}` is a literal map.  
+- `&(...)` is a literal tuple.  
 - `:<word>` is a keyword literal. (eg. `:a`)  
 - Numbers can start with the prefixes `0x` or `0b` for hexadecimal or binary literals.
 - Function with names that end in `!` are considered impure. Impure calls eagerly evaluate their parameters. They will also not be optimized away. You can mark any function as pure by not putting a `!` at the end of the name.  

@@ -48,6 +48,9 @@ begin
 
   f.call :"lambda"
   f.call :"cond"
+  
+  DO_NOTHING_AND_RETURN = gensym(:id)
+  f.call DO_NOTHING_AND_RETURN
 end
 
 # destructure [:a,:b,:c,:"&",:xs], [1,2,3,4,5,6,7,8,9,10]
@@ -397,6 +400,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         # The predicate was not true
         eval_ly(fourth(expr), env, force_eval)
       end
+
     when :cond
       clauses = rest(expr)
       result = nil
@@ -415,6 +419,9 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         clauses = rest(rest(clauses))
       end
       result
+
+    when DO_NOTHING_AND_RETURN
+      eval_ly(second(expr), env, force_eval)
     when :lambda
       raise LyraError.new("lambda without bindings.", :syntax) if expr.cdr.empty?
 
@@ -583,12 +590,12 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       # is then executed.
       r1 = func.call(args, env)
       LYRA_CALL_STACK.pop
-      expr.set_car! :id
+      expr.set_car! DO_NOTHING_AND_RETURN
       expr.set_cdr! list(r1)
       r1
     when :alias
       if expr.size != 2
-        raise LyraError.new("Wrong number of arguments for lazy. (Expected 1, got #{expr.cdr.size})")
+        raise LyraError.new("Wrong number of arguments for alias. (Expected 1, got #{expr.cdr.size})")
       end
       Alias.new(expr.cdr.car)
     else
@@ -638,7 +645,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         LYRA_CALL_STACK.pop
         puts elem_to_pretty(r1) if $show_expand_macros
         if LYRA_CALL_STACK.none?(&:is_macro)
-          expr.set_car! :id
+          expr.set_car! DO_NOTHING_AND_RETURN
           expr.set_cdr! list(r1)
         end
         eval_ly(r1, env, force_eval)

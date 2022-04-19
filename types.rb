@@ -275,6 +275,17 @@ class ListPair
     list_append @list0.cdr, @list1
   end
 
+  # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
+  def set_car!(c)
+    @list0.set_car! c
+  end
+
+  # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
+  def set_cdr!(tail)
+    @list1 = EmptyList.instance
+    @list0.set_cdr! tail
+  end
+
   def size
     @list0.size + @list1.size
   end
@@ -350,8 +361,8 @@ class Tuple
   attr_reader :contents
   
   def self.create(contents)
-    if contents.empty?
-      EmptyList.instance
+    if contents.size < 2
+      list(*contents)
     else
       Tuple.new contents
     end  
@@ -382,7 +393,11 @@ class Tuple
   end
   
   def cdr
-    arr_to_tuple(@contents[1..-1])
+    if @contents.size < 3
+      @contents[-1]
+    else
+      arr_to_tuple(@contents[1..-1])
+    end
   end
   
   def unwrap
@@ -533,7 +548,7 @@ class CompoundFunc < LyraFn
     raise LyraError.new("#{@name}: Too many arguments. (Given #{args_given}, expected #{@arg_counts})", :arity) if arg_counts.last >= 0 && args_given > arg_counts.last
 
     begin
-      env1 = Env.new(nil, @definition_env, env).set!(@name, self)
+      env1 = Env.new(nil, @definition_env, env).set!(:"*current-function*", @name).set!(@name, self)
       if @is_hash_lambda
         env1.set_multi_anonymous! args
       else

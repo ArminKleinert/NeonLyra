@@ -589,5 +589,6 @@ Nothing     | core.rb           | The non-object
 ::string    | core.rb           | Type name for strings.
 ::symbol    | core.rb           | Type name for symbols.
 ::box       | core.rb           | Type name for boxes.
+::tuple     | core.rb           | Type name for tuples.
 nil         | core/clj.lyra     | Nothing
 ```
