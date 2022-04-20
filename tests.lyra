@@ -14,15 +14,12 @@
         (r-sym (gensym 'r))
         (temp-sym (gensym 'temp)))
     (list 'let '()
-      '(print! "Running ")
-      '(print! *current-function*)
-      '(print! ": ")
+      '(print! "Running " *current-function* ": ")
       (list 'let (list (list success-sym
               (list 'foldl
                 (list 'lambda (list r-sym e-sym)
                   (list 'let (list (list temp-sym (list 'if (eager e-sym) #t #f)))
-                    (list 'print! temp-sym)
-                    (list 'print! " ")
+                    (list 'print! temp-sym " ")
                     (list 'if e-sym r-sym #f)))
                 #t (cons 'list cases))))
           (list 'println! (list 'if success-sym "\n  => success" "\n  => failure"))
