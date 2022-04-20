@@ -302,6 +302,8 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
 - 0.1.5
   - `#()` and `%n` are back  
   - Bugfix in `->rational` for truffleruby  
+  - Various bugfixes  
+  - Reduced set of core functions  
   
 
 ## Known bugs
