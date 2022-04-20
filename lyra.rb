@@ -73,12 +73,7 @@ end
 # Treat the first console argument as a filename,
 # read from the file and evaluate the result.
 begin
-    $stderr.puts "HERE"
-    $stderr.puts src_files.to_s
-    $stderr.puts src_files.empty?
-    
   puts elem_to_pretty(eval_str(IO.read("core.lyra")))
-    $stderr.puts "HERE1"
   src_files.each do |f|
     puts elem_to_pretty(eval_str(IO.read(f)))
   end

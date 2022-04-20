@@ -32,7 +32,7 @@ begin
   f.call :"lambda*"
   f.call :"let"
   f.call :"let*"
-  f.call :"if"
+#  f.call :"if"
   f.call :"def-type"
   f.call :"define"
   f.call :"def-impl"
@@ -380,6 +380,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
 
     # Try to match the symbol.
     case first(expr)
+=begin
     when :if
       # Form is `(if predicate then-branch else-branch)`.
       # If the predicate holds true, the then-branch is executed.
@@ -390,15 +391,16 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         #puts pred
         expr = LazyObj.new expr, env
         eval_ly(expr, env)
-      elsif pred != false && !pred.nil? && !pred.is_a?(EmptyList)
+      elsif truthy?(pred)
         # The predicate was true
         eval_ly(third(expr), env, force_eval)
       else
         # The predicate was not true
         eval_ly(fourth(expr), env, force_eval)
       end
+=end
     when :cond
-      clauses = rest(expr)
+      clauses = cdr(expr)
       result = nil
       until clauses.size == 0
         p = eval_ly(first(clauses), env, force_eval, true)
@@ -408,11 +410,11 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
           expr = LazyObj.new expr, env
           result = eval_ly(expr, env)
           break
-        elsif p
+        elsif truthy?(p)
           result = eval_ly(second(clauses), env, force_eval)
           break
         end
-        clauses = rest(rest(clauses))
+        clauses = cdr(cdr(clauses))
       end
       result
 
