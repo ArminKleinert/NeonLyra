@@ -32,7 +32,7 @@ begin
   f.call :"lambda*"
   f.call :"let"
   f.call :"let*"
-#  f.call :"if"
+  f.call :"if"
   f.call :"def-type"
   f.call :"define"
   f.call :"def-impl"
@@ -47,7 +47,7 @@ begin
   f.call :"expand-macro"
 
 #  f.call :"lambda"
-  f.call :"cond"
+#  f.call :"cond"
   
   DO_NOTHING_AND_RETURN = gensym(:id)
   f.call DO_NOTHING_AND_RETURN
@@ -380,7 +380,6 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
 
     # Try to match the symbol.
     case first(expr)
-=begin
     when :if
       # Form is `(if predicate then-branch else-branch)`.
       # If the predicate holds true, the then-branch is executed.
@@ -398,7 +397,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         # The predicate was not true
         eval_ly(fourth(expr), env, force_eval)
       end
-=end
+=begin
     when :cond
       clauses = cdr(expr)
       result = nil
@@ -417,7 +416,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         clauses = cdr(cdr(clauses))
       end
       result
-
+=end
     when DO_NOTHING_AND_RETURN
       eval_ly(second(expr), env, force_eval)
 =begin
