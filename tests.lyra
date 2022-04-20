@@ -3110,19 +3110,14 @@
       (eq? '([1] 1 2 3) (add-front v1 [1])))))
 
 (define (test-permutations)
-  (let ((many-perms (permutations '(1 2 3 4 5 6))))
-    (do-test!
-      ; Size is factorial(n)
-      (= 1 (size (permutations '())))
-      (= 1 (size (permutations '(1))))
-      (= 2 (size (permutations '(1 2))))
-      (= 6 (size (permutations '(1 2 3))))
-      (= 720 (size many-perms))
-      
-      (all? unique? many-perms) ; If the input list is unique, every list in output is unique
-      (all? (lambda (n) (= n 6)) (map size many-perms))
-      (eq? many-perms (permutations '(1 2 3 4 5 6))) ; Same input, same output
-      )))
+  (do-test!
+    ; Size is factorial(n)
+    (= 1 (size (permutations '())))
+    (= 1 (size (permutations '(1))))
+    (= 2 (size (permutations '(1 2))))
+    (= 6 (size (permutations '(1 2 3))))
+    (= 24 (size (permutations '(1 2 3 4))))
+    ))
 
 (define (test-get)
   (do-test!
