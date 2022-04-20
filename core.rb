@@ -57,7 +57,6 @@ ERROR_TYPE = TypeName.new "::error", 14
 CHAR_TYPE = TypeName.new "::char", 15
 KEYWORD_TYPE = TypeName.new "::keyword", 16
 ALIAS_TYPE = TypeName.new "::alias", 17
-TUPLE_TYPE = TypeName.new "::tuple", 18
 
 def type_of(x)
   if x.nil?
@@ -96,8 +95,6 @@ def type_of(x)
     ERROR_TYPE
   elsif x.is_a? Keyword
     KEYWORD_TYPE
-  elsif x.is_a? Tuple
-    TUPLE_TYPE
   elsif x.is_a? Alias
     ALIAS_TYPE
   else
@@ -140,9 +137,6 @@ def elem_to_s(e)
     ""
   elsif e.is_a? Array
     "[#{e.map { |x| elem_to_s(x) }.join(" ")}]"
-  elsif e.is_a? Tuple
-    e = e.to_a
-    "(#{e.to_a.map { |x| elem_to_s(x) }.join(", ")})"
   elsif e.is_a? Hash
     "{" + e.map { |k, v| "#{elem_to_s(k)} #{elem_to_s(v)}" }.join(" ") + "}"
   elsif e.is_a? Set
@@ -163,8 +157,6 @@ def elem_to_pretty(e)
     "(#{e.map { |x| elem_to_pretty(x) }.join(" ")})"
   elsif e.is_a? Array
     "[#{e.map { |x| elem_to_pretty(x) }.join(" ")}]"
-  elsif e.is_a? Tuple
-    "(#{e.contents.map { |x| elem_to_pretty(x) }.join(", ")})"
   elsif e.is_a? Hash
     "{" + e.map { |k, v| "#{elem_to_pretty(k)} #{elem_to_pretty(v)}" }.join(" ") + "}"
   elsif e.is_a? Set
@@ -332,7 +324,6 @@ def setup_core_functions
   add_fn(:"lazy?", 1) { |x| x.is_a?(Lazy) }
   add_fn(:"lazy-obj?", 1) { |x| x.is_a?(LazyObj) }
   add_fn(:"keyword?", 1) { |x| x.is_a?(Keyword) }
-  add_fn(:"tuple?", 1) { |x| x.is_a?(Tuple) }
 
   add_fn(:"keyword-name", 1) { |x| x.is_a?(Keyword) ? x.to_s[1..-1].to_sym : nil }
 
@@ -379,8 +370,6 @@ def setup_core_functions
   add_fn(:"buildin->map", 1) { |x| x.is_a?(Enumerable) ? Hash[*x] : nil }
   add_fn(:"buildin->set", 1) { |x| x.is_a?(Enumerable) ? Set[*x] : nil }
   
-  add_fn(:"tuple", 1, -1) { |*xs| arr_to_tuple xs }
-
   add_fn(:"buildin-vector", 0, -1) { |*xs| xs }
   add_fn(:"buildin-vector-size", 1) { |xs| xs.size }
   add_fn(:"buildin-vector-range", 3) { |xs, s, e| r = xs[s...e]; r.nil? ? [] : r }
@@ -538,8 +527,7 @@ def setup_core_functions
 
   [NOTHING_TYPE, BOOL_TYPE, VECTOR_TYPE, MAP_TYPE, LIST_TYPE, FUNCTION_TYPE,
    INTEGER_TYPE, FLOAT_TYPE, RATIO_TYPE, SET_TYPE, TYPE_NAME_TYPE, STRING_TYPE,
-   SYMBOL_TYPE, BOX_TYPE, ERROR_TYPE, CHAR_TYPE, KEYWORD_TYPE, ALIAS_TYPE,
-   TUPLE_TYPE].each do |t|
+   SYMBOL_TYPE, BOX_TYPE, ERROR_TYPE, CHAR_TYPE, KEYWORD_TYPE, ALIAS_TYPE].each do |t|
     add_var t.to_sym, t
   end
 

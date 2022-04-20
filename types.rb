@@ -355,60 +355,6 @@ class LazyList
   end
 end
 
-class Tuple
-  include Enumerable, Unwrapable
-  
-  attr_reader :contents
-  
-  def self.create(contents)
-    if contents.size < 2
-      list(*contents)
-    else
-      Tuple.new contents
-    end  
-  end
-  
-  def initialize(contents)
-    @contents = contents.to_a
-  end
-  
-  def to_a
-    @contents
-  end
-  
-  def empty?
-    false
-  end
-  
-  def each(&block)
-    @contents.each(&block)
-  end
-  
-  def size
-    @contents.size
-  end
-  
-  def car
-    @contents[0]
-  end
-  
-  def cdr
-    if @contents.size < 3
-      @contents[-1]
-    else
-      arr_to_tuple(@contents[1..-1])
-    end
-  end
-  
-  def unwrap
-    @contents.to_cons_list
-  end
-  
-  def [](i)
-    @contents[i]
-  end
-end
-
 def cons(e, l)
   if l.is_a?(ConsList)
     List.create(e, l)
@@ -433,14 +379,6 @@ def list(*args)
     end
     lst
   end
-end
-
-def arr_to_tuple(arr)
-  Tuple.create arr
-end
-
-def tuple(*arr)
-  Tuple.create arr
 end
 
 def car(e)

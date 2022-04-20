@@ -16,7 +16,7 @@ require_relative 'evaluate.rb'
 # '                     Special symbol '
 # [^\s\[\]\{\}('"`,;)]* Anything else, excluding spaces, [, ], (, ), {, }, ', ", `, comma and semicolon
 #LYRA_REGEX = /[\s,]*(\\u[0-9]{4}|\\.|[()\[\]\{\}]|"(?:\\.|[^\\"])*"?|;.*|@|#\{|#\(|[^\s\[\]\{\}('"`,;)]*'{0,1}|')/
-LYRA_REGEX = /[\s,]*(\\u[0-9]{4}|\\.|[()\[\]\{\}]|"(?:\\.|[^\\"])*"?|;.*|@|#\{|&\(|#\(|[^\s\[\]\{\}('"`,;)]*'{0,1}|')/
+LYRA_REGEX = /[\s,]*(\\u[0-9]{4}|\\.|[()\[\]\{\}]|"(?:\\.|[^\\"])*"?|;.*|@|#\{|#\(|[^\s\[\]\{\}('"`,;)]*'{0,1}|')/
 
 # Scan the text using RE, remove empty tokens and remove comments.
 def tokenize(s)
@@ -89,10 +89,6 @@ def make_ast(tokens, level = 0, expected = "",  stop_after_1 = false)
       root << a.each_slice(2).to_h
     when "#("
       root << list(:lambda, list(:"&", 0.chr.to_sym), make_ast(tokens, level+1, ")"))
-    when "&("
-      r = arr_to_tuple(make_ast(tokens, level+1, ")"))
-      raise LyraError.new("Empty tuples are not allowed.", :"parse-error") if r.empty?
-      root << r
     when "("
       root << make_ast(tokens, level + 1, ")")
     when ")"

@@ -1282,5 +1282,5 @@
 
 )
 
-(cons 'core (load! "string.lyra" "vector.lyra" "set.lyra" "tuple.lyra"))
+(cons 'core (load! "string.lyra" "vector.lyra" "set.lyra"))
 
