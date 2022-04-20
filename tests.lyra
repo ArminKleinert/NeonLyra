@@ -24,7 +24,6 @@
                 #t (cons 'list cases))))
           (list 'println! (list 'if success-sym "\n  => success" "\n  => failure"))
           success-sym))))
-    
 
 (define (crash!)
   (/ 0 0))

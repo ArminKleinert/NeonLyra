@@ -46,7 +46,7 @@ begin
   f.call :"catch"
   f.call :"expand-macro"
 
-  f.call :"lambda"
+#  f.call :"lambda"
   f.call :"cond"
   
   DO_NOTHING_AND_RETURN = gensym(:id)
@@ -420,6 +420,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
 
     when DO_NOTHING_AND_RETURN
       eval_ly(second(expr), env, force_eval)
+=begin
     when :lambda
       raise LyraError.new("lambda without bindings.", :syntax) if expr.cdr.empty?
 
@@ -429,6 +430,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       args_expr = second(expr)
       body_expr = rest(rest(expr))
       ev_lambda(gensym("lambda"), args_expr, body_expr, env)
+=end
     when :"lambda*"
       raise LyraError.new("lambda* without name.", :syntax) if expr.cdr.empty?
       raise LyraError.new("lambda* without bindings.", :syntax) if expr.cdr.cdr.empty?
