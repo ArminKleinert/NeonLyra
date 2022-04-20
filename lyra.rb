@@ -64,10 +64,11 @@ if ARGV[0] == "--show_expand_macros"
 end
 if ARGV.include? "-args"
   src_files, lyra_args = ARGV.slice_after { |e| e == "-args" }.to_a
-  Env.global_env.set!(:"*ARGS*", lyra_args ? lyra_args.map(&:freeze).freeze : list())
+  Env.global_env.set!(:"*ARGS*", lyra_args ? lyra_args.map(&:freeze).to_cons_list.freeze : list())
   src_files.shift
 else
   src_files = ARGV
+  Env.global_env.set!(:"*ARGS*", list())
 end
 
 # Treat the first console argument as a filename,

@@ -12,17 +12,21 @@
   (let ((success-sym (gensym 'do-test!-success))
         (e-sym (gensym 'e))
         (r-sym (gensym 'r))
+        (t0 (gensym 't0))
+        (t1 (gensym 't1))
         (temp-sym (gensym 'temp)))
     (list 'let '()
       '(print! "Running " *current-function* ": ")
       (list 'let (list (list success-sym
               (list 'foldl
                 (list 'lambda (list r-sym e-sym)
-                  (list 'let (list (list temp-sym (list 'if (eager e-sym) #t #f)))
-                    (list 'print! temp-sym " ")
-                    (list 'if e-sym r-sym #f)))
-                #t (cons 'list cases))))
-          (list 'println! (list 'if success-sym "\n  => success" "\n  => failure"))
+                  (list 'if e-sym
+                    (list '+ r-sym 1)
+                    r-sym))
+                0 (cons 'list cases))))
+          (list 'println!
+            "(" success-sym " / " (size cases) ")" 
+            (list 'if (list '= success-sym (size cases)) " => success" " => failure"))
           success-sym))))
 
 (define (crash!)

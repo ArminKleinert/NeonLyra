@@ -568,7 +568,7 @@
 ; Required: empty?, first, rest
 (define (take-while p xs)
   (cond (empty? xs) '()
-        (p (first xs)) (cons (first xs) (take-while p (rest xs)))
+        (p (first xs)) (lazy-seq (first xs) (take-while p (rest xs)))
         else '()))
 
 ; Take until a predicate is true.
@@ -576,7 +576,7 @@
 (define (take-until p xs)
   (cond (empty? xs) '()
         (p (first xs)) '()
-        else (cons (first xs) (take-until p (rest xs)))))
+        else (lazy-seq (first xs) (take-until p (rest xs)))))
 
 ; Drop the first n elements of a collection xs.
 ; Returns Nothing for atoms.

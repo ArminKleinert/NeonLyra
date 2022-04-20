@@ -273,5 +273,46 @@ truffleruby:
   Sort 5000 elements:                               2622.209
   Shuffle 5000 elements:                            4988.6715
   9-billion-names (25):                             802.0735
+  
+0.1.5
+Ruby:
+  Generic utility (Do not change):                  53.3197855
+  Many math ops:                                    0.189771
+  Without -> :                                      0.187801
+  Many math ops (lambda):                           0.198153
+  Same as partials with composition:                0.4268525
+  set operations                                    989.96846
+  map operations                                    116.9633415
+  (ack 3 4)                                         1668.522222
+  lazy sequences                                    56.1316755
+  Sort 5000 elements:                               2323.180712
+  Shuffle 5000 elements:                            8197.300617
+  9-billion-names (25):                             2406.9547215000002
+jruby:
+  Generic utility (Do not change):                  102.82249999999999
+  Many math ops:                                    0.629
+  Without -> :                                      0.5725
+  Many math ops (lambda):                           0.621
+  Same as partials with composition:                2.3505000000000003
+  set operations                                    1229.74
+  map operations                                    113.7035
+  (ack 3 4)                                         2892.7084999999997
+  lazy sequences                                    128.502
+  Sort 5000 elements:                               3085.8735
+  Shuffle 5000 elements:                            8402.361
+  9-billion-names (25):                             2222.7675
+truffleruby:
+  Generic utility (Do not change):                  155.9085
+  Many math ops:                                    0.78
+  Without -> :                                      0.708
+  Many math ops (lambda):                           0.763
+  Same as partials with composition:                2.5225
+  set operations                                    501.48199999999997
+  map operations                                    51.77399999999998
+  (ack 3 4)                                         4394.3385
+  lazy sequences                                    249.91500000000002
+  Sort 5000 elements:                               2669.8895
+  Shuffle 5000 elements:                            5148.29
+  9-billion-names (25):                             740.236
 )
 

@@ -590,4 +590,6 @@ Nothing     | core.rb           | The non-object
 ::symbol    | core.rb           | Type name for symbols.
 ::box       | core.rb           | Type name for boxes.
 nil         | core/clj.lyra     | Nothing
+*current-function* | evaluate.rb| Holds the name of the current function.
+*ARGS*      | lyra.rb           | Holds the arguments that were passed to the program.
 ```
