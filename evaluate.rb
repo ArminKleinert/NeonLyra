@@ -397,7 +397,6 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         # The predicate was not true
         eval_ly(fourth(expr), env, force_eval)
       end
-
     when :cond
       clauses = rest(expr)
       result = nil

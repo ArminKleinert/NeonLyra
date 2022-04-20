@@ -10,16 +10,7 @@
 ; Take any arguments and return Nothing.
 (def-macro (comment & _) (nothing))
 
-(comment def-macro (cond & xs)
-  (if (= (list-size xs) 0)
-    Nothing
-    (if (= (list-size xs) 1)
-      (car xs)
-      (list 'if (car xs)
-        (if (cdr xs)
-          (car (cdr xs))
-          Nothing)
-        (cons 'cond (cdr (cdr xs)))))))
+
 
 ; unbox a box or unpack a user-defined type.
 ; Can be overridden.
@@ -172,7 +163,7 @@
 ; (print! 1 2 3) ;=> prints "123"
 ; (println! "abc" "abc" "abc") ;=> prints "abcabcabc"
 (define (%print! xs)
-  (if xs (let () (buildin-print! (->string (car xs))) (%print! (cdr xs))) Nothing))
+  (cond xs (let () (buildin-print! (->string (car xs))) (%print! (cdr xs))) #t  Nothing))
 (define (print! & xs)
   (%print! xs))
 (define (println! & xs)
@@ -1283,4 +1274,5 @@
 )
 
 (cons 'core (load! "string.lyra" "vector.lyra" "set.lyra"))
+
 
