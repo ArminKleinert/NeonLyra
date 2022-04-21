@@ -7,16 +7,17 @@
        "core/infix.lyra"
        "core/clj.lyra"
        "core/queue.lyra")
-  
+
 (def-macro (do-test! & cases)
-  (let ((success-sym (gensym 'do-test!-success))
+  (let ((details #t) ; Set to #f to hide details and only show overall success/failure numbers at the end
+        (success-sym (gensym 'do-test!-success))
         (e-sym (gensym 'e))
         (r-sym (gensym 'r))
         (t0 (gensym 't0))
         (t1 (gensym 't1))
         (temp-sym (gensym 'temp)))
     (list 'let '()
-      '(print! "Running " *current-function* ": ")
+      (list 'if details '(print! "Running " *current-function* ": ") Nothing)
       (list 'let (list (list success-sym
               (list 'foldl
                 (list 'lambda (list r-sym e-sym)
@@ -24,9 +25,11 @@
                     (list '+ r-sym 1)
                     r-sym))
                 0 (cons 'list cases))))
-          (list 'println!
-            "(" success-sym " / " (size cases) ")" 
-            (list 'if (list '= success-sym (size cases)) " => success" " => failure"))
+          (list 'if details
+            (list 'println!
+              "(" success-sym " / " (size cases) ")" 
+              (list 'if (list '= success-sym (size cases)) " => success" " => failure"))
+            Nothing)
           success-sym))))
 
 (define (crash!)
