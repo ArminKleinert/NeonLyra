@@ -1,7 +1,7 @@
 (module core
   (cond lambda T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq 
   all? none? any? 
-  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop va-cons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred)
+  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred)
 
 ;;; Some core things
 
@@ -199,7 +199,7 @@
 ; Simpler Let for a single binding.
 ; (let1 (a 1) a) is equivalent to (let ((a 1)) a)
 (def-macro (let1 bindings & body)
-  (va-cons 'let (list bindings) body))
+  (xcons 'let (list bindings) body))
 
 ; Implementations for nth.
 (def-impl ::map nth (lambda (x i) (vector-nth (->vector x) i)))
@@ -402,11 +402,11 @@
 
 ; Perform operations sequencially.
 (def-macro (begin & exprs)
-  (va-cons 'let '() exprs))
+  (xcons 'let '() exprs))
 
 ; define memoized function.
 (def-macro (def-memo name-bindings & body)
-  (list 'define (car name-bindings) (list 'memoize (va-cons 'lambda (cdr name-bindings) body))))
+  (list 'define (car name-bindings) (list 'memoize (xcons 'lambda (cdr name-bindings) body))))
 
 ; Expand the last element of a sequence and returns a list.
 ; (spread (list 1 2 3 '(9 7 5))) ;=> (1 2 3 9 7 5)
@@ -804,9 +804,9 @@
 (define (cddddr x) (cdr (cdr (cdr (cdr x)))))
 
 ; repeatedly apply cons to a list.
-; (va-cons 1 2 3 4 '(5 6)) ;=> (1 2 3 4 5 6)
-; (va-cons 1 2 '(3)) is equivalent to (cons 1 (cons 2 '(3)))
-(define (va-cons & args) (foldr1 cons args))
+; (xcons 1 2 3 4 '(5 6)) ;=> (1 2 3 4 5 6)
+; (xcons 1 2 '(3)) is equivalent to (cons 1 (cons 2 '(3)))
+(define (xcons & args) (foldr1 cons args))
 
 ; Flatten a collection.
 ; Required: collection?, foldr, append
@@ -863,7 +863,7 @@
 
 ; As in Clojure.
 (def-macro (-> x & exprs)
-  (foldl (lambda (acc expr) (if (list? expr) (va-cons (car expr) acc (cdr expr)) (list expr acc))) x exprs))
+  (foldl (lambda (acc expr) (if (list? expr) (xcons (car expr) acc (cdr expr)) (list expr acc))) x exprs))
 
 ; As in Clojure.
 (def-macro (->> x & exprs)
@@ -907,7 +907,7 @@
       (cons
         (cons
           #t
-          (list (list 'apply-to (va-cons 'lambda (list '& (caar forms)) (cdar forms)) args)))
+          (list (list 'apply-to (xcons 'lambda (list '& (caar forms)) (cdar forms)) args)))
         acc)))
 
 ; Like case-lambda* but does not take a name.
@@ -1089,7 +1089,7 @@
 
 ; Alias for def-macro
 (def-macro (defmacro bindings & body)
-  (va-cons 'def-macro bindings body))
+  (xcons 'def-macro bindings body))
 
 ; Add items from 'from' to 'to', keeping the type of 'to'. (if add is correctly defined)
 ;   (into) ;=> () ; empty input -> empty list
@@ -1283,4 +1283,3 @@
 )
 
 (cons 'core (load! "string.lyra" "vector.lyra" "set.lyra"))
-

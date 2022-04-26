@@ -93,10 +93,31 @@
             (= x 11) (map-merge m m))))
       0 r)))
 
+
+(define (multiplicative-persistance-recur n)
+  (let* ((mult-digits
+            (lambda (n res)
+              (if (= n 0) res (recur (/ n 10) (* res (rem n 10))))))
+        (%help
+            (lambda (n p)
+              (if (< n 10) p (recur (mult-digits n 1) (+ p 1))))))
+    (%help n 0)))
+(define (multiplicative-persistance-tr n)
+  (let* ((mult-digits
+            (lambda (n res)
+              (if (= n 0) res (mult-digits (/ n 10) (* res (rem n 10))))))
+        (%help
+            (lambda (n p)
+              (if (< n 10) p (%help (mult-digits n 1) (+ p 1))))))
+    (%help n 0)))
+(define (find-first-with-mp-5 p)
+  (cadar (drop-while (lambda (mp) (< (car mp) 5)) (map (lambda (n) (list (p n) n)) (iterate inc 1)))))
+
+
 (def-macro (test-performance text expr)
   (list 'println! (list 'string-concat (list 'ljust  text 50) (list '->string (list 'measure! 'runs (list 'lambda () expr))))))
 
-(let ((runs 100))
+(let ((runs 50))
 
 (test-performance "Generic utility (Do not change):" (sum-of-divisors 500))
 
@@ -110,9 +131,7 @@
 (let ((ops (foldr compose id (list (partial + 5)(partial - 5)(partial * 5)(partial / 5)(partial + 5)(partial - 5)(partial * 5)(partial / 5)(partial + 5)(partial - 5)(partial * 5)(partial / 5)(partial + 5)(partial - 5)(partial * 5)(partial / 5)(partial + 5)(partial - 5)(partial * 5)(partial / 5)(partial + 5)(partial - 5)(partial * 5)(partial / 5)(partial + 5)(partial - 5)(partial * 5)(partial / 5)))))
   (test-performance "Same as partials with composition:" (ops 5)))
   
-(let ((s (->set (xrange -500 500 1)))
-      (s1 (->set (xrange -250 750 1))))
-  (test-performance "set operations" (test-set-stuff)))
+(test-performance "set operations" (test-set-stuff))
 
 (test-performance "map operations" (test-map-stuff))
 
@@ -129,6 +148,9 @@
   (test-performance "Shuffle 5000 elements:" (shuffle sequence 0xC0FFEE)))
 
 (test-performance "9-billion-names (25):" (9-billion-names 25))
+
+(test-performance "Lots of recur:" (find-first-with-mp-5 multiplicative-persistance-recur))
+(test-performance "Lots of tail recursion" (find-first-with-mp-5 multiplicative-persistance-tr))
 )
 
 
