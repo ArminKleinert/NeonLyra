@@ -1283,3 +1283,20 @@
 )
 
 (cons 'core (load! "string.lyra" "vector.lyra" "set.lyra"))
+(define (g n p)
+  (cond (not (< 1 p)) 1
+        (not (< p (dec n))) 1
+        else (foldl (lambda (res q) (+ res (if (> q (- n p)) 0 (g (- n p) q)))) 1 (range 2 p))))
+(define (9-billion-names rows)
+  (foldl
+    (lambda (res n)
+      (string-append
+        (apply string-concat res
+          (map-eager
+            (lambda (p) (string-append (->string (g n p)) " "))
+            (range 1 n)))
+        "\n"))
+    ""
+    (range 1 (inc rows))))
+
+(println! (9-billion-names 25))
