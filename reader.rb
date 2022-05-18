@@ -2,9 +2,11 @@
 # frozen_string_literal: true
 
 require_relative 'types.rb'
+require_relative 'evaluate.rb'
 
-# [\s,]*                ignore whitespace and comma
+# [\s]*                 ignore whitespace and comma
 # \\u[0-9]{4}           utf-8 literals
+# \\p\(                 Partial function shortcut
 # \\.                   Other char literals
 # [()\[\]\{\}]          Special opening and closing brackets.
 # "(?:\\.|[^\\"])*"?    String literals
@@ -14,11 +16,26 @@ require_relative 'types.rb'
 # #\(                   Special symbol '#('
 # '                     Special symbol '
 # [^\s\[\]\{\}('"`,;)]* Anything else, excluding spaces, [, ], (, ), {, }, ', ", `, comma and semicolon
-LYRA_REGEX = /[\s,]*(\\u[0-9]{4}|\\.|[()\[\]\{\}]|"(?:\\.|[^\\"])*"?|;.*|@|#\{|#\(|[^\s\[\]\{\}('"`,;)]*'{0,1}|')/
+#LYRA_REGEX = /[\s,]*(\\u[0-9]{4}|\\.|[()\[\]\{\}]|"(?:\\.|[^\\"])*"?|;.*|@|#\{|#\(|[^\s\[\]\{\}('"`,;)]*'{0,1}|')/
+LYRA_REGEX = /[\s,]*(\\u[0-9]{4}|\\p\(|\\.|[()\[\]\{\}]|"(?:\\.|[^\\"])*"?|;.*|@|#\{|#\(|[^\s\[\]\{\}('"`,;)]*'{0,1}|')/
 
 # Scan the text using RE, remove empty tokens and remove comments.
 def tokenize(s)
-  s.scan(LYRA_REGEX).flatten.reject { |w| w.empty? || w.start_with?(";") }
+  tokens = s.scan(LYRA_REGEX).flatten.reject { |w| w.empty? || w.start_with?(";") }
+end
+
+def slice_arr_as_tuple(arr, e)
+  res = [[]]
+  arr.each do |x|
+    if x == e
+      res << []
+    else
+      res[-1] << x
+    end
+  end
+  res.map!{|a| a.empty? ? [nil] : a}
+  res.flatten!(1)
+  res
 end
 
 # Un-escapes a string and removed the '"' from beginning and end.
@@ -57,7 +74,7 @@ end
 # a bool, a string becomes a string, etc.
 # If an `(` is found, a cons is opened. It is closed when a `)` is 
 # encountered.
-def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
+def make_ast(tokens, level = 0, expected = "",  stop_after_1 = false)
   root = []
   while (t = tokens.shift) != nil
     case t
@@ -72,9 +89,11 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
       a = make_ast(tokens, level + 1, "}")
       root << a.each_slice(2).to_h
     when "#("
-      root << list(:lambda, list(:"&", 0.chr.to_sym), make_ast(tokens, level, ")"))
+      root << list(:lambda, list(:"&", 0.chr.to_sym), make_ast(tokens, level+1, ")"))
     when "("
       root << make_ast(tokens, level + 1, ")")
+    when "\\p("
+      root << cons(:partial, make_ast(tokens, level + 1, ")"))
     when ")"
       raise LyraError.new("Unexpected ')'", :"parse-error") if level == 0 || expected != ")"
       return list(*root)

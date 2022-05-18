@@ -1,11 +1,21 @@
 (module core
-  (T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq 
+  (cond lambda T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq 
   all? none? any? 
-  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop va-cons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred)
+  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at)
 
 ;;; Some core things
 
-(define (T & _) #t)
+(def-macro (lambda binds & body)
+  (cons 'lambda* (cons (gensym 'lambda) (cons binds body))))
+  
+(def-macro (cond & cases)
+  (if cases
+    (if (cdr cases)
+      (list 'if (car cases) (car (cdr cases)) (cons 'cond (cdr (cdr cases))))
+      (car cases))
+    Nothing))
+
+;(def-macro (if p t e) (list 'cond p t #t e))
 
 ; Take any arguments and return Nothing.
 (def-macro (comment & _) (nothing))
@@ -70,6 +80,20 @@
 ; Get an element in a collection xs by its key k.
 ; The default behaviour uses nth, but it has to be overridden for maps and sets.
 (def-generic xs (get xs k) nth)
+
+(define (index-of v xs)
+  (let ((%iof (lambda (i xs)
+            (if (empty? xs)
+              0
+              (let ((c (first xs)))
+                (if (eq? c v)
+                  i
+                  (recur (+ i 1) (rest xs))))))))
+    (%iof 0 xs)))
+
+; Find associated key or value for an element.
+; index-of for lists and vectors, true or false for sets.
+(def-generic xs (find v xs) (lambda (v xs) (index-of (seq xs))))
 
 ; Type conversions.
 ; Default conversions to collections require ->float to be implemented,
@@ -146,13 +170,13 @@
 ; If xs is a collection, use a linear implementation for lists and return a lazy sequence.
 ; Otherwise, return Nothing.
 (def-generic xs (delete-at i xs)
-  (lambda (i xs0)
+  (lambda (i xs)
     (if (collection? xs)
-      (let ((xs (->list xs0)))
+      (let ((xs (->list xs)))
         (cond
           (= i 0) (cdr xs)
           (< i 0) xs
-          else (lazy-seq (car xs) (delete-at i (cdr xs)))))
+          else (lazy-seq (car xs) (delete-at (dec i) (cdr xs)))))
       Nothing)))
 
 ; Printing. %print! should not be used directly.
@@ -161,7 +185,7 @@
 ; (print! 1 2 3) ;=> prints "123"
 ; (println! "abc" "abc" "abc") ;=> prints "abcabcabc"
 (define (%print! xs)
-  (if xs (let () (buildin-print! (->string (car xs))) (%print! (cdr xs))) Nothing))
+  (cond xs (let () (buildin-print! (->string (car xs))) (%print! (cdr xs))) Nothing))
 (define (print! & xs)
   (%print! xs))
 (define (println! & xs)
@@ -188,7 +212,7 @@
 ; Simpler Let for a single binding.
 ; (let1 (a 1) a) is equivalent to (let ((a 1)) a)
 (def-macro (let1 bindings & body)
-  (va-cons 'let (list bindings) body))
+  (xcons 'let (list bindings) body))
 
 ; Implementations for nth.
 (def-impl ::map nth (lambda (x i) (vector-nth (->vector x) i)))
@@ -227,7 +251,7 @@
 (def-impl ::list first car)
 (def-impl ::map first (lambda (m) (vector-nth (map->vector m) 0)))
 
-; Implementations for res.t
+; Implementations for rest.
 (def-impl ::list rest cdr)
 (def-impl ::map rest (lambda (m) (let ((v (mao->vector m))) (vector-range v 1 (vector-size v)))))
 
@@ -371,7 +395,7 @@
 
 ; Function composition
 (define (compose f g)
-  (lambda (x) (f (g x))))
+  (lambda (x & xs) (f (apply-to g (cons x xs)))))
 (define (compose2 f g)
   (lambda (x y) (f (g x y))))
 
@@ -391,11 +415,11 @@
 
 ; Perform operations sequencially.
 (def-macro (begin & exprs)
-  (va-cons 'let '() exprs))
+  (xcons 'let '() exprs))
 
 ; define memoized function.
 (def-macro (def-memo name-bindings & body)
-  (list 'define (car name-bindings) (list 'memoize (va-cons 'lambda (cdr name-bindings) body))))
+  (list 'define (car name-bindings) (list 'memoize (xcons 'lambda (cdr name-bindings) body))))
 
 ; Expand the last element of a sequence and returns a list.
 ; (spread (list 1 2 3 '(9 7 5))) ;=> (1 2 3 9 7 5)
@@ -546,10 +570,7 @@
     (lazy-seq (first xs) (%take (dec n) (rest xs)))))
 (define (take n xs)
   (cond
-    (atom? xs)
-      Nothing
-    ;(or (list? xs) (or (vector? xs) (or (set? xs) (map? xs))))
-    ;  (buildin-take n xs)
+    (empty? xs) Nothing
     else (%take n xs))
   )
 
@@ -557,7 +578,7 @@
 ; Required: empty?, first, rest
 (define (take-while p xs)
   (cond (empty? xs) '()
-        (p (first xs)) (cons (first xs) (take-while p (rest xs)))
+        (p (first xs)) (lazy-seq (first xs) (take-while p (rest xs)))
         else '()))
 
 ; Take until a predicate is true.
@@ -565,7 +586,7 @@
 (define (take-until p xs)
   (cond (empty? xs) '()
         (p (first xs)) '()
-        else (cons (first xs) (take-until p (rest xs)))))
+        else (lazy-seq (first xs) (take-until p (rest xs)))))
 
 ; Drop the first n elements of a collection xs.
 ; Returns Nothing for atoms.
@@ -731,7 +752,11 @@
 
 ; Returns a function which always returns x.
 (define (constantly x) (lambda (& ys) x))
-(define (const x) (lambda (& ys) x))
+(define const constantly)
+
+; Always true
+(define T (constantly #t))
+(define F (constantly #f))
 
 
 ;; case macro
@@ -793,9 +818,9 @@
 (define (cddddr x) (cdr (cdr (cdr (cdr x)))))
 
 ; repeatedly apply cons to a list.
-; (va-cons 1 2 3 4 '(5 6)) ;=> (1 2 3 4 5 6)
-; (va-cons 1 2 '(3)) is equivalent to (cons 1 (cons 2 '(3)))
-(define (va-cons & args) (foldr1 cons args))
+; (xcons 1 2 3 4 '(5 6)) ;=> (1 2 3 4 5 6)
+; (xcons 1 2 '(3)) is equivalent to (cons 1 (cons 2 '(3)))
+(define (xcons & args) (foldr1 cons args))
 
 ; Flatten a collection.
 ; Required: collection?, foldr, append
@@ -835,11 +860,8 @@
     '() seq))
 
 ; TODO: Docs
-(def-macro (λ & args)
-  (let* ((args1 (split '. args))
-         (bindings (first args1))
-         (body (rest args1)))
-    (cons 'lambda (apply concat (list bindings) body))))
+(def-macro (λ bindings & body)
+  (cons 'lambda (cons bindings body)))
 
 ; Evaluate a list using the eager behaviour of impure functions.
 (define (doall! xs) xs)
@@ -855,7 +877,7 @@
 
 ; As in Clojure.
 (def-macro (-> x & exprs)
-  (foldl (lambda (acc expr) (if (list? expr) (va-cons (car expr) acc (cdr expr)) (list expr acc))) x exprs))
+  (foldl (lambda (acc expr) (if (list? expr) (xcons (car expr) acc (cdr expr)) (list expr acc))) x exprs))
 
 ; As in Clojure.
 (def-macro (->> x & exprs)
@@ -899,7 +921,7 @@
       (cons
         (cons
           #t
-          (list (list 'apply-to (va-cons 'lambda (list '& (caar forms)) (cdar forms)) args)))
+          (list (list 'apply-to (xcons 'lambda (list '& (caar forms)) (cdar forms)) args)))
         acc)))
 
 ; Like case-lambda* but does not take a name.
@@ -1063,7 +1085,7 @@
         (foldl (lambda (bd ct) (list 'try* bd ct)) (cons 'begin body) catch-clauses)))
         (if (empty? finally-clause) Nothing (cons 'begin (cdar finally-clause)))
         res-name)
-      (list 'catch '(lambda(_)#t) err-name
+      (list 'catch (constantly #t) err-name
         (if (empty? finally-clause) Nothing (cons 'begin (cdar finally-clause)))
         (list 'error! (list 'error-msg err-name) (list 'error-info err-name) (list 'error-trace err-name))))
     ))
@@ -1081,12 +1103,12 @@
 
 ; Alias for def-macro
 (def-macro (defmacro bindings & body)
-  (va-cons 'def-macro bindings body))
+  (xcons 'def-macro bindings body))
 
 ; Add items from 'from' to 'to', keeping the type of 'to'. (if add is correctly defined)
 ;   (into) ;=> () ; empty input -> empty list
 ;   (into '(1 2)) ;=> (1 2)
-;   (into [1 2] '(3 4)) ;=> [1 2 3 4]
+;   (into [1 2#!]!# '(3 4)) ;=> [1 2 3 4]
 ;   (into [1 2] unique '(3 3 4 3)) ;=> [1 2 3 4]
 ; The last case works well for partials:
 ;   (let ((f (partial into [1 2] unique))) ...)
@@ -1144,7 +1166,7 @@
   (let ((l (->list l0)))
     (if (null? l)
       '(())
-      (apply concat
+      (apply-to concat
         (map (lambda (p)
               (map (lambda (n)
                       (%insert p n (car l)))
@@ -1206,8 +1228,6 @@
 
 ;;; for macro
 
-
-
 ; Lazily calculates all combinations of any number of lists while preserving order:
 ; (combinations '(1 2) '(3 4) '(5 6)) 
 ; => ((1 3 5) (1 3 6) (1 4 5) (1 4 6) (2 3 5) (2 3 6) (2 4 5) (2 4 6))
@@ -1254,26 +1274,26 @@
     (list map-split
       (list 'lambda* (gensym 'for) (map car defs)
         (list 'let* (mapcat ->list lets)
-          (concat
-            '(cond)
-            (if (empty? whiles)
-              '()
-              (list
-                (list any? not (cons list whiles))
-                (list list #t Nothing Nothing)))
-            (if (empty? whens)
-              '()
-              (list
-                (list any? not (cons list whens))
-                (list list #f #t Nothing)))
-          (list else (cons list (list #f #f body))))))
+          (cons 'cond
+            (concat
+              (if (empty? whiles)
+                '()
+                (list
+                  (list any? not (cons list whiles))
+                  (list list #t Nothing Nothing)))
+              (if (empty? whens)
+                '()
+                (list
+                  (list any? not (cons list whens))
+                  (list list #f #t Nothing)))
+              (list else (cons list (list #f #f body)))))))
       (cons combinations (map cadr defs))
       ))))
 (def-macro (for bindings body)
   (%for bindings body))
 
+(define (cartesian-product lst0 lst1)
+  (apply-to concat (map (lambda (x) (zip (repeat x) lst1)) lst0)))
 )
 
 (cons 'core (load! "string.lyra" "vector.lyra" "set.lyra"))
-
-
