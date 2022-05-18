@@ -30,7 +30,7 @@
               "(" success-sym " / " (size cases) ")" 
               (list 'if (list '= success-sym (size cases)) " => success" " => failure"))
             Nothing)
-          success-sym))))
+          (list '= success-sym (size cases))))))
 
 (define (crash!)
   (/ 0 0))
@@ -204,6 +204,9 @@
   (do-test!
     (= ((partial + 0) 5) (+ 0 5))
     (= ((partial foldl + 0) (list 1 2 3 4 5))
+        (foldl + 0 (list 1 2 3 4 5)))
+    (= (\p(+ 0) 5) (+ 0 5))
+    (= (\p(foldl + 0) (list 1 2 3 4 5))
         (foldl + 0 (list 1 2 3 4 5)))))
 
 (define (test-nothing)
@@ -2779,23 +2782,21 @@
     (eq? (deque) (deque))))
 
 (define (test-enqueue)
-  (and
-    (let* ((q (queue 1 2 3))
-          (q1 (enqueue q 4)))
-      (do-test!
-        (= (size q) 3)
-        (= (size q1) 4)
-        (= 1 (first q))
-        (= 1 (first q1))
-        (eq? q1 (enqueue q 4))))
-    (let* ((q (deque 1 2 3))
-          (q1 (enqueue q 4)))
-      (do-test!
-        (= (size q) 3)
-        (= (size q1) 4)
-        (= 1 (first q))
-        (= 1 (first q1))
-        (eq? q1 (enqueue q 4))))))
+  (let* ((q (queue 1 2 3))
+        (q1 (enqueue q 4))
+        (d (deque 1 2 3))
+        (d1 (enqueue q 4)))
+    (do-test!
+      (= (size q) 3)
+      (= (size q1) 4)
+      (= 1 (first q))
+      (= 1 (first q1))
+      (eq? q1 (enqueue q 4))
+      (= (size d) 3)
+      (= (size d1) 4)
+      (= 1 (first d))
+      (= 1 (first d1))
+      (eq? q1 (enqueue d 4)))))
 
 (define (test-enqueue-all)
   (do-test!
@@ -3461,6 +3462,27 @@
         (f 1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31 33 35))
     )))
 
+(define (test-cartesian-product)
+  (do-test!
+    (eq? '((1 3) (1 4) (2 3) (2 4)) (cartesian-product '(1 2) '(3 4)))))
+
+(define (test-delete-at)
+  (do-test!
+    (eq? '() (delete-at 0 '()))
+    (eq? '() (delete-at 0 '(1)))
+    (eq? '(2 3) (delete-at 0 '(1 2 3)))
+    (eq? '(1 3) (delete-at 1 '(1 2 3)))
+
+    (eq? '() (delete-at 0 []))
+    (eq? '() (delete-at 0 [1]))
+    (eq? '(2 3) (delete-at 0 [1 2 3]))
+    (eq? '(1 3) (delete-at 1 [1 2 3]))
+
+    (eq? Nothing (delete-at 0 0))
+    (eq? Nothing (delete-at 0 'a))
+    (eq? Nothing (delete-at 0 \a))
+    ))
+
 (define (run-tests & fns)
   (let ((results
           (foldl
@@ -3538,6 +3560,7 @@
   'test-add 'test-add-front 'test-permutations 'test-get 'test-get-in
   'test-subseq 'test-replace-subseq 'test-v-zip-with 'test-combinations
   'test-for 'test-for-vec-binds 'test-juxt 'test-every-pred 'test-hash-lambda
+  'test-cartesian-product 'test-delete-at
   ;'test-lazy-crash 'test-lazy 'test-eager 
   ))
 

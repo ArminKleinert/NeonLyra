@@ -417,6 +417,8 @@ for                  | 2   |  x  |     | List comprehension. Similar to Clojure.
                      |     |     |     | Also supports :let and :while.
                      |     |  x  |     | (for ((x [1 2]) (y [3 4]) (:let ((z (+ x y))))) [x y z])
                      |     |     |     |   ; => ([1 3 4] [1 4 5] [2 3 5] [2 4 6])
+                     |     |     |     |
+cartesian-product    | 2   |  x  |     | Builds the cartesian product of two collections. Requires the map and zip functions.
 ```
 
 ### File: core/aliases.lyra

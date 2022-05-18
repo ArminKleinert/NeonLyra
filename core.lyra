@@ -1,14 +1,13 @@
 (module core
   (cond lambda T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq 
   all? none? any? 
-  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred)
+  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at)
 
 ;;; Some core things
 
-(define (T & _) #t)
-
-(def-macro (lambda binds & body) (cons 'lambda* (cons (gensym 'lambda) (cons binds body))))
-
+(def-macro (lambda binds & body)
+  (cons 'lambda* (cons (gensym 'lambda) (cons binds body))))
+  
 (def-macro (cond & cases)
   (if cases
     (if (cdr cases)
@@ -81,6 +80,20 @@
 ; Get an element in a collection xs by its key k.
 ; The default behaviour uses nth, but it has to be overridden for maps and sets.
 (def-generic xs (get xs k) nth)
+
+(define (index-of v xs)
+  (let ((%iof (lambda (i xs)
+            (if (empty? xs)
+              0
+              (let ((c (first xs)))
+                (if (eq? c v)
+                  i
+                  (recur (+ i 1) (rest xs))))))))
+    (%iof 0 xs)))
+
+; Find associated key or value for an element.
+; index-of for lists and vectors, true or false for sets.
+(def-generic xs (find v xs) (lambda (v xs) (index-of (seq xs))))
 
 ; Type conversions.
 ; Default conversions to collections require ->float to be implemented,
@@ -157,13 +170,13 @@
 ; If xs is a collection, use a linear implementation for lists and return a lazy sequence.
 ; Otherwise, return Nothing.
 (def-generic xs (delete-at i xs)
-  (lambda (i xs0)
+  (lambda (i xs)
     (if (collection? xs)
-      (let ((xs (->list xs0)))
+      (let ((xs (->list xs)))
         (cond
           (= i 0) (cdr xs)
           (< i 0) xs
-          else (lazy-seq (car xs) (delete-at i (cdr xs)))))
+          else (lazy-seq (car xs) (delete-at (dec i) (cdr xs)))))
       Nothing)))
 
 ; Printing. %print! should not be used directly.
@@ -238,7 +251,7 @@
 (def-impl ::list first car)
 (def-impl ::map first (lambda (m) (vector-nth (map->vector m) 0)))
 
-; Implementations for res.t
+; Implementations for rest.
 (def-impl ::list rest cdr)
 (def-impl ::map rest (lambda (m) (let ((v (mao->vector m))) (vector-range v 1 (vector-size v)))))
 
@@ -382,7 +395,7 @@
 
 ; Function composition
 (define (compose f g)
-  (lambda (x) (f (g x))))
+  (lambda (x & xs) (f (apply-to g (cons x xs)))))
 (define (compose2 f g)
   (lambda (x y) (f (g x y))))
 
@@ -557,10 +570,7 @@
     (lazy-seq (first xs) (%take (dec n) (rest xs)))))
 (define (take n xs)
   (cond
-    (atom? xs)
-      Nothing
-    ;(or (list? xs) (or (vector? xs) (or (set? xs) (map? xs))))
-    ;  (buildin-take n xs)
+    (empty? xs) Nothing
     else (%take n xs))
   )
 
@@ -743,6 +753,10 @@
 ; Returns a function which always returns x.
 (define (constantly x) (lambda (& ys) x))
 (define const constantly)
+
+; Always true
+(define T (constantly #t))
+(define F (constantly #f))
 
 
 ;; case macro
@@ -1094,7 +1108,7 @@
 ; Add items from 'from' to 'to', keeping the type of 'to'. (if add is correctly defined)
 ;   (into) ;=> () ; empty input -> empty list
 ;   (into '(1 2)) ;=> (1 2)
-;   (into [1 2] '(3 4)) ;=> [1 2 3 4]
+;   (into [1 2#!]!# '(3 4)) ;=> [1 2 3 4]
 ;   (into [1 2] unique '(3 3 4 3)) ;=> [1 2 3 4]
 ; The last case works well for partials:
 ;   (let ((f (partial into [1 2] unique))) ...)
@@ -1152,7 +1166,7 @@
   (let ((l (->list l0)))
     (if (null? l)
       '(())
-      (apply concat
+      (apply-to concat
         (map (lambda (p)
               (map (lambda (n)
                       (%insert p n (car l)))
@@ -1213,8 +1227,6 @@
 
 
 ;;; for macro
-
-
 
 ; Lazily calculates all combinations of any number of lists while preserving order:
 ; (combinations '(1 2) '(3 4) '(5 6)) 
@@ -1280,23 +1292,8 @@
 (def-macro (for bindings body)
   (%for bindings body))
 
+(define (cartesian-product lst0 lst1)
+  (apply-to concat (map (lambda (x) (zip (repeat x) lst1)) lst0)))
 )
 
 (cons 'core (load! "string.lyra" "vector.lyra" "set.lyra"))
-(define (g n p)
-  (cond (not (< 1 p)) 1
-        (not (< p (dec n))) 1
-        else (foldl (lambda (res q) (+ res (if (> q (- n p)) 0 (g (- n p) q)))) 1 (range 2 p))))
-(define (9-billion-names rows)
-  (foldl
-    (lambda (res n)
-      (string-append
-        (apply string-concat res
-          (map-eager
-            (lambda (p) (string-append (->string (g n p)) " "))
-            (range 1 n)))
-        "\n"))
-    ""
-    (range 1 (inc rows))))
-
-(println! (9-billion-names 25))

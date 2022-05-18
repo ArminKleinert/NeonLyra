@@ -641,6 +641,46 @@ class MemoizedLyraFn < LyraFn
   end
 end
 
+NOT_IN_SET = BasicObject.new
+
+class JoinedSet
+  @sets = []
+  
+  def initialize(sets)
+    @sets = sets
+  end
+  
+  def merge(*sets)
+    JoinedSet.new(self, *sets)
+  end
+  
+  def find(o, env)
+    f = nil
+    @sets.reverse_each do |s|
+      f = s.find(o, env)
+      if f != NOT_IN_SET
+        break
+      end
+    end
+    f
+  end
+end
+
+class LyraSet
+  
+  def initialize(*content)
+    @content = content
+  end
+  
+  def merge(*sets)
+    JoinedSet(self, *sets)
+  end
+  
+  def find(o, env)
+    @content.index(o)
+  end
+end
+
 class GenericFn < LyraFn
   attr_reader :name
 

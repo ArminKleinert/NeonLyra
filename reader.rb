@@ -4,8 +4,9 @@
 require_relative 'types.rb'
 require_relative 'evaluate.rb'
 
-# [\s]*                ignore whitespace and comma
+# [\s]*                 ignore whitespace and comma
 # \\u[0-9]{4}           utf-8 literals
+# \\p\(                 Partial function shortcut
 # \\.                   Other char literals
 # [()\[\]\{\}]          Special opening and closing brackets.
 # "(?:\\.|[^\\"])*"?    String literals
@@ -16,7 +17,7 @@ require_relative 'evaluate.rb'
 # '                     Special symbol '
 # [^\s\[\]\{\}('"`,;)]* Anything else, excluding spaces, [, ], (, ), {, }, ', ", `, comma and semicolon
 #LYRA_REGEX = /[\s,]*(\\u[0-9]{4}|\\.|[()\[\]\{\}]|"(?:\\.|[^\\"])*"?|;.*|@|#\{|#\(|[^\s\[\]\{\}('"`,;)]*'{0,1}|')/
-LYRA_REGEX = /[\s,]*(\\u[0-9]{4}|\\.|[()\[\]\{\}]|"(?:\\.|[^\\"])*"?|;.*|@|#\{|#\(|[^\s\[\]\{\}('"`,;)]*'{0,1}|')/
+LYRA_REGEX = /[\s,]*(\\u[0-9]{4}|\\p\(|\\.|[()\[\]\{\}]|"(?:\\.|[^\\"])*"?|;.*|@|#\{|#\(|[^\s\[\]\{\}('"`,;)]*'{0,1}|')/
 
 # Scan the text using RE, remove empty tokens and remove comments.
 def tokenize(s)
@@ -91,6 +92,8 @@ def make_ast(tokens, level = 0, expected = "",  stop_after_1 = false)
       root << list(:lambda, list(:"&", 0.chr.to_sym), make_ast(tokens, level+1, ")"))
     when "("
       root << make_ast(tokens, level + 1, ")")
+    when "\\p("
+      root << cons(:partial, make_ast(tokens, level + 1, ")"))
     when ")"
       raise LyraError.new("Unexpected ')'", :"parse-error") if level == 0 || expected != ")"
       return list(*root)

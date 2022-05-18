@@ -35,6 +35,8 @@
 (def-impl ::set foldr buildin-foldr)
 (def-impl ::set foldl buildin-foldl)
 (def-impl ::set eq? set-eq?)
+(def-impl ::set get contains?)
+(def-impl ::set find contains?)
 )
 
 
