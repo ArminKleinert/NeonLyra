@@ -355,8 +355,8 @@ v%                   | >=1 |  x  |     | Variadic rem
                      |     |     |     | 
 divmod               | 2   |  x  |     | (divmod x y) => (list (/ x y) (rem x y))
                      |     |     |     | 
-constantly           | 2   |  x  |     | Fills a list with a given element.
-                     |     |     |     | (constantly 9 '(1 2 3)) => (9 9 9)
+constantly           | 1   |  x  |     | Takes an element x and returns a new function which, for any given input, returns x.
+const                | 1   |  x  |     | Alias for constantly
                      |     |     |     | 
 reverse              | 1   |  x  |     | Reverse a list.
 sum                  | 1   |  x  |     | Sums the elements of a list. (0 if the list is empty)
@@ -417,6 +417,8 @@ for                  | 2   |  x  |     | List comprehension. Similar to Clojure.
                      |     |     |     | Also supports :let and :while.
                      |     |  x  |     | (for ((x [1 2]) (y [3 4]) (:let ((z (+ x y))))) [x y z])
                      |     |     |     |   ; => ([1 3 4] [1 4 5] [2 3 5] [2 4 6])
+                     |     |     |     |
+cartesian-product    | 2   |  x  |     | Builds the cartesian product of two collections. Requires the map and zip functions.
 ```
 
 ### File: core/aliases.lyra
@@ -572,6 +574,8 @@ Name        | File              |
 ------------+-------------------+-------------------------------------------------------------------
 #t          | core.rb           | Boolean true
 #f          | core.rb           | Boolean false
+true        | core.rb           | #t
+false       | core.rb           | #f
 else        | core.lyra         | Alias for #t (for use in cond expressions)
 Nothing     | core.rb           | The non-object
 ::nothing   | core.rb           | Type name for the Nothing object.
@@ -587,7 +591,7 @@ Nothing     | core.rb           | The non-object
 ::string    | core.rb           | Type name for strings.
 ::symbol    | core.rb           | Type name for symbols.
 ::box       | core.rb           | Type name for boxes.
-true        | core/clj.lyra     | #t
-false       | core/clj.lyra     | #f
 nil         | core/clj.lyra     | Nothing
+*current-function* | evaluate.rb| Holds the name of the current function.
+*ARGS*      | lyra.rb           | Holds the arguments that were passed to the program.
 ```

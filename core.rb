@@ -234,10 +234,10 @@ def setup_core_functions
     Env.global_env.set!(name, value)
   end
 
-  add_fn(:"list-size", 1) { |x| x.is_a?(ConsList) ? x.size : (raise LyraError.new("Invalid call to list-size.", :"invalid-call")) }
-  add_fn(:cons, 2) { |x, xs| xs.is_a?(ConsList) ? cons(x, xs) : (raise LyraError.new("Invalid call to cons. (given #{xs})", :"invalid-call")) }
-  add_fn(:car, 1) { |x| x.is_a?(ConsList) ? x.car : (raise LyraError.new("Invalid call to car.", :"invalid-call")) }
-  add_fn(:cdr, 1) { |x| x.is_a?(ConsList) ? x.cdr : (raise LyraError.new("Invalid call to cdr.", :"invalid-call")) }
+  add_fn(:"list-size", 1) { |x| cons?(x) ? x.size : (raise LyraError.new("Invalid call to list-size.", :"invalid-call")) }
+  add_fn(:cons, 2) { |x, xs| cons?(xs) ? cons(x, xs) : (raise LyraError.new("Invalid call to cons. (given #{x} and #{xs})", :"invalid-call")) }
+  add_fn(:car, 1) { |x| cons?(x) ? x.car : (raise LyraError.new("Invalid call to car. Got #{x}.", :"invalid-call")) }
+  add_fn(:cdr, 1) { |x| cons?(x) ? x.cdr : (raise LyraError.new("Invalid call to cdr. Got #{x}.", :"invalid-call")) }
 
   add_fn(:"list-concat", 0, -1) { |*xs| list_append *xs }
 
@@ -328,7 +328,6 @@ def setup_core_functions
   add_fn(:"keyword-name", 1) { |x| x.is_a?(Keyword) ? x.to_s[1..-1].to_sym : nil }
 
   add_fn(:id, 1) { |x| x }
-  add_fn(:"id-fn", 1) { |x| NativeLyraFn.new("", 0) { x } }
   add_fn(:hash, 1) { |x| x.hash }
   #add_fn(:"eq?", 2) { |x, y| lyra_eq?(x, y) }
 
@@ -355,7 +354,7 @@ def setup_core_functions
       nil
     else
       begin
-        Rational(x || "");
+        Rational(x);
       rescue ArgumentError, TypeError
         nil
       end
@@ -370,7 +369,7 @@ def setup_core_functions
   add_fn(:"buildin->char", 1) { |x| LyraChar.conv(x) }
   add_fn(:"buildin->map", 1) { |x| x.is_a?(Enumerable) ? Hash[*x] : nil }
   add_fn(:"buildin->set", 1) { |x| x.is_a?(Enumerable) ? Set[*x] : nil }
-
+  
   add_fn(:"buildin-vector", 0, -1) { |*xs| xs }
   add_fn(:"buildin-vector-size", 1) { |xs| xs.size }
   add_fn(:"buildin-vector-range", 3) { |xs, s, e| r = xs[s...e]; r.nil? ? [] : r }

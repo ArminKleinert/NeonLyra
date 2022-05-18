@@ -2,8 +2,7 @@
   ((random xorshift64s)
    random! xorshift64s xorshift64 xorshift32 (lfsr lfsr32)
    xorshift64s-seq xorshift64-seq xorshift32-seq lfsr32-seq 
-   random-nums with-bounds shuffle
-   shuffle1)
+   random-nums with-bounds shuffle)
 
 (let ((max-32 0xFFFFFFFF)
       (max-64 0xFFFFFFFFFFFFFFFF))
@@ -61,9 +60,6 @@
 (load! "core/sort.lyra")
 
 (define (shuffle seq seed)
-  (let ((rands (box (with-bounds (random-nums seed) -1 1))))
-    (sort-compare (lambda (x y) (box-set! rands (rest @rands)) (first @rands)) seq)))
-(define (shuffle1 seq seed)
   (map cadr
     (sort-compare (lambda (x y) (compare (car x) (car y)))
       (zip (random-nums seed) seq))))

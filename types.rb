@@ -275,6 +275,17 @@ class ListPair
     list_append @list0.cdr, @list1
   end
 
+  # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
+  def set_car!(c)
+    @list0.set_car! c
+  end
+
+  # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
+  def set_cdr!(tail)
+    @list1 = EmptyList.instance
+    @list0.set_cdr! tail
+  end
+
   def size
     @list0.size + @list1.size
   end
@@ -347,9 +358,15 @@ end
 def cons(e, l)
   if l.is_a?(ConsList)
     List.create(e, l)
+  elsif l.is_a?(Tuple)
+    Tuple.create([e] + l.contents)
   else
-    raise LyraError.new("Tail must be a list or function.", :"illegal-argument")
+    raise LyraError.new("Tail must be a list.", :"illegal-argument")
   end
+end
+
+def cons?(l)
+  l.respond_to?(:car) && l.respond_to?(:cdr)
 end
 
 def list(*args)
@@ -365,11 +382,19 @@ def list(*args)
 end
 
 def car(e)
-  e.is_a?(ConsList) ? e.car : EmptyList.instance
+  if e.respond_to?(:car) 
+    e.car
+  else
+    EmptyList.instance
+  end
 end
 
 def cdr(e)
-  e.is_a?(ConsList) ? e.cdr : EmptyList.instance
+  if e.respond_to?(:cdr) 
+    e.cdr
+  else
+    EmptyList.instance
+  end
 end
 
 class Box
@@ -444,13 +469,14 @@ class CompoundFunc < LyraFn
   attr_accessor :name # Symbol
   attr_reader :is_macro # Boolean
 
-  def initialize(name, args_expr, body_expr, definition_env, is_macro, min_args, max_args = min_args)
+  def initialize(name, args_expr, body_expr, definition_env, is_macro, min_args, max_args = min_args, is_hash_lambda = false)
     @args_expr = args_expr
     @body_expr = body_expr
     @definition_env = definition_env
     @arg_counts = (min_args..max_args)
     @name = name.to_sym
     @is_macro = is_macro
+    @is_hash_lambda = is_hash_lambda
   end
 
   def call(args, env)
@@ -460,8 +486,12 @@ class CompoundFunc < LyraFn
     raise LyraError.new("#{@name}: Too many arguments. (Given #{args_given}, expected #{@arg_counts})", :arity) if arg_counts.last >= 0 && args_given > arg_counts.last
 
     begin
-      env1 = Env.new(nil, @definition_env, env).set!(@name, self).set_multi!(@args_expr, args, true, @arg_counts.last < 0)
-      #puts "#{@name} #{elem_to_s(self)} #{env1.safe_find(@name)}"
+      env1 = Env.new(nil, @definition_env, env).set!(:"*current-function*", @name).set!(@name, self)
+      if @is_hash_lambda
+        env1.set_multi_anonymous! args
+      else
+        env1.set_multi!(@args_expr, args, @arg_counts.last < 0)
+      end
 
       # Execute the body and return
       #body.call(args, env1)
@@ -608,6 +638,46 @@ class MemoizedLyraFn < LyraFn
 
   def name
     @func.name
+  end
+end
+
+NOT_IN_SET = BasicObject.new
+
+class JoinedSet
+  @sets = []
+  
+  def initialize(sets)
+    @sets = sets
+  end
+  
+  def merge(*sets)
+    JoinedSet.new(self, *sets)
+  end
+  
+  def find(o, env)
+    f = nil
+    @sets.reverse_each do |s|
+      f = s.find(o, env)
+      if f != NOT_IN_SET
+        break
+      end
+    end
+    f
+  end
+end
+
+class LyraSet
+  
+  def initialize(*content)
+    @content = content
+  end
+  
+  def merge(*sets)
+    JoinedSet(self, *sets)
+  end
+  
+  def find(o, env)
+    @content.index(o)
   end
 end
 

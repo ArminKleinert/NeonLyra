@@ -46,8 +46,11 @@ begin
   f.call :"catch"
   f.call :"expand-macro"
 
-  f.call :"lambda"
-  f.call :"cond"
+#  f.call :"lambda"
+#  f.call :"cond"
+  
+  DO_NOTHING_AND_RETURN = gensym(:id)
+  f.call DO_NOTHING_AND_RETURN
 end
 
 # destructure [:a,:b,:c,:"&",:xs], [1,2,3,4,5,6,7,8,9,10]
@@ -294,9 +297,10 @@ def ev_lambda(name, args_expr, body_expr, definition_env, is_macro = false)
   arg_arr = args_expr.to_a
   arg_count = arg_arr.size
   max_args = arg_count
+  is_hash_lambda = false # Enable % arguments.
 
   unless arg_arr.all? { |x| x.is_a? Symbol }
-    raise LyraError.new("Syntax error: Arguments for lambda must be symbols.", :syntax)
+    raise LyraError.new("Syntax error: Arguments for lambda must be symbols but are #{args_expr}", :syntax)
   end
 
   a = arg_arr.reject { |a| a == :"_" }
@@ -309,6 +313,9 @@ def ev_lambda(name, args_expr, body_expr, definition_env, is_macro = false)
   # symbol in the argument list is `&`.
   if arg_count >= 2
     varargs = arg_arr[-2] == :"&"
+    if arg_arr[-1] == 0.chr.to_sym
+      is_hash_lambda = true
+    end
     if varargs
       # Remove the `&` from the arguments.
       last = arg_arr[-1]
@@ -328,7 +335,7 @@ def ev_lambda(name, args_expr, body_expr, definition_env, is_macro = false)
     body_expr = list(nil)
   end
 
-  CompoundFunc.new(name, args_expr, body_expr, definition_env, is_macro, arg_count, max_args)
+  CompoundFunc.new(name, args_expr, body_expr, definition_env, is_macro, arg_count, max_args, is_hash_lambda)
 end
 
 # Evaluation function
@@ -383,15 +390,16 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         #puts pred
         expr = LazyObj.new expr, env
         eval_ly(expr, env)
-      elsif pred != false && !pred.nil? && !pred.is_a?(EmptyList)
+      elsif truthy?(pred)
         # The predicate was true
         eval_ly(third(expr), env, force_eval)
       else
         # The predicate was not true
         eval_ly(fourth(expr), env, force_eval)
       end
+=begin
     when :cond
-      clauses = rest(expr)
+      clauses = cdr(expr)
       result = nil
       until clauses.size == 0
         p = eval_ly(first(clauses), env, force_eval, true)
@@ -401,13 +409,17 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
           expr = LazyObj.new expr, env
           result = eval_ly(expr, env)
           break
-        elsif p
+        elsif truthy?(p)
           result = eval_ly(second(clauses), env, force_eval)
           break
         end
-        clauses = rest(rest(clauses))
+        clauses = cdr(cdr(clauses))
       end
       result
+=end
+    when DO_NOTHING_AND_RETURN
+      eval_ly(second(expr), env, force_eval)
+=begin
     when :lambda
       raise LyraError.new("lambda without bindings.", :syntax) if expr.cdr.empty?
 
@@ -417,6 +429,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       args_expr = second(expr)
       body_expr = rest(rest(expr))
       ev_lambda(gensym("lambda"), args_expr, body_expr, env)
+=end
     when :"lambda*"
       raise LyraError.new("lambda* without name.", :syntax) if expr.cdr.empty?
       raise LyraError.new("lambda* without bindings.", :syntax) if expr.cdr.cdr.empty?
@@ -576,12 +589,12 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
       # is then executed.
       r1 = func.call(args, env)
       LYRA_CALL_STACK.pop
-      expr.set_car! :id
+      expr.set_car! DO_NOTHING_AND_RETURN
       expr.set_cdr! list(r1)
       r1
     when :alias
       if expr.size != 2
-        raise LyraError.new("Wrong number of arguments for lazy. (Expected 1, got #{expr.cdr.size})")
+        raise LyraError.new("Wrong number of arguments for alias. (Expected 1, got #{expr.cdr.size})")
       end
       Alias.new(expr.cdr.car)
     else
@@ -631,7 +644,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
         LYRA_CALL_STACK.pop
         puts elem_to_pretty(r1) if $show_expand_macros
         if LYRA_CALL_STACK.none?(&:is_macro)
-          expr.set_car! :id
+          expr.set_car! DO_NOTHING_AND_RETURN
           expr.set_cdr! list(r1)
         end
         eval_ly(r1, env, force_eval)
