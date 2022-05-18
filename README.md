@@ -2,7 +2,8 @@
 
 Lyra is a lisp I make for fun and learning. NeonLyra is an improved version.
 
-Current version: 0.1.4
+Current stable version: 0.1.5  
+Current version: 0.1.6
 
 Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 
@@ -305,6 +306,7 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Various bugfixes  
   - Reduced set of core functions  
   - `\p(...)` as shortcut for partial functions
+- 0.1.6
   
 
 ## Known bugs
