@@ -40,8 +40,8 @@
 (define (merge-w-c c xs ys)
   (cond (empty? xs) ys
         (empty? ys) xs
-        (< (c (car xs) (car ys)) 1) (cons (car xs) (merge-w-c c (cdr xs) ys))
-        else (cons (car ys) (merge-w-c c xs (cdr ys)))))
+        (< (c (car xs) (car ys)) 1) (lazy-seq (car xs) (merge-w-c c (cdr xs) ys))
+        else (lazy-seq (car ys) (merge-w-c c xs (cdr ys)))))
 
 (define (merge-lists-w-c c xss)
   (cond (< (size xss) 2) xss
