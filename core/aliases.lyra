@@ -3,7 +3,6 @@
    (require! load!)
    (fold foldr)
    (member? included?)
-   (~ complement)
    (⋅ compose)
    (∀ all?)
    (∃ any?)

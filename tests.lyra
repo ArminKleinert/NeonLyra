@@ -983,8 +983,8 @@
     ((compose-or (lambda (e) #t) (lambda (e) (crash!))) 0)))
 
 (define (test-complement)
-  ((complement odd?) 2)
-  ((~ odd?) 2))
+  (do-test!
+    ((complement odd?) 2)))
 
 (define (test-id)
   (do-test!

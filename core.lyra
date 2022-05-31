@@ -7,7 +7,7 @@
 
 (def-macro (lambda binds & body)
   (cons 'lambda* (cons (gensym 'lambda) (cons binds body))))
-  
+
 (def-macro (cond & cases)
   (if cases
     (if (cdr cases)

@@ -211,7 +211,7 @@ def truthy?(x)
 end
 
 def string_to_chars(s)
-  s.is_a?(String) ? s.chars.map { |c| LyraChar.conv(c) } : nil
+  s.is_a?(String) ? s.chars.map { |c| LyraChar.conv(c) || "\0" } : nil
 end
 
 # Sets up the core functions and variables. The functions defined here are
@@ -266,7 +266,7 @@ def setup_core_functions
   add_fn(:abs, 1) { |x| x.is_a?(Numeric) ? x.abs : x }
 
   add_fn(:numerator, 1) { |x| x.is_a?(Rational) ? x.numerator : x }
-  add_fn(:denumerator, 1) { |x| x.is_a?(Rational) ? x.denumerator : 1 }
+  add_fn(:denominator, 1) { |x| x.is_a?(Rational) ? x.denominator : 1 }
 
   add_fn(:gensym, 1) { |x| gensym(x) }
   add_fn(:seq, 1) { |x| (!x.is_a?(Enumerable) || x.empty?) ? nil : x.to_cons_list }
@@ -288,8 +288,8 @@ def setup_core_functions
   add_fn(:nothing, 0, -1) { |*_| nil }
 
   add_fn(:"buildin-take", 2) do |n, xs|
-    if (xs.empty? || n == 0)
-      list()
+    if xs.empty? || n == 0
+      list
     elsif xs.is_a?(ConsList)
       ys = []
       until xs.empty? || n == 0
@@ -326,7 +326,7 @@ def setup_core_functions
   add_fn(:"lazy-obj?", 1) { |x| x.is_a?(LazyObj) }
   add_fn(:"keyword?", 1) { |x| x.is_a?(Keyword) }
 
-  add_fn(:"keyword-name", 1) { |x| x.is_a?(Keyword) ? x.to_s[1..-1].to_sym : nil }
+  add_fn(:"keyword-name", 1) { |x| x.is_a?(Keyword) ? x.to_s[1..-1]&.to_sym : nil }
 
   add_fn(:id, 1) { |x| x }
   add_fn(:hash, 1) { |x| x.hash }
@@ -532,7 +532,7 @@ def setup_core_functions
     add_var t.to_sym, t
   end
 
-  add_fn_with_env(:"class", 1) { |x, env| type_of(x.car) }
+  add_fn_with_env(:"class", 1) { |x, _| type_of(x.car) }
 
   add_fn(:"error!", 1, 3) { |msg, info, trace| raise LyraError.new(msg, info, trace) }
 
