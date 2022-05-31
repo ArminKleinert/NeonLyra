@@ -1,5 +1,6 @@
 .idea
 lox
+minilang
 bootstrap/necessary
 exclude
 wishlist

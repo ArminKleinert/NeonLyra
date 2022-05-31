@@ -351,7 +351,7 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
     end
   elsif expr.is_a?(Lazy) && force_eval
     expr.evaluate
-  elsif atom?(expr) || expr.is_a?(LyraFn) || expr.is_a?(WrappedLyraError)
+  elsif atom?(expr) || expr.is_a?(LyraFn) || expr.is_a?(WrappedLyraError) || expr.is_a?(Box)
     expr
   elsif expr.is_a?(Array)
     if force_eval

@@ -836,15 +836,6 @@
 (define (flatten1 xs)
   (apply-to list-concat (map (lambda (x) (if (collection? x) (->list x) (list x))) xs)))
 
-; Get minimum/maximum of n m (using < or >)
-(define (min n m) (if (< n m) n m))
-(define (max n m) (if (< n m) m n))
-
-; Get minimum/maximum of the elements in a sequence using min/max.
-; Required: foldl1
-(define (minimum xs) (foldl1 min xs))
-(define (maximum xs) (foldl1 max xs))
-
 ; Lazily create a range of the numbers between from and to (inclusive)
 (define (range from to)
   (if (> from to)
@@ -961,6 +952,21 @@
   (case-lambda* product
     ((coll) (foldl * 1 coll))
     ((f coll) (foldl * 1 (map f coll)))))
+
+; Get minimum/maximum of n m (using < or >)
+(define (min n m) (if (< n m) n m))
+(define (max n m) (if (< n m) m n))
+
+; Get minimum/maximum of the elements in a sequence using min/max.
+; Required: foldl1, map
+(define minimum
+  (case-lambda* minimum
+    ((coll) (foldl1 min coll))
+    ((f coll) (min (map f coll)))))
+(define maximum
+  (case-lambda* maximum
+    ((coll) (foldl1 max coll))
+    ((f coll) (max (map f coll)))))
 
 ; Extended range function.
 ; Takes 0 to 3 input numbers.
@@ -1297,3 +1303,5 @@
 )
 
 (cons 'core (load! "string.lyra" "vector.lyra" "set.lyra"))
+
+

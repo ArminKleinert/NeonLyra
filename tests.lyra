@@ -37,9 +37,9 @@
 
 (define (test-lambda)
   (let* ((f (lambda (n) n))
-          (fr (f 6))
-          (f2 (λ (n) n))
-          (fr2 (f 6)))
+         (fr (f 6))
+         (f2 (λ (n) n))
+         (fr2 (f 6)))
     (do-test!
       (= 2 ((lambda (n) (+ n n)) 1))
       (< 2 ((lambda (n) (+ n n)) 2))

@@ -42,36 +42,6 @@ end
 module Lazy
 end
 
-class LazyObj
-  include Lazy
-
-  attr_reader :expr
-
-  def initialize(expr, env)
-    @expr, @env = expr, env
-    @executed = false
-  end
-
-  def evaluate
-    if @executed
-      @expr
-    else
-      @expr = eval_ly(@expr, @env, true)
-      @executed = true
-      @expr
-    end
-  end
-
-  def to_s
-    #elem_to_s(evaluate)
-    "(lazy #{elem_to_s(expr)})"
-  end
-
-  def inspect
-    to_s
-  end
-end
-
 module Enumerable
   def to_cons_list
     if is_a?(ConsList)
@@ -238,6 +208,8 @@ class List
       List.send :new, head, tail, -1
     elsif tail.is_a? ConsList
       List.send :new, head, tail, tail.size + 1
+    elsif tail.is_a? LyraFn
+      List.send :new, head, tail, -1
     else
       raise LyraError.new("Illegal cdr.", :"illegal-argument")
     end
@@ -358,8 +330,8 @@ end
 def cons(e, l)
   if l.is_a?(ConsList)
     List.create(e, l)
-  elsif l.is_a?(Tuple)
-    Tuple.create([e] + l.contents)
+  elsif l.is_a?(LyraFn)
+    List.create(e, l)
   else
     raise LyraError.new("Tail must be a list.", :"illegal-argument")
   end
@@ -448,6 +420,59 @@ end
 class LyraFn
   def apply_to(args, env)
     call(args, env)
+  end
+end
+
+class LazyObj < LyraFn
+  include Lazy
+
+  attr_reader :expr, :executed
+
+  def initialize(expr, env)
+    @expr, @env = expr, env
+    @executed = false
+  end
+
+  def evaluate
+    if @executed
+      @expr
+    else
+      @expr = eval_ly(@expr, @env, false)
+      @executed = true
+      @expr
+    end
+  end
+
+  def to_s
+    "(lazy #{elem_to_s(expr)})"
+  end
+
+  def inspect
+    to_s
+  end
+
+  def native?
+    true
+  end
+
+  def pure?
+    true
+  end
+
+  def is_macro
+    true
+  end
+
+  def name
+    to_s
+  end
+
+  def call(_, env)
+    evaluate
+  end
+
+  def arg_counts
+    0..0
   end
 end
 

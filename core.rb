@@ -235,7 +235,7 @@ def setup_core_functions
   end
 
   add_fn(:"list-size", 1) { |x| cons?(x) ? x.size : (raise LyraError.new("Invalid call to list-size.", :"invalid-call")) }
-  add_fn(:cons, 2) { |x, xs| cons?(xs) ? cons(x, xs) : (raise LyraError.new("Invalid call to cons. (given #{x} and #{xs})", :"invalid-call")) }
+  add_fn(:cons, 2) { |x, xs| cons(x, xs) }
   add_fn(:car, 1) { |x| cons?(x) ? x.car : (raise LyraError.new("Invalid call to car. Got #{x}.", :"invalid-call")) }
   add_fn(:cdr, 1) { |x| cons?(x) ? x.cdr : (raise LyraError.new("Invalid call to cdr. Got #{x}.", :"invalid-call")) }
 
@@ -281,6 +281,7 @@ def setup_core_functions
   add_fn(:"box-set!", 2) { |b, x| b.value = x; b }
 
   add_fn(:eager, 1) { |x| eager x }
+  add_fn(:evaluated?, 1) { |x| x.executed }
   #add_fn_with_env(:lazy, 1) { |xs, env| LazyObj.new xs.car, env }
   add_fn(:partial, 1, -1) { |x, *params| params.empty? ? x : PartialLyraFn.new(x, params.to_cons_list) }
 

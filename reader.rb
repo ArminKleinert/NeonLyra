@@ -16,8 +16,7 @@ require_relative 'evaluate.rb'
 # #\(                   Special symbol '#('
 # '                     Special symbol '
 # [^\s\[\]\{\}('"`,;)]* Anything else, excluding spaces, [, ], (, ), {, }, ', ", `, comma and semicolon
-#LYRA_REGEX = /[\s,]*(\\u[0-9]{4}|\\.|[()\[\]\{\}]|"(?:\\.|[^\\"])*"?|;.*|@|#\{|#\(|[^\s\[\]\{\}('"`,;)]*'{0,1}|')/
-LYRA_REGEX = /[\s,]*(\\u[0-9]{4}|\\p\(|\\.|[()\[\]\{\}]|"(?:\\.|[^\\"])*"?|;.*|@|#\{|#\(|[^\s\[\]\{\}('"`,;)]*'{0,1}|')/
+LYRA_REGEX = /[\s,]*(\\u[0-9]{4}|\\p\(|\\.|[()\[\]\{\}]|"(?:\\.|[^\\"])*"?|;.*|~@|@|#\{|`|#\(|[^\s\[\]\{\}('"`,;)]*'{0,1})/
 
 # Scan the text using RE, remove empty tokens and remove comments.
 def tokenize(s)
@@ -68,6 +67,10 @@ def parse_char(token)
   end
 end
 
+def prefixed_ast(sym, tokens, level)
+  list(sym, make_ast(tokens, level + 1, "", true))
+end
+
 # Builds the abstract syntax tree and converts all expressions into their
 # types.
 # For example, if a token is recognized as a bool, it is parsed into
@@ -79,9 +82,15 @@ def make_ast(tokens, level = 0, expected = "",  stop_after_1 = false)
   while (t = tokens.shift) != nil
     case t
     when "'"
-      root << list(:quote, make_ast(tokens, level + 1, "", true))
+      root << prefixed_ast(:quote, tokens, level)
+    when "`"
+      root << prefixed_ast(:quasiquote, tokens, level)
+    when "~"
+      root << prefixed_ast(:unquote, tokens, level)
+    when "~@"
+      root << prefixed_ast(:"unquote-splicing", tokens, level)
     when "@"
-      root << list(:unbox, make_ast(tokens, level + 1, "", true))
+      root << prefixed_ast(:unbox, tokens, level)
     when '#{'
       a = make_ast(tokens, level + 1, "}")
       root << (a.is_a?(Array) ? Set[*a] : Set[a])
