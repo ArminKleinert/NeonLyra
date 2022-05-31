@@ -4,18 +4,19 @@
 require_relative 'types.rb'
 require_relative 'evaluate.rb'
 
-# [\s]*                 ignore whitespace and comma
+# [\s,]*                ignore whitespace and comma
 # \\u[0-9]{4}           utf-8 literals
 # \\p\(                 Partial function shortcut
 # \\.                   Other char literals
 # [()\[\]\{\}]          Special opening and closing brackets.
 # "(?:\\.|[^\\"])*"?    String literals
 # ;.*                   Ignore rest of line after semicolon
-# @                     '@' character
+# ~@                    unquote-splicing shortcut
+# @                     unbox shortcut
 # #\{                   Special symbol '#{'
-# #\(                   Special symbol '#('
-# '                     Special symbol '
-# [^\s\[\]\{\}('"`,;)]* Anything else, excluding spaces, [, ], (, ), {, }, ', ", `, comma and semicolon
+# `                     quasiquote shortcut
+# #\(                   Hash-function shortcut
+# [^\s\[\]\{\}('"`,;)]*'{0,1}   Other symbols and numbers, allowing an optional "'" at the end. This excludes spaces, [, ], (, ), {, }, ', ", `, comma and semicolon
 LYRA_REGEX = /[\s,]*(\\u[0-9]{4}|\\p\(|\\.|[()\[\]\{\}]|"(?:\\.|[^\\"])*"?|;.*|~@|@|#\{|`|#\(|[^\s\[\]\{\}('"`,;)]*'{0,1})/
 
 # Scan the text using RE, remove empty tokens and remove comments.
@@ -71,6 +72,10 @@ def prefixed_ast(sym, tokens, level)
   list(sym, make_ast(tokens, level + 1, "", true))
 end
 
+def raise_if_unexpected(expected, t, level)
+  raise LyraError.new("Unexpected '#{t}'", :"parse-error") if level == 0 || expected != t
+end
+
 # Builds the abstract syntax tree and converts all expressions into their
 # types.
 # For example, if a token is recognized as a bool, it is parsed into
@@ -104,15 +109,15 @@ def make_ast(tokens, level = 0, expected = "",  stop_after_1 = false)
     when "\\p("
       root << cons(:partial, make_ast(tokens, level + 1, ")"))
     when ")"
-      raise LyraError.new("Unexpected ')'", :"parse-error") if level == 0 || expected != ")"
+      raise_if_unexpected(expected, t, level)
       return list(*root)
     when "["
       root << make_ast(tokens, level + 1, "]")
     when "]"
-      raise LyraError.new("Unexpected '#{t}'", :"parse-error") if level == 0 || expected != t
+      raise_if_unexpected(expected, t, level)
       return root.to_a
     when "}"
-      raise LyraError.new("Unexpected '#{t}'", :"parse-error") if level == 0 || expected != t
+      raise_if_unexpected(expected, t, level)
       return root.to_a
     when '"' then raise LyraError.new("Unexpected '\"'", :"parse-error")
     when "#t", "true" then root << true
