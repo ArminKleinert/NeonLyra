@@ -5,7 +5,7 @@
   let
   if
   define
-  def-macro
+  defmacro
   lazy-seq
   module
   quote
@@ -26,7 +26,7 @@
   + - * / rem bit-and bit-or bit-xor bit-shl bit-shr
   box unbox
   )))))
-define lambda def-macro def-type if let let* module 
+define lambda defmacro def-type if let let* module 
 cons car cdr list-size 
 = < > + - * / rem bit-and bit-or bit-xor bit-shl bit-shr 
 box unbox box-set!

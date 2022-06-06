@@ -16,17 +16,17 @@
   nthrest nthnext next fnext ffirst nnext
   keep name)
 
-(def-macro (when p & body)
+(defmacro (when p & body)
   (list 'if p (xcons 'begin Nothing body) Nothing))
 
-(def-macro (def name val)
+(defmacro (def name val)
   (list 'define name val))
 
 (define (%defn name bindings body)
   (if (or (string? bindings) (map? bindings))
     (%defn name (car body) (cdr body)) ; ignore docstring or attr-map
     (list 'define name (xcons 'fn name bindings body))))
-(def-macro (defn name bindings & body)
+(defmacro (defn name bindings & body)
   (%defn name bindings body))
 
 (define (%fn name bindings body)
@@ -40,7 +40,7 @@
 (define (%multifn name body)
   (xcons 'case-lambda* name (map-eager (lambda (xs) (cons (->list (car xs)) (cdr xs))) body)))
 
-(def-macro (fn name & body)
+(defmacro (fn name & body)
   (cond
     (symbol? name)
       (%fn name (car body) (cdr body))

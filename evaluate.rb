@@ -37,10 +37,12 @@ begin
   f.call :"define"
   f.call :"def-impl"
   f.call :"def-generic"
-  f.call :"def-macro"
+  f.call :"defmacro"
   f.call :"lazy-seq"
   f.call :"module"
   f.call :"quote"
+  f.call :"quasiquote"
+  f.call :"unquote"
   f.call :"lazy"
   f.call :"try*"
   f.call :"catch"
@@ -98,11 +100,11 @@ end
 
 # Takes a List (list of expressions), calls eval_ly on each element
 # and return a new list.
-def eval_list(expr_list, env, force_eval)
+def eval_list(expr_list, env)
   raise LyraError.new("Syntax error: Expression must be a list.", :syntax) unless expr_list.is_a?(ConsList)
   l = []
   until expr_list.empty?
-    l << eval_ly(first(expr_list), env, force_eval, true)
+    l << eval_ly(first(expr_list), env, true)
     expr_list = rest(expr_list)
   end
   list(*l)
@@ -130,7 +132,7 @@ def optimize_cdr(expr_list, env)
 end
 
 # Similar to eval_list, but only returns the last evaluated value.
-def eval_keep_last(expr_list, env, force_eval = false)
+def eval_keep_last(expr_list, env)
   raise LyraError.new("Syntax error: Expression must be a list.", :syntax) unless expr_list.is_a?(ConsList)
 
   return list if expr_list.empty?
@@ -154,11 +156,11 @@ def eval_keep_last(expr_list, env, force_eval = false)
       optimize_cdr(expr_list, env)
     end
 
-    eval_ly expr_list.car, env, force_eval, true
+    eval_ly expr_list.car, env, true
     expr_list = expr_list.cdr
   end
 
-  eval_ly expr_list.car, env, force_eval
+  eval_ly expr_list.car, env
 end
 
 def ev_define_fn(expr, env, is_macro)
@@ -242,10 +244,10 @@ end
 # If `is_macro` is true, the function will not evaluate its arguments right away.
 def ev_define(expr, env, is_macro)
   unless expr.size >= 2
-    raise LyraError.new("Syntax error: No name and no body for define or def-macro.", :syntax)
+    raise LyraError.new("Syntax error: No name and no body for define or defmacro.", :syntax)
   end
   unless first(expr).is_a?(List) || first(expr).is_a?(Symbol) || first(expr).is_a?(TypeName)
-    raise LyraError.new("Syntax error: First element in define or def-macro must be a list or symbol.", :syntax)
+    raise LyraError.new("Syntax error: First element in define or defmacro must be a list or symbol.", :syntax)
   end
 
   if first(expr).is_a?(List)
@@ -315,7 +317,7 @@ end
 
 # Form: (try* <expr> (catch <ex-name> <validator> <body>)
 #       (try* <expr> (catch <ex-name> <body>)
-def eval_try_star(expr, env, force_eval)
+def eval_try_star(expr, env)
   if expr.size != 3
     raise LyraError.new("try* requires 2 expressions.", :syntax)
   end
@@ -335,7 +337,7 @@ def eval_try_star(expr, env, force_eval)
 
     begin
       # Try to execute body
-      res = eval_ly(body, env, force_eval)
+      res = eval_ly(body, env)
     rescue LyraError => error
       # Error caught
       # Register error in new env
@@ -357,7 +359,7 @@ def eval_try_star(expr, env, force_eval)
 
       #Run clause if validated or re-throw
       if run_clause
-        res = eval_keep_last(clause, env1, force_eval)
+        res = eval_keep_last(clause, env1)
       else
         raise error
       end
@@ -403,7 +405,7 @@ end
 #   Example: ((lambda (n) (+ n 1)) 15)
 # If the cons is empty or does not start with a symbol or another
 # cons, an error is thrown.
-def eval_list_expr(expr, env, force_eval = false, is_in_call_params = false)
+def eval_list_expr(expr, env, is_in_call_params = false)
   # Try to match the symbol.
   case first(expr)
   when :if
@@ -412,20 +414,16 @@ def eval_list_expr(expr, env, force_eval = false, is_in_call_params = false)
     # Otherwise, the else-branch is executed.
     puts expr if expr.size != 4
     raise LyraError.new("if needs 3 arguments.", :syntax) if expr.size != 4 # includes the 'if
-    pred = eval_ly(second(expr), env, force_eval, true)
-    if !force_eval && pred.is_a?(LazyObj)
-      #puts pred
-      expr = LazyObj.new expr, env
-      eval_ly(expr, env)
-    elsif truthy?(pred)
+    pred = eval_ly(second(expr), env, true)
+    if truthy?(pred)
       # The predicate was true
-      eval_ly(third(expr), env, force_eval)
+      eval_ly(third(expr), env)
     else
       # The predicate was not true
-      eval_ly(fourth(expr), env, force_eval)
+      eval_ly(fourth(expr), env)
     end
   when DO_NOTHING_AND_RETURN
-    eval_ly(second(expr), env, force_eval)
+    eval_ly(second(expr), env)
   when :"lambda*"
     raise LyraError.new("lambda* without name.", :syntax) if expr.cdr.empty?
     raise LyraError.new("lambda* without bindings.", :syntax) if expr.cdr.cdr.empty?
@@ -460,7 +458,7 @@ def eval_list_expr(expr, env, force_eval = false, is_in_call_params = false)
       bindings.each do |b|
         raise LyraError.new("Syntax error: Binding in let* must have 2 parts.", :syntax) unless b.is_a?(List) && b.size == 2
         raise LyraError.new("Syntax error: Name of binding in let* must be a symbol.", :syntax) unless b.car.is_a?(Symbol)
-        env1.set!(b.car, eval_ly(b.cdr.car, env1, force_eval, true))
+        env1.set!(b.car, eval_ly(b.cdr.car, env1, true))
       end
     end
 
@@ -477,13 +475,13 @@ def eval_list_expr(expr, env, force_eval = false, is_in_call_params = false)
       # Evaluate bindings in order using the old environment.
       bindings.each_slice(2) do |name, val|
         raise LyraError.new("Syntax error: Name of binding in let must be a symbol.") unless name.is_a?(Symbol)
-        env1.set!(name, eval_ly(val, env1, force_eval, true))
+        env1.set!(name, eval_ly(val, env1, true))
       end
     else
       bindings.each do |b|
         raise LyraError.new("Syntax error: Binding in let must have 2 parts.") unless b.is_a?(List) && b.size == 2
         raise LyraError.new("Syntax error: Name of binding in let must be a symbol.") unless b.car.is_a?(Symbol)
-        env1.set!(b.car, eval_ly(b.cdr.car, env, force_eval, true))
+        env1.set!(b.car, eval_ly(b.cdr.car, env, true))
       end
     end
 
@@ -500,32 +498,28 @@ def eval_list_expr(expr, env, force_eval = false, is_in_call_params = false)
       raise LyraError.new("Syntax error: quote takes exactly 1 argument")
     end
     second(expr)
-  when :"def-macro"
+  when :"defmacro"
     # Same as define, but the 'is_macro' parameter is true.
-    # Form: `(def-macro (name arg0 arg1 ...) body...)`
+    # Form: `(defmacro (name arg0 arg1 ...) body...)`
     ev_define(rest(expr), env, true)
   when :quasiquote
-    eval_ly(quasiquote(second(expr), env), env, force_eval, true)
+    eval_ly(quasiquote(second(expr), env), env, true)
   when :module
     ev_module expr
   when :lazy
     if expr.cdr.size != 1
       raise LyraError.new("Wrong number of arguments for lazy. (Expected 1, got #{expr.cdr.size})")
     end
-    if force_eval
-      eval_ly(expr.cdr.car, env, force_eval)
-    else
-      LazyObj.new expr.cdr.car, env
-    end
+    LazyObj.new expr.cdr.car, env
   when :"lazy-seq"
     if expr.cdr.size != 2
       raise LyraError.new("Wrong number of arguments for lazy-seq. (Expected 2, got #{expr.cdr.size})")
     end
     LazyList.create eval_ly(expr.cdr.car, env), lambda { eval_ly(expr.cdr.cdr.car, env) }
   when :"try*"
-    eval_try_star(expr, env, force_eval)
+    eval_try_star(expr, env)
   when :"expand-macro"
-    func = eval_ly(expr.cdr.car, env, force_eval, true)
+    func = eval_ly(expr.cdr.car, env, true)
     args = expr.cdr.cdr
     if func.nil? || !func.is_a?(LyraFn) || !func.is_macro
       raise LyraError.new("expand-macro expects a macro as its first argument.", :"invalid-call")
@@ -553,32 +547,24 @@ def eval_list_expr(expr, env, force_eval = false, is_in_call_params = false)
     # the function is called.
 
     # Find value of symbol in env and call it as a function
-    func = eval_ly(first(expr), env, force_eval)
-    func = eval_ly(func, env, force_eval) while func.is_a?(Symbol)
+    func = eval_ly(first(expr), env)
+    func = eval_ly(func, env) while func.is_a?(Symbol)
 
     # The arguments which will be passed to the function.
     args = rest(expr)
 
     # If `expr` had the form `((...) ...)`, then the result of the
     # inner list must be executed too.
-    func = eval_ly(func, env, force_eval) if func.is_a?(ConsList)
+    func = eval_ly(func, env) if func.is_a?(ConsList)
 
     raise LyraError.new("Runtime error: Expected a function, got #{elem_to_pretty(func)}", :expected_function) unless func.is_a?(LyraFn)
 
-    # If the function is not pure, force evaluation.
-    force_eval = true unless func.pure?
-
     if func.native?
       LYRA_CALL_STACK.push func
-      args = eval_list(args, env, force_eval)
+      args = eval_list(args, env)
 
-      if !force_eval && args.any? { |e| e.is_a?(LazyObj) }
-        #r = LazyObj.new cons(func, args), env # FIXME Buggy
-        r = func.call(args, env)
-      else
-        # Call the function with the new arguments
-        r = func.call(args, env)
-      end
+      # Call the function with the new arguments
+      r = func.call(args, env)
 
       LYRA_CALL_STACK.pop
       r
@@ -593,7 +579,7 @@ def eval_list_expr(expr, env, force_eval = false, is_in_call_params = false)
         expr.set_car! DO_NOTHING_AND_RETURN
         expr.set_cdr! list(r1)
       end
-      eval_ly(r1, env, force_eval)
+      eval_ly(r1, env)
     else
       # Check whether a tail-call is possible
       # A tail-call is possible if the function is not natively implemented
@@ -607,22 +593,18 @@ def eval_list_expr(expr, env, force_eval = false, is_in_call_params = false)
       # will also tail call.
       if !is_in_call_params && (!LYRA_CALL_STACK.empty?) && ((func == LYRA_CALL_STACK.last) || func == RECUR_FUNC)
         # Evaluate arguments that will be passed to the call.
-        args = eval_list(args, env, true)
+        args = eval_list(args, env)
         # Tail call
         raise TailCall.new(args)
       else
         LYRA_CALL_STACK.push func
 
         # Evaluate arguments that will be passed to the call.
-        args = eval_list(args, env, force_eval)
+        args = eval_list(args, env)
 
-        if !force_eval && args.any? { |e| e.is_a?(LazyObj) }
-          #r = LazyObj.new cons(func, args), env # FIXME Buggy
-          r = func.call(args, env)
-        else
-          # Call the function with the new arguments
-          r = func.call(args, env)
-        end
+        # Call the function with the new arguments
+        r = func.call(args, env)
+
         # Remove from the callstack.
         LYRA_CALL_STACK.pop
 
@@ -633,7 +615,7 @@ def eval_list_expr(expr, env, force_eval = false, is_in_call_params = false)
 end
 
 # Evaluation function
-def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
+def eval_ly(expr, env, is_in_call_params = false)
   if expr.nil? || (expr.is_a?(ConsList) && expr.empty?)
     expr
   elsif expr.is_a?(Symbol)
@@ -643,27 +625,25 @@ def eval_ly(expr, env, force_eval = false, is_in_call_params = false)
     else
       x
     end
-  elsif expr.is_a?(Lazy) && force_eval
+  elsif expr.is_a?(Lazy)
     expr.evaluate
   elsif atom?(expr) || expr.is_a?(LyraFn) || expr.is_a?(WrappedLyraError) || expr.is_a?(Box)
     expr
   elsif expr.is_a?(Array)
-    if force_eval
-      expr.map { |x| eval_ly x, env, force_eval, true }
-    elsif expr.all? { |x| !x.is_a?(Symbol) && atom?(x) }
+    if expr.all? { |x| !x.is_a?(Symbol) && atom?(x) }
       # Nothing to evaluate.
       expr
     else
-      expr.map { |x| eval_ly x, env, force_eval, true }
+      expr.map { |x| eval_ly x, env, true }
     end
   elsif expr.is_a?(Hash)
-    (expr.map { |k, v| eval_ly [k, v], env, force_eval, true }).to_h
+    (expr.map { |k, v| eval_ly [k, v], env, true }).to_h
   elsif expr.is_a?(Set)
-    (expr.map { |x| eval_ly x, env, force_eval, true }).to_set
+    (expr.map { |x| eval_ly x, env, true }).to_set
   elsif expr.is_a?(Alias)
     expr.get(env)
   elsif expr.is_a?(ConsList)
-    eval_list_expr(expr, env, force_eval, is_in_call_params)
+    eval_list_expr(expr, env, is_in_call_params)
   else
     raise LyraError.new("Unknown type. (Object is #{expr})")
   end

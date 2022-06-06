@@ -114,7 +114,7 @@
   (cadar (drop-while (lambda (mp) (< (car mp) 5)) (map (lambda (n) (list (p n) n)) (iterate inc 1)))))
 
 
-(def-macro (test-performance text expr)
+(defmacro (test-performance text expr)
   (list 'println! (list 'string-concat (list 'ljust text 50) (list '->string (list 'measure! 'runs (list 'lambda () expr))))))
 
 (let ((runs 100))
@@ -351,52 +351,51 @@ truffleruby:
 
 0.1.6
 Ruby:
-  Generic utility (Do not change):                  55.007449
-  Many math ops:                                    0.193158
-  Without -> :                                      0.18994
-  Many math ops (lambda):                           0.204649
-  Many math ops (hash-lambda):                      0.208954
-  Same as partials with composition:                0.809705
-  set operations                                    1019.291444
-  map operations                                    120.926683
-  (ack 3 4)                                         1722.362063
-  lazy sequences                                    58.404364
-  Sort 5000 elements:                               2302.563464
-  Shuffle 5000 elements:                            3419.574222
-  9-billion-names (25):                             2363.540445
-  Lots of recur:                                    413.819826
-  Lots of tail recursion                            402.25105
+  Generic utility (Do not change):                  46.565799
+  Many math ops:                                    0.17085899999999998
+  Without -> :                                      0.1699325
+  Many math ops (lambda):                           0.1771185
+  Many math ops (hash-lambda):                      0.182436
+  Same as partials with composition:                0.6685125000000001
+  set operations                                    973.6079255
+  map operations                                    105.090807
+  (ack 3 4)                                         1485.566367
+  lazy sequences                                    49.580856999999995
+  Sort 5000 elements:                               2019.8516225
+  Shuffle 5000 elements:                            3004.4975925
+  9-billion-names (25):                             1998.891438
+  Lots of recur:                                    356.929778
+  Lots of tail recursion                            354.6834685
 jruby (Needed to be executed with a console argument to give it more stack-space):
-  Generic utility (Do not change):                  246.239
-  Many math ops:                                    0.343
-  Without -> :                                      0.686
-  Many math ops (lambda):                           0.498
-  Many math ops (hash-lambda):                      1.113
-  Same as partials with composition:                6.3
-  set operations                                    1246.995
-  map operations                                    120.547
-  (ack 3 4)                                         3282.83
-  lazy sequences                                    155.405
-  Sort 5000 elements:                               3201.624
-  Shuffle 5000 elements:                            4266.004
-  9-billion-names (25):                             2114.782
-  Lots of recur:                                    1766.234
-  Lots of tail recursion                            1773.327
+  Generic utility (Do not change):                  100.42500000000001
+  Many math ops:                                    0.228
+  Without -> :                                      0.195
+  Many math ops (lambda):                           0.1955
+  Many math ops (hash-lambda):                      0.49
+  Same as partials with composition:                1.0775000000000001
+  set operations                                    1194.4455
+  map operations                                    97.12899999999999
+  (ack 3 4)                                         3100.0375
+  lazy sequences                                    146.9925
+  Sort 5000 elements:                               2938.866
+  Shuffle 5000 elements:                            3908.0385
+  9-billion-names (25):                             1848.8775
+  Lots of recur:                                    1770.022
+  Lots of tail recursion                            1765.0655
 truffleruby:
-  Generic utility (Do not change):                  374.58
-  Many math ops:                                    0.915
-  Without -> :                                      0.794
-  Many math ops (lambda):                           0.895
-  Many math ops (hash-lambda):                      1.291
-  Same as partials with composition:                4.197
-  set operations                                    918.146
-  map operations                                    150.188
-  (ack 3 4)                                         4474.144
-  lazy sequences                                    383.721
-  Sort 5000 elements:                               4608.689
-  Shuffle 5000 elements:                            3880.219
-  9-billion-names (25):                             1339.033
-  Lots of recur:                                    3594.886
-  Lots of tail recursion                            3591.484
+  Generic utility (Do not change):                  161.2095
+  Many math ops:                                    0.7350000000000001
+  Without -> :                                      0.4525
+  Many math ops (lambda):                           0.40950000000000003
+  Many math ops (hash-lambda):                      0.5375000000000001
+  Same as partials with composition:                2.373
+  set operations                                    434.969
+  map operations                                    43.74250000000001
+  (ack 3 4)                                         4397.7345000000005
+  lazy sequences                                    249.4945
+  Sort 5000 elements:                               2905.051
+  Shuffle 5000 elements:                            3583.458
+  9-billion-names (25):                             787.977
+  Lots of recur:                                    3673.7195
+  Lots of tail recursion                            3668.719
 )
-

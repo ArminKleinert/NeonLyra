@@ -1,24 +1,28 @@
 (module core
   (cond lambda T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq 
   all? none? any? 
-  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? defmacro loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at)
+  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? def-macro loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at)
 
 ;;; Some core things
 
-(def-macro (lambda binds & body)
+; Alias for defmacro
+(defmacro (def-macro bindings & body)
+  (cons 'defmacro (cons bindings body)))
+
+(defmacro (lambda binds & body)
   (cons 'lambda* (cons (gensym 'lambda) (cons binds body))))
 
-(def-macro (cond & cases)
+(defmacro (cond & cases)
   (if cases
     (if (cdr cases)
       (list 'if (car cases) (car (cdr cases)) (cons 'cond (cdr (cdr cases))))
       (car cases))
     Nothing))
 
-;(def-macro (if p t e) (list 'cond p t #t e))
+;(defmacro (if p t e) (list 'cond p t #t e))
 
 ; Take any arguments and return Nothing.
-(def-macro (comment & _) (nothing))
+(defmacro (comment & _) (nothing))
 
 ; unbox a box or unpack a user-defined type.
 ; Can be overridden.
@@ -211,7 +215,7 @@
 
 ; Simpler Let for a single binding.
 ; (let1 (a 1) a) is equivalent to (let ((a 1)) a)
-(def-macro (let1 bindings & body)
+(defmacro (let1 bindings & body)
   (xcons 'let (list bindings) body))
 
 ; Implementations for nth.
@@ -331,9 +335,9 @@
 
 ; Macros for lazy `and` and `or`.
 ;  (and x y) returns y if x is #t or returns #f if x is not true.
-(def-macro (and x y) (list 'if x y #f))
+(defmacro (and x y) (list 'if x y #f))
 ;  (or x y) returns x if x is truthy or y if x is not truthy.
-(def-macro (or x y) (let ((s (gensym 'x))) (list 'let (list (list s x)) (list 'if s s y))))
+(defmacro (or x y) (let ((s (gensym 'x))) (list 'let (list (list s x)) (list 'if s s y))))
 
 ; Check whether a number is odd or even. Requires ->int.
 (define (odd? n) (= 1 (rem (->int n) 2)))
@@ -414,11 +418,11 @@
   (lambda (x) (not (p x))))
 
 ; Perform operations sequencially.
-(def-macro (begin & exprs)
+(defmacro (begin & exprs)
   (xcons 'let '() exprs))
 
 ; define memoized function.
-(def-macro (def-memo name-bindings & body)
+(defmacro (def-memo name-bindings & body)
   (list 'define (car name-bindings) (list 'memoize (xcons 'lambda (cdr name-bindings) body))))
 
 ; Expand the last element of a sequence and returns a list.
@@ -778,7 +782,7 @@
             (list 'eq? n e) (second cases)
             'else (%case e n (rest (rest cases))))))))
 
-(def-macro (case e & cases)
+(defmacro (case e & cases)
   (let ((n (gensym 'case))
         (e-name (gensym 'case-elem)))
     (list 'let (list (list e-name e)) (%case e-name n cases))))
@@ -851,7 +855,7 @@
     '() seq))
 
 ; TODO: Docs
-(def-macro (λ bindings & body)
+(defmacro (λ bindings & body)
   (cons 'lambda (cons bindings body)))
 
 ; Evaluate a list using the eager behaviour of impure functions.
@@ -867,11 +871,11 @@
       '(1 1))))
 
 ; As in Clojure.
-(def-macro (-> x & exprs)
+(defmacro (-> x & exprs)
   (foldl (lambda (acc expr) (if (list? expr) (xcons (car expr) acc (cdr expr)) (list expr acc))) x exprs))
 
 ; As in Clojure.
-(def-macro (->> x & exprs)
+(defmacro (->> x & exprs)
   (foldl (lambda (acc expr) (if (list? expr) (append expr (list acc)) (list expr acc))) x exprs))
 
 ; As in Clojure.
@@ -879,7 +883,7 @@
   (if (empty? exprs)
     x
     (list 'let (list (list name x)) (%as-> name (car exprs) (cdr exprs)))))
-(def-macro (as-> name x & exprs)
+(defmacro (as-> name x & exprs)
   (%as-> name x exprs))
 
 ;; Basic case-lambda
@@ -916,7 +920,7 @@
         acc)))
 
 ; Like case-lambda* but does not take a name.
-(def-macro (case-lambda & forms)
+(defmacro (case-lambda & forms)
   (let ((args (gensym 'xs)))
     (list 'lambda (list '& args)
       (cons 'cond (flatten1 (reverse (%case-lambda args forms '())))))))
@@ -930,7 +934,7 @@
 ;   (default "0 or more"))) ; Varargs going into a list called 'default
 ; When called, the function decides which function to call by the number of arguments it got.
 ; (list (f) (f 6) (f 6 7) (f 6 7 8 9) (f 5 4 3)) ; ("0" "1" "2" "4 or more" "0 or more")
-(def-macro (case-lambda* name & forms)
+(defmacro (case-lambda* name & forms)
   (let ((args (gensym 'xs)))
     (list 'lambda* name (list '& args)
       (cons 'cond
@@ -1003,7 +1007,7 @@
       else (list 'if
             (list p c e) (second cases)
             (%condp p e (rest (rest cases)))))))
-(def-macro (condp p e & cases)
+(defmacro (condp p e & cases)
   (let ((n (gensym 'condp)))
     (list 'let (list (list n e)) (%condp p n cases))))
 
@@ -1065,7 +1069,7 @@
     (< (size xs) n) '()
     else (lazy-seq (take n xs) (slices n (drop n xs)))))
 
-(def-macro (try f0 & fs)
+(defmacro (try f0 & fs)
   (let*((forms (take-drop-until
                 (lambda (f) (and (list? f) (eq? (car f) 'catch)))
                 (cons f0 fs)))
@@ -1096,7 +1100,7 @@
         (list 'error! (list 'error-msg err-name) (list 'error-info err-name) (list 'error-trace err-name))))
     ))
 
-(def-macro (loop bindings & body)
+(defmacro (loop bindings & body)
   (cond
     (odd? (size bindings))
       (error! "Syntax error: loop must have an even number of bindings." 'syntax)
@@ -1106,10 +1110,6 @@
              (args (map first args-values))
              (vals (map second args-values)))
         (cons (apply list 'lambda args body) vals))))
-
-; Alias for def-macro
-(def-macro (defmacro bindings & body)
-  (xcons 'def-macro bindings body))
 
 ; Add items from 'from' to 'to', keeping the type of 'to'. (if add is correctly defined)
 ;   (into) ;=> () ; empty input -> empty list
@@ -1295,7 +1295,7 @@
               (list else (cons list (list #f #f body)))))))
       (cons combinations (map cadr defs))
       ))))
-(def-macro (for bindings body)
+(defmacro (for bindings body)
   (%for bindings body))
 
 (define (cartesian-product lst0 lst1)

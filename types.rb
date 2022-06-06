@@ -441,7 +441,7 @@ class LazyObj < LyraFn
     if @executed
       @expr
     else
-      @expr = eval_ly(@expr, @env, false)
+      @expr = eval_ly(@expr, @env, true)
       @executed = true
       @expr
     end
@@ -524,7 +524,7 @@ class CompoundFunc < LyraFn
 
       # Execute the body and return
       #body.call(args, env1)
-      eval_keep_last(@body_expr, env1, !pure?)
+      eval_keep_last(@body_expr, env1)
     rescue TailCall => tail_call
       unless native?
         # Do a tail-call. (Thanks for providing `retry`, Ruby!)

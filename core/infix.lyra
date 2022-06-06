@@ -149,7 +149,7 @@ implementation of Dijkstra's Shunting-yard Algorithm."
       (car res)
       res)))
 
-(def-macro (show-infix-as-prefix binds & exprs)
+(defmacro (show-infix-as-prefix binds & exprs)
   (list 'eval-rpn (list 'shunting-yard (list 'quote exprs) binds) binds))
 
 ; Quick macros
@@ -158,11 +158,11 @@ implementation of Dijkstra's Shunting-yard Algorithm."
 ;  precedence-of : Precedence of a symbol
 ;  unary-op? : Whether an operator takes 1 argument
 ;  bin-op? : Whether an operator takes 2 arguments
-(def-macro (infix->prefix bindings & exprs)
+(defmacro (infix->prefix bindings & exprs)
   (eval-rpn (shunting-yard exprs bindings) bindings))
 
 ; infix->prefix with default lyra bindings
-(def-macro (infix->lyra & exprs)
+(defmacro (infix->lyra & exprs)
   (eval-rpn (shunting-yard exprs lyra-binds) lyra-binds))
 
 (comment let ((t '(a = 9 + 9 + 9 + 9 * ! 8)))
