@@ -162,6 +162,17 @@
     (string? '"abc")
     (list? '(1 2 3))))
 
+(define (test-quasiquote)
+  (do-test!
+    (eq? '(1 2 3) (quasiquote (1 2 3)))
+    (eq? '(1 3 4) (quasiquote (1 (unquote (+ 1 2)) 4)))
+    (eq? '(1 2 3 4) (quasiquote (1 (unquote-splicing (list 2 3)) 4)))
+    (eq? '(1 2 3 4) (quasiquote (1 (unquote-splicing (list 2 3)) 4)))
+    (eq? '(1 2 3) `(1 2 3))
+    (eq? '(1 3 4) `(1 ~(+ 1 2) 4))
+    (eq? '(1 2 3 4) `(1 ~@(list 2 3) 4))
+    (eq? '(1 2 3 4) `(1 ~@(list 2 3) 4))))
+
 (define (test-gensym)
   (do-test!
     (/= (gensym 'x) (gensym 'x))
@@ -3506,7 +3517,7 @@
 (define (run-all-tests)
   (run-tests
   'test-keyword-name 'test-loop 'test-lambda 'test-cond 'test-if 'test-spread
-  'test-apply 'test-lambda* 'test-quote 'test-gensym 'test-seq
+  'test-apply 'test-lambda* 'test-quote 'test-gensym 'test-seq 'test-quasiquote
   'test-partial 'test-nothing
   'test-box 'test-unbox 'test-set-box 'test-read-string 'test-eval
   'test-measure 'test-= 'test-/= 'test-< 'test-> 'test-<= 'test->= 'test-+

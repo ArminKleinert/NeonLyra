@@ -348,7 +348,7 @@ truffleruby:
   9-billion-names (25):                             754.9675
   Lots of recur:                                    3127.67
   Lots of tail recursion                            3118.387
-  
+
 0.1.6
 Ruby:
   Generic utility (Do not change):                  55.007449

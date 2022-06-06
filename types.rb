@@ -300,7 +300,11 @@ class LazyList
     if @tail_evaluated
       @cdr_or_tail_fn
     else
-      @cdr_or_tail_fn = @cdr_or_tail_fn.call
+      temp = @cdr_or_tail_fn.call
+      unless temp.is_a?(ConsList) || temp.is_a?(Proc)
+        raise LyraError.new("Tail must be a list but is #{temp}.", :"illegal-argument")
+      end
+      @cdr_or_tail_fn = temp
       @tail_evaluated = true
       @cdr_or_tail_fn
     end
@@ -333,7 +337,7 @@ def cons(e, l)
   elsif l.is_a?(LyraFn)
     List.create(e, l)
   else
-    raise LyraError.new("Tail must be a list.", :"illegal-argument")
+    raise LyraError.new("Tail must be a list but is #{temp}.", :"illegal-argument")
   end
 end
 

@@ -1142,12 +1142,12 @@
 ; If either set? or map? is true for xs, do nothing and return xs.
 ; Required: empty?, first, rest
 (define (%dedupe prev xs)
-  (cond (empty? xs) xs
+  (cond (empty? xs) '()
         (eq? (first xs) prev) (%dedupe prev (rest xs))
         else (lazy-seq (first xs) (%dedupe (first xs) (rest xs)))))
 (define (dedupe xs)
   (cond (or (set? xs) (map? xs)) xs
-        (empty? xs) xs
+        (empty? xs) '()
         else (lazy-seq (first xs) (%dedupe (first xs) (rest xs)))))
 
 ; Creates a function which takes one argument and applies f to it n times.

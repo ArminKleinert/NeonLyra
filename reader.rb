@@ -24,20 +24,6 @@ def tokenize(s)
   s.scan(LYRA_REGEX).flatten.reject { |w| w.empty? || w.start_with?(";") }
 end
 
-def slice_arr_as_tuple(arr, e)
-  res = [[]]
-  arr.each do |x|
-    if x == e
-      res << []
-    else
-      res[-1] << x
-    end
-  end
-  res.map! { |a| a.empty? ? [nil] : a }
-  res.flatten!(1)
-  res
-end
-
 # Un-escapes a string and removed the '"' from beginning and end.
 def parse_str(token)
   token.gsub(/\\./, { "\\\\" => "\\", "\\n" => "\n", "\\\"" => '"' })[1..-2].freeze

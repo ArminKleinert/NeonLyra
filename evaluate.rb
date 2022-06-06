@@ -368,6 +368,33 @@ def eval_try_star(expr, env, force_eval)
   end
 end
 
+def quasiquote(expr, env)
+    if !expr.is_a?(List)
+      #puts list(:quote, expr)
+      return list(:quote, expr)
+    end
+
+    seq = expr
+    fst = first(seq)
+
+    #puts "fst: #{fst} seq: #{seq}"
+
+    if fst == :unquote
+      #puts second(seq)
+      return second(seq)
+    end
+
+    if fst.is_a?(List) && first(fst) == :"unquote-splicing"
+      #puts list(:concat, second(fst), rest(seq).to_cons_list)
+      list(:concat, second(fst), quasiquote(rest(seq).to_cons_list, env))
+    else
+      x = quasiquote(first(expr), env)
+      xs = quasiquote(rest(seq).to_cons_list, env)
+      #puts list(:cons, x, xs)
+      list(:cons, x, xs)
+    end
+end
+
 # The expression is a cons and probably starts with a symbol.
 # The evaluate function will try to treat the symbol as a function
 # and execute it.
@@ -477,6 +504,8 @@ def eval_list_expr(expr, env, force_eval = false, is_in_call_params = false)
     # Same as define, but the 'is_macro' parameter is true.
     # Form: `(def-macro (name arg0 arg1 ...) body...)`
     ev_define(rest(expr), env, true)
+  when :quasiquote
+    eval_ly(quasiquote(second(expr), env), env, force_eval, true)
   when :module
     ev_module expr
   when :lazy
