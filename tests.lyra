@@ -2719,18 +2719,6 @@
     (all? nothing?
       (map name (list '() '(1) 1 0.5 7/5r \a [] [1] +)))))
 
-(define (test-alias)
-  (let ((a (alias @b))
-        (b (box 1)))
-    (do-test!
-      (= a 1)
-      (begin (box-set! b 2) #t)
-      (= a 2)
-      (let ((b (box 0))) (= a 0))
-      (= a 2)
-      (= a.? 2)
-      (= (unwrap a) 2))))
-
 (define (test-dedupe)
   (do-test!
     (eq? '() (dedupe '()))
@@ -3549,7 +3537,7 @@
   'test-try* 'test-tuples 'test-slices 'test-try-catch-finally
   'test-count-by 'test-most? 'test-list-literal 'test-vector-literal
   'test-set-literal 'test-map-literal 'test-char-literal 'test-when
-  'test-name 'test-fn 'test-alias 'test-dedupe 'test-prepend
+  'test-name 'test-fn 'test-dedupe 'test-prepend
   'test-times 'test-queue 'test-deque 'test-enqueue 'test-enqueue-all
   'test-dequeue 'test-queue? 'test-deque? 'test-push 'test-peek 'test-pop
   'test-->queue 'test-->deque 'test-other-queue-ops 'test-other-deque-ops

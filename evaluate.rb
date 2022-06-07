@@ -38,7 +38,7 @@ begin
   f.call :"def-impl"
   f.call :"def-generic"
   f.call :"defmacro"
-  f.call :"lazy-seq"
+  #f.call :"lazy-seq"
   f.call :"module"
   f.call :"quote"
   #f.call :"quasiquote"
@@ -502,8 +502,6 @@ def eval_list_expr(expr, env, is_in_call_params = false)
     # Same as define, but the 'is_macro' parameter is true.
     # Form: `(defmacro (name arg0 arg1 ...) body...)`
     ev_define(rest(expr), env, true)
-  when :quasiquote11111111111
-    eval_ly(quasiquote(second(expr), env), env, true)
   when :module
     ev_module expr
   when :lazy
@@ -511,11 +509,6 @@ def eval_list_expr(expr, env, is_in_call_params = false)
       raise LyraError.new("Wrong number of arguments for lazy. (Expected 1, got #{expr.cdr.size})")
     end
     LazyObj.new expr.cdr.car, env
-  when :"lazy-seq"
-    if expr.cdr.size != 2
-      raise LyraError.new("Wrong number of arguments for lazy-seq. (Expected 2, got #{expr.cdr.size})")
-    end
-    LazyList.create eval_ly(expr.cdr.car, env), lambda { eval_ly(expr.cdr.cdr.car, env) }
   when :"try*"
     eval_try_star(expr, env)
   when :"expand-macro"
@@ -532,11 +525,6 @@ def eval_list_expr(expr, env, is_in_call_params = false)
     expr.set_car! DO_NOTHING_AND_RETURN
     expr.set_cdr! list(r1)
     r1
-  when :alias
-    if expr.size != 2
-      raise LyraError.new("Wrong number of arguments for alias. (Expected 1, got #{expr.cdr.size})")
-    end
-    Alias.new(expr.cdr.car)
   else
     # Here, the expression will have a form like the following:
     # (func arg0 arg1 ...)
@@ -619,12 +607,7 @@ def eval_ly(expr, env, is_in_call_params = false)
   if expr.nil? || (expr.is_a?(ConsList) && expr.empty?)
     expr
   elsif expr.is_a?(Symbol)
-    x = env.find(expr) # Get associated value from env
-    if x.is_a?(Alias)
-      x.get(env)
-    else
-      x
-    end
+    env.find(expr) # Get associated value from env
   elsif atom?(expr) || expr.is_a?(LyraFn) || expr.is_a?(WrappedLyraError) || expr.is_a?(Box) || expr.is_a?(Lazy)
     expr
   elsif expr.is_a?(Array)
@@ -638,8 +621,6 @@ def eval_ly(expr, env, is_in_call_params = false)
     (expr.map { |k, v| eval_ly [k, v], env, true }).to_h
   elsif expr.is_a?(Set)
     (expr.map { |x| eval_ly x, env, true }).to_set
-  elsif expr.is_a?(Alias)
-    expr.get(env)
   elsif expr.is_a?(ConsList)
     eval_list_expr(expr, env, is_in_call_params)
   elsif expr.is_a?(LyraType)

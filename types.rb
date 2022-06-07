@@ -21,24 +21,6 @@ end
 module Unwrapable
 end
 
-class Alias
-  include Unwrapable
-
-  attr_reader :body
-
-  def initialize(body)
-    @body = body
-  end
-
-  def get(env)
-    eval_ly(@body, env)
-  end
-
-  def unwrap
-    @body
-  end
-end
-
 module Lazy
 end
 
@@ -180,16 +162,19 @@ class List
   end
 
   def cdr
+    if @cdr.is_a?(LyraFn)
+      @cdr = @cdr.call(list, nil)
+    end
     @cdr
   end
 
   def size
     if @size == -1
       # Tail was lazy, so calculate its size
-      @size = @cdr.size + 1
-    else
-      @size
+      force # force evaluation
+      @size = cdr.size + 1
     end
+    @size
   end
 
   # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
@@ -200,6 +185,7 @@ class List
   # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
   def set_cdr!(tail)
     @cdr = tail
+    force
     @size = tail.size + 1
   end
 

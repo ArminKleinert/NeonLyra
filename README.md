@@ -313,6 +313,7 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Performance boost  
   - Added `quasiquote` and `unquote-splicing`  
   - Fixed bug in lazy sequences  
+  - Removed alias type.  
 
 ## Known bugs
 
