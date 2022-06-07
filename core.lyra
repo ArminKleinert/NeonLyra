@@ -1,13 +1,9 @@
 (module core
   (cond lambda T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq 
   all? none? any? 
-  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? def-macro loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at)
+  zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples xrange succ try count-by most? loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at quasiquote)
 
 ;;; Some core things
-
-; Alias for defmacro
-(defmacro (def-macro bindings & body)
-  (cons 'defmacro (cons bindings body)))
 
 (defmacro (lambda binds & body)
   (cons 'lambda* (cons (gensym 'lambda) (cons binds body))))
@@ -854,12 +850,16 @@
     (lambda (c acc i) (if (eq? c elem) (cons i acc) acc))
     '() seq))
 
-; TODO: Docs
+; Plain alias for lambda
 (defmacro (λ bindings & body)
   (cons 'lambda (cons bindings body)))
 
-; Evaluate a list using the eager behaviour of impure functions.
-(define (doall! xs) xs)
+; Evaluate a list
+(define (doall! xs)
+  (let ((ys (->list xs)))
+    (if (empty? ys)
+      ys
+      (doall! (cdr ys)))))
 
 ; Sequence of the factorial numbers, starting at 0.
 ; (yes, it says 1, but starts at 0)
@@ -1232,6 +1232,23 @@
   (%walk-with-path f xs '()))
 
 
+(defmacro (quasiquote expr)
+  (cond
+    (not expr)
+      '()
+    (not (list? expr))
+      (list 'quote expr)
+    else
+      (let ((fst (car expr)))
+        (cond
+          (= fst 'unquote)
+            (cadr expr)
+          (and (list? fst) (= (car fst) 'unquote-splicing)) 
+            (list 'concat (second fst) (list 'quasiquote (cdr expr)))
+          else
+            (list 'cons (list 'quasiquote (car expr)) (list 'quasiquote (cdr expr)))))))
+
+
 ;;; for macro
 
 ; Lazily calculates all combinations of any number of lists while preserving order:
@@ -1303,5 +1320,3 @@
 )
 
 (cons 'core (load! "string.lyra" "vector.lyra" "set.lyra"))
-
-

@@ -8,7 +8,7 @@
        "core/clj.lyra"
        "core/queue.lyra")
 
-(def-macro (do-test! & cases)
+(defmacro (do-test! & cases)
   (let ((details #t) ; Set to #f to hide details and only show overall success/failure numbers at the end
         (success-sym (gensym 'do-test!-success))
         (e-sym (gensym 'e))
@@ -171,7 +171,8 @@
     (eq? '(1 2 3) `(1 2 3))
     (eq? '(1 3 4) `(1 ~(+ 1 2) 4))
     (eq? '(1 2 3 4) `(1 ~@(list 2 3) 4))
-    (eq? '(1 2 3 4) `(1 ~@(list 2 3) 4))))
+    (eq? '(1 2 3 4) `(1 ~@(list 2 3) 4))
+    ))
 
 (define (test-gensym)
   (do-test!
@@ -194,22 +195,6 @@
     (nothing? (seq '()))
     (sequence? (seq (list 1 2 3 4 5)))
     (sequence? (seq (vector 1 2 3 4 5)))))
-
-; If this does not crash, then we know that the expression was not evaluated.
-(comment define (test-lazy-crash)
-  ((lambda (x y) (lazy (/ x y))) 0 0) 
-  (lazy (crash!))
-  #t)
-
-(comment define (test-lazy)
-  (do-test!
-    (lazy #t)
-    (eager (lazy #t))))
-
-(comment define (test-eager)
-  (do-test!
-    (not (eager (lazy #f)))
-    (eager (lazy #t))))
 
 (define (test-partial)
   (do-test!

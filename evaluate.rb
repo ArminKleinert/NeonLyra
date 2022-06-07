@@ -41,7 +41,7 @@ begin
   f.call :"lazy-seq"
   f.call :"module"
   f.call :"quote"
-  f.call :"quasiquote"
+  #f.call :"quasiquote"
   f.call :"unquote"
   f.call :"lazy"
   f.call :"try*"
@@ -502,7 +502,7 @@ def eval_list_expr(expr, env, is_in_call_params = false)
     # Same as define, but the 'is_macro' parameter is true.
     # Form: `(defmacro (name arg0 arg1 ...) body...)`
     ev_define(rest(expr), env, true)
-  when :quasiquote
+  when :quasiquote11111111111
     eval_ly(quasiquote(second(expr), env), env, true)
   when :module
     ev_module expr
@@ -625,9 +625,7 @@ def eval_ly(expr, env, is_in_call_params = false)
     else
       x
     end
-  elsif expr.is_a?(Lazy)
-    expr.evaluate
-  elsif atom?(expr) || expr.is_a?(LyraFn) || expr.is_a?(WrappedLyraError) || expr.is_a?(Box)
+  elsif atom?(expr) || expr.is_a?(LyraFn) || expr.is_a?(WrappedLyraError) || expr.is_a?(Box) || expr.is_a?(Lazy)
     expr
   elsif expr.is_a?(Array)
     if expr.all? { |x| !x.is_a?(Symbol) && atom?(x) }
@@ -644,6 +642,8 @@ def eval_ly(expr, env, is_in_call_params = false)
     expr.get(env)
   elsif expr.is_a?(ConsList)
     eval_list_expr(expr, env, is_in_call_params)
+  elsif expr.is_a?(LyraType)
+    expr
   else
     raise LyraError.new("Unknown type. (Object is #{expr})")
   end
