@@ -862,7 +862,8 @@
   (let ((ys (->list xs)))
     (if (empty? ys)
       ys
-      (doall! (cdr ys)))))
+      (doall! (cdr ys))))
+  xs)
 
 ; Sequence of the factorial numbers, starting at 0.
 ; (yes, it says 1, but starts at 0)
@@ -1323,5 +1324,3 @@
 )
 
 (cons 'core (load! "string.lyra" "vector.lyra" "set.lyra"))
-
-

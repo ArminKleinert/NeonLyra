@@ -163,7 +163,11 @@ class List
 
   def cdr
     if @cdr.is_a?(LyraFn)
-      @cdr = @cdr.call(list, nil)
+      temp = @cdr.call(list, nil)
+      unless temp.is_a?(ConsList) || temp.is_a?(Proc)
+        raise LyraError.new("Tail must be a list but is #{temp}.", :"illegal-argument")
+      end
+      @cdr = temp
     end
     @cdr
   end

@@ -1142,6 +1142,15 @@
     (list? (cons 1 '(2)))
     (eq? (list (list 1 2 3)) (cons (list 1 2 3) (list)))))
 
+(define (test-lazy-seq)
+  (let ((f0 (lambda* f0 (n m) (if (= n m) '() (lazy-seq n (f0 (+ n 1) m))))))  
+    (do-test!
+      (eq? (list 1 2 3 4) (f0 1 5))
+      (eq? 4 (size (f0 1 5)))
+      (eq? 1 (car (f0 1 -1)))
+      (eq? 2 (car (cdr (f0 1 -1))))
+      (eq? (list 2 3 4) (cdr (f0 1 5))))))
+
 (define (test-vector)
   (do-test!
     (empty? (vector))
@@ -3491,7 +3500,7 @@
   (run-tests
   'test-keyword-name 'test-loop 'test-lambda 'test-cond 'test-if 'test-spread
   'test-apply 'test-lambda* 'test-quote 'test-gensym 'test-seq 'test-quasiquote
-  'test-partial 'test-nothing
+  'test-partial 'test-nothing 'test-lazy-seq
   'test-box 'test-unbox 'test-set-box 'test-read-string 'test-eval
   'test-measure 'test-= 'test-/= 'test-< 'test-> 'test-<= 'test->= 'test-+
   'test-- 'test-* 'test-/ 'test-rem 'test-v+ 'test-v- 'test-v* 'test-v/

@@ -309,7 +309,7 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Reduced set of core functions  
   - `\p(...)` as shortcut for partial functions
 - 0.1.6
-  - Removed `lazy AST spreading`  
+  - Removed "lazy AST spreading"  
   - Performance boost  
   - Added `quasiquote` and `unquote-splicing`  
   - Fixed bug in lazy sequences  
