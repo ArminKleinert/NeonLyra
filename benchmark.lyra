@@ -351,51 +351,51 @@ truffleruby:
 
 0.1.6
 Ruby:
-  Generic utility (Do not change):                  46.565799
-  Many math ops:                                    0.17085899999999998
-  Without -> :                                      0.1699325
-  Many math ops (lambda):                           0.1771185
-  Many math ops (hash-lambda):                      0.182436
-  Same as partials with composition:                0.6685125000000001
-  set operations                                    973.6079255
-  map operations                                    105.090807
-  (ack 3 4)                                         1485.566367
-  lazy sequences                                    49.580856999999995
-  Sort 5000 elements:                               2019.8516225
-  Shuffle 5000 elements:                            3004.4975925
-  9-billion-names (25):                             1998.891438
-  Lots of recur:                                    356.929778
-  Lots of tail recursion                            354.6834685
+  Generic utility (Do not change):                  54.788517999999996
+  Many math ops:                                    0.172383
+  Without -> :                                      0.18458400000000003
+  Many math ops (lambda):                           0.181894
+  Many math ops (hash-lambda):                      0.182822
+  Same as partials with composition:                0.687197
+  set operations                                    1006.112455
+  map operations                                    132.433464
+  (ack 3 4)                                         1530.9437440000002
+  lazy sequences                                    58.3786635
+  Sort 5000 elements:                               3062.7000565
+  Shuffle 5000 elements:                            4264.2906695
+  9-billion-names (25):                             2254.9233125
+  Lots of recur:                                    387.3689305
+  Lots of tail recursion                            384.71535199999994
 jruby (Needed to be executed with a console argument to give it more stack-space):
-  Generic utility (Do not change):                  100.42500000000001
-  Many math ops:                                    0.228
-  Without -> :                                      0.195
-  Many math ops (lambda):                           0.1955
-  Many math ops (hash-lambda):                      0.49
-  Same as partials with composition:                1.0775000000000001
-  set operations                                    1194.4455
-  map operations                                    97.12899999999999
-  (ack 3 4)                                         3100.0375
-  lazy sequences                                    146.9925
-  Sort 5000 elements:                               2938.866
-  Shuffle 5000 elements:                            3908.0385
-  9-billion-names (25):                             1848.8775
-  Lots of recur:                                    1770.022
-  Lots of tail recursion                            1765.0655
+  Generic utility (Do not change):                  106.4565
+  Many math ops:                                    0.22699999999999998
+  Without -> :                                      0.38549999999999995
+  Many math ops (lambda):                           0.39100000000000007
+  Many math ops (hash-lambda):                      0.4475
+  Same as partials with composition:                0.8965000000000001
+  set operations                                    1163.992
+  map operations                                    118.45649999999999
+  (ack 3 4)                                         3073.7349999999997
+  lazy sequences                                    151.969
+  Sort 5000 elements:                               3857.6745
+  Shuffle 5000 elements:                            5011.3475
+  9-billion-names (25):                             2039.3835000000004
+  Lots of recur:                                    1805.6504999999997
+  Lots of tail recursion                            1801.3375
 truffleruby:
-  Generic utility (Do not change):                  161.2095
-  Many math ops:                                    0.7350000000000001
-  Without -> :                                      0.4525
-  Many math ops (lambda):                           0.40950000000000003
-  Many math ops (hash-lambda):                      0.5375000000000001
-  Same as partials with composition:                2.373
-  set operations                                    434.969
-  map operations                                    43.74250000000001
-  (ack 3 4)                                         4397.7345000000005
-  lazy sequences                                    249.4945
-  Sort 5000 elements:                               2905.051
-  Shuffle 5000 elements:                            3583.458
-  9-billion-names (25):                             787.977
-  Lots of recur:                                    3673.7195
-  Lots of tail recursion                            3668.719
+  Generic utility (Do not change):                  159.394
+  Many math ops:                                    0.696
+  Without -> :                                      0.445
+  Many math ops (lambda):                           0.384
+  Many math ops (hash-lambda):                      0.5045
+  Same as partials with composition:                2.16
+  set operations                                    435.596
+  map operations                                    44.8845
+  (ack 3 4)                                         4198.746499999999
+  lazy sequences                                    234.08800000000002
+  Sort 5000 elements:                               2877.5344999999998
+  Shuffle 5000 elements:                            3343.0190000000002
+  9-billion-names (25):                             702.8499999999999
+  Lots of recur:                                    3693.0715
+  Lots of tail recursion                            3675.6445000000003
 )
