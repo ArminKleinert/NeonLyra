@@ -45,6 +45,18 @@ module ConsList
     end
     self
   end
+  
+  def index(o)
+    lst = self
+    idx = 0
+    lst.each do |e|
+      if o == e
+        return idx
+      end
+      idx += 1
+    end
+    -1
+  end
 
   def each_with_index
     lst = self

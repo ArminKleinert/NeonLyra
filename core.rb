@@ -543,6 +543,33 @@ def setup_core_functions
   add_fn(:"exit!", 1) { |s| exit(s) }
 
   add_fn(:"callstack", 0) { LYRA_CALL_STACK }
+=begin
+  add_fn(:"define-generic", 3) do |xs, env|
+    arg_name = xs.car
+    signature = xs.cdr.car
+    default_impl = xs.cdr.cdr.car
+    raise LyraError.new("def-generic: anchor-argument must be a symbol but is #{arg_name}", :syntax) unless arg_name.is_a?(Symbol)
+    raise LyraError.new("def-generic: signature must be a list with at least 2 elements but is #{signature}", :syntax) unless signature.is_a?(List) && !signature.cdr.is_empty?
+    raise LyraError.new("def-generic: default must be a function but is #{default_impl}", :syntax) unless default_impl.is_a?(LyraFn)
+    anchor_idx = signature.cdr.index(arg_name)
+    res = GenericFn.new name, args.size, anchor_idx, fallback
+    top_env(env).set!(name, res)
+    res
+  end
+  
+  add_fn(:"define-implementation", 3) do |xs, env|
+    type_name = xs.car
+    fn = xs.cdr.car
+    impl = xs.cdr.cdr.car
+    raise LyraError.new("def-generic: anchor-argument must be a symbol but is #{arg_name}") unless arg_name.is_a?(Symbol)
+    raise LyraError.new("def-generic: signature must be a list with at least 2 elements but is #{signature}") unless signature.is_a?(List) && !signature.cdr.is_empty?
+    raise LyraError.new("def-generic: default must be a function but is #{default_impl}") unless default_impl.is_a?(LyraFn)
+    anchor_idx = signature.cdr.index(arg_name)
+    res = GenericFn.new name, args.size, anchor_idx, fallback
+    top_env(env).set!(name, res)
+    res
+  end
+=end
 
   true
 end
