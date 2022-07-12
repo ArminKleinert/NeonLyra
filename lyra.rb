@@ -105,4 +105,7 @@ rescue LyraError => e
   $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_s(x) }}"
   $stderr.puts "Error: " + e.message
   raise
+rescue
+  $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_s(x) }}"
+  raise
 end

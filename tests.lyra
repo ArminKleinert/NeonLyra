@@ -2643,6 +2643,45 @@
     (eq? '((1) (2) (3) (4) (5) (6)) (slices 1 [1 2 3 4 5 6]))
     (eq? '() (slices 0 [1 2 3 4 5 6]))))
 
+(define (test-partition)
+  (do-test!
+    (eq? '() (partition 3 '()))
+    (eq? '() (partition 3 '(1 2)))
+    (eq? '((1 2 3)) (partition 3 '(1 2 3)))
+    (eq? '((1 2 3)) (partition 3 '(1 2 3 4)))
+    (eq? '((1 2 3) (4 5 6)) (partition 3 '(1 2 3 4 5 6)))
+    (eq? '((1) (2) (3) (4) (5) (6)) (partition 1 '(1 2 3 4 5 6)))
+    (eq? '() (partition 0 '(1 2 3 4 5 6)))
+    (eq? '() (partition 3 []))
+    (eq? '() (partition 3 [1 2]))
+    (eq? '((1 2 3)) (partition 3 [1 2 3]))
+    (eq? '((1 2 3)) (partition 3 [1 2 3 4]))
+    (eq? '((1 2 3) (4 5 6)) (partition 3 [1 2 3 4 5 6]))
+    (eq? '((1) (2) (3) (4) (5) (6)) (partition 1 [1 2 3 4 5 6]))
+    (eq? '() (partition 0 [1 2 3 4 5 6]))))
+
+(define (test-partition-by)
+  (do-test!
+    (eq? '() (partition-by odd? '()))
+    (eq? '((1 1) (2) (3) (4 6 8)) (partition-by odd? '(1 1 2 3 4 6 8)))
+    (eq? '((1 1) (2) (3) (4) (6) (8)) (partition-by id '(1 1 2 3 4 6 8)))
+    (eq? '((1 1 2 3 4 6 8)) (partition-by (const #t) '(1 1 2 3 4 6 8)))
+    ))
+
+(define (test-partition-all)
+  (do-test!
+    (eq? '((0 1) (2 3) (4 5)) (partition-all 2 [0 1 2 3 4 5]))
+    (eq? '((0 1) (2 3) (4 5)) (partition-all 2 '(0 1 2 3 4 5)))
+    (eq? '((0 1) (2 3) (4 5) (6)) (partition-all 2 [0 1 2 3 4 5 6]))
+    (eq? '((0 1) (2 3) (4 5) (6)) (partition-all 2 '(0 1 2 3 4 5 6)))
+    (eq? '((0) (1) (2) (3) (4) (5) (6)) (partition-all 1 [0 1 2 3 4 5 6]))
+    (eq? '((0) (1) (2) (3) (4) (5) (6)) (partition-all 1 '(0 1 2 3 4 5 6)))
+    (eq? '((0 1 2 3 4 5 6)) (partition-all 7 [0 1 2 3 4 5 6]))
+    (eq? '((0 1 2 3 4 5 6)) (partition-all 7 '(0 1 2 3 4 5 6)))
+    (eq? '((0 1 2 3 4 5 6)) (partition-all 9 [0 1 2 3 4 5 6]))
+    (eq? '((0 1 2 3 4 5 6)) (partition-all 9 '(0 1 2 3 4 5 6)))
+    ))
+
 (define (test-count-by)
   (do-test!
     (= 0 (count-by even? '()))
@@ -3553,7 +3592,7 @@
   'test-add 'test-add-front 'test-permutations 'test-get 'test-get-in
   'test-subseq 'test-replace-subseq 'test-v-zip-with 'test-combinations
   'test-for 'test-for-vec-binds 'test-juxt 'test-every-pred 'test-hash-lambda
-  'test-cartesian-product 'test-delete-at
+  'test-cartesian-product 'test-delete-at 'test-partition 'test-partition-by 'test-partition-all
   ;'test-lazy-crash 'test-lazy 'test-eager 
   ))
 

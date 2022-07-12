@@ -339,7 +339,7 @@ def cons(e, l)
   elsif l.is_a?(LyraFn)
     List.create(e, l)
   else
-    raise LyraError.new("Tail must be a list but is #{temp}.", :"illegal-argument")
+    raise LyraError.new("Tail must be a list but is #{l}.", :"illegal-argument")
   end
 end
 
