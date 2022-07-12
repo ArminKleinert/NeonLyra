@@ -10,7 +10,7 @@ require_relative 'core.rb'
 if RUBY_PLATFORM != "java"
   require "reline"
   HISTORY_LOADED = Box.new(false)
-  HISTFILE = "#{ENV['HOME']}/.lyra-history"
+  HISTORY_FILE = "#{ENV['HOME']}/.lyra-history"
   HISTORY = []
 end
 
@@ -20,15 +20,15 @@ end
 def _readline(prompt)
   if defined?(Reline)
     # Create history file
-    if !File.exists?(HISTFILE)
-      IO.write(HISTFILE, "\n")
+    unless File.exists?(HISTORY_FILE)
+      IO.write(HISTORY_FILE, "\n")
     end
     # Load history file
-    if !HISTORY_LOADED.value && File.exist?(HISTFILE)
+    if !HISTORY_LOADED.value && File.exist?(HISTORY_FILE)
       HISTORY_LOADED.value = true
       # Load history
-      if File.readable?(HISTFILE)
-        File.readlines(HISTFILE).each do |l|
+      if File.readable?(HISTORY_FILE)
+        File.readlines(HISTORY_FILE).each do |l|
           l = l.chomp
           Reline::HISTORY << l
           HISTORY << l
@@ -37,14 +37,14 @@ def _readline(prompt)
     end
 
     # Read a single line
-    if line = Reline.readline(prompt, false)
+    if (line = Reline.readline(prompt, false))
       # Add the line only if it is not equal to the last one.
       HISTORY.each_with_index { |e, i| Reline::HISTORY[i] = e }
       if HISTORY.empty? || HISTORY[-1] != line
         HISTORY << line
         Reline::HISTORY << line
-        if File.writable?(HISTFILE)
-          File.open(HISTFILE, 'a+') { |f| f.write(line + "\n") }
+        if File.writable?(HISTORY_FILE)
+          File.open(HISTORY_FILE, 'a+') { |f| f.write(line + "\n") }
         end
       end
       line
@@ -56,19 +56,21 @@ def _readline(prompt)
   end
 end
 
-LYRA_VERSION = "0_1_5"
+LYRA_VERSION = "0_1_6"
 
 if ARGV[0] == "--show_expand_macros"
   $show_expand_macros = true
   ARGV.shift
 end
+
+empty_list = list
 if ARGV.include? "-args"
   src_files, lyra_args = ARGV.slice_after { |e| e == "-args" }.to_a
-  Env.global_env.set!(:"*ARGS*", lyra_args ? lyra_args.map(&:freeze).to_cons_list.freeze : list())
+  Env.global_env.set!(:"*ARGS*", lyra_args ? lyra_args.map(&:freeze).to_cons_list.freeze : empty_list)
   src_files.shift
 else
   src_files = ARGV
-  Env.global_env.set!(:"*ARGS*", list())
+  Env.global_env.set!(:"*ARGS*", empty_list)
 end
 
 # Treat the first console argument as a filename,
@@ -87,9 +89,9 @@ begin
         s = _readline(">> ") # Read
         break unless s # Quit if the line is empty
         puts elem_to_pretty(eval_str(s)) # Write the result
-      rescue LyraError
+      rescue LyraError => e
         $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_s(x) }}"
-        $stderr.puts "Error: " + $!.message
+        $stderr.puts "Error: " + e.message
       rescue Interrupt
         # Ignore
       end
@@ -99,8 +101,11 @@ begin
 rescue SystemStackError
   $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_s(x) }}"
   raise
+rescue LyraError => e
+  $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_s(x) }}"
+  $stderr.puts "Error: " + e.message
+  raise
 rescue
   $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_s(x) }}"
-  $stderr.puts "Error: " + $!.message
   raise
 end

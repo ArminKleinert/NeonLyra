@@ -2,7 +2,8 @@
 
 Lyra is a lisp I make for fun and learning. NeonLyra is an improved version.
 
-Current version: 0.1.5
+Current stable version: 0.1.6  
+Current version: 0.1.6
 
 Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 
@@ -51,12 +52,14 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 - Set  
 - Error  
 - Keyword  
-- Tuple  
 
 ## Some friendly infos about the syntax 
 
 - `(...)` is used for function calls.  
 - `'expr` quotes an expression and is equivalent to `(quote expr)`  
+- ``expr` quotes an expression and is equivalent to `(quasiquote expr)`  
+- `~expr` quotes an expression and is equivalent to `(unquote expr)`  
+- `~@expr` quotes an expression and is equivalent to `(unquote-splicing expr)`  
 - `[...]` creates a vector. It is not fully the same as `(vector ...)`, but gives the same value.  
 - `'()` is the empty list. (`()` is also valid, but discouraged)  
 - `let` is the parallel let expression.  
@@ -144,7 +147,7 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
     ((f xs) (foldl #(+ (f %1) %2) 0 xs))))
 
 ; Example macro for a Clojure-like 'when'
-(def-macro (when p & body) (list 'if p (cons 'begin body) Nothing))
+(defmacro (when p & body) (list 'if p (cons 'begin body) Nothing))
 
 ; Becomes (if #t (begin (println! 5) 66) Nothing)
 ; This expression is then evaluated, prints 5 and returns 66
@@ -305,7 +308,12 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Various bugfixes  
   - Reduced set of core functions  
   - `\p(...)` as shortcut for partial functions
-  
+- 0.1.6
+  - Removed "lazy AST spreading"  
+  - Performance boost  
+  - Added `quasiquote` and `unquote-splicing`  
+  - Fixed bug in lazy sequences  
+  - Removed alias type.  
 
 ## Known bugs
 

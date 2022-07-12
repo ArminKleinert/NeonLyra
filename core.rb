@@ -211,7 +211,7 @@ def truthy?(x)
 end
 
 def string_to_chars(s)
-  s.is_a?(String) ? s.chars.map { |c| LyraChar.conv(c) } : nil
+  s.is_a?(String) ? s.chars.map { |c| LyraChar.conv(c) || "\0" } : nil
 end
 
 # Sets up the core functions and variables. The functions defined here are
@@ -235,7 +235,7 @@ def setup_core_functions
   end
 
   add_fn(:"list-size", 1) { |x| cons?(x) ? x.size : (raise LyraError.new("Invalid call to list-size.", :"invalid-call")) }
-  add_fn(:cons, 2) { |x, xs| cons?(xs) ? cons(x, xs) : (raise LyraError.new("Invalid call to cons. (given #{x} and #{xs})", :"invalid-call")) }
+  add_fn(:cons, 2) { |x, xs| cons(x, xs) }
   add_fn(:car, 1) { |x| cons?(x) ? x.car : (raise LyraError.new("Invalid call to car. Got #{x}.", :"invalid-call")) }
   add_fn(:cdr, 1) { |x| cons?(x) ? x.cdr : (raise LyraError.new("Invalid call to cdr. Got #{x}.", :"invalid-call")) }
 
@@ -266,7 +266,7 @@ def setup_core_functions
   add_fn(:abs, 1) { |x| x.is_a?(Numeric) ? x.abs : x }
 
   add_fn(:numerator, 1) { |x| x.is_a?(Rational) ? x.numerator : x }
-  add_fn(:denumerator, 1) { |x| x.is_a?(Rational) ? x.denumerator : 1 }
+  add_fn(:denominator, 1) { |x| x.is_a?(Rational) ? x.denominator : 1 }
 
   add_fn(:gensym, 1) { |x| gensym(x) }
   add_fn(:seq, 1) { |x| (!x.is_a?(Enumerable) || x.empty?) ? nil : x.to_cons_list }
@@ -281,14 +281,15 @@ def setup_core_functions
   add_fn(:"box-set!", 2) { |b, x| b.value = x; b }
 
   add_fn(:eager, 1) { |x| eager x }
+  add_fn(:evaluated?, 1) { |x| x.executed }
   #add_fn_with_env(:lazy, 1) { |xs, env| LazyObj.new xs.car, env }
   add_fn(:partial, 1, -1) { |x, *params| params.empty? ? x : PartialLyraFn.new(x, params.to_cons_list) }
 
   add_fn(:nothing, 0, -1) { |*_| nil }
 
   add_fn(:"buildin-take", 2) do |n, xs|
-    if (xs.empty? || n == 0)
-      list()
+    if xs.empty? || n == 0
+      list
     elsif xs.is_a?(ConsList)
       ys = []
       until xs.empty? || n == 0
@@ -325,7 +326,7 @@ def setup_core_functions
   add_fn(:"lazy-obj?", 1) { |x| x.is_a?(LazyObj) }
   add_fn(:"keyword?", 1) { |x| x.is_a?(Keyword) }
 
-  add_fn(:"keyword-name", 1) { |x| x.is_a?(Keyword) ? x.to_s[1..-1].to_sym : nil }
+  add_fn(:"keyword-name", 1) { |x| x.is_a?(Keyword) ? x.to_s[1..-1]&.to_sym : nil }
 
   add_fn(:id, 1) { |x| x }
   add_fn(:hash, 1) { |x| x.hash }
@@ -531,7 +532,7 @@ def setup_core_functions
     add_var t.to_sym, t
   end
 
-  add_fn_with_env(:"class", 1) { |x, env| type_of(x.car) }
+  add_fn_with_env(:"class", 1) { |x, _| type_of(x.car) }
 
   add_fn(:"error!", 1, 3) { |msg, info, trace| raise LyraError.new(msg, info, trace) }
 
@@ -542,6 +543,33 @@ def setup_core_functions
   add_fn(:"exit!", 1) { |s| exit(s) }
 
   add_fn(:"callstack", 0) { LYRA_CALL_STACK }
+=begin
+  add_fn(:"define-generic", 3) do |xs, env|
+    arg_name = xs.car
+    signature = xs.cdr.car
+    default_impl = xs.cdr.cdr.car
+    raise LyraError.new("def-generic: anchor-argument must be a symbol but is #{arg_name}", :syntax) unless arg_name.is_a?(Symbol)
+    raise LyraError.new("def-generic: signature must be a list with at least 2 elements but is #{signature}", :syntax) unless signature.is_a?(List) && !signature.cdr.is_empty?
+    raise LyraError.new("def-generic: default must be a function but is #{default_impl}", :syntax) unless default_impl.is_a?(LyraFn)
+    anchor_idx = signature.cdr.index(arg_name)
+    res = GenericFn.new name, args.size, anchor_idx, fallback
+    top_env(env).set!(name, res)
+    res
+  end
+  
+  add_fn(:"define-implementation", 3) do |xs, env|
+    type_name = xs.car
+    fn = xs.cdr.car
+    impl = xs.cdr.cdr.car
+    raise LyraError.new("def-generic: anchor-argument must be a symbol but is #{arg_name}") unless arg_name.is_a?(Symbol)
+    raise LyraError.new("def-generic: signature must be a list with at least 2 elements but is #{signature}") unless signature.is_a?(List) && !signature.cdr.is_empty?
+    raise LyraError.new("def-generic: default must be a function but is #{default_impl}") unless default_impl.is_a?(LyraFn)
+    anchor_idx = signature.cdr.index(arg_name)
+    res = GenericFn.new name, args.size, anchor_idx, fallback
+    top_env(env).set!(name, res)
+    res
+  end
+=end
 
   true
 end

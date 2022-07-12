@@ -21,55 +21,7 @@ end
 module Unwrapable
 end
 
-class Alias
-  include Unwrapable
-
-  attr_reader :body
-
-  def initialize(body)
-    @body = body
-  end
-
-  def get(env)
-    eval_ly(@body, env)
-  end
-
-  def unwrap
-    @body
-  end
-end
-
 module Lazy
-end
-
-class LazyObj
-  include Lazy
-
-  attr_reader :expr
-
-  def initialize(expr, env)
-    @expr, @env = expr, env
-    @executed = false
-  end
-
-  def evaluate
-    if @executed
-      @expr
-    else
-      @expr = eval_ly(@expr, @env, true)
-      @executed = true
-      @expr
-    end
-  end
-
-  def to_s
-    #elem_to_s(evaluate)
-    "(lazy #{elem_to_s(expr)})"
-  end
-
-  def inspect
-    to_s
-  end
 end
 
 module Enumerable
@@ -92,6 +44,18 @@ module ConsList
       lst = lst.cdr
     end
     self
+  end
+  
+  def index(o)
+    lst = self
+    idx = 0
+    lst.each do |e|
+      if o == e
+        return idx
+      end
+      idx += 1
+    end
+    -1
   end
 
   def each_with_index
@@ -210,16 +174,23 @@ class List
   end
 
   def cdr
+    if @cdr.is_a?(LyraFn)
+      temp = @cdr.call(list, nil)
+      unless temp.is_a?(ConsList) || temp.is_a?(Proc)
+        raise LyraError.new("Tail must be a list but is #{temp}.", :"illegal-argument")
+      end
+      @cdr = temp
+    end
     @cdr
   end
 
   def size
     if @size == -1
       # Tail was lazy, so calculate its size
-      @size = @cdr.size + 1
-    else
-      @size
+      force # force evaluation
+      @size = cdr.size + 1
     end
+    @size
   end
 
   # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
@@ -230,6 +201,7 @@ class List
   # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
   def set_cdr!(tail)
     @cdr = tail
+    force
     @size = tail.size + 1
   end
 
@@ -238,6 +210,8 @@ class List
       List.send :new, head, tail, -1
     elsif tail.is_a? ConsList
       List.send :new, head, tail, tail.size + 1
+    elsif tail.is_a? LyraFn
+      List.send :new, head, tail, -1
     else
       raise LyraError.new("Illegal cdr.", :"illegal-argument")
     end
@@ -328,7 +302,11 @@ class LazyList
     if @tail_evaluated
       @cdr_or_tail_fn
     else
-      @cdr_or_tail_fn = @cdr_or_tail_fn.call
+      temp = @cdr_or_tail_fn.call
+      unless temp.is_a?(ConsList) || temp.is_a?(Proc)
+        raise LyraError.new("Tail must be a list but is #{temp}.", :"illegal-argument")
+      end
+      @cdr_or_tail_fn = temp
       @tail_evaluated = true
       @cdr_or_tail_fn
     end
@@ -358,10 +336,10 @@ end
 def cons(e, l)
   if l.is_a?(ConsList)
     List.create(e, l)
-  elsif l.is_a?(Tuple)
-    Tuple.create([e] + l.contents)
+  elsif l.is_a?(LyraFn)
+    List.create(e, l)
   else
-    raise LyraError.new("Tail must be a list.", :"illegal-argument")
+    raise LyraError.new("Tail must be a list but is #{l}.", :"illegal-argument")
   end
 end
 
@@ -451,6 +429,59 @@ class LyraFn
   end
 end
 
+class LazyObj < LyraFn
+  include Lazy
+
+  attr_reader :expr, :executed
+
+  def initialize(expr, env)
+    @expr, @env = expr, env
+    @executed = false
+  end
+
+  def evaluate
+    if @executed
+      @expr
+    else
+      @expr = eval_ly(@expr, @env, true)
+      @executed = true
+      @expr
+    end
+  end
+
+  def to_s
+    "(lazy #{elem_to_s(expr)})"
+  end
+
+  def inspect
+    to_s
+  end
+
+  def native?
+    true
+  end
+
+  def pure?
+    true
+  end
+
+  def is_macro
+    true
+  end
+
+  def name
+    to_s
+  end
+
+  def call(_, _)
+    evaluate
+  end
+
+  def arg_counts
+    0..0
+  end
+end
+
 class LazyLyraFn < Proc
   def self.create(f, env)
     LazyLyraFn.new { |args|
@@ -495,7 +526,7 @@ class CompoundFunc < LyraFn
 
       # Execute the body and return
       #body.call(args, env1)
-      eval_keep_last(@body_expr, env1, !pure?)
+      eval_keep_last(@body_expr, env1)
     rescue TailCall => tail_call
       unless native?
         # Do a tail-call. (Thanks for providing `retry`, Ruby!)
@@ -641,46 +672,6 @@ class MemoizedLyraFn < LyraFn
   end
 end
 
-NOT_IN_SET = BasicObject.new
-
-class JoinedSet
-  @sets = []
-  
-  def initialize(sets)
-    @sets = sets
-  end
-  
-  def merge(*sets)
-    JoinedSet.new(self, *sets)
-  end
-  
-  def find(o, env)
-    f = nil
-    @sets.reverse_each do |s|
-      f = s.find(o, env)
-      if f != NOT_IN_SET
-        break
-      end
-    end
-    f
-  end
-end
-
-class LyraSet
-  
-  def initialize(*content)
-    @content = content
-  end
-  
-  def merge(*sets)
-    JoinedSet(self, *sets)
-  end
-  
-  def find(o, env)
-    @content.index(o)
-  end
-end
-
 class GenericFn < LyraFn
   attr_reader :name
 
@@ -691,7 +682,6 @@ class GenericFn < LyraFn
   end
 
   def call(args, env)
-
     # Potential for speedup?
     type = type_id_of(args[@anchor_idx])
     fn = @implementations[type]

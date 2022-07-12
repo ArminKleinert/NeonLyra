@@ -70,7 +70,8 @@ class Env
     if sym != :"_" # Ignore the _ symbol.
       if @inner.include? sym
         raise LyraError.new("Symbol already defined: #{sym}")
-      elsif @inner[sym] = val
+      else
+        @inner[sym] = val
       end
     end
     self
@@ -103,9 +104,14 @@ class Env
       anon_count += 1
       values = values.cdr
     end
-    ANONYMOUS_ARG_NAMES[anon_count .. -1].each do |k|
-      set! k, nil
+
+    rest_arg_names = ANONYMOUS_ARG_NAMES[anon_count .. -1]
+    unless rest_arg_names.nil?
+      rest_arg_names.each do |k|
+        set! k, nil
+      end
     end
+
     set! ANONYMOUS_ARG_REST, values
     self
   end
