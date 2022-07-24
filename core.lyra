@@ -72,7 +72,7 @@
 
 ; Add an element y to the front of a sequence xs.
 ; Default implementation requires returns a list.
-(def-generic xs (add-front xs y) (lambda (xs y) (append (list y) xs)))
+(def-generic xs (add-front xs y) (lambda (xs y) (cons y (->list xs))))
 
 ; Check whether the collection xs contains the element e.
 (def-generic xs (contains? xs e) %contains?)
@@ -1332,7 +1332,7 @@
   (%for bindings body))
 
 (define (cartesian-product lst0 lst1)
-  (apply-to concat (map (lambda (x) (zip (repeat x) lst1)) lst0)))
+  (mapcat (lambda (x) (zip (repeat x) lst1)) lst0))
 
 (define (partition-by f coll)
   (if (empty? coll)
@@ -1350,3 +1350,4 @@
 )
 
 (cons 'core (load! "string.lyra" "vector.lyra" "set.lyra"))
+
