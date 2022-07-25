@@ -22,7 +22,7 @@ end
 begin
   f = lambda do |name|
     r = CompoundFunc.new(
-      name, list(:xs), list(:"error", "#{name} must not be called directly.", :"invalid-call"),
+      name, list(:xs), list(:"error!", "#{name} must not be called directly.", :"invalid-call"),
       nil, false, 0, -1)
     Env.global_env.set! name, r
   end
@@ -370,6 +370,8 @@ def eval_try_star(expr, env)
   end
 end
 
+# TODO Remove
+=begin
 def quasiquote(expr, env)
     if !expr.is_a?(List)
       #puts list(:quote, expr)
@@ -396,6 +398,7 @@ def quasiquote(expr, env)
       list(:cons, x, xs)
     end
 end
+=end
 
 # The expression is a cons and probably starts with a symbol.
 # The evaluate function will try to treat the symbol as a function

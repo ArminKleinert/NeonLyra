@@ -1,0 +1,47 @@
+(define (%letsplit-list seq1 seq2)
+  (if seq1
+    (if (= (car seq1) '&)
+      (list (list (cadr seq1) seq2))
+      (let ((sym (gensym 'des)))
+        (cons
+          (list sym seq2)
+          (cons (list (first seq1) (list 'first sym))
+            (%letsplit-list (cdr seq1) (list 'rest sym))))))
+    '()))
+
+(define (%letsplit-map m1 m2)
+  (if (empty? m1)
+    res
+    (map (lambda (e) (list (second e) (list 'map-get m2 (first e)))) (list '->list m1))))
+
+(define (%letsplit left right)
+  (println! left " " right)
+  (cond
+    (symbol? left)
+      (list (list left right))
+    (and (sequence? left) (not (empty? left)))
+      (%letsplit-list (->list left) right)
+    (and (map? left) (not (empty? left)))
+      (%letsplit-map left right)
+    else
+      (error! "parameter must be symbol, list, vector or map" 'syntax)))
+
+
+(defmacro (let-values binds & body)
+  (cons 'let* (cons (mapcat (lambda (e) (%letsplit (first e) (second e))) binds) body)))
+
+(defmacro (define* binds & body)
+  (let ((bind-aliases (map #(gensym 'bind) (cdr binds))))
+    (list 'define (cons (car binds) bind-aliases) (cons 'letsplit (cons (zip (cdr binds) bind-aliases) body)))))
+
+(define2 (fn a [b c & d]) (v+ a b c))
+
+(fn 8 [9 10 11])
+
+;(define (fn gen_sym_bind_156 gen_sym_bind_158)
+;  (letsplit ((a gen_sym_bind_156) ([b c & d] gen_sym_bind_158)) (v+ a b c)))
+
+
+
+
+
