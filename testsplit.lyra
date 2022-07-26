@@ -34,14 +34,14 @@
   (let ((bind-aliases (map #(gensym 'bind) (cdr binds))))
     (list 'define (cons (car binds) bind-aliases) (cons 'letsplit (cons (zip (cdr binds) bind-aliases) body)))))
 
-(define2 (fn a [b c & d]) (v+ a b c))
+;(define2 (fn a [b c & d]) (v+ a b c))
 
-(fn 8 [9 10 11])
+;(fn 8 [9 10 11])
 
 ;(define (fn gen_sym_bind_156 gen_sym_bind_158)
 ;  (letsplit ((a gen_sym_bind_156) ([b c & d] gen_sym_bind_158)) (v+ a b c)))
 
-
+(expand-macro binding ((a 8) (b 9) (c a)) (list a b c))
 
 
 
