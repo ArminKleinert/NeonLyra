@@ -1,9 +1,8 @@
 (module core
-  (cond lambda T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples partition-all xrange succ try count-by most? loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at quasiquote lazy-seq partition-by binding let lambda')
+  (cond lambda T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples partition-all xrange succ try count-by most? loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at quasiquote lazy-seq partition-by plet let lambda')
 
 ;;; Some core things
 
-; TODO destructuring
 (defmacro (lambda binds & body)
   (cons 'lambda* (cons (gensym 'lambda) (cons binds body))))
 
@@ -77,7 +76,14 @@
 (def-generic xs (contains? xs e) %contains?)
 
 ; Get element from sequence xs at index i (starts at 0). Requires ->list.
-(def-generic xs (nth xs i) (lambda (xs i) (if (atom? xs) Nothing (let* ((xs0 (->list xs))) (if (or (empty? xs0) (<= i 0)) (first xs0) (recur (rest xs0) (- i 1)))))))
+(def-generic xs (nth xs i)
+  (lambda (xs i)
+    (if (atom? xs)
+      Nothing
+      (let* ((xs0 (->list xs)))
+          (if (or (empty? xs0) (<= i 0))
+            (first xs0)
+            (recur (rest xs0) (- i 1)))))))
 
 ; Get an element in a collection xs by its key k.
 ; The default behaviour uses nth, but it has to be overridden for maps and sets.
@@ -255,7 +261,7 @@
 
 ; Implementations for rest.
 (def-impl ::list rest cdr)
-(def-impl ::map rest (lambda (m) (let*((v (mao->vector m))) (vector-range v 1 (vector-size v)))))
+(def-impl ::map rest (lambda (m) (let*((v (map->vector m))) (vector-range v 1 (vector-size v)))))
 
 ; Special implementations for reverse for sets and maps.
 ; Since sets and maps are unordered, they are their own reversals.
@@ -891,46 +897,52 @@
 (defmacro (as-> name x & exprs)
   (%as-> name x exprs))
 
+
+(defmacro (quasiquote expr)
+  (cond
+    (not expr)
+      '()
+    (not (list? expr))
+      (list 'quote expr)
+    else
+      (let* ((fst (car expr)))
+        (cond
+          (= fst 'unquote)
+            (cadr expr)
+          (and (list? fst) (= (car fst) 'unquote-splicing)) 
+            (list 'concat (second fst) (list 'quasiquote (cdr expr)))
+          else
+            (list 'cons (list 'quasiquote (car expr)) (list 'quasiquote (cdr expr)))))))
+
 ;; Basic case-lambda
 
-; TODO destructuring
+(define (%cl-arg-nums args)
+  (if (and (> (size args) 2) (= (nth args (- (size args) 2)) '&))
+    (list (- (size args) 2) -1)
+    (list (size args) (size args))))
 
-; Secondary helper for case-lambda and case-lambda*
-(define (%case-lambda-arity bindings)
-  (let* ((num-bindings (size bindings))
-         (variadic (= (nth bindings (- num-bindings 2)) '&))
-         (min-arity (if variadic (- num-bindings 2) num-bindings)))
-    (list variadic min-arity)))
+(define (%cl-form form arg-name)
+  (let* ((form-args (car form))
+         (arg-nums (%cl-arg-nums form-args)))
+    (if (list? (car form))
+      (if (= (cadr arg-nums) -1)
+        `((>= (size ~arg-name) ~(car arg-nums)) (apply-to (lambda' ~@form) ~arg-name))
+        `((= (size ~arg-name) ~(car arg-nums)) (apply-to (lambda' ~@form) ~arg-name)))
+      `(else (apply-to (lambda' (& ~form-args) ~@(cdr form)) ~arg-name)))))
 
-; Main helper function for case-lambda and case-lambda*
-(define (%case-lambda args forms acc)
-  (cond
-    (empty? forms)
-      acc
-    (list? (caar forms))
-      (%case-lambda args (cdr forms)
+(define (%case-lambda cl-name forms)
+  (let* ((args (gensym 'cl-args)))
+      (list
+        'lambda* cl-name
+        (list '& args)
         (cons
-          (cons
-            (let* ((cl-arity (%case-lambda-arity (caar forms)))
-                   (variadic (car cl-arity))
-                   (min-arity (cadr cl-arity)))
-              (if variadic
-                (list '>= (list 'size args) min-arity)
-                (list '= (list 'size args) min-arity)))
-            (list (list 'apply-to (cons 'lambda (cons (caar forms) (cdar forms))) args)))
-          acc))
-    else
-      (cons
-        (cons
-          #t
-          (list (list 'apply-to (xcons 'lambda (list '& (caar forms)) (cdar forms)) args)))
-        acc)))
+          'cond
+          (concat
+            (mapcat (lambda (form) (%cl-form form args)) forms)
+            `(else (error! (string-concat "invalid number of arguments for function " cl-name ". Got " (size ~args)) 'syntax)))))))
 
-; Like case-lambda* but does not take a name.
-(defmacro (case-lambda & forms)
-  (let* ((args (gensym 'xs)))
-    (list 'lambda (list '& args)
-      (cons 'cond (flatten1 (reverse (%case-lambda args forms '())))))))
+(defmacro (case-lambda form1 & forms)
+  (%case-lambda (gensym 'case-lambda) (cons form1 forms)))
 
 ; Create a multi-function:
 ; (define f (case-lambda* f
@@ -941,14 +953,8 @@
 ;   (default "0 or more"))) ; Varargs going into a list called 'default
 ; When called, the function decides which function to call by the number of arguments it got.
 ; (list (f) (f 6) (f 6 7) (f 6 7 8 9) (f 5 4 3)) ; ("0" "1" "2" "4 or more" "0 or more")
-(defmacro (case-lambda* name & forms)
-  (let* ((args (gensym 'xs)))
-    (list 'lambda* name (list '& args)
-      (cons 'cond
-        (append
-          (flatten1 (reverse (%case-lambda args forms '())))
-          (list #t (list 'error! (list 'string-concat "Wrong arity for case-lambda " name) ''arity)))))))
-
+(defmacro (case-lambda* cl-name form1 & forms)
+  (%case-lambda cl-name (cons form1 forms)))
 
 ; Sum up elements of a collection using +.
 ; Required: foldl, map
@@ -1114,15 +1120,13 @@
     ))
 
 (defmacro (loop bindings & body)
-  (cond
-    (odd? (size bindings))
-      (error! "Syntax error: loop must have an even number of bindings." 'syntax)
-    else
-      (let* ((name (gensym 'loop))
-             (args-values (slices 2 bindings))
-             (args (map first args-values))
-             (vals (map second args-values)))
-        (cons (apply list 'lambda args body) vals))))
+  (let*((binds (if (vector? bindings) (slices 2 bindings) bindings))
+        (name (gensym 'loop))
+        (args (map first binds))
+        (vals (map second binds)))
+    (if (any? (comp (partial /= 2) size) binds)
+      (error! "Invalid number of members in loop binding." 'syntax)
+      (cons `(lambda' ~name ~args ~@body) vals))))
 
 ; Add items from 'from' to 'to', keeping the type of 'to'. (if add is correctly defined)
 ;   (into) ;=> () ; empty input -> empty list
@@ -1173,7 +1177,7 @@
 ;   ((times inc 0) 9) ;=> 9
 ; )
 (define (times f n)
-  (lambda (x) (loop (n1 n y x) (if (<= n1 0) y (recur (dec n1) (f y))))))
+  (lambda (x) (loop ((n1 n) (y x)) (if (<= n1 0) y (recur (dec n1) (f y))))))
 
 
 ; Helper for permutations
@@ -1249,26 +1253,7 @@
   (%walk-with-path f xs '()))
 
 
-(defmacro (quasiquote expr)
-  (cond
-    (not expr)
-      '()
-    (not (list? expr))
-      (list 'quote expr)
-    else
-      (let*((fst (car expr)))
-        (cond
-          (= fst 'unquote)
-            (cadr expr)
-          (and (list? fst) (= (car fst) 'unquote-splicing)) 
-            (list 'concat (second fst) (list 'quasiquote (cdr expr)))
-          else
-            (list 'cons (list 'quasiquote (car expr)) (list 'quasiquote (cdr expr)))))))
-
-
 ;;; for macro
-
-; TODO destructuring
 
 ; Lazily calculates all combinations of any number of lists while preserving order:
 ; (combinations '(1 2) '(3 4) '(5 6)) 
@@ -1298,10 +1283,10 @@
     (if (odd? (size bindings))
       (error! "Syntax error: for must have an even number of bindings." 'syntax)
       (%for-binds (slices 2 bindings)))
-    (let*((defs (filter (lambda (b) (symbol? (car b))) bindings))
-          (lets (map cadr (filter (lambda (b) (= (car b) :let)) bindings)))
+    (let*((lets (map cadr (filter (lambda (b) (= (car b) :let)) bindings)))
           (whiles (map cadr (filter (lambda (b) (= (car b) :while)) bindings)))
-          (whens (map cadr (filter (lambda (b) (= (car b) :when)) bindings))))
+          (whens (map cadr (filter (lambda (b) (= (car b) :when)) bindings)))
+          (defs (remove (lambda (b) (set-includes? #{:let :while :when} (car b))) bindings)))
       (list defs lets whiles whens))))
 (define (%for bindings body)
   (let* ((binds (%for-binds bindings))
@@ -1311,23 +1296,23 @@
           (whiles (caddr binds))
           (whens (cadddr binds)))
    (list %for-lazy-take
-    (list map-split
-      (list 'lambda* (gensym 'for) (map car defs)
-        (list 'let* (mapcat ->list lets)
+    (list 'map-split
+      (list 'lambda' (gensym 'for) (map car defs)
+        (list 'let (mapcat ->list lets)
           (cons 'cond
             (concat
               (if (empty? whiles)
                 '()
                 (list
-                  (list any? not (cons list whiles))
+                  (list any? not (cons 'list whiles))
                   (list list #t Nothing Nothing)))
               (if (empty? whens)
                 '()
                 (list
-                  (list any? not (cons list whens))
+                  (list any? not (cons 'list whens))
                   (list list #f #t Nothing)))
-              (list else (cons list (list #f #f body)))))))
-      (cons combinations (map cadr defs))
+              (list else (cons 'list (list #f #f body)))))))
+      (cons 'combinations (map cadr defs))
       ))))
 (defmacro (for bindings body)
   (%for bindings body))
@@ -1362,7 +1347,7 @@
 (define (%let-destructure-map m1 m2)
   (if (empty? m1)
     res
-    (map (lambda (e) (list (second e) (list 'map-get m2 (first e)))) (list '->list m1))))
+    (map (lambda (e) (list (second e) (list 'map-get m2 (first e)))) (->list m1))))
 (define (%let-destructure left right)
   (cond
     (symbol? left)
@@ -1377,7 +1362,7 @@
   (if (vector? binds)
     (if (odd? (size binds))
       (error! "odd number of bindings for let" 'syntax)
-      (let (slices 2 binds) body))
+      `(let ~(slices 2 binds) ~@body)) ; recursive call
     (cons 'let* (cons (mapcat (lambda (e) (%let-destructure (first e) (second e))) binds) body))))
 
 ; Extended define
@@ -1393,20 +1378,21 @@
         (name (if named binds (gensym 'lambda)))
         (binds (if named body1 binds))
         (body (if named body (cons body1 body)))
-        (bind-aliases (map #(gensym 'bind) binds)))
-    (list 'lambda* name bind-aliases (cons 'let (cons (zip binds bind-aliases) body)))))
+        (bind-aliases (map #(if (= %1 '&) '& (gensym 'bind)) binds)))
+    (list 'lambda* name bind-aliases (cons 'let (cons (remove #(= (car %1) '&) (zip binds bind-aliases)) body)))))
 
 
 ; Parallel let
-(defmacro (binding binds & body)
+(defmacro (plet binds & body)
   (let* ((names (map first binds))
          (vals (map second binds))
-         (name-syms (map gensym names)))
-    (list 'let*
-      (list-concat
-        (zip name-syms vals)
-        (zip names name-syms))
-      body)))
+         (name-syms (map #(gensym 'name) names)))
+    (cons 'let
+      (cons
+        (list-concat
+          (zip name-syms vals)
+          (zip names name-syms))
+        body))))
 )
 
 (cons 'core (load! "string.lyra" "vector.lyra" "set.lyra"))

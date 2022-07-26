@@ -57,13 +57,13 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 
 - `(...)` is used for function calls.  
 - `'expr` quotes an expression and is equivalent to `(quote expr)`  
-- ``expr` quotes an expression and is equivalent to `(quasiquote expr)`  
+- \``expr` quotes an expression and is equivalent to `(quasiquote expr)`  
 - `~expr` quotes an expression and is equivalent to `(unquote expr)`  
 - `~@expr` quotes an expression and is equivalent to `(unquote-splicing expr)`  
 - `[...]` creates a vector. It is not fully the same as `(vector ...)`, but gives the same value.  
 - `'()` is the empty list. (`()` is also valid, but discouraged)  
-- `let` is the parallel let expression.  
-- `let*` is the sequential let expression.  
+- `let` is the sequential let expression.  
+- `plet` is the parallel let expression.  
 - `<expr>.?` becomes `(unwrap <expr>)`  
 - `<expr>.!` becomes `(eager <expr>)`  
 - `@<expr>` becomes `(unbox <expr>)`  
@@ -103,7 +103,6 @@ Here are some differences to Clojure I could think of:
 - No primitive (value) types.  
 - No streams to files or sockets.  
 - No transients.  
-- Math ops are not variadic. Use `v+`, `v-`, ... if necessary. Same goes for `=`, `<`, ...  
 - Only Boxes can be copied.  
 - Still going through a lot of changes.  
 - Tail recursion. (`recur` is available too)  
@@ -148,6 +147,9 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
 
 ; Example macro for a Clojure-like 'when'
 (defmacro (when p & body) (list 'if p (cons 'begin body) Nothing))
+
+; Using the shorter quasiquote, unquote and unquote-splicing
+(defmacro (when p & body) `(if ~p (begin ~@body) Nothing))
 
 ; Becomes (if #t (begin (println! 5) 66) Nothing)
 ; This expression is then evaluated, prints 5 and returns 66
@@ -314,6 +316,12 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Added `quasiquote` and `unquote-splicing`  
   - Fixed bug in lazy sequences  
   - Removed alias type.  
+- 0.1.7
+  - Added destructuring for function parameters  
+  - `let` is now a destructuring let and `plet` is the new parallel let  
+  - `let`, `plet`, `for` and `loop` now all have forms for using Clojure-like vector bindings.  
+  - Variadic arithmetic  
+  - Some bugfixes.  
 
 ## Known bugs
 

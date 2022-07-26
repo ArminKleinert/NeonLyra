@@ -17,7 +17,7 @@ require_relative 'evaluate.rb'
 # `                     quasiquote shortcut
 # #\(                   Hash-function shortcut
 # [^\s\[\]{}('"`,;)]*'? Other symbols and numbers, allowing an optional "'" at the end. This excludes spaces, [, ], (, ), {, }, ', ", `, comma and semicolon
-LYRA_REGEX = /[\s,]*(\\u\d{4}|\\p\(|\\.|[()\[\]{}]|"(?:\\.|[^\\"])*"?|;.*|~@|@|#\{|`|#\(|[^\s\[\]{}('"`,;)]*'?)/
+LYRA_REGEX = /[\s,]*(\\u\d{4}|\\p\(|\\.|[()\[\]{}]|"(?:\\.|[^\\"])*"?|;.*|~@|~|@|#\{|`|#\(|[^\s\[\]{}('"`,;)]*'?)/
 
 # Scan the text using RE, remove empty tokens and remove comments.
 def tokenize(s)

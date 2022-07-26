@@ -253,11 +253,11 @@ def setup_core_functions
   add_fn(:">", 2) { |x, y| atom?(x) && atom?(y) ? x > y : false }
   add_fn(:"<=", 2) { |x, y| atom?(x) && atom?(y) ? x <= y : false }
   add_fn(:">=", 2) { |x, y| atom?(x) && atom?(y) ? x >= y : false }
-  add_fn(:"+", 2) { |x, y| atom?(x) && atom?(y) ? x + y : nil }
-  add_fn(:"-", 2) { |x, y| atom?(x) && atom?(y) ? x - y : nil }
-  add_fn(:"*", 2) { |x, y| atom?(x) && atom?(y) ? x * y : nil }
-  add_fn(:"/", 2) { |x, y| div(x, y) }
-  add_fn(:"rem", 2) { |x, y| rem(x, y) }
+  add_fn(:"+", 1, -1) { |*xs| xs.inject(&:+) }
+  add_fn(:"-", 1, -1) { |*xs| xs.size == 1 ? -xs[0] : xs.inject(&:-) }
+  add_fn(:"*", 1, -1) { |*xs| xs.inject(&:*) }
+  add_fn(:"/", 1, -1) { |*xs| xs.inject{|x,y| div(x,y)} }
+  add_fn(:"rem", 1, -1) { |*xs| xs.inject{|x,y| rem(x,y)} }
   add_fn(:"bit-and", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x & y : nil }
   add_fn(:"bit-or", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x | y : nil }
   add_fn(:"bit-xor", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x ^ y : nil }

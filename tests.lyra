@@ -9,7 +9,7 @@
        "core/queue.lyra")
 
 (defmacro (do-test! & cases)
-  (let ((details #t) ; Set to #f to hide details and only show overall success/failure numbers at the end
+  (let* ((details #t) ; Set to #f to hide details and only show overall success/failure numbers at the end
         (success-sym (gensym 'do-test!-success))
         (e-sym (gensym 'e))
         (r-sym (gensym 'r))
@@ -18,7 +18,7 @@
         (temp-sym (gensym 'temp)))
     (list 'let '()
       (list 'if details '(print! "Running " *current-function* ": ") Nothing)
-      (list 'let (list (list success-sym
+      (list 'let* (list (list success-sym
               (list 'foldl
                 (list 'lambda (list r-sym e-sym)
                   (list 'if e-sym
@@ -62,7 +62,7 @@
 
 (define (test-lambda*)
   (do-test!
-    (let ((f (lambda* fnname1 (n) (if (= 0 n) 1 (+ n (fnname1 (- n 1)))))))
+    (let* ((f (lambda* fnname1 (n) (if (= 0 n) 1 (+ n (fnname1 (- n 1)))))))
       (= 29 (f 7)))))
 
 (define (test-cond)
@@ -255,7 +255,7 @@
     (do-test!
       (= (unwrap (box 5)) 5)
       (nothing? (unwrap Nothing))
-      (let ((b (box 5))) (= (unbox b) (unwrap b)))
+      (let* ((b (box 5))) (= (unbox b) (unwrap b)))
       (= 5 (unwrap 5))
       (vector-eq? [1 2 3] (unwrap (make-unwrappable 1 2 3)))
       ))
@@ -1143,7 +1143,7 @@
     (eq? (list (list 1 2 3)) (cons (list 1 2 3) (list)))))
 
 (define (test-lazy-seq)
-  (let ((f0 (lambda* f0 (n m) (if (= n m) '() (lazy-seq n (f0 (+ n 1) m))))))  
+  (let* ((f0 (lambda* f0 (n m) (if (= n m) '() (lazy-seq n (f0 (+ n 1) m))))))  
     (do-test!
       (eq? (list 1 2 3 4) (f0 1 5))
       (eq? 4 (size (f0 1 5)))
@@ -1896,7 +1896,7 @@
     (all? function? (take 2 (repeat gensym)))))
 
 (define (test-repeatedly)
-  (let ((b (box 0)))
+  (let* ((b (box 0)))
     (do-test!
       (list? (repeatedly (partial gensym 'x)))
       (not (empty? (repeatedly (partial gensym 'x))))
@@ -2111,7 +2111,7 @@
     (eq? '(3 (2 4) (1)) (reverse '((1) (2 4) 3)))))
 
 (define (test-sum)
-  (let ((f (lambda (n) (* n 2))))
+  (let* ((f (lambda (n) (* n 2))))
     (do-test!
       (= 0 (sum '()))
       (= 1 (sum '(1)))
@@ -2129,7 +2129,7 @@
       (= 31 (sum f '(1 2 0.5 3 4 5))))))
 
 (define (test-product)
-  (let ((f (lambda (n) (* n 2))))
+  (let* ((f (lambda (n) (* n 2))))
     (do-test!
       (= 1 (product '()))
       (= 2 (product '(2)))
@@ -2196,7 +2196,7 @@
     (eq? '(-4 -2 0 1 3 5) (sort '(5 3 1 0 -2 -4)))))
 
 (define (test-sort-compare)
-  (let ((odd-is-less (lambda (x y) (if (odd? x) (if (odd? y) (compare x y) -1) (if (even? y) (compare x y) 1))))
+  (let* ((odd-is-less (lambda (x y) (if (odd? x) (if (odd? y) (compare x y) -1) (if (even? y) (compare x y) 1))))
         (rev-compare (lambda (x y) (* -1 (compare x y)))))
   (do-test!
     (empty? (sort-compare compare '()))
@@ -2210,7 +2210,7 @@
     (eq? '(1 3 5 0 2 4) (sort-compare odd-is-less '(1 3 5 0 2 4))))))
 
 (define (test-mergesort-compare)
-  (let ((odd-is-less (lambda (x y) (if (odd? x) (if (odd? y) (compare x y) -1) (if (even? y) (compare x y) 1))))
+  (let* ((odd-is-less (lambda (x y) (if (odd? x) (if (odd? y) (compare x y) -1) (if (even? y) (compare x y) 1))))
         (rev-compare (lambda (x y) (* -1 (compare x y)))))
   (do-test!
     (empty? (mergesort-compare compare '()))
@@ -2364,7 +2364,7 @@
     (infix->lyra 11 = 9 + 1 * 2)
     (infix->lyra 11 /= 9 + 3 * 2)
     (infix->lyra 7 = 7 and 11 /= 9 + 3 * 2)
-    (let ((plus1 inc)) ((infix->lyra odd? ⋅ plus1) 2))
+    (let* ((plus1 inc)) ((infix->lyra odd? ⋅ plus1) 2))
     ))
 
 (define (test-flatten)
@@ -2423,7 +2423,7 @@
     (eq? '(1 2 3 1 2) (take 5 (cycle '(1 2 3))))))
 
 (define (test-case-lambda)
-  (let ((l (case-lambda
+  (let* ((l (case-lambda
             ((a b c d & xs) (cons (v+ a b c d) xs))
             ((x & xs) (cons (+ x 1) xs))
             (z '())))
@@ -2431,7 +2431,13 @@
               (() 0)
               ((x) x)
               ((x y) y)
-              (z z))))
+              (z z)))
+        (l2 (case-lambda
+              (() "0") ; 0 args
+              ((x) "1") ; 1 arg
+              ((x y) "2") ; 2 args
+              ((w x y z & zs) "4 or more") ; 4+ args
+              (default "3"))))
     (do-test!
       (eq? '(5 6 7) (l 1 1 1 2 6 7)) ; (a b c d & xs) case
       (eq? '(5 6) (l 1 1 1 2 6)) ; (a b c d & xs) case
@@ -2445,14 +2451,58 @@
       (eq? 4 (l1 4))
       (eq? 4 (l1 0 4))
       (eq? '(3 4 4 4) (l1 3 4 4 4))
+
+      (eq? 11 ((case-lambda (((a b)) (+ a b))) [6 5]))
+      (eq? 13 ((case-lambda (((a b) c) (+ a c))) [6 5] 7))
+      (eq? 13 ((case-lambda (((a b)) (+ a b)) (((a b) c) (+ a c))) [6 5] 7))
+
+      (eq? (list "0" "1" "2" "4 or more" "3")
+           (list (l2) (l2 6) (l2 6 7) (l2 6 7 8 9) (l2 5 4 3)))
     )))
 
 (define (test-case-lambda*)
-  (let ((l (case-lambda* test-cl-star
-            (() 0)
-            ((x) x)
-            (z (+ (sum z) (apply-to test-cl-star (cdr z)))))))
-    (= 91 (l 1 2 3 4 5 6))))
+  (let* ((l (case-lambda* l
+            ((a b c d & xs) (cons (v+ a b c d) xs))
+            ((x & xs) (cons (+ x 1) xs))
+            (z '())))
+        (l1 (case-lambda* l1
+              (() 0)
+              ((x) x)
+              ((x y) y)
+              (z z)))
+        (l2 (case-lambda* f
+              (() "0") ; 0 args
+              ((x) "1") ; 1 arg
+              ((x y) "2") ; 2 args
+              ((w x y z & zs) "4 or more") ; 4+ args
+              (default "3")))
+        (l3 (case-lambda* test-cl-star
+              (() 0)
+              ((x) x)
+              (z (+ (sum z) (apply-to test-cl-star (cdr z)))))))
+    (do-test!
+      (eq? '(5 6 7) (l 1 1 1 2 6 7)) ; (a b c d & xs) case
+      (eq? '(5 6) (l 1 1 1 2 6)) ; (a b c d & xs) case
+      (eq? '(5) (l 1 1 1 2)) ; (a b c d & xs) case
+      (eq? '(5 6 7) (l 4 6 7)) ; (x & xs) case
+      (eq? '(5 6) (l 4 6)) ; (x & xs) case
+      (eq? '(5) (l 4)) ; (x & xs) case
+      (eq? '() (l)) ; z case (empty)
+
+      (eq? 0 (l1))
+      (eq? 4 (l1 4))
+      (eq? 4 (l1 0 4))
+      (eq? '(3 4 4 4) (l1 3 4 4 4))
+
+      (eq? 11 ((case-lambda* l (((a b)) (+ a b))) [6 5]))
+      (eq? 13 ((case-lambda* l (((a b) c) (+ a c))) [6 5] 7))
+      (eq? 13 ((case-lambda* l (((a b)) (+ a b)) (((a b) c) (+ a c))) [6 5] 7))
+
+      (eq? (list "0" "1" "2" "4 or more" "3")
+           (list (l2) (l2 6) (l2 6 7) (l2 6 7 8 9) (l2 5 4 3)))
+
+      (eq? 91 (l3 1 2 3 4 5 6))
+    )))
 
 (define (test-flip)
   (do-test!
@@ -2498,7 +2548,7 @@
     (eq? '((1 (2 (3 (4 5)))) (2 (3 (4 5))) (3 (4 5)) (4 5) 5) (scanr1 list '(1 2 3 4 5)))))
 
 (define (test-condp)
-  (let ((f0 (lambda (e) (condp = e 1 0 2 9 11)))
+  (let* ((f0 (lambda (e) (condp = e 1 0 2 9 11)))
         (f1 (lambda (e) (condp = e 1 0 2 9)))
         (f2 (lambda (e) (condp = e 1 0 2 9 e e))))
     (do-test!
@@ -2523,7 +2573,7 @@
       )))
 
 (define (test-frequencies)
-  (let ((freqs (frequencies '(1 2 3 1 5 4 1 7 7 7 5 1))))
+  (let* ((freqs (frequencies '(1 2 3 1 5 4 1 7 7 7 5 1))))
     (eq? (map-of 1 4  2 1  3 1  5 2  4 1  7 3) freqs)
     ))
 
@@ -2540,7 +2590,7 @@
     (unique? '(1 2 3 4 5))))
 
 (define (test-try*)
-  (let ((b (box 0)))
+  (let* ((b (box 0)))
     (do-test!
       (try* (error! 1) (catch _ a #t))
       (try* (error! 1 #t) (catch _ b (error-info b)))
@@ -2583,7 +2633,7 @@
         (catch (lambda (e) (eq? 'syntax (error-info e))) e 'error1)
         (catch _ e 'error2)
         (finally 1)))
-    (let ((b (box 0)))
+    (let* ((b (box 0)))
       (and
         (eq? 'fine
           (try 'fine
@@ -2591,7 +2641,7 @@
             (catch _ e 'error2)
             (finally (box-set! b 5))))
         (= 5 @b)))
-    (let ((b (box 0)))
+    (let* ((b (box 0)))
       (and
         (eq? 'error1
           (try (error! 'h 'syntax)
@@ -2599,7 +2649,7 @@
             (catch _ e 'error2)
             (finally (box-set! b 15))))
         (= 15 @b)))
-    (let ((b (box 0)))
+    (let* ((b (box 0)))
       (and
         (eq? 'error2
           (try (error! 'h 'not-that)
@@ -2730,14 +2780,24 @@
     ; (loop 0 1 1 29)
     ; 29
     (= 29
-      (loop (a 1 b 2 c 3 res 0)
+      (loop ((a 1) (b 2) (c 3) (res 0))
         (cond
           (= a 0) res
           (= b 0) (recur (- a 1) c a (v+ a b c res))
           (= c 0) (recur a (- b 1) b (v+ a b c res))
           else (recur a b (- c 1) (v+ a b c res)))))
+
     (not (loop ()))
-    (loop () #t)))
+    (loop () #t)
+    (= 3
+      (loop (((a b) '(1 2)) (res 0)) (if (> res 0) res (recur '() (+ a b)))))
+
+    (not (loop []))
+    (loop [] #t)
+    (= 3
+      (loop [(a b) '(1 2) res 0] (if (> res 0) res (recur '() (+ a b)))))
+
+    ))
 
 (define (test-fn)
   (do-test!
@@ -2948,7 +3008,7 @@
     (empty? (pop []))))
 
 (define (test-->queue)
-  (let ((q (queue))
+  (let* ((q (queue))
         (q1 (queue 1 2 3)))
     (do-test!
       (eq? (deque \a \b \c) (->queue "abc"))
@@ -2960,7 +3020,7 @@
         (map ->queue (list (queue 1 2 3) '(1 2 3) [1 2 3]))))))
 
 (define (test-->deque)
-  (let ((q (deque))
+  (let* ((q (deque))
         (q1 (queue 1 2 3)))
     (do-test!
       (eq? (deque \a \b \c) (->deque "abc"))
@@ -3108,7 +3168,7 @@
     (eq? 2 (last (enqueue (deque 1) 2)))))
 
 (define (test-add)
-  (let ((l0 (list))
+  (let* ((l0 (list))
         (l1 (list 1 2 3))
         (v0 [])
         (v1 [1 2 3]))
@@ -3127,7 +3187,7 @@
       (eq? [1 2 3 [1]] (add v1 [1])))))
 
 (define (test-add-front)
-  (let ((l0 (list))
+  (let* ((l0 (list))
         (l1 (list 1 2 3))
         (v0 [])
         (v1 [1 2 3]))
@@ -3313,6 +3373,14 @@
             (y (list 1 2))
             (:let ((z1 (+ x y)) (z (* z1 2)))))
         (string-concat x '+ y '= z)))
+    
+    ; Basic destructuring
+    (eq? (for (((a b) [[1 2] [3 4]])) a)
+         '(1 3))
+    (eq? (for (((a b) [[1 2] [3 4]])) (+ a b))
+         '(3 7))
+    (eq? (for (((a & b) [[1 2 3] [3 4 5]])) (+ a (first b)))
+         '(3 7))
     ))
 
 ; Like normal for, but with vector bindings
@@ -3365,6 +3433,14 @@
               :when (/= x 2)
               :let ((z (+ x y)))]
           (string-concat x '+ y '= z))))
+
+    ; Basic destructuring
+    (eq? (for [(a b) [[1 2] [3 4]]] a)
+         '(1 3))
+    (eq? (for [(a b) [[1 2] [3 4]]] (+ a b))
+         '(3 7))
+    (eq? (for [(a & b) [[1 2 3] [3 4 5]]] (+ a (first b)))
+         '(3 7))
     ))
 
 (define (test-juxt)
@@ -3387,7 +3463,7 @@
     (eq? #f ((every-pred number? not) 1))))
 
 (define (test-hash-lambda)
-  (let ((f #(list %1 %2 %3 %4 %5 %6 %7 %8 %9 %10 %11 %12 %13 %14 %15 %& %&&)))
+  (let* ((f #(list %1 %2 %3 %4 %5 %6 %7 %8 %9 %10 %11 %12 %13 %14 %15 %& %&&)))
     (do-test!
       (eq?
         (list Nothing Nothing Nothing Nothing Nothing Nothing
@@ -3515,11 +3591,121 @@
     (eq? Nothing (delete-at 0 \a))
     ))
 
+(define (test-let*)
+  (do-test!
+    (let* ((a 6)) (eq? a 6))
+    (eq? 6 (let* ((a 6)) a))
+    (let* ((a 8))
+      (eq? (+ a 1)
+        (let* ((a 9))
+          a)))
+    (let* ((a 8)
+           (b 1))
+      (let* ((b a)
+             (c (+ 1 b)))
+        (and
+          (eq? b 8)
+          (eq? c 9))))))
+
+(define (test-let)
+  (do-test!
+    (let ((a 6))
+      (eq? a 6))
+    (eq? 6
+      (let ((a 6)) a))
+    (let (((a b) '(1 2)))
+      (and (eq? a 1)
+           (eq? b 2)))
+    (let (([a b] [1 2]))
+      (and (eq? a 1)
+           (eq? b 2)))
+    (let (((x & xs) '(1 2 3 4 5)))
+      (and (eq? x 1)
+           (eq? (sum xs) 14)))
+    (let (({:a x :b y} {:a 9 :b 8}))
+      (and (eq? x 9)
+           (eq? y 8)))
+    (let (({:a x :b y} {:a 9 :b 8}))
+      (and (eq? x 9)
+           (eq? y 8)))
+    (let (((a b) (queue 1 2 3)))
+      (and (eq? a 1)
+           (eq? b 2)))
+    (let (((x & xs) (queue 1 2 3 4 5)))
+      (and (eq? x 1)
+           (eq? (sum xs) 14)))
+    (let (((x & xs) #{1 2 3 4 5}))
+      (eq? (sum xs) 14))
+
+    (let [a 6]
+      (eq? a 6))
+    (eq? 6
+      (let [a 6] a))
+    (let [(a b) '(1 2)]
+      (and (eq? a 1)
+           (eq? b 2)))
+    (let [[a b] [1 2]]
+      (and (eq? a 1)
+           (eq? b 2)))
+    (let [(x & xs) '(1 2 3 4 5)]
+      (and (eq? x 1)
+           (eq? (sum xs) 14)))
+    (let [{:a x :b y} {:a 9 :b 8}]
+      (and (eq? x 9)
+           (eq? y 8)))
+    (let [{:a x :b y} {:a 9 :b 8}]
+      (and (eq? x 9)
+           (eq? y 8)))
+    (let [(a b) (queue 1 2 3)]
+      (and (eq? a 1)
+           (eq? b 2)))
+    (let [(x & xs) (queue 1 2 3 4 5)]
+      (and (eq? x 1)
+           (eq? (sum xs) 14)))
+    (let [(x & xs) #{1 2 3 4 5}]
+      (eq? (sum xs) 14))))
+
+(define (test-plet)
+  (do-test!
+    (plet ((a 6))
+      (eq? a 6))
+    (eq? 6
+      (plet ((a 6)) a))
+    (plet ((a 8))
+      (eq? (+ a 1)
+        (plet ((a 9))
+          a)))
+    (plet ((a 8)
+           (b 1))
+      (plet ((b a)
+             (c (+ 1 b)))
+        (and
+          (eq? b 8)
+          (eq? c 2))))))
+
+(define (test-lambda')
+  (do-test!
+    (eq?
+      ((lambda (a) (inc a)) 1)
+      ((lambda' (a) (inc a)) 1))
+    (eq?
+      ((lambda (a b) (+ a b)) 1 2)
+      ((lambda' (a b) (+ a b)) 1 2))
+    (eq?
+      ((lambda* n (a b) (+ a b)) 1 2)
+      ((lambda' n (a b) (+ a b)) 1 2))
+    (eq?
+      ((lambda (as) (+ (car as) (cadr as))) '(1 2))
+      ((lambda' ((a b)) (+ a b)) '(1 2)))
+    (eq?
+      ((lambda (as) (+ (car as) (sum (cdr as)))) '(1 2 3 4))
+      ((lambda' ((a & as)) (+ a (sum as))) '(1 2 3 4)))))
+
 (define (run-tests & fns)
-  (let ((results
+  (let* ((results
           (foldl
             (lambda (res f)
-              (let ((r (f)))
+              (let* ((r (f)))
                 (cond
                   (= r 'TODO)
                     (list (car res) (cadr res) (cons f (caddr res)))
@@ -3592,7 +3778,8 @@
   'test-add 'test-add-front 'test-permutations 'test-get 'test-get-in
   'test-subseq 'test-replace-subseq 'test-v-zip-with 'test-combinations
   'test-for 'test-for-vec-binds 'test-juxt 'test-every-pred 'test-hash-lambda
-  'test-cartesian-product 'test-delete-at 'test-partition 'test-partition-by 'test-partition-all
+  'test-cartesian-product 'test-delete-at 'test-partition 'test-partition-by 
+  'test-partition-all 'test-let* 'test-let 'test-plet 'test-lambda'
   ;'test-lazy-crash 'test-lazy 'test-eager 
   ))
 
