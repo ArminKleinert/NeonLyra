@@ -932,14 +932,14 @@
 
 (define (%case-lambda cl-name forms)
   (let* ((args (gensym 'cl-args)))
-      (list
-        'lambda* cl-name
-        (list '& args)
-        (cons
-          'cond
-          (concat
-            (mapcat (lambda (form) (%cl-form form args)) forms)
-            `(else (error! (string-concat "invalid number of arguments for function " cl-name ". Got " (size ~args)) 'syntax)))))))
+    (list
+      'lambda* cl-name
+      (list '& args)
+      (cons
+        'cond
+        (concat
+          (mapcat (lambda (form) (%cl-form form args)) forms)
+          `(else (error! (string-concat "invalid number of arguments for function " ~cl-name ". Got " (size ~args)) 'syntax)))))))
 
 (defmacro (case-lambda form1 & forms)
   (%case-lambda (gensym 'case-lambda) (cons form1 forms)))

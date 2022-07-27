@@ -19,6 +19,33 @@
 (define (ack m n)
   (ack-h (list n m)))
 
+(define (ack-destructure-lambda m n)
+  ((lambda' ah ((n m & rs))
+      (cond
+        (nil? m) ; only result in list
+          n
+        (= n 0) ; n is 0: (cons m-1 rest)
+          (ah (cons 1 (cons (dec m) rs)))
+        (= m 0) ; m is 0: (cons n+1 rest)
+          (ah (cons (inc n) rs))
+        else ; Default: (cons n-1 (cons m (cons m-1 rest)))
+          (ah (cons (dec n) (cons m (cons (dec m) rs))))))
+    (list n m)))
+
+(define (ack-destructure-let m n)
+  ((lambda* ah (xs)
+    (let (((n m & rs) xs))
+      (cond
+        (nil? m) ; only result in list
+          n ; m
+        (= n 0) ; n is 0: (cons m-1 rest)
+          (ah (cons 1 (cons (dec m) rs)))
+        (= m 0) ; m is 0: (cons n+1 rest)
+          (ah (cons (inc n) rs))
+        else ; Default: (cons n-1 (cons m (cons m-1 rest)))
+          (ah (cons (dec n) (cons m (cons (dec m) rs)))))))
+    (list n m)))
+
 (define (g n p)
   (cond (not (< 1 p)) 1
         (not (< p (dec n))) 1
@@ -42,7 +69,7 @@
         (s1 (->set (xrange 0 399 1))))
     (foldl
       (lambda (r x1)
-        (let ((x (rem x1 25)))
+        (let* ((x (rem x1 25)))
           (cond
             (= x 0) (set-size s)
             (= x 1) (set-add s s1)
@@ -77,7 +104,7 @@
          (m1 (->map (range 0 799))))
     (foldl
       (lambda (r x1)
-        (let ((x (rem x1 12)))
+        (let* ((x (rem x1 12)))
           (cond
             (= x 0) (map-size m)
             (= x 1) (map-get m x)
@@ -139,6 +166,10 @@
 (test-performance "map operations" (test-map-stuff))
 
 (test-performance "(ack 3 4)" (ack 3 4))
+
+(test-performance "(ack-destructure-lambda 3 4)" (ack-destructure-lambda 3 4))
+
+(test-performance "(ack-destructure-let 3 4)" (ack-destructure-let 3 4))
 
 (test-performance "lazy sequences" (->> -500 (iterate inc) (filter (lambda (n) (> n 0))) (map inc) (filter odd?) (map inc) (map (partial * 211)) (remove (lambda (n) (= (rem n 5) 0))) (take 50)))
 
@@ -448,4 +479,60 @@ truffleruby
   9-billion-names (25):                             714.9475
   Lots of recur:                                    3691.9025
   Lots of tail recursion                            3681.5355
+  
+0.1.7
+ruby
+  Generic utility (Do not change):                  55.4999925
+  Many math ops:                                    0.179451
+  Without -> :                                      0.1768775
+  Many math ops (lambda):                           0.1922635
+  Many math ops (hash-lambda):                      0.1966115
+  Same as partials with composition:                0.693726
+  set operations                                    1025.064434
+  map operations                                    133.9482375
+  (ack 3 4)                                         1538.149939
+  (ack-destructure-lambda 3 4)                      1257.543859
+  (ack-destructure-let 3 4)                         1257.7993935
+  lazy sequences                                    58.7554095
+  Sort 5000 elements:                               3001.0980235
+  Shuffle 5000 elements:                            4208.4340065
+  9-billion-names (25):                             2286.0170255
+  Lots of recur:                                    396.988217
+  Lots of tail recursion                            394.9891275
+jruby
+  Generic utility (Do not change):                  108.6265
+  Many math ops:                                    0.2095
+  Without -> :                                      0.296
+  Many math ops (lambda):                           0.314
+  Many math ops (hash-lambda):                      0.5555
+  Same as partials with composition:                0.9705
+  set operations                                    1131.1175
+  map operations                                    114.973
+  (ack 3 4)                                         3119.3695
+  (ack-destructure-lambda 3 4)                      3063.285
+  (ack-destructure-let 3 4)                         3064.829
+  lazy sequences                                    155.128
+  Sort 5000 elements:                               3813.644
+  Shuffle 5000 elements:                            4852.275
+  9-billion-names (25):                             2005.2835
+  Lots of recur:                                    1833.5915
+  Lots of tail recursion                            1841.6025
+truffleruby
+  Generic utility (Do not change):                  135.211
+  Many math ops:                                    0.342
+  Without -> :                                      0.337
+  Many math ops (lambda):                           0.356
+  Many math ops (hash-lambda):                      0.333
+  Same as partials with composition:                1.754
+  set operations                                    437.24
+  map operations                                    39.396
+  (ack 3 4)                                         4375.5195
+  (ack-destructure-lambda 3 4)                      3857.388
+  (ack-destructure-let 3 4)                         4299.464
+  lazy sequences                                    237.7875
+  Sort 5000 elements:                               3023.137
+  Shuffle 5000 elements:                            3383.11
+  9-billion-names (25):                             714.329
+  Lots of recur:                                    3722.0345
+  Lots of tail recursion                            3704.8175
 )

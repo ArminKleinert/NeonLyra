@@ -136,14 +136,20 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
 ; sum using a lambda
 (define sum (lambda (xs) (foldl + 0 xs)))
 
-# sum using a hash-lambda
+; sum using a hash-lambda
 (define sum #(foldl + 0 %1))
 
-# sum with optional transformation function
+; sum with optional transformation function
 (define sum
   (case-lambda
     ((xs) (foldl + 0 xs))
     ((f xs) (foldl #(+ (f %1) %2) 0 xs))))
+
+; sum with case-lambda and destructuring (pattern-matching is not supported!)
+(define sum
+  (case-lambda
+    (((x & xs)) (if xs (+ x (sum xs)) x))
+    ((f xs) (sum (map f xs)))))
 
 ; Example macro for a Clojure-like 'when'
 (defmacro (when p & body) (list 'if p (cons 'begin body) Nothing))
@@ -304,19 +310,19 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Names can now end with `'`  
   - `true` and `false` are now boolean literals too.  
   - `for` macro for list comprehension.  
-- 0.1.5
+- 0.1.5  
   - `#()` and `%n` are back  
   - Bugfix in `->rational` for truffleruby  
   - Various bugfixes  
   - Reduced set of core functions  
   - `\p(...)` as shortcut for partial functions
-- 0.1.6
+- 0.1.6  
   - Removed "lazy AST spreading"  
   - Performance boost  
   - Added `quasiquote` and `unquote-splicing`  
   - Fixed bug in lazy sequences  
   - Removed alias type.  
-- 0.1.7
+- 0.1.7  
   - Added destructuring for function parameters  
   - `let` is now a destructuring let and `plet` is the new parallel let  
   - `let`, `plet`, `for` and `loop` now all have forms for using Clojure-like vector bindings.  

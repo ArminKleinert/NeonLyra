@@ -8,10 +8,14 @@ require_relative 'core.rb'
 
 # Repl stuff
 if RUBY_PLATFORM != "java"
-  require "reline"
-  HISTORY_LOADED = Box.new(false)
-  HISTORY_FILE = "#{ENV['HOME']}/.lyra-history"
-  HISTORY = []
+  begin
+    require "reline"
+    HISTORY_LOADED = Box.new(false)
+    HISTORY_FILE = "#{ENV['HOME']}/.lyra-history"
+    HISTORY = []
+  rescue LoadError => e
+    # reline could not be loaded => ignore
+  end
 end
 
 # Read a line using Reline::readline
@@ -56,7 +60,7 @@ def _readline(prompt)
   end
 end
 
-LYRA_VERSION = "0_1_6"
+LYRA_VERSION = "0_1_7"
 
 if ARGV[0] == "--show_expand_macros"
   $show_expand_macros = true
@@ -82,7 +86,8 @@ begin
   end
 
   if src_files.empty?
-    puts "Welcome to Lyra #{LYRA_VERSION}. \nPress ctrl+D to quit."
+    puts "Welcome to Lyra #{LYRA_VERSION}."
+    puts "Press ctrl+D to quit." if defined?(Reline)
 
     loop do
       begin
