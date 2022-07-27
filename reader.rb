@@ -169,7 +169,7 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
     when /^::.+$/
       root << t.to_sym #TypeName.new(t,-1)
     when /^:.+$/
-      root << Keyword.create(t)
+      root << Keyword.create(t[1..-1])
     when /^\\.+$/
       c = parse_char t
       root << c

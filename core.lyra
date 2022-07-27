@@ -1,5 +1,5 @@
 (module core
-  (cond lambda T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples partition-all xrange succ try count-by most? loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at quasiquote lazy-seq partition-by plet let lambda')
+  (cond lambda T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? seq? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples partition-all xrange succ try count-by most? loop1 loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at quasiquote lazy-seq partition-by plet let lambda' conj)
 
 ;;; Some core things
 
@@ -68,6 +68,9 @@
 ; Add an element y to the end of a collection xs.
 (def-generic xs (add xs y) %add)
 
+(define (conj c x & xs)
+  (foldl add c (cons x xs)))
+
 ; Add an element y to the front of a sequence xs.
 ; Default implementation requires returns a list.
 (def-generic xs (add-front xs y) (lambda (xs y) (cons y (->list xs))))
@@ -117,6 +120,7 @@
 (def-generic x (->char x) buildin->char)
 (def-generic x (->map x) (lambda (x) (buildin->map (->list x))))
 (def-generic x (->set x) (lambda (x) (list->set (->list x))))
+(def-generic x (->keyword x) buildin->keyword)
 
 ; More general equality function. Defaults to = but uses seq-eq? if sequence? is true for both x and y.
 (def-generic x (eq? x y) (lambda (x y) (if (and (sequence? x) (sequence? y)) (seq-eq? x y) (= x y))))
@@ -163,6 +167,7 @@
 ; Needs to be implemented for sequence types or some functions might not work.
 (def-generic x (sequence? x)
   (lambda (xs) (list? xs)))
+(define seq? sequence?)
 
 ; Check whether a variable is a collection.
 ; By default, a variable is a collection if it is a sequence or if it is 
@@ -346,6 +351,13 @@
 ; Check whether a number is odd or even. Requires ->int.
 (define (odd? n) (= 1 (rem (->int n) 2)))
 (define (even? n) (= 0 (rem (->int n) 2)))
+
+(define (name x)
+  (case x
+    symbol? (->string x)
+    keyword? (->string (keyword-name x))
+    string? x
+    Nothing))
 
 ; foldl1
 ; (foldl1 + '()) ;=> Nothing
@@ -921,14 +933,31 @@
     (list (- (size args) 2) -1)
     (list (size args) (size args))))
 
+(comment define (%cl-form form arg-name)
+  (let* ((form-args (car form))
+         (arg-nums (%cl-arg-nums form-args)))
+    (if (list? (car form))
+      (cond
+        (= (cadr arg-nums) 0)
+          `((= (size ~arg-name) 0) (begin ~@(cdr form)))
+        (= (cadr arg-nums) -1)
+          `((>= (size ~arg-name) ~(car arg-nums)) (let ((~form-args ~arg-name))  ~@(cdr form)))
+        else
+          `((= (size ~arg-name) ~(car arg-nums)) (let ((~form-args ~arg-name)) ~@(cdr form))))
+      `(else (let ((~form-args ~arg-name)) ~@(cdr form))))))
+
 (define (%cl-form form arg-name)
   (let* ((form-args (car form))
          (arg-nums (%cl-arg-nums form-args)))
     (if (list? (car form))
-      (if (= (cadr arg-nums) -1)
-        `((>= (size ~arg-name) ~(car arg-nums)) (apply-to (lambda' ~@form) ~arg-name))
-        `((= (size ~arg-name) ~(car arg-nums)) (apply-to (lambda' ~@form) ~arg-name)))
-      `(else (apply-to (lambda' (& ~form-args) ~@(cdr form)) ~arg-name)))))
+      (cond
+        (= (cadr arg-nums) 0)
+          `((= (size ~arg-name) 0) (begin ~@(cdr form)))
+        (= (cadr arg-nums) -1)
+          `((>= (size ~arg-name) ~(car arg-nums)) (let ((~form-args ~arg-name))  ~@(cdr form)))
+        else
+          `((= (size ~arg-name) ~(car arg-nums)) (let ((~form-args ~arg-name)) ~@(cdr form))))
+      `(else (let ((~form-args ~arg-name)) ~@(cdr form))))))
 
 (define (%case-lambda cl-name forms)
   (let* ((args (gensym 'cl-args)))
@@ -1127,6 +1156,15 @@
     (if (any? (comp (partial /= 2) size) binds)
       (error! "Invalid number of members in loop binding." 'syntax)
       (cons `(lambda' ~name ~args ~@body) vals))))
+
+; Simplified loop without destructuring
+(defmacro (loop1 bindings & body)
+  (let*((binds (if (vector? bindings) (slices 2 bindings) bindings)))
+    (if (any? (comp (partial /= 2) size) binds)
+      (error! "Invalid number of members in loop binding." 'syntax)
+      (cons
+        `(lambda* ~(gensym 'loop) ~(map first binds) ~@body)
+        (map second binds)))))
 
 ; Add items from 'from' to 'to', keeping the type of 'to'. (if add is correctly defined)
 ;   (into) ;=> () ; empty input -> empty list

@@ -851,15 +851,15 @@ class Keyword < LyraFn
   end
 
   def to_s
-    @name
+    @name.inspect
   end
 
   def inspect
-    @name
+    @name.inspect
   end
 
   def to_sym
-    @name[1..-1]
+    @name
   end
 
   def hash

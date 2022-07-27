@@ -525,7 +525,7 @@ def eval_list_expr(expr, env, is_in_call_params = false)
     # inner list must be executed too.
     func = eval_ly(func, env) if func.is_a?(ConsList)
 
-    raise LyraError.new("Runtime error: Expected a function, got #{elem_to_pretty(func)}", :expected_function) unless func.is_a?(LyraFn)
+    raise LyraError.new("Runtime error: Expected a function, got #{elem_to_pretty(func)} in #{elem_to_pretty(expr)}", :expected_function) unless func.is_a?(LyraFn)
 
     if func.native?
       LYRA_CALL_STACK.push func

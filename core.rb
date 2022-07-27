@@ -326,7 +326,7 @@ def setup_core_functions
   add_fn(:"lazy-obj?", 1) { |x| x.is_a?(LazyObj) }
   add_fn(:"keyword?", 1) { |x| x.is_a?(Keyword) }
 
-  add_fn(:"keyword-name", 1) { |x| x.is_a?(Keyword) ? x.to_s[1..-1]&.to_sym : nil }
+  add_fn(:"keyword-name", 1) { |x| x.is_a?(Keyword) ? x.to_sym : nil }
 
   add_fn(:id, 1) { |x| x }
   add_fn(:hash, 1) { |x| x.hash }

@@ -14,7 +14,7 @@
   (every? all?)
   reduce reductions some some? some-fn
   nthrest nthnext next fnext ffirst nnext
-  keep name)
+  keep)
 
 (defmacro (when p & body)
   (list 'if p (xcons 'begin Nothing body) Nothing))
@@ -51,12 +51,7 @@
     else
       (error! "Syntax error: Invalid format for fn." 'syntax)))
   
-(define (name x)
-  (case x
-    symbol? (->string x)
-    keyword? (->string (keyword-name x))
-    string? x
-    Nothing))
+
 
 (define (nthrest xs i) (drop i xs))
 (define (nthnext xs i) (let ((r (nthrest xs i))) (if (empty? r) Nothing r)))
