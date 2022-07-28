@@ -1,5 +1,5 @@
 (module core
-  (cond lambda T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? seq? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples partition-all xrange succ try count-by most? loop1 loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at quasiquote lazy-seq partition-by plet let lambda' conj)
+  (cond lambda T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? seq? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples partition-all xrange succ try count-by most? loop1 loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at quasiquote lazy-seq partition-by plet let lambda' conj take-nth interleave destructure name)
 
 ;;; Some core things
 
@@ -610,6 +610,11 @@
         (p (first xs)) '()
         else (lazy-seq (first xs) (take-until p (rest xs)))))
 
+; Take every nth item
+(define (take-nth n xs)
+  (cond (empty? xs) '()
+        else (lazy-seq (first xs) (take-nth n (drop n xs)))))
+
 ; Drop the first n elements of a collection xs.
 ; Returns Nothing for atoms.
 ; Requires: empty?, first, rest
@@ -984,6 +989,15 @@
 ; (list (f) (f 6) (f 6 7) (f 6 7 8 9) (f 5 4 3)) ; ("0" "1" "2" "4 or more" "0 or more")
 (defmacro (case-lambda* cl-name form1 & forms)
   (%case-lambda cl-name (cons form1 forms)))
+
+
+(define (%interleave xss)
+  (if (all? empty? xss)
+    '()
+    (let*((ys (map first xss)))
+      (lazy-seq (car ys) (concat (cdr ys) (%interleave (map rest xss)))))))
+(define (interleave xs & xss)
+  (%interleave (cons xs xss)))
 
 ; Sum up elements of a collection using +.
 ; Required: foldl, map
@@ -1372,36 +1386,59 @@
            (pb-head (%partition-by '() lst1)))
       (lazy-seq pb-head (partition-by f (drop (size pb-head) lst1))))))
 
-(define (%let-destructure-list seq1 seq2)
-  (if seq1
-    (if (= (car seq1) '&)
-      (list (list (cadr seq1) seq2))
-      (let ((sym (gensym 'des)))
-        (cons
-          (list sym seq2)
-          (cons (list (first seq1) (list 'first sym))
-            (%let-destructure-list (cdr seq1) (list 'rest sym))))))
-    '()))
+
+
+
+
+(define (%can-destructure? left)
+  (cond (not (vector? left)) #t
+        (not (map? left))    #t
+        (not (list? left))   #t
+        else                 #f))
+(define (%let-destructure-list seq1 seq2 namestack)
+  (let ((sym (gensym 'des)))
+  (cond
+    (not seq1) '()
+    (= (car seq1) '&) (list (list (cadr seq1) seq2))
+    (%can-destructure? (car seq1))
+      (cons
+        (list sym seq2)
+        (concat
+          (%let-destructure (car seq1) (list 'first sym)) ; Recursive inner destructure
+          (%let-destructure-list (cdr seq1) (list 'rest sym) (cons sym namestack))))
+    else
+      (cons
+        (list sym seq2)
+        (cons (list (first seq1) (list 'first sym))
+          (%let-destructure-list (cdr seq1) (list 'rest sym) (cons sym namestack)))))))
+
 (define (%let-destructure-map m1 m2)
   (if (empty? m1)
     res
-    (map (lambda (e) (list (second e) (list 'map-get m2 (first e)))) (->list m1))))
+    (mapcat (lambda (e) (%let-destructure (second e) (list 'map-get m2 (first e)))) (->list m1))))
+
 (define (%let-destructure left right)
   (cond
     (symbol? left)
       (list (list left right))
     (and (sequence? left) (not (empty? left)))
-      (%let-destructure-list (->list left) right)
+      (%let-destructure-list (->list left) right '())
     (and (map? left) (not (empty? left)))
       (%let-destructure-map left right)
     else
       (error! "parameter must be symbol, list, vector or map" 'syntax)))
+
+(define (destructure binds)
+  (mapcat
+    (lambda (e) (%let-destructure (first e) (second e)))
+    binds))
+
 (defmacro (let binds & body) ; let* with destructuring. Does not support :as yet.
   (if (vector? binds)
     (if (odd? (size binds))
       (error! "odd number of bindings for let" 'syntax)
       `(let ~(slices 2 binds) ~@body)) ; recursive call
-    (cons 'let* (cons (mapcat (lambda (e) (%let-destructure (first e) (second e))) binds) body))))
+    (cons 'let* (cons (destructure binds) body))))
 
 ; Extended define
 ; Supports destructuring
