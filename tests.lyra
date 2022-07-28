@@ -3710,6 +3710,14 @@
       ((lambda (as) (+ (car as) (sum (cdr as)))) '(1 2 3 4))
       ((lambda' ((a & as)) (+ a (sum as))) '(1 2 3 4)))))
 
+(define (test-compute*->)
+  (do-test!
+    (= (compute*-> 'default 'error 1 inc inc inc)  4)
+    (= (compute*-> 'default 'error 1 (+ 3) inc)   5)
+    (= (compute*-> 'default 'error 1 ->list first) 'default)
+    (= (compute*-> 'default 'error 0 (error! 'a) inc)  'error)
+    (= (compute*-> 'default 'error "r")            "r")))
+
 (define (run-tests & fns)
   (let* ((results
           (foldl
@@ -3790,6 +3798,7 @@
   'test-cartesian-product 'test-delete-at 'test-partition 'test-partition-by 
   'test-partition-all 'test-let* 'test-let 'test-plet 'test-lambda'
   ;'test-lazy-crash 'test-lazy 'test-eager 
+  test-compute*->
   ))
 
 (println! "Starting tests...")

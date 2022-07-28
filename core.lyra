@@ -1,5 +1,5 @@
 (module core
-  (cond lambda T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? seq? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples partition-all xrange succ try count-by most? loop1 loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at quasiquote lazy-seq partition-by plet let lambda' conj take-nth interleave destructure name)
+  (cond lambda T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? seq? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples partition-all xrange succ try count-by most? loop1 loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at quasiquote lazy-seq partition-by plet let lambda' conj take-nth interleave destructure name compute*->)
 
 ;;; Some core things
 
@@ -1387,7 +1387,39 @@
       (lazy-seq pb-head (partition-by f (drop (size pb-head) lst1))))))
 
 
+; Similar to '->> but stops when the value becomes
+; Nothing or an exception is thrown.
+; if the value becomes nothing, default is returned.
+; if an error is thrown, error-default is returned
+; (compute*-> 'default 'error 1 inc inc inc)  ; => 4
+; (compute*-> 'default 'error 1 (+ 3) inc))   ; => 5
+; (compute*-> 'default 'error 1 ->list first) ; => default
+; (compute*-> 'default 'error 0 throw! inc)   ; => error
+; (compute*-> 'default 'error "r")            ; => "r"
+(defmacro (compute*-> default error-default m & funcs)
+  (let* ((n (gensym 'compute)))
+    (cond
+      (not funcs) m
+      m (list 'try*
+          (list 'let* (list (list n m))
+            (list 'if n
+              (xcons 'compute*-> default error-default
+                (if (list? (car funcs))
+                  (list-concat (car funcs) (list n))
+                  (list (car funcs) n))
+                (cdr funcs))
+              default))
+          (list 'catch 'id 'e error-default))
+      else default)))
 
+; Like compute*-> but the special cases all return Nothing.
+; (compute-> 1 inc inc inc)  ; => 4
+; (compute-> 1 (+ 3) inc))   ; => 5
+; (compute-> 1 ->list first) ; => Nothing
+; (compute-> 0 throw! inc)   ; => Nothing
+; (compute-> "r")            ; => "r"
+(defmacro (compute-> m & funcs)
+  `(compute*-> Nothing Nothing ~m ~@funcs))
 
 
 (define (%can-destructure? left)
