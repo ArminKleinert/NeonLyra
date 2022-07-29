@@ -220,7 +220,7 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
 ;   pair-y p
 (def-type pair x y)
 
-(let1 (p (make-pair 1 2)) ; Creates a new pair
+(let ((p (make-pair 1 2))) ; Creates a new pair
   (pair? p) ; #t
   (pair? 5) ; #f
   (unwrap-pair p) ; [1 2]

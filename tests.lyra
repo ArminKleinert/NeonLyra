@@ -3712,11 +3712,19 @@
 
 (define (test-compute*->)
   (do-test!
-    (= (compute*-> 'default 'error 1 inc inc inc)  4)
-    (= (compute*-> 'default 'error 1 (+ 3) inc)   5)
-    (= (compute*-> 'default 'error 1 ->list first) 'default)
-    (= (compute*-> 'default 'error 0 (error! 'a) inc)  'error)
-    (= (compute*-> 'default 'error "r")            "r")))
+    (= (compute*-> 'default 'error 1 inc inc inc)     4)
+    (= (compute*-> 'default 'error 1 (+ 3) inc)       5)
+    (= (compute*-> 'default 'error 1 ->list first)    'default)
+    (= (compute*-> 'default 'error 0 (error! 'a) inc) 'error)
+    (= (compute*-> 'default 'error "r")               "r")))
+
+(define (test-compute->)
+  (do-test!
+    (= (compute-> 1 inc inc inc)     4)
+    (= (compute-> 1 (+ 3) inc)       5)
+    (= (compute-> 1 ->list first)    '())
+    (= (compute-> 0 (error! 'a) inc) '())
+    (= (compute-> "r")               "r")))
 
 (define (run-tests & fns)
   (let* ((results
@@ -3798,7 +3806,7 @@
   'test-cartesian-product 'test-delete-at 'test-partition 'test-partition-by 
   'test-partition-all 'test-let* 'test-let 'test-plet 'test-lambda'
   ;'test-lazy-crash 'test-lazy 'test-eager 
-  test-compute*->
+  test-compute*-> test-compute->
   ))
 
 (println! "Starting tests...")
