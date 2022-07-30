@@ -1057,13 +1057,6 @@
       (lambda (e) (= (->string e) (->string e)))
       '('a "" '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))))
 
-(define (test-->bool)
-  (and
-    (all? ->bool
-      (list #t 'a 1 0.5 '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))
-    (none? ->bool
-      (list #f '() Nothing))))
-
 (define (test-->list)
   (do-test!
     (eq? '(\a \b \c) (->list "abc"))
@@ -1962,28 +1955,28 @@
     (eq? '() (drop-until (partial > 5) []))
     (eq? '(5 6 7) (drop-until (partial < 4) [1 2 3 4 5 6 7]))))
   
-(define (test-take-drop)
+(define (test-split-at)
   (do-test!
-    (eq? '(() ()) (take-drop 1 '()))
-    (eq? '((1) (2)) (take-drop 1 '(1 2)))
-    (eq? '((1 2) ()) (take-drop 2 '(1 2)))
-    (eq? '((1 2) ()) (take-drop 3 '(1 2)))
-    (eq? '(() (1 2)) (take-drop 0 '(1 2)))
-    (eq? '((1 2) (3 4 5)) (take-drop 2 '(1 2 3 4 5)))))
+    (eq? '(() ()) (split-at 1 '()))
+    (eq? '((1) (2)) (split-at 1 '(1 2)))
+    (eq? '((1 2) ()) (split-at 2 '(1 2)))
+    (eq? '((1 2) ()) (split-at 3 '(1 2)))
+    (eq? '(() (1 2)) (split-at 0 '(1 2)))
+    (eq? '((1 2) (3 4 5)) (split-at 2 '(1 2 3 4 5)))))
 
-(define (test-take-drop-while)
+(define (test-split-if)
   (do-test!
-    (eq? '(() ()) (take-drop-while (partial > 5) '()))
-    (eq? '((1 2 3) (4 5 6 7)) (take-drop-while (partial > 4) '(1 2 3 4 5 6 7)))
-    (eq? '(() ()) (take-drop-while (partial > 5) []))
-    (eq? '((1 2 3) (4 5 6 7)) (take-drop-while (partial > 4) [1 2 3 4 5 6 7]))))
+    (eq? '(() ()) (split-if (partial > 5) '()))
+    (eq? '((1 2 3) (4 5 6 7)) (split-if (partial > 4) '(1 2 3 4 5 6 7)))
+    (eq? '(() ()) (split-if (partial > 5) []))
+    (eq? '((1 2 3) (4 5 6 7)) (split-if (partial > 4) [1 2 3 4 5 6 7]))))
 
-(define (test-take-drop-until)
+(define (test-split-unless)
   (do-test!
-    (eq? '(() ()) (take-drop-until (partial > 5) '()))
-    (eq? '((1 2 3 4) (5 6 7)) (take-drop-until (partial < 4) '(1 2 3 4 5 6 7)))
-    (eq? '(() ()) (take-drop-until (partial > 5) []))
-    (eq? '((1 2 3 4) (5 6 7)) (take-drop-until (partial < 4) [1 2 3 4 5 6 7]))))
+    (eq? '(() ()) (split-unless (partial > 5) '()))
+    (eq? '((1 2 3 4) (5 6 7)) (split-unless (partial < 4) '(1 2 3 4 5 6 7)))
+    (eq? '(() ()) (split-unless (partial > 5) []))
+    (eq? '((1 2 3 4) (5 6 7)) (split-unless (partial < 4) [1 2 3 4 5 6 7]))))
 
 (define (test-zip)
   (do-test!
@@ -3456,10 +3449,8 @@
     (function? (every-pred id))
     (eq? #t ((every-pred number?) 1))
     (eq? #t ((every-pred number? int?) 1))
-    (eq? #t ((every-pred number? int? ->bool) 1))
 
     (eq? #f ((every-pred number? float?) 1))
-    (eq? #f ((every-pred number? float? ->bool) 1))
     (eq? #f ((every-pred number? not) 1))))
 
 (define (test-hash-lambda)
@@ -3762,7 +3753,7 @@
   'test-boolean? 'test-set? 'test-empty? 'test-compose 'test-compose-and
   'test-compose-or 'test-complement 'test-id 'test-hash
   'test-eq? 'test-->int 'test-->float 'test-->rational 'test-rational?
-  'test-case-lambda 'test-case-lambda* 'test-->string 'test-->bool
+  'test-case-lambda 'test-case-lambda* 'test-->string
   'test-->list 'test-->vector 'test-->char 'test-->map 'test-->set
   'test-list 'test-list-size 'test-car 'test-cdr 'test-cons 'test-vector
   'test-vector-size 'test-vector-nth 'test-vector-add 'test-vector-append
@@ -3782,8 +3773,8 @@
   'test-foldl1 'test-foldl-indexed 'test-foldr 'test-foldr1
   'test-foldr-indexed 'test-repeat 'test-repeatedly 'test-take
   'test-take-while 'test-take-until 'test-drop 'test-drop-while
-  'test-drop-until 'test-take-drop 'test-take-drop-while
-  'test-take-drop-until 'test-zip 'test-zip-with 'test-zip-to-index
+  'test-drop-until 'test-split-at 'test-split-if
+  'test-split-unless 'test-zip 'test-zip-with 'test-zip-to-index
   'test-all? 'test-none? 'test-va-all? 'test-va-none? 'test-va-any?
   'test-reverse 'test-sum 'test-minimum 'test-maximum 'test-unwrap
   'test-iterate 'test-random 'test-xorshift64s 'test-xorshift64

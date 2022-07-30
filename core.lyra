@@ -1,11 +1,20 @@
 (module core
-  (cond lambda T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->bool ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? seq? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf take-drop take-drop-until take-drop-while take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples partition-all xrange succ try count-by most? loop1 loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at quasiquote lazy-seq partition-by plet let lambda' conj take-nth interleave destructure name compute*-> compute->)
+  (cond lambda T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? seq? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf split-at split-unless split-if take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples partition-all xrange succ try count-by most? loop1 loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at quasiquote lazy-seq partition-by plet let lambda' conj take-nth interleave destructure name compute*-> compute->)
 
 ;;; Some core things
 
+;# Simplified lambda* which auto-generates a name.
+;# The rest is the same. Does not require any special functions, only buildins.
 (defmacro (lambda binds & body)
   (cons 'lambda* (cons (gensym 'lambda) (cons binds body))))
 
+;# Plain alias for lambda
+(defmacro (λ bindings & body)
+  (cons 'lambda (cons bindings body)))
+
+;# `if` with multiple arguments.
+;# `(cond a b c d else e)` is equivalent to `(if a b (if c d (if else e Nothing)))`.
+;# `(cond a b c d e)` if equivalent to `(if a b (if c d e))`.
 (defmacro (cond & cases)
   (if cases
     (if (cdr cases)
@@ -13,20 +22,22 @@
       (car cases))
     Nothing))
 
+;# Generates a lazy list.
+;# This allows for infinite sequences. Lyra does not understand the simpler syntax that languages like Clojure and Scheme have.
+;# Example: `(define (iterate f start) (lazy-seq start (iterate f (f start))))`
 (defmacro (lazy-seq x & body)
   (list 'cons x (cons 'lambda (cons '() body))))
 
-;(defmacro (if p t e) (list 'cond p t #t e))
-
-; Take any arguments and return Nothing.
+;# Take any number arguments and return Nothing.
 (defmacro (comment & _) (nothing))
 
-; unbox a box or unpack a user-defined type.
-; Can be overridden.
+;# unbox a box or unpack a user-defined type. Can be overridden.
+;# unwrap : box -> any
 (def-generic x (unwrap x) buildin-unwrap)
 
-; Standard implementation for foldr. Returns Nothing for atoms.
-; Requires: empty?, first, rest
+;# Standard implementation for foldr. Returns Nothing for atoms.
+;# Requires: empty?, first, rest
+;# %foldr : function -> start -> collection -> any?
 (define (%foldr f s xs)
   (if (atom? xs)
     Nothing
@@ -34,8 +45,9 @@
       s
       (f (first xs) (%foldr f s (rest xs))))))
 
-; Standard implementation for foldl. Returns Nothing for atoms.
-; Requires: empty?, first, rest
+;# Standard implementation for foldl. Returns Nothing for atoms.
+;# Requires: empty?, first, rest
+;# %foldl : function -> any? -> collection -> any?
 (define (%foldl f s xs)
   (if (atom? xs)
     Nothing
@@ -43,42 +55,57 @@
       s
       (%foldl f (f s (first xs)) (rest xs)))))
 
-; Generics for foldr and foldl
+;# Generics for foldr and foldl
+;# foldr : function -> any? -> collection -> any?
 (def-generic xs (foldr f v xs) %foldr)
+
+;# Generic for foldl
+;# foldr : function -> any? -> collection -> any?
 (def-generic xs (foldl f v xs) %foldl)
 
-; Standard implementation for add.
-; Requires: append
+;# Standard implementation for add.
+;# Requires: append
+;# %add : collection -> any -> list
 (define (%add xs y)
   (append xs (list y)))
 
-; Check whether a sequence xs contains an element e.
-; Requires: empty?, first, rest
+;# Check whether a sequence xs contains an element e.
+;# Requires: empty?, first, rest
+;# %contains : collection -> any -> bool
 (define (%contains? xs e)
   (cond (empty? xs) #f
         (eq? (first xs) e) #t
         else (%contains? (rest xs) e)))
 
-; Append all elements from a sequence ys to collection xs. Requires: ->list
+;# Append all elements from a sequence ys to collection xs. Requires: ->list
+;# append : collection -> collection -> collection
 (def-generic xs (append xs ys) (lambda (xs ys) (buildin-append (->list xs) (->list ys))))
 
-; Reverse append. (append xs to ys)
+;# Reverse append. (append xs to ys)
+;# prepend : collection -> collection -> collection 
 (def-generic xs (prepend xs ys) (lambda (xs ys) (buildin-append ys xs)))
 
-; Add an element y to the end of a collection xs.
+;# Add an element y to the end of a collection xs.
+;# add : collection -> any -> collection 
 (def-generic xs (add xs y) %add)
 
+;# Add a number of elements to the end of a list.
+;# conj : collection -> any+ -> collection
 (define (conj c x & xs)
   (foldl add c (cons x xs)))
 
-; Add an element y to the front of a sequence xs.
-; Default implementation requires returns a list.
+;# Add an element y to the front of a sequence xs.
+;# Default implementation requires ->list and returns a list.
+;# add-front : collection -> any -> collection
 (def-generic xs (add-front xs y) (lambda (xs y) (cons y (->list xs))))
 
-; Check whether the collection xs contains the element e.
+;# Check whether the collection xs contains the element e.
+;# contains? : collection -> any -> bool
 (def-generic xs (contains? xs e) %contains?)
 
-; Get element from sequence xs at index i (starts at 0). Requires ->list.
+;# Get element from sequence xs at index i (starts at 0). Requires ->list.
+;# Returns Nothing if the element cannot be found.
+;# collection : collection -> int -> any
 (def-generic xs (nth xs i)
   (lambda (xs i)
     (if (atom? xs)
@@ -88,100 +115,150 @@
             (first xs0)
             (recur (rest xs0) (- i 1)))))))
 
-; Get an element in a collection xs by its key k.
-; The default behaviour uses nth, but it has to be overridden for maps and sets.
+;# Get an element in a collection xs by its key k.
+;# The default behaviour uses nth, but it has to be overridden for maps and sets.
+;# get : collection -> any -> any
 (def-generic xs (get xs k) nth)
 
+;# Tries to find the index of the element from the collection xs. Returns -1 if the element could not be found.
+;# index-of : any -> collection -> int
 (define (index-of v xs)
   (let* ((%iof (lambda (i xs)
             (if (empty? xs)
-              0
+              -1
               (let* ((c (first xs)))
                 (if (eq? c v)
                   i
                   (recur (+ i 1) (rest xs))))))))
     (%iof 0 xs)))
 
-; Find associated key or value for an element.
-; index-of for lists and vectors, true or false for sets.
+;# Find associated key or value for an element. The type of return value depends on the type of the collection.
+;# index-of for lists and vectors, true or false for sets.
+;# find : any -> collection -> any
 (def-generic xs (find v xs) (lambda (v xs) (index-of (seq xs))))
 
-; Type conversions.
-; Default conversions to collections require ->float to be implemented,
-; Default conversions to collections require ->list.
+;# Try to make an element into a symbol. Returns Nothing on error.
+;# ->symbol : any -> symbol
 (def-generic x (->symbol x) buildin->symbol)
-(def-generic x (->int x) (lambda (x) (buildin->int (buildin->float x))))
+
+;# Tries to make an element into an int. Requires ->float. Returns Nothing on error.
+;# ->int : any -> int
+(def-generic x (->int x) (lambda (x) (buildin->int (->float x))))
+
+;# Tries to make an element into a float. Returns Nothing on error.
+;# ->float : any -> float
 (def-generic x (->float x) buildin->float)
-(def-generic x (->rational x) (lambda (x) (buildin->rational (buildin->float x))))
+
+;# Tries to make an element into a ratonal. Returns Nothing on error.
+;# ->rational : any -> rational
+(def-generic x (->rational x) (lambda (x) (buildin->rational (->float x))))
+
+;# Tries to make an element into a string. Returns an unreadable string on error.
+;# ->string : any -> string
 (def-generic x (->string x) buildin->string) ; TODO
-(def-generic x (->bool x) buildin->bool)
+
+;# Tries to make a list from an element. Returns Nothing on error.
+;# ->list : any -> list
 (def-generic x (->list x) buildin->list)
+
+;# Try to make an element into a vector. The default uses ->list and a native function. Returns Nothing on error.
+;# ->vector : any -> vector
 (def-generic x (->vector x) (lambda (x) (list->vector (->list x))))
+
+;# Tries to make a char from an element. Returns Nothing on error.
+;# ->char : any -> char
 (def-generic x (->char x) buildin->char)
+
+;# Tries to make a map from an element. The default uses ->list and a native helper. Even the default might fail. Returns Nothing on error.
+;# If the default is used, the list must have the format `((k v)*)`
+;# ->map : any -> map
 (def-generic x (->map x) (lambda (x) (buildin->map (->list x))))
+
+;# Try to make an element into a set. The default uses ->list and a native function. Returns Nothing on error.
+;# ->set : any -> set
 (def-generic x (->set x) (lambda (x) (list->set (->list x))))
+
+;# Try to make an element into a keyword. Returns Nothing on error.
+;# ->keyword : any -> keyword
 (def-generic x (->keyword x) buildin->keyword)
 
-; More general equality function. Defaults to = but uses seq-eq? if sequence? is true for both x and y.
+;# More general equality function. Defaults to = but uses seq-eq? if sequence? is true for both x and y.
+;# eq? : any -> any -> bool
 (def-generic x (eq? x y) (lambda (x y) (if (and (sequence? x) (sequence? y)) (seq-eq? x y) (= x y))))
 
-; Get the size of a collection xs. Default requires ->list.
-; Return 0 for types which are not convertable to list.
+;# Get the size of a collection xs. Default requires ->list.
+;# Return 0 for types which are not convertable to list.
+;# The result can become an infinite loop for infinite sequences.
+;# size : collection -> int
 (def-generic xs (size xs) (lambda (xs) (let* ((l (->list xs))) (if l (list-size l) 0))))
 
-; Get the rest of the elements of a collection.
-; Default requires ->list. If ->list is not available, returns Nothing.
+;# Get the rest of the elements of a collection.
+;# Default requires ->list. If ->list is not available, returns Nothing.
+;# rest : collection -> collection
 (def-generic xs (rest xs) (lambda (xs) (let* ((l (->list xs))) (if l (cdr l) Nothing))))
 
-; Get the first element of a collection.
-; Default requires -list. If ->list is not available, returns Nothing.
+;# Get the first element of a collection.
+;# Default requires ->list. If ->list is not available, returns Nothing.
+;# first : collection -> any
 (def-generic xs (first xs) (lambda (xs) (let* ((l (->list xs))) (if l (car l) Nothing))))
 
-; Get second element of a collection. Default requires first and rest.
+;# Get second element of a collection. Default requires first and rest.
+;# The default is (first (rest xs)).
+;# second : collection -> any
 (def-generic xs (second xs) (lambda (xs) (first (rest xs))))
 
-; Reverse a collection.
-; The default requires foldl and returns a list.
+;# Reverse a collection.
+;# The default requires foldl and returns a list.
+;# reverse : collection -> collection
 (def-generic xs (reverse xs) (lambda (xs) (foldl (lambda (a b) (cons b a)) '() xs)))
 
-; Compare two variables x and y. Returns 0 if (= x y), -1 if (< x y) or 1 otherwise.
-; The default requires = and < to work for x and y.
+;# Compare two variables x and y. Returns 0 if (= x y), -1 if (< x y) or 1 otherwise.
+;# The default requires = and < to work for x and y.
+;# compare : any -> any -> bool
 (def-generic x (compare x y) (lambda (x y) (if (= x y) 0 (if (< x y) -1 1))))
 
-; Increment number by 1 (using +)
+;# Increment number by 1 (using +)
+;# inc : number -> number
 (define (inc n) (+ n 1))
-; Decrement number by 1 (using -)
+
+;# Decrement number by 1 (using -)
+;# inc : number -> number
 (define (dec n) (- n 1))
 
-; Calculate successor of a variable.
-; For numbers, this defaults to inc.
-; chars have their internal value incremented by 1.
-; Other variables are their own successors (eg. a function has no successor).
+;# Calculate successor of a variable.
+;# For numbers, this defaults to inc.
+;# chars have their internal value incremented by 1.
+;# Other variables are their own successors (eg. a function has no successor).
+;# succ : any -> any
 (def-generic x (succ x) id)
 (def-impl ::integer succ inc)
 (def-impl ::float succ inc)
 (def-impl ::rational succ inc)
 (def-impl ::char succ (lambda (c) (int->char (inc (char->int c)))))
 
-; Check whether a variable is a sequence. 
-; Needs to be implemented for sequence types or some functions might not work.
+;# Check whether a variable is a sequence. 
+;# Needs to be implemented for sequence types or some functions might not work.
+;# sequence? : any -> bool
 (def-generic x (sequence? x)
   (lambda (xs) (list? xs)))
+;# Alias for sequence?
 (define seq? sequence?)
 
-; Check whether a variable is a collection.
-; By default, a variable is a collection if it is a sequence or if it is 
-; convertable to a list.
+;# Check whether a variable is a collection.
+;# By default, a variable is a collection if it is a sequence or if it is convertable to a list.
+;# collection? : any -> bool
 (def-generic x (collection? x)
   (lambda (xs) (or (or (sequence? xs) (map? xs)) (not (nothing? (->list xs))))))
 
-; Check whether a variable is a number.
+;# Check whether a variable is a number.
+;# number? : any -> bool
 (def-generic x (number? x)
   (lambda (xs) (or (int? xs) (or (float? xs) (rational? xs)))))
 
-; Delete element at index i in a collection xs. 
-; If xs is a collection, use a linear implementation for lists and return a lazy sequence.
-; Otherwise, return Nothing.
+;# Delete element at index i in a collection xs. 
+;# If xs is a collection, use a linear implementation for lists and return a lazy sequence.
+;# Otherwise, return Nothing.
+;# delete-at : int -> collection -> collection
 (def-generic xs (delete-at i xs)
   (lambda (i xs)
     (if (collection? xs)
@@ -192,166 +269,244 @@
           else (lazy-seq (car xs) (delete-at (dec i) (cdr xs)))))
       Nothing)))
 
-; Printing. %print! should not be used directly.
-; These functions can take any number of arguments (variadic and requires ->string 
-; to work correctly.
-; (print! 1 2 3) ;=> prints "123"
-; (println! "abc" "abc" "abc") ;=> prints "abcabcabc"
 (define (%print! xs)
   (cond xs (let*() (buildin-print! (->string (car xs))) (%print! (cdr xs))) Nothing))
+;# Printing. Can take any number of arguments (variadic and requires ->string to work correctly.
+;# (print! 1 2 3) ;=> prints "123"
+;# print! : any* -> Nothing
 (define (print! & xs)
   (%print! xs))
+;# Like print! but appends a linebreak.
+;# (println! "abc" "abc" "abc") ;=> prints "abcabcabc\n"
+;# println! : any* -> Nothing
 (define (println! & xs)
   (%print! xs)
   (buildin-print! "\n"))
 
-; Take a function f, which takes two arguments and returns a new function which takes
-; the arguments reversed.
 ; (let*((rsub (flip -)))
 ;   (- 2 1) ;=> 1
 ;   (rsub 2 1)) ;=> -1
+;# Take a function f, which takes two arguments and returns a new function which takes the arguments reversed.
+;# flip : function -> function
 (define (flip f)
   (lambda (x y) (f y x)))
-; Take 2 arguments, return the first
+;# Take 2 arguments, return the first.
+;# fst : any -> any -> any
 (define (fst x y) x)
-; Take 2 arguments, return the second
+;# Take 2 arguments, return the second.
+;# fst : any -> any -> any
 (define (snd x y) y)
 
-; Take any number of arguments and return a list of them.
-; (list 1 2 3) ;=> (1 2 3)
+;# Take any number of arguments and return a list of them.
+;# (list 1 2 3) ;=> (1 2 3)
+;# list : any* -> list
 (define (list & xs)
   xs)
 
-; Simpler Let for a single binding.
-; (let1 (a 1) a) is equivalent to (let*((a 1)) a)
+;# Simpler let for a single binding.
+;# (let1 (a 1) a) is equivalent to (let*((a 1)) a)
 (defmacro (let1 bindings & body)
   (xcons 'let*(list bindings) body))
 
-; Implementations for nth.
+;# Implementation of nth for maps. This converts the map into a sequence and then returns the pair (key, value).
+;# nth#map : map -> int -> vector
 (def-impl ::map nth (lambda (x i) (vector-nth (->vector x) i)))
 
-; Special implementation for get for map.
+;# Special implementation for get for map.
+;# get#map : map -> any -> any
 (def-impl ::map get map-get)
 
-; Implementations for contains?.
+;# Implementation for contains?.
+;# contains?#list : list -> any -> bool
 (def-impl ::list contains? buildin-contains?)
+;# Implementation for contains?.
+;# contains?#map : map -> any -> bool
 (def-impl ::map contains? buildin-contains?)
 
-; Implementations for append.
+;# Implementation for append.
+;# append#map : map -> collection -> collection
 (def-impl ::map append buildin-append)
 
-; Implementations for ->vector
+;# Implementation for ->vector
+;# ->vector#list : list -> vector
 (def-impl ::list ->vector buildin->vector)
+;# Implementation for ->vector
+;# ->vector#map : map -> vector
 (def-impl ::map ->vector buildin->vector)
 
-; Implementations for ->set
+;# Implementation for ->set
+;# ->set#list : list -> set
 (def-impl ::list ->set buildin->set)
+;# Implementation for ->set
+;# ->set#map : map -> set
 (def-impl ::map ->set buildin->set)
 
-; Implementations for ->map
+;# Implementation for ->set
+;# ->map#list : list -> map
 (def-impl ::list ->map buildin->map)
+;# Implementation. Since the input is already a map, this returns the element itself.
+;# ->map#map : map -> map
 (def-impl ::map ->map id)
 
-; Implementations for ->string.
+;# Implementation for ->string.
+;# ->string#list : list -> map
 (def-impl ::list ->string (lambda (xs) (buildin->string (map-eager ->string xs))))
+;# Implementation for ->string.
+;# ->string#map : map -> string
 (def-impl ::map ->string (lambda (xs) (buildin->string xs)))
 
-; Implementations for size.
+;# Implementation for size.
+;# size#list : list -> int
 (def-impl ::list size list-size)
+;# Implementation for size.
+;# size#map : map -> int
 (def-impl ::map size map-size)
 
-; Implementations for first.
+;# Implementation for first.
+;# first#list : list -> any
 (def-impl ::list first car)
+;# Returns the first key in the map.
+;# first#map : map -> any
 (def-impl ::map first (lambda (m) (vector-nth (map->vector m) 0)))
 
-; Implementations for rest.
+;# Implementation for rest.
+;# rest#list : list -> list
 (def-impl ::list rest cdr)
+;# Implementation for rest.
+;# rest#map : map -> sequence
 (def-impl ::map rest (lambda (m) (let*((v (map->vector m))) (vector-range v 1 (vector-size v)))))
 
-; Special implementations for reverse for sets and maps.
-; Since sets and maps are unordered, they are their own reversals.
+;# Special implementation of reverse for maps.
+;# Since maps are unordered, they are their own reversals.
+;# reverse#map : map -> map
 (def-impl ::map reverse id)
 
-; Implementations for add.
+;# Implementations for add. The sequence must have a size of 2.
+;# add#map : map -> sequence -> map
 (def-impl ::map add (lambda (m kv) (map-set (first kv) (second kv))))
 
-; Implementations for add-front.
+;# Implementation for add-front.
+;# add-front#list : list -> any -> list
 (def-impl ::list add-front (lambda (l o) (cons o l)))
-(def-impl ::map add-front (lambda (m kv) (map-set (first kv) (second kv))))
+;# Implementation for add-front. Same as add. The sequence must have a size of 2.
+;# add-front#map : map -> sequence -> map
+(def-impl ::map add-front (lambda (m kv) (map-set m (first kv) (second kv))))
 
-; Implementations for ->int.
+;# Implementations for ->int. Does nothing for ints.
+;# ->int#int : int -> int
 (def-impl ::integer ->int id)
+;# Implementations for ->int. Rounds down.
+;# ->int#float : float -> ->int
 (def-impl ::float ->int buildin->int)
+;# Implementations for ->int. Rounds down.
+;# ->int#rational : rational -> int
 (def-impl ::rational ->int buildin->int)
+;# Implementations for ->int.Gets the utf-8 code of the char.
+;# ->int#char : char -> int
 (def-impl ::char ->int buildin->int)
 
-; Implementations for ->rational.
+;# Implementations for ->rational.
+;# ->rational#int : int -> rational
 (def-impl ::integer ->rational buildin->rational)
+;# Implementations for ->rational.
+;# ->rational#float : float -> rational
 (def-impl ::float ->rational buildin->rational)
+;# Implementations for ->rational.
+;# ->rational#rational : rational -> rational
 (def-impl ::rational ->rational id)
+;# Implementations for ->rational.
+;# ->rational#char : char -> rational
 (def-impl ::char ->rational buildin->rational)
 
-; Implementations for foldr
+;# Implementations for foldr.
+;# foldr#list : function -> any -> list -> any
 (def-impl ::list foldr buildin-foldr)
+;# Implementations for foldr.
+;# foldr#map : function -> any -> map -> any
 (def-impl ::map foldr buildin-foldr)
 
-; Implementations for foldl
+;# Implementations for foldl.
+;# foldl#list : function -> any -> list -> any
 (def-impl ::list foldl buildin-foldl)
+;# Implementations for foldl.
+;# foldl#map : function -> any -> map -> any
 (def-impl ::map foldl buildin-foldl)
 
-; Get last element of a collection.
-; Default implementation requires ->list, first, rest, size.
+;# Get last element of a collection.
+;# Default implementation requires ->list, first, rest, size.
+;# last : collection -> any
 (def-generic xs (last xs)
   (lambda (xs)
     (let*((l (->list xs))) (if (list? l) (first (drop (dec (size l)) l)) (nothing)))))
 
-; Get the last element of a collection. Requires ->list, first, rest, size.
+;# Get all elements, except for the last one from a collection. Requires ->list, first, rest, size.
+;# but-last : collection -> list
 (define (but-last xs)
   (let*((l (->list xs)))
     (if (list? l) (take (dec (size l)) l) (nothing))))
 
-; Check whether a variable is empty, according to the following rules:
-;   lists are empty if null? is true for them (true for empty list and Nothing).
-;   collections are empty if their size is 0.
-;   The special value Nothing is empty.
-;   Other non-collections are not empty.
+;# Check whether a variable is empty, according to the following rules:
+;#   lists are empty if null? is true for them (true for empty list and Nothing).
+;#   collections are empty if their size is 0.
+;#   The special value Nothing is empty.
+;#   Other non-collections are not empty.
+;# empty? : collection -> bool
 (define (empty? xs)
   (cond (list? xs) (null? xs)
         (collection? xs) (= (size xs) 0)
         (nothing? xs) #t
         else #f))
 
-; Check whether value e is in a collection xs. This is the reverse of contains?
+;# Check whether value e is in a collection xs. This is the reverse of contains?
+;# included? : any -> collection -> bool
 (define (included? e xs) (contains? xs e))
 
+;# Check whether 2 sequences are equal. They need to support empty?, first and rest
+;# seq-eq? : sequence -> sequence -> bool
 (define (seq-eq? l0 l1)
   (cond (empty? l0) (empty? l1)
         (eq? (first l0) (first l1)) (seq-eq? (rest l0) (rest l1))
         else #f))
 
-; Implementations for eq?.
+;# Implementation of eq? for lists.
+;# eq?#list : list -> sequence -> bool
 (def-impl ::list eq? seq-eq?)
+
+;# Implementation of eq? for maps.
+;# eq?#map : map -> map -> bool
 (def-impl ::map eq? map-eq?)
 
-; Check for non-equality. This is the reverse of eq?.
+;# Check for non-equality. This is the reverse of eq?.
+;# not-eq? : any -> any -> bool
 (define (not-eq? x y) (not (eq? x y)))
 
-; Alias for ->symbol.
+;# Alias for ->symbol.
+;# symbol : any -> symbol
 (define symbol ->symbol)
 
-; Nicer-to-read alias for #t.
+;# Nicer-to-read alias for #t.
+;# else : bool
 (define else #t)
 
-; Macros for lazy `and` and `or`.
-;  (and x y) returns y if x is #t or returns #f if x is not true.
+;# Macro for lazy `and`.
+;#  (and x y) returns y if x is #t or returns #f if x is not true.
+;# and : any -> any -> bool
 (defmacro (and x y) (list 'if x y #f))
-;  (or x y) returns x if x is truthy or y if x is not truthy.
+;# Macro for lazy `or`.
+;#  (or x y) returns x if x is truthy or y if x is not truthy.
+;# or : any -> any -> bool
 (defmacro (or x y) (let*((s (gensym 'x))) (list 'let*(list (list s x)) (list 'if s s y))))
 
-; Check whether a number is odd or even. Requires ->int.
+;# Check whether a number is odd or even. Requires ->int.
+;# odd? : number -> bool
 (define (odd? n) (= 1 (rem (->int n) 2)))
+
+;# Check whether a number is odd or even. Requires ->int.
+;# even? : number -> bool
 (define (even? n) (= 0 (rem (->int n) 2)))
 
+;# Turns symbols and keywords into strings. strings are unchanged. for all other types, the function returns Nothing.
+;# name : any -> string
 (define (name x)
   (case x
     symbol? (->string x)
@@ -359,18 +514,19 @@
     string? x
     Nothing))
 
-; foldl1
-; (foldl1 + '()) ;=> Nothing
-; (foldl1 + '(1)) ;=> 1 (if only 1 element is given, return it.
-; (foldl1 + '(1 2 3)) ;=> 6
-; Requires: empty?, size, first, rest, foldl
+;# (foldl1 + '()) ;=> Nothing
+;# (foldl1 + '(1)) ;=> 1 (if only 1 element is given, return it.
+;# (foldl1 + '(1 2 3)) ;=> 6
+;# Requires: empty?, size, first, rest, foldl
+;# foldl1 : (any -> any -> any) -> collection -> any
 (define (foldl1 f xs)
   (cond (empty? xs) Nothing
         (= (size xs) 1) (first xs)
         else (foldl f (first xs) (rest xs))))
 
-; foldl with index.
-; Requires: empty?, first, rest
+;# foldl with index.
+;# Requires: empty?, first, rest
+;# foldl-indexed : (any -> any -> int -> any) -> any -> collection -> any
 (define (foldl-indexed f s xs)
   ((lambda (f acc i xs)
     (if (empty? xs)
@@ -378,26 +534,28 @@
       (recur f (f acc (first xs) i) (inc i) (rest xs))))
     f s 0 xs))
 
-; foldr1
-; Similar to foldl1. 
-; Requires empty?, size, first, rest
+;# Similar to foldl1.
+;# Requires empty?, size, first, rest
+;# foldl1 : (any -> any -> any) -> collection -> any
 (define (foldr1 f xs)
   (cond (empty? xs) Nothing
         (= (size xs) 1) (first xs)
         else (f (first xs) (foldr1 f (rest xs)))))
 
-; foldr with index.
-; Requires: empty?, first, rest
 (define (%foldr-indexed f v i xs)
   (if (empty? xs)
     v
     (f (first xs) (%foldr-indexed f v (inc i) (rest xs)) i)))
+;# foldr with index.
+;# Requires: empty?, first, rest
+;# foldl-indexed : (any -> any -> int -> any) -> any -> collection -> any
 (define (foldr-indexed f v xs)
   (%foldr-indexed f v 0 xs))
 
-; scan left. (known as reductions in clojure)
-; Return intermediate results of foldl as a list.
-; Requires empty?, first, rest
+;# scan left. (known as reductions in clojure)
+;# Return intermediate results of foldl as a list.
+;# Requires empty?, first, rest
+;# scanl : (any -> any -> any) -> any -> collection -> list
 (define (scanl f v xs)
   (let*((%scanl
         (lambda (r a ys)
@@ -406,151 +564,190 @@
             (let*((b (f a (first ys)))) (%scanl (cons b r) b (rest ys)))))))
     (reverse (%scanl (list v) v xs))))
 
-; scan left with no accumulator.
-; Requires empty?, size, first, rest.
+;# scan left with no accumulator.
+;# Requires empty?, size, first, rest.
+;# scanl : (any -> any -> any) -> collection -> list
 (define (scanl1 f xs)
   (cond (empty? xs) Nothing
         (= (size xs) 1) xs
         else (scanl f (first xs) (rest xs))))
 
-; Function composition
+;# Function composition
+;# compose : (any -> any) -> (any -> any) -> (any -> any)
 (define (compose f g)
   (lambda (x & xs) (f (apply-to g (cons x xs)))))
+;# Alias for compose.
+;# comp : (any -> any) -> (any -> any) -> (any -> any)
+(define comp compose)
+
+;# Function composition, but the function g (which is applied first) takes 2 arguments.
+;# compose2 : (any -> any) -> (any -> any -> any) -> (any -> any -> any)
 (define (compose2 f g)
   (lambda (x y) (f (g x y))))
 
-; Function composition using or.
-; ((compose-or sequence? number?) x) ;=> (or (sequence? x) (number? x))
+;# Function composition, but the function g (which is applied first) takes 2 arguments.
+;# compose-n : (any -> any) -> ([any]+ -> any) -> ([any]+ -> any)
+(define (compose-n f g)
+  (lambda (x & xs) (f (apply-to g (cons x xs)))))
+
+;# Function composition using or.
+;# ((compose-or sequence? number?) x) ;=> (or (sequence? x) (number? x))
+;# compose-or : (any -> bool) -> (any -> bool) -> (any -> bool)
 (define (compose-or f g)
   (lambda (x) (or (f x) (g x))))
 
-; Function composition using and.
-; ((compose-or sequence? empty?) x) ;=> (or (sequence? x) (empty? x))
+;# Function composition using and.
+;# ((compose-or sequence? empty?) x) ;=> (or (sequence? x) (empty? x))
+;# compose-any : (any -> bool) -> (any -> bool) -> (any -> bool)
 (define (compose-and f g)
   (lambda (x) (and (f x) (g x))))
 
-; Function complement
+;# Function complement
+;# complement : (any -> bool) -> (any -> bool)
 (define (complement p)
   (lambda (x) (not (p x))))
 
-; Perform operations sequencially.
+;# Perform operations sequencially.
+;# begin : [expr]* -> expr
 (defmacro (begin & exprs)
   (xcons 'let* '() exprs))
 
-; define memoized function.
+;# define memoized function.
+;# def-memo : ([expr]*) -> [expr]* -> (any* -> any)
 (defmacro (def-memo name-bindings & body)
   (list 'define (car name-bindings) (list 'memoize (xcons 'lambda (cdr name-bindings) body))))
 
-; Expand the last element of a sequence and returns a list.
-; (spread (list 1 2 3 '(9 7 5))) ;=> (1 2 3 9 7 5)
-; Requires: take-drop, size
+;# Expand the last element of a sequence and returns a list.
+;# (spread (list 1 2 3 '(9 7 5))) ;=> (1 2 3 9 7 5)
+;# Requires: split-at, size
+;# spread : sequence -> sequence
 (define (spread xs)
-  ((lambda (ys) (append (car ys) (caadr ys))) (take-drop (dec (size xs)) xs)))
+  ((lambda (ys) (append (car ys) (caadr ys))) (split-at (dec (size xs)) xs)))
 
-; Apply a function to a variable number of arguments with the last one being expanded using spread.
-; (apply list 1 2 3 '(9 7 5)) ;=> (list 1 2 3 9 7 5) ;=> (1 2 3 9 7 5)
+;# Apply a function to a variable number of arguments with the last one being expanded using spread.
+;# (apply list 1 2 3 '(9 7 5)) ;=> (list 1 2 3 9 7 5) ;=> (1 2 3 9 7 5)
+;# apply : ([any]* -> any) -> [any]* -> any
 (define (apply f & xs)
   (apply-to f (spread xs)))
 
-; Lazy map requires empty?, first, rest
+;# Lazy map requires empty?, first, rest
+;# map : (any -> any) -> collection -> list
 (define (map f xs)
   (if (empty? xs)
     '()
     (lazy-seq (f (first xs)) (map f (rest xs)))))
 
-; Takes a sequence of sequences and maps over eacch sub-sequence
-; (map-split + '((1 2) (3 4) (5 6)))
+;# Takes a sequence of sequences and maps over each sub-sequence.
+;# (map-split + '((1 2) (3 4) (5 6))) ;=> (3 7 11)
+;# map-split : ([any]* -> any) -> collection -> list
 (define (map-split f xs)
   (if (empty? xs)
     '()
     (lazy-seq (apply-to f (first xs)) (map-split f (rest xs)))))
 
+;# Same as map, but works eagerly, not lazy.
+;# map-eager : (any -> any) -> collection -> list
 (define (map-eager f xs)
   (if (empty? xs)
     '()
     (cons (f (first xs)) (map-eager f (rest xs)))))
 
-; map with index.
-; Requires empty?, first, rest.
 (define (%map-indexed f xs i)
   (if (empty? xs)
     '()
     (lazy-seq (f (first xs) i) (%map-indexed f (rest xs) (inc i)))))
+;# map with index.
+;# Requires empty?, first, rest.
+;# map-indexed : (any -> int -> any) -> collection -> list
 (define (map-indexed f xs) (%map-indexed f xs 0))
 
-; map while/until a predicate if true. Uses map and take-while/take-until.
+;# map while a predicate if true. Uses map and take-whilel.
+;# map-while : (any -> any) -> (any -> bool) -> collection -> list
 (define (map-while f p xs) (map f (take-while p xs)))
+;# map until a predicate if true. Uses map and take-until.
+;# map-until : (any -> any) -> (any -> bool) -> collection -> list
 (define (map-until f p xs) (map f (take-until p xs)))
 
-; map but use the rest of the list.
-; (maplist size '(1 2 3)) ;=> (3 2 1)
-;   Like (list (size '(1 2 3)) (size '(2 3)) (size '(3)))
-; Requires: empty?, rest
+;# map but use the rest of the list.
+;# (maplist size '(1 2 3)) ;=> (3 2 1)
+;#   Like (list (size '(1 2 3)) (size '(2 3)) (size '(3)))
+;# Requires: empty?, rest
+;# maplist : (collection -> any) -> collection -> list
 (define (maplist f xs)
   (if (empty? xs)
     '()
     (lazy-seq (f xs) (maplist f (rest xs)))))
 
-; Take any number of collections and map their first elements until all are empty.
-;   (mapcar list '(1 2 3) '(4 5 6) '(7 8 9)) ;=> ((1 4 7) (2 5 8) (3 6 9))
-;   (mapcar + '(1 2 3) '(4 5 6) '(7 8 9)) ;=> (12 15 18)
-;   (mapcar + '(1 2 3) '(4 5) '(7 8 9)) ;=> (12 15 12)
-; Required: v-zip-with to work correctly with all inputs.
+;# Take any number of collections and map their first elements until all are empty.
+;#   (mapcar list '(1 2 3) '(4 5 6) '(7 8 9)) ;=> ((1 4 7) (2 5 8) (3 6 9))
+;#   (mapcar + '(1 2 3) '(4 5 6) '(7 8 9)) ;=> (12 15 18)
+;#   (mapcar + '(1 2 3) '(4 5) '(7 8 9)) ;=> (12 15 12)
+;# Required: v-zip-with to work correctly with all inputs.
+;# mapcar : ([any]+ -> any) -> [collection]* -> list
 (define (mapcar f & ys)
   (v-zip-with f ys))
 
-; maplist and append.
+;# maplist and append.
+;# mapcon : (any -> collection) -> collection -> collection
 (define (mapcon f xs)
   (foldr append '() (maplist f xs)))
 
-; map and then append (lazy).
+;# map and then append (lazy).
+;# mapcat : (any -> collection) -> collection -> list
 (define (mapcat f xs)
   (if (empty? xs)
     '()
     (let*((x (f (first xs))))
       (lazy-seq (first x) (list-concat (rest x) (mapcat f (rest xs)))))))
 
-; See https://clojuredocs.org/clojure.core/juxt
-; (juxt identity name) is effectively equivalent to (lambda (x) (list (identity x) (name x)))
+;# See https://clojuredocs.org/clojure.core/juxt
+;# (juxt identity name) is effectively equivalent to (lambda (x) (list (identity x) (name x)))
+;# juxt : [(any -> any)]+ -> (any -> any)
 (define (juxt f & fs)
   (lambda (x) (mapv (lambda (g) (g x)) (cons f fs))))
 
-; Lazy filter.
-; Required: empty?, first, rest
+;# Lazy filter.
+;# Required: empty?, first, rest
+;# filter : (any -> bool) -> collection -> list
 (define (filter p xs)
   (cond (empty? xs) '()
         (p (first xs)) (lazy-seq (first xs) (filter p (rest xs)))
         else (filter p (rest xs))))
 
-; Filter lazily with index.
-; Required: empty?, first, rest
 (define (%filter-indexed p xs i)
   (cond (empty? xs) '()
         (p (first xs) i) (lazy-seq (first xs) (%filter-indexed p (rest xs) (inc i)))
         else (%filter-indexed p (rest xs) (inc i))))
+;# Filter lazily with index.
+;# Required: empty?, first, rest
+;# filter-indexed : (any -> int -> bool) -> collection -> list
 (define (filter-indexed p xs) (%filter-indexed p xs 0))
 
-; Filter with complement of p
+;# Filter with complement of p
+;# remove : (any -> bool) -> collection -> list
 (define (remove p xs) (filter (complement p) xs))
-; Filter with index with complement of p
+;# Filter with index with complement of p
+;# remove-indexed : (any -> int -> bool) -> collection -> list
 (define (remove-indexed p xs)
   (filter-indexed (lambda (x i) (not (p x i))) xs))
 
-; Check whether all predicates are true
+;# Check whether all predicates are true on a given element
+;# every-pred : [(any -> bool)]+ -> (any -> bool)
 (define (every-pred p & ps)
-  ;(lambda (x) (all? (map (lambda (p0) (p0 x)) (cons p ps))))
   (compose (partial all? id) (apply-to juxt (cons p ps))))
 
-; Filter, then map.
-; (fmap f p xs) is equivalent to (filter p (map f xs))
-; Required: empty?, first, rest
+;# Filter, then map.
+;# (fmap f p xs) is equivalent to (filter p (map f xs))
+;# Required: empty?, first, rest
+;# fmap : (any -> any) -> (any -> bool) -> collection -> list
 (define (fmap f p xs)
   (cond (empty? xs) '()
         (p (first xs)) (lazy-seq (f (first xs)) (fmap f p (rest xs)))
         else (fmap f p (rest xs))))
-; map, then filter
-; (mapf f p xs) is equivalent to (map f (filter p xs))
-; Required: empty?, first, rest
+;# map, then filter
+;# (mapf f p xs) is equivalent to (map f (filter p xs))
+;# Required: empty?, first, rest
+;# mapf : (any -> any) -> (any -> bool) -> collection -> list
 (define (mapf f p xs)
   (if (empty? xs)
     '()
@@ -559,230 +756,307 @@
         (lazy-seq y (mapf f p (rest xs)))
         (mapf f p (rest xs))))))
 
-; Split a sequence into 2 parts: From index 0 to n and the rest.
-; (take-drop n xs) is equivalent to (list (take n xs) (drop n xs))
-; Required: empty?, ->list (for the rest), first, rest
-(define (%take-drop n st en)
+;# Split a sequence into 2 parts: From index 0 to n and the rest.
+;# (split n xs) is equivalent to (list (take n xs) (drop n xs))
+;# Required: empty?, ->list (for the rest), first, rest
+;# split : int -> collection -> list
+(define (%split-at n st en)
   (if (or (= n 0) (empty? en))
     (list (reverse (->list st)) (->list en))
-    (%take-drop (dec n) (cons (first en) st) (rest en))))
-(define (take-drop n xs)
-  (%take-drop n '() xs))
-  
-; (take-drop-until p xs) is equivalent to (list (take-until p xs) (drop-until p xs))
-; Required: empty?, first, rest
-(define (%take-drop-until p st en)
+    (%split-at (dec n) (cons (first en) st) (rest en))))
+(define (split-at n xs)
+  (%split-at n '() xs))
+
+(define (%split-unless p st en)
   (if (or (empty? en) (p (first en)))
     (list (reverse (->list st)) (->list en))
-    (%take-drop-until p (cons (first en) st) (rest en))))
-(define (take-drop-until p xs)
-  (%take-drop-until p '() xs))
+    (%split-unless p (cons (first en) st) (rest en))))
+;# (split-unless p xs) is equivalent to (list (take-until p xs) (drop-until p xs))
+;# Required: empty?, first, rest
+;# split-unless : (any -> bool) -> collection -> list
+(define (split-unless p xs)
+  (%split-unless p '() xs))
 
-; (take-drop-while p xs) is equivalent to (list (take-while p xs) (drop-while p xs))
-; Required: empty?, first, rest
-(define (take-drop-while p xs)
-  (%take-drop-until (complement p) '() xs))
+;# (split-if p xs) is equivalent to (list (take-while p xs) (drop-while p xs))
+;# Required: empty?, first, rest
+;# split-if : (any -> bool) -> collection -> list
+(define (split-if p xs)
+  (%split-unless (complement p) '() xs))
 
-; Take the first n elements of a collection xs or the whole collection, if its size is greater than n.
-; Returns Nothing for atoms. Otherwise, the output is always a list.
-; Requires: empty?, first, rest
 (define (%take n xs)
   (if (or (= 0 n) (empty? xs))
     '()
     (lazy-seq (first xs) (%take (dec n) (rest xs)))))
+;# Take the first n elements of a collection xs or the whole collection, if its size is greater than n.
+;# Returns Nothing for atoms. Otherwise, the output is always a list.
+;# Requires: empty?, first, rest
+;# take : int -> collection -> list
 (define (take n xs)
   (cond
     (empty? xs) '()
-    else (%take n xs))
-  )
+    else (%take n xs)))
 
-; Take while a predicate is true.
-; Required: empty?, first, rest
+;# Take while a predicate is true.
+;# Required: empty?, first, rest
+;# take-while : (any -> bool) -> collection -> list
 (define (take-while p xs)
   (cond (empty? xs) '()
         (p (first xs)) (lazy-seq (first xs) (take-while p (rest xs)))
         else '()))
 
-; Take until a predicate is true.
-; Required: empty?, first, rest
+;# Take until a predicate is true.
+;# Required: empty?, first, rest
+;# take-until : (any -> bool) -> collection -> list
 (define (take-until p xs)
   (cond (empty? xs) '()
         (p (first xs)) '()
         else (lazy-seq (first xs) (take-until p (rest xs)))))
 
-; Take every nth item
+;# Take every nth item.
+;# take-nth : int -> collection -> list
 (define (take-nth n xs)
   (cond (empty? xs) '()
         else (lazy-seq (first xs) (take-nth n (drop n xs)))))
 
-; Drop the first n elements of a collection xs.
-; Returns Nothing for atoms.
-; Requires: empty?, first, rest
+;# Drop the first n elements of a collection xs.
+;# Returns Nothing for atoms.
+;# Requires: empty?, first, rest
+;# drop : int -> collection -> sequence
 (define (drop n xs)
   (cond (<= n 0) xs
         (empty? xs) xs
         else (drop (- n 1) (rest xs))))
 
-; Drop the elements of a collection xs until a predicate is false.
-; Returns Nothing for atoms.
-; Requires: empty?, first, rest
+;# Drop the elements of a collection xs until a predicate is false.
+;# Returns Nothing for atoms.
+;# Requires: empty?, first, rest
+;# drop-while : (any -> bool) -> collection -> sequence
 (define (drop-while p xs)
   (cond (empty? xs) xs
         (p (first xs)) (drop-while p (rest xs))
         else xs))
 
-; Drop the elements of a collection xs until a predicate is true.
-; Returns Nothing for atoms.
-; Requires: empty?, first, rest
+;# Drop the elements of a collection xs until a predicate is true.
+;# Returns Nothing for atoms.
+;# Requires: empty?, first, rest
+;# drop-until : (any -> bool) -> collection -> sequence
 (define (drop-until p xs)
   (cond (empty? xs) xs
         (p (first xs)) xs
         else (drop-until p (rest xs))))
 
-; Returns a sub-sequence of a sequence.
-; Equivalent to (take length (drop start xs))
+;# Returns a sub-sequence of a sequence.
+;# Equivalent to (take length (drop start xs))
+;# subseq : int -> int -> collection -> list
 (define (subseq start length xs)
   (take length (drop start xs)))
 
-; Replaces a sub-sequence in a sequence.
-;   (replace-subseq 0 4 '() '(1 2 3 4)) ;=> ()
-;   (replace-subseq 1 2 '(3 4) '(1 2 3 4)) ;=> (1 3 4 4)
-;   (replace-subseq 1 2 '(3 4 5 6) '(1 2 3 4)) ;=> (1 3 4 5 6 6)
-; Requires take-drop to work correctly.
+;# Replaces a sub-sequence in a sequence.
+;#   (replace-subseq 0 4 '() '(1 2 3 4)) ;=> ()
+;#   (replace-subseq 1 2 '(3 4) '(1 2 3 4)) ;=> (1 3 4 4)
+;#   (replace-subseq 1 2 '(3 4 5 6) '(1 2 3 4)) ;=> (1 3 4 5 6 6)
+;# Requires split-at to work correctly.
+;# replace-subseq : int -> int -> sequence -> sequence
 (define (replace-subseq start length replacement xs)
-  (let*((t (take-drop start xs)))
+  (let*((t (split-at start xs)))
     (concat (car t) replacement (drop length (cadr t)))))
 
-; Check whether a predicate is true for all elements, no elements
-; or at least 1 element in a collection xs.
-; Requires empty?, first, rest and drop-while/drop-until to work.
+;# Check whether a predicate is true for all elements in a collection xs.
+;# Requires empty?, first, rest and drop-while/drop-until to work.
+;# all? : (any -> bool) -> collection -> bool
 (define (all? p xs)
   (empty? (drop-while p xs)))
+
+;# Check whether a predicate is true for no elements in a collection xs.
+;# Requires empty?, first, rest and drop-while/drop-until to work.
+;# none? : (any -> bool) -> collection -> bool
 (define (none? p xs)
   (empty? (drop-until p xs)))
+
+;# Check whether a predicate is true for at least 1 element in a collection xs.
+;# Requires empty?, first, rest and drop-while/drop-until to work.
+;# any? : (any -> bool) -> collection -> bool
 (define (any? p xs)
   (cond (empty? xs) #f
         (p (first xs)) #t
         else (any? p (rest xs))))
 
-; Count how many elements in xs satisfy predicate p.
-; Required: foldl
+;# Count how many elements in xs satisfy predicate p.
+;# Required: foldl
+;# count-by : (any -> bool) -> collection -> int
 (define (count-by p xs)
   (foldl (lambda (res x) (if (p x) (+ res 1) res)) 0 xs))
 
-; Check whether more than half of the elements of a collection satisfy a predicate p.
-; Required: size, count-by
+;# Check whether more than half of the elements of a collection satisfy a predicate p.
+;# Required: size, count-by
+;# most? : (any -> bool) -> collection -> bool
 (define (most? p xs)
   (> (count-by p xs) (/ (size xs) 2)))
 
-; zip the elements of two collections with a function.
-;   (zip-with + '(1 2 3) '(4 5 6)) ;=> (5 7 9)
-;   (zip-with list '(1 2 3) '(4 5 6)) ;=> ((1 4) (2 5) (3 6))
-; Required for both l0 and l1: empty?, first, rest
+;# zip the elements of two collections with a function.
+;#   (zip-with + '(1 2 3) '(4 5 6)) ;=> (5 7 9)
+;#   (zip-with list '(1 2 3) '(4 5 6)) ;=> ((1 4) (2 5) (3 6))
+;# Required for both l0 and l1: empty?, first, rest
+;# zip-with : (any -> any -> any) -> sequence -> sequence -> list
 (define (zip-with f l0 l1)
   (if (or (empty? l0) (empty? l1))
     '()
     (lazy-seq (f (first l0) (first l1)) (zip-with f (rest l0) (rest l1)))))
 
-; zip the elements of two collections using list.
-;   (zip '(1 2 3) '(4 5 6)) ;=> ((1 4) (2 5) (3 6))
-; Required for both l0 and l1: empty?, first, rest
+;# zip the elements of two collections using list.
+;#   (zip '(1 2 3) '(4 5 6)) ;=> ((1 4) (2 5) (3 6))
+;# Required for both l0 and l1: empty?, first, rest
+;# zip : sequence -> sequence -> list
 (define (zip l0 l1)
   (zip-with list l0 l1))
   
-; zip the elements of a collection to their indices.
-;   (zip-to-index '(9 8 7)) ;=> ((0 9) (1 8) (2 7))
-; Requires map-indexedd to work.
+;# zip the elements of a collection to their indices.
+;#   (zip-to-index '(9 8 7)) ;=> ((0 9) (1 8) (2 7))
+;# Requires map-indexedd to work.
+;# zip-to-index : sequence -> list
 (define (zip-to-index xs)
   (map-indexed (lambda (x i) (list i x)) xs))
 
-; Similar to zip, but takes a sequence of sequences to zip.
-; The output is always a list.
-; Stops when all sequences are empty.
-;  (v-zip-with v+ '((1 2 3) (4 5 6) (7 8 9))) ;=> (12 15 18)
-;  (v-zip-with v+ '((1 2 3) (4) (7 8 9))) ;=> (12 10 12)
-;  (v-zip-with v+ '((1 2 3) (4 5 6 10) (7 8 9))) ;=> (12 15 18 10)
-; Required for xs: map-eager, all?
-; Required for inner sequences: first, empty?, rest
+;# Similar to zip, but takes a sequence of sequences to zip.
+;# The output is always a list.
+;# Stops when all sequences are empty.
+;#  (v-zip-with v+ '((1 2 3) (4 5 6) (7 8 9))) ;=> (12 15 18)
+;#  (v-zip-with v+ '((1 2 3) (4) (7 8 9))) ;=> (12 10 12)
+;#  (v-zip-with v+ '((1 2 3) (4 5 6 10) (7 8 9))) ;=> (12 15 18 10)
+;# Required for xs: map-eager, all?
+;# Required for inner sequences: first, empty?, rest
+;# v-zip-with : ([any]* -> any) -> sequence -> list
 (define (v-zip-with f xs)
   (if (all? empty? xs)
     '()
     (cons (apply-to f (map-eager first xs)) (v-zip-with f (remove empty? (map-eager rest xs))))))
 
-; Split a sequence each time as predicate is true for the current element.
-; Always returns a list.
-;   (split-by (lambda (x) (= x 1)) '(5 1 2 3 1 6)) ;=> ((5) (2 3) (6))
-; Required: foldr
+;# Split a sequence each time as predicate is true for the current element.
+;# Always returns a list.
+;#   (split-by (lambda (x) (= x 1)) '(5 1 2 3 1 6)) ;=> ((5) (2 3) (6))
+;# Required: foldr
+;# split-by : (any -> bool) -> sequence -> list
 (define (split-by f xs)
   (foldr
     (lambda (x v) (if (f x) (cons '() v) (cons (cons x (car v)) (cdr v))))
     (list '())
     xs))
 
-; Split at each occurance of v in xs.
-; Requires split-by to work for xs.
-; Requires eq? to be defined for v.
+;# Split at each occurance of v in xs.
+;# Requires split-by to work for xs.
+;# Requires eq? to be defined for v.
+;# split : any -> sequence -> list
 (define (split v xs)
   (split-by (lambda (x) (eq? v x)) xs))
 
-; Repeatedly execute f in a lazy sequence.
+;# Repeatedly execute f in a lazy sequence.
+;# repeatedly : (() -> any) -> list
 (define (repeatedly f)
   (lazy-seq (f) (repeatedly f)))
 
-; Create an infinite sequence of the same element e.
+;# Create an infinite sequence of the same element e.
+;# repeat : any -> list
 (define (repeat e)
   (lazy-seq e (repeat e)))
 
-; Typical iterate function creating an infinite sequence.
-;   (take 5 (iterate inc 0) => (0 1 2 3 4)
-;   (take 3 (iterate list '()) => (() (()) ((())))
+;# Typical iterate function creating an infinite sequence.
+;#   (take 5 (iterate inc 0) => (0 1 2 3 4)
+;#   (take 3 (iterate list '()) => (() (()) ((())))
+;# iterate : (any -> any) -> any -> list
 (define (iterate f e)
   (lazy-seq e (iterate f (f e))))
 
-; Create an infinite sequence repeating the elements of xs.
-;   (take 5 (cycle '(1 2)))) ;=> (1 2 1 2 1)
-; Required: empty?, first, rest
+;# Create an infinite sequence repeating the elements of xs.
+;#   (take 5 (cycle '(1 2)))) ;=> (1 2 1 2 1)
+;# Required: empty?, first, rest
+;# cycle : sequence -> list
 (define (cycle xs)
   (if (empty? xs)
     '()
     (lazy-seq (first xs) (list-concat (rest xs) (cycle xs)))))
 
-; Variadic variants for all?, none? and any?
+; Variadic variant for all?
+;# va-all? : (any -> bool) -> [any]* -> bool
+
 (define (va-all? p & xs) (all? p xs))
+; Variadic variant for none?
+;# va-none? : (any -> bool) -> [any]* -> bool
+
 (define (va-none? p & xs) (none? p xs))
+; Variadic variant for any?
+;# va-any? : (any -> bool) -> [any]* -> bool
 (define (va-any? p & xs) (any? p xs))
 
-; Append any number of sequences to each other.
-; Required: append, foldr1
+;# Append any number of sequences to each other.
+;# Required: append, foldr1
+;# concat : collection -> [collection]* -> list
 (define (concat x & xs)
   (if (list? (car xs))
     (apply-to list-concat (cons x xs))
     (foldr1 append (cons x xs))))
 
-; Variadic versions of =, /=, <, >, <=, >=
+;# Variadic version of = 
+;# v= : any -> [any]* -> bool
 (define (v= x & xs) (cond (empty? xs) #t (= x (car xs)) (apply-to v= (cdr xs)) #f))
+
+;# Variadic version of /= 
+;# v/= : any -> [any]* -> bool
 (define (v/= x & xs) (unique? (cons x xs)))
+
+;# Variadic version of <
+;# v< : any -> [any]* -> bool
 (define (v< x & xs) (cond (empty? xs) #t (< x (car xs)) (apply-to v< (cdr xs)) #f))
+
+;# Variadic version of >
+;# v> : any -> [any]* -> bool
 (define (v> x & xs) (cond (empty? xs) #t (> x (car xs)) (apply-to v> (cdr xs)) #f))
+
+;# Variadic version of <= 
+;# v<= : any -> [any]* -> bool
 (define (v<= x & xs) (cond (empty? xs) #t (<= x (car xs)) (apply-to v<= (cdr xs)) #f))
+
+;# Variadic version of = 
+;# v>= : any -> [any]* -> bool
 (define (v>= x & xs) (cond (empty? xs) #t (>= x (car xs)) (apply-to v>= (cdr xs)) #f))
 
-; Variadic versions of +, -, *, /, rem
+;# Variadic version of +
+;# v+ : any -> [any]* -> any
 (define (v+ x & xs) (foldl + x xs))
+
+;# Variadic version of -
+;# v- : any -> [any]* -> any
 (define (v- x & xs) (if (empty? xs) (- 0 x) (foldl - x xs)))
+
+;# Variadic version of *
+;# v* : any -> [any]* -> any
 (define (v* x & xs) (foldl * x xs))
+
+;# Variadic version of /
+;# v/ : any -> [any]* -> any
 (define (v/ x & xs) (foldl / x xs))
+
+;# Variadic version of rem
+;# v% : any -> [any]* -> any
 (define (v% x & xs) (foldl rem x xs))
 
-; (divmod x y) ;=> (list (/ x y) (rem x y))
+;# (divmod x y) ;=> (list (/ x y) (rem x y))
+;# divmod : any -> any -> list
 (define (divmod x y) (list (/ x y) (rem x y)))
 
-; Returns a function which always returns x.
+;# Returns a function which always returns x.
+;# constantly : any -> ([any]* -> any)
 (define (constantly x) (lambda (& ys) x))
+
+;# Alias for constantly.
+;# const : any -> ([any]* -> any)
 (define const constantly)
 
-; Always true
+;# Always true
+;# T : ([any]* -> bool)
 (define T (constantly #t))
+
+;# Always false
+;# F : ([any]* -> bool)
 (define F (constantly #f))
 
 
@@ -805,6 +1079,7 @@
             (list 'eq? n e) (second cases)
             'else (%case e n (rest (rest cases))))))))
 
+;# case : expr -> [any, expr]* -> expr
 (defmacro (case e & cases)
   (let* ((n (gensym 'case))
         (e-name (gensym 'case-elem)))
@@ -844,44 +1119,46 @@
 (define (cdddar x) (cdr (cdr (cdr (car x)))))
 (define (cddddr x) (cdr (cdr (cdr (cdr x)))))
 
-; repeatedly apply cons to a list.
-; (xcons 1 2 3 4 '(5 6)) ;=> (1 2 3 4 5 6)
-; (xcons 1 2 '(3)) is equivalent to (cons 1 (cons 2 '(3)))
+;# repeatedly apply cons to a list.
+;# (xcons 1 2 3 4 '(5 6)) ;=> (1 2 3 4 5 6)
+;# (xcons 1 2 '(3)) is equivalent to (cons 1 (cons 2 '(3)))
+;# xcons : [any]* -> list
 (define (xcons & args) (foldr1 cons args))
 
-; Flatten a collection.
-; Required: collection?, foldr, append
-; Could use some optimization
+;# Flatten a collection.
+;# Required: collection?, foldr, append
+;# Could use some optimization
+;# flatten : collection -> list
 (define (flatten xs)
   (if (collection? xs)
     (foldr append '() (map flatten xs))
     (list xs)))
 
-; Flatten by one level.
-; Required: map
-; Could use some optimization
+;# Flatten by one level.
+;# Required: map
+;# Could use some optimization
+;# flatten1 : collection -> list
 (define (flatten1 xs)
   (apply-to list-concat (map (lambda (x) (if (collection? x) (->list x) (list x))) xs)))
 
-; Lazily create a range of the numbers between from and to (inclusive)
+;# Lazily create a range of the numbers between from and to (inclusive)
+;# range : number -> number -> list
 (define (range from to)
   (if (> from to)
     '()
     (lazy-seq from (range (inc from) to))))
 
-; Get the indices of all occuranges of elem in seq.
-; Required for seq: foldr-indexed
-; Required for elements in seq: eq?
+;# Get the indices of all occuranges of elem in seq.
+;# Required for seq: foldr-indexed
+;# Required for elements in seq: eq?
+;# indices-of : sequence -> any -> list
 (define (indices-of seq elem)
   (foldr-indexed
     (lambda (c acc i) (if (eq? c elem) (cons i acc) acc))
     '() seq))
 
-; Plain alias for lambda
-(defmacro (λ bindings & body)
-  (cons 'lambda (cons bindings body)))
-
-; Evaluate a list
+;# Evaluate a list
+;# doall! : collection -> list
 (define (doall! xs)
   (let* ((ys (->list xs)))
     (if (empty? ys)
@@ -889,8 +1166,9 @@
       (doall! (cdr ys))))
   xs)
 
-; Sequence of the factorial numbers, starting at 0.
-; (yes, it says 1, but starts at 0)
+;# Sequence of the factorial numbers, starting at 0.
+;# (yes, it says 1, but starts at 0)
+;# fact-seq : () -> list
 (define (fact-seq)
   (map cadr
     (iterate
@@ -898,23 +1176,28 @@
         (list (inc (car p)) (* (car p) (cadr p))))
       '(1 1))))
 
-; As in Clojure.
+;# As in Clojure.
+;# -> : expr -> [expr]* -> expr
 (defmacro (-> x & exprs)
   (foldl (lambda (acc expr) (if (list? expr) (xcons (car expr) acc (cdr expr)) (list expr acc))) x exprs))
 
-; As in Clojure.
+;# As in Clojure.
+;# ->> : expr -> [expr]* -> expr
 (defmacro (->> x & exprs)
   (foldl (lambda (acc expr) (if (list? expr) (append expr (list acc)) (list expr acc))) x exprs))
 
-; As in Clojure.
 (define (%as-> name x exprs)
   (if (empty? exprs)
     x
     (list 'let* (list (list name x)) (%as-> name (car exprs) (cdr exprs)))))
+;# As in Clojure.
+;# as-> : symbol -> expr -> [expr]* -> expr
 (defmacro (as-> name x & exprs)
   (%as-> name x exprs))
 
 
+;# Quotes an expression. Sub-sxpressions can be unquoted using unquote and unquote-splicing.
+;# quasiquote : expr -> expr
 (defmacro (quasiquote expr)
   (cond
     (not expr)
@@ -975,18 +1258,21 @@
           (mapcat (lambda (form) (%cl-form form args)) forms)
           `(else (error! (string-concat "invalid number of arguments for function " ~cl-name ". Got " (size ~args)) 'syntax)))))))
 
+;# case-lambda* without a necessary name. Supports destructuring.
+;# case-lambda : (expr, expr) -> [(expr, expr)]* -> expr
 (defmacro (case-lambda form1 & forms)
   (%case-lambda (gensym 'case-lambda) (cons form1 forms)))
 
-; Create a multi-function:
-; (define f (case-lambda* f
-;   (() "0") ; 0 args
-;   ((x) "1") ; 1 arg
-;   ((x y) "2") ; 2 args
-;   ((w x y z & zs) "4 or more") ; 4+ args
-;   (default "0 or more"))) ; Varargs going into a list called 'default
-; When called, the function decides which function to call by the number of arguments it got.
-; (list (f) (f 6) (f 6 7) (f 6 7 8 9) (f 5 4 3)) ; ("0" "1" "2" "4 or more" "0 or more")
+;# Create a multi-function:
+;# (define f (case-lambda* f
+;#   (() "0") ; 0 args
+;#   ((x) "1") ; 1 arg
+;#   ((x y) "2") ; 2 args
+;#   ((w x y z & zs) "4 or more") ; 4+ args
+;#   (default "0 or more"))) ; Varargs going into a list called 'default
+;# When called, the function decides which function to call by the number of arguments it got.
+;# (list (f) (f 6) (f 6 7) (f 6 7 8 9) (f 5 4 3)) ; ("0" "1" "2" "4 or more" "0 or more")
+;# case-lambda* : symbol -> (expr, expr) -> [(expr, expr)]* -> expr
 (defmacro (case-lambda* cl-name form1 & forms)
   (%case-lambda cl-name (cons form1 forms)))
 
@@ -996,47 +1282,65 @@
     '()
     (let*((ys (map first xss)))
       (lazy-seq (car ys) (concat (cdr ys) (%interleave (map rest xss)))))))
+;# interleave : collection -> [collection]* -> list
 (define (interleave xs & xss)
   (%interleave (cons xs xss)))
 
-; Sum up elements of a collection using +.
-; Required: foldl, map
+;# Sum up elements of a collection using +.
+;# Required: foldl, map
+;# sum : collection -> number
+;# sum : (number -> number) -> collection -> number
 (define sum
   (case-lambda* sum
     ((coll) (foldl + 0 coll))
     ((f coll) (foldl + 0 (map f coll)))))
 
-; Calculate the product of the elements of a collection using *.
-; Required: foldl, map
+;# Calculate the product of the elements of a collection using *.
+;# Required: foldl, map
+;# product : collection -> number
+;# product : (number -> number) -> collection -> number
 (define product
   (case-lambda* product
     ((coll) (foldl * 1 coll))
     ((f coll) (foldl * 1 (map f coll)))))
 
-; Get minimum/maximum of n m (using < or >)
+;# Get minimum of n m (using < or >)
+;# min : any -> any -> any
 (define (min n m) (if (< n m) n m))
+;# Get maximum of n m (using < or >)
+;# max : any -> any -> any
 (define (max n m) (if (< n m) m n))
 
-; Get minimum/maximum of the elements in a sequence using min/max.
-; Required: foldl1, map
+;# Get minimum of the elements in a sequence using min/max.
+;# Required: foldl1, map
+;# minimum : collection -> any
+;# minimum : (any -> any) -> collection -> any
 (define minimum
   (case-lambda* minimum
     ((coll) (foldl1 min coll))
     ((f coll) (min (map f coll)))))
+;# Get maximum of the elements in a sequence using min/max.
+;# Required: foldl1, map
+;# minimum : collection -> any
+;# minimum : (any -> any) -> collection -> any
 (define maximum
   (case-lambda* maximum
     ((coll) (foldl1 max coll))
     ((f coll) (max (map f coll)))))
 
-; Extended range function.
-; Takes 0 to 3 input numbers.
-; Arity | Output
-; 0     | Infinite sequence starting at 0 and counting up.
-; 1     | Infinite sequence starting at from.
-; 2     | Lazy sequence counting from 'from' to 'to'.
-; 3     | Lazy sequence counting from 'from' to 'to'
-;       | If stop is a function, it is repeatedly applied to the current value of from until (>= from to).
-;       | Otherwise, step is repeatedly added to from using +.
+;# Extended range function.
+;# Takes 0 to 3 input numbers.
+;# Arity | Output
+;# 0     | Infinite sequence starting at 0 and counting up.
+;# 1     | Infinite sequence starting at from.
+;# 2     | Lazy sequence counting from 'from' to 'to'.
+;# 3     | Lazy sequence counting from 'from' to 'to'
+;#       | If stop is a function, it is repeatedly applied to the current value of from until (>= from to).
+;#       | Otherwise, step is repeatedly added to from using +.
+;# xrange : () -> list
+;# xrange : int -> list
+;# xrange : int -> int -> list
+;# xrange : int -> int -> int -> list
 (define xrange
   (case-lambda* xrange
     (() (iterate inc 0))
@@ -1050,11 +1354,6 @@
 
 ;; condp
 
-; (let* ((f0 (lambda (e) (condp <= e  1 0  5 9  11))))
-;   (f0 0) ; 0
-;   (f0 1) ; 0
-;   (f0 3) ; 9
-;   (f0 6)) ; 11 ; default
 (define (%condp p e cases)
   (let* ((c (first cases)))
     (cond 
@@ -1063,31 +1362,40 @@
       else (list 'if
             (list p c e) (second cases)
             (%condp p e (rest (rest cases)))))))
+;# (let* ((f0 (lambda (e) (condp <= e  1 0  5 9  11))))
+;#   (f0 0) ; 0
+;#   (f0 1) ; 0
+;#   (f0 3) ; 9
+;#   (f0 6)) ; 11 ; default
+;# condp : (any -> any -> bool) -> expr -> [(expr, expr)]* -> expr´
 (defmacro (condp p e & cases)
   (let* ((n (gensym 'condp)))
     (list 'let* (list (list n e)) (%condp p n cases))))
 
 
-; Intermediate results of foldr as a lazy sequence
-;   (scanr + 5 '(1 2 3 4)) ;=> (15 14 12 9 5)
-; Required: empty?, first, rest
+;# Intermediate results of foldr as a lazy sequence
+;#   (scanr + 5 '(1 2 3 4)) ;=> (15 14 12 9 5)
+;# Required: empty?, first, rest
+;# scanr : (any -> any -> any) -> any -> collection -> list
 (define (scanr f v xs)
   (if (empty? xs)
     (list v)
     (let* ((r (scanr f v (rest xs))))
       (lazy-seq (f (first xs) (first r)) r))))
 
-; Intermediate results of foldr1 as a lazy sequence
-;   (scanr1 + '(1 2 3 4 5)) ;=> (15 14 12 9 5)
-; Required: empty?, first, rest, size
+;# Intermediate results of foldr1 as a lazy sequence
+;#   (scanr1 + '(1 2 3 4 5)) ;=> (15 14 12 9 5)
+;# Required: empty?, first, rest, size
+;# scanr : (any -> any -> any) -> collection -> list
 (define (scanr1 f xs)
   (cond (empty? xs) Nothing
         (= (size xs) 1) (list (first xs))
         else (let* ((r (scanr1 f (rest xs))))
               (lazy-seq (f (first xs) (first r)) r))))
 
-; Map of the number of occurances of each item in a collection.
-; Required: foldl
+;# Map of the number of occurances of each item in a collection.
+;# Required: foldl
+;# scanr : collection -> map
 (define (frequencies xs)
   (foldl
     (lambda (acc x)
@@ -1095,44 +1403,59 @@
         (map-set acc x (inc v))))
     {} xs))
 
-; Get a sequence with its duplicates removed.
-; Required: empty?, first, rest
 (define (%unique xs acc vals)
   (cond (empty? xs) acc
         (contains? vals (first xs)) (%unique (rest xs) acc vals)
         else (%unique (rest xs) (lazy-seq (first xs) acc) (set-add vals (first xs)))))
+;# Get a sequence with its duplicates removed.
+;# Required: empty?, first, rest
+;# unique : collection -> list
 (define (unique xs)
   (reverse (%unique xs '() (set-of))))
 
 ; Check whether (eq? xs (unique xs))
 ; Required: eq? 
+;# unique? : collection -> bool
 (define (unique? xs)
   (eq? xs (unique xs)))
 
-; (tuples 3 '(1 2 3 4 5)) ;=> ((1 2 3) (2 3 4) (3 4 5))
-; Required: size, take, rest
+;# (tuples 3 '(1 2 3 4 5)) ;=> ((1 2 3) (2 3 4) (3 4 5))
+;# Required: size, take, rest
+;# tuples : int -> collection -> list
 (define (tuples n xs)
   (cond 
     (= n 0) '()
     (< (size xs) n) '()
     else (lazy-seq (take n xs) (tuples n (rest xs)))))
 
-; (slices 3 '(1 2 3 4 5 6)) ;=> ((1 2 3) (4 5 6))
-; Required: size, take, drop
+;# (slices 3 '(1 2 3 4 5 6)) ;=> ((1 2 3) (4 5 6))
+;# Required: size, take, drop
+;# slices : int -> collection -> list
 (define (slices n xs)
   (cond
     (= n 0) '()
     (< (size xs) n) '()
     else (lazy-seq (take n xs) (slices n (drop n xs)))))
 
+;# (partition-all 2 [0 1 2 3 4 5])) ;=> ((0 1) (2 3) (4 5))
+;# Required: empty?, take, drop
+;# partition-all : int -> collection -> list
 (define (partition-all n xs)
   (cond
     (= n 0) '()
     (empty? xs) '()
     else (lazy-seq (take n xs) (partition-all n (drop n xs)))))
 
+;# Extended try*-catch with finally.
+;# Can handle multiple catch-clauses.
+;# (try (error! 'h 'not-that)
+;#   (catch (lambda (e) (eq? 'syntax (error-info e))) e 'error1)
+;#   (catch _ e 'error2)
+;#   (finally (box-set! b 25)))
+;#   ;=> 'error2
+;# try : expr -> [expr]* -> expr
 (defmacro (try f0 & fs)
-  (let*((forms (take-drop-until
+  (let*((forms (split-unless
                 (lambda (f) (and (list? f) (eq? (car f) 'catch)))
                 (cons f0 fs)))
         (body (car forms))
@@ -1145,7 +1468,7 @@
                 (cadr forms))
               #t
               (error! "Syntax error: Invalid format for try-catch-finally" 'syntax)))
-        (catch-finally (take-drop-until
+        (catch-finally (split-unless
                         (lambda (f) (eq? (car f) 'finally))
                         (cadr forms)))
         (catch-clauses (car catch-finally))
@@ -1162,6 +1485,11 @@
         (list 'error! (list 'error-msg err-name) (list 'error-info err-name) (list 'error-trace err-name))))
     ))
 
+;# loop macro similar to clojure. Supports destructuring.
+;# (loop [(a b) '(1 2) res 0]
+;#   (if (> res 0) res (recur '() (+ a b))))
+;# ;=> 3
+;# loop : expr -> [expr]* -> expr
 (defmacro (loop bindings & body)
   (let*((binds (if (vector? bindings) (slices 2 bindings) bindings))
         (name (gensym 'loop))
@@ -1171,7 +1499,8 @@
       (error! "Invalid number of members in loop binding." 'syntax)
       (cons `(lambda' ~name ~args ~@body) vals))))
 
-; Simplified loop without destructuring
+;# Simplified loop without destructuring
+;# loop : expr -> [expr]* -> expr
 (defmacro (loop1 bindings & body)
   (let*((binds (if (vector? bindings) (slices 2 bindings) bindings)))
     (if (any? (comp (partial /= 2) size) binds)
@@ -1180,14 +1509,18 @@
         `(lambda* ~(gensym 'loop) ~(map first binds) ~@body)
         (map second binds)))))
 
-; Add items from 'from' to 'to', keeping the type of 'to'. (if add is correctly defined)
-;   (into) ;=> () ; empty input -> empty list
-;   (into '(1 2)) ;=> (1 2)
-;   (into [1 2#!]!# '(3 4)) ;=> [1 2 3 4]
-;   (into [1 2] unique '(3 3 4 3)) ;=> [1 2 3 4]
-; The last case works well for partials:
-;   (let* ((f (partial into [1 2] unique))) ...)
-; Required: foldl, add
+;# Add items from 'from' to 'to', keeping the type of 'to'. (if add is correctly defined)
+;#   (into) ;=> () ; empty input -> empty list
+;#   (into '(1 2)) ;=> (1 2)
+;#   (into [1 2] '(3 4)) ;=> [1 2 3 4]
+;#   (into [1 2] unique '(3 3 4 3)) ;=> [1 2 3 4]
+;# The last case works well for partials:
+;#   (let* ((f (partial into [1 2] unique))) ...)
+;# Required: foldl, add
+;# into : () -> list
+;# into : collection -> collection
+;# into : collection -> collection -> collection
+;# into : collection -> (collection -> collection) -> collection -> collection
 (define into
   (case-lambda* into
     (() '())
@@ -1195,8 +1528,15 @@
     ((to from) (foldl add to from))
     ((to f from) (foldl add to (f from)))))
 
-; Partition function
-; Required: size, take, drop
+;# Partition function
+;# Required: size, take, drop
+;#  (partition 3 [1 2 3 4])) ;=> ((1 2 3))
+;#  (partition 3 [1 2 3 4 5 6])) ;=> ((1 2 3) (4 5 6))
+;#  (partition 1 [1 2 3 4 5 6])) ;=> ((1) (2) (3) (4) (5) (6))
+;#  (partition 0 [1 2 3 4 5 6])))) ;=> ()
+;# partition : int -> collection -> list
+;# partition : int -> int -> collection -> list
+;# partition : int -> int -> collection -> collection -> list
 (define (%partition n step pad xs)
   (cond
     (= n 0) '()
@@ -1223,11 +1563,11 @@
         (empty? xs) '()
         else (lazy-seq (first xs) (%dedupe (first xs) (rest xs)))))
 
-; Creates a function which takes one argument and applies f to it n times.
-; (let* ((f (times inc 6)))
-;   (f 9) ;=> 15
-;   ((times inc 0) 9) ;=> 9
-; )
+;# Creates a function which takes one argument and applies f to it n times.
+;# (let* ((f (times inc 6)))
+;#   (f 9) ;=> 15
+;#   ((times inc 0) 9)) ;=> 9
+;# times : (any -> any) -> int -> (any -> any)
 (define (times f n)
   (lambda (x) (loop ((n1 n) (y x)) (if (<= n1 0) y (recur (dec n1) (f y))))))
 
@@ -1239,8 +1579,9 @@
     (cons (car l) 
           (%insert (cdr l) (- n 1) e))))
 
-; Calculate all permutations of a collection.
-; Requires only ->list to be defined.
+;# Calculate all permutations of a collection.
+;# Requires only ->list to be defined.
+;# permutations : sequence -> list
 (define (permutations l0)
   (let* ((l (->list l0)))
     (if (null? l)
@@ -1252,19 +1593,19 @@
                     (range 0 (size p))))
             (permutations (cdr l)))))))
 
-; Get an item from xs after calling get on it for each item in ks.
-;   (get-in [1 [2 [3]]] '(0)) ;=> 1
-;   (get-in [1 [2 [3]]] '(1 0)) ;=> 2
-;   (get-in [1 [2 [3]]] '(1 1)) ;=> [3]
-;   (get-in [1 [2 [3]]] '(1 1 0)) ;=> 3
-; Required for xs: get
-; Required for ks: empty?, first, rest
+;# Get an item from xs after calling get on it for each item in ks.
+;#   (get-in [1 [2 [3]]] '(0)) ;=> 1
+;#   (get-in [1 [2 [3]]] '(1 0)) ;=> 2
+;#   (get-in [1 [2 [3]]] '(1 1)) ;=> [3]
+;#   (get-in [1 [2 [3]]] '(1 1 0)) ;=> 3
+;# Required for xs: get
+;# Required for ks: empty?, first, rest
+;# get-in : collection -> sequence -> any
 (define (get-in xs ks)
   (cond (empty? ks) xs
         (get-in (get xs (first ks)) (rest ks))))
 
 
-; Not even in testing yet!
 (define (%walk-with-path f coll _path)
   (cond
     (vector? coll)
@@ -1301,21 +1642,24 @@
     ; coll is not a collection
     else (f coll _path)
     ))
+;# Not even in testing yet!
+;# walk-with-path : (any -> list) -> collection -> collection
 (define (walk-with-path f xs)
   (%walk-with-path f xs '()))
 
 
 ;;; for macro
 
-; Lazily calculates all combinations of any number of lists while preserving order:
-; (combinations '(1 2) '(3 4) '(5 6)) 
-; => ((1 3 5) (1 3 6) (1 4 5) (1 4 6) (2 3 5) (2 3 6) (2 4 5) (2 4 6))
 (define (%combinations x xs)
   (cond
     (empty? xs) (list x)
     (empty? (rest xs)) (map (lambda (y) (cons y x)) (first xs))
     else (mapcat (lambda (a) (%combinations (cons a x) (rest xs))) (first xs))))
 
+;# Lazily calculates all combinations of any number of lists while preserving order:
+;# (combinations '(1 2) '(3 4) '(5 6)) 
+;# => ((1 3 5) (1 3 6) (1 4 5) (1 4 6) (2 3 5) (2 3 6) (2 4 5) (2 4 6))
+;# combinations : [sequence]* -> list
 (define (combinations & xs1)
   (let*((xs (remove empty? xs1)))
     (if (empty? xs)
@@ -1366,12 +1710,15 @@
               (list else (cons 'list (list #f #f body)))))))
       (cons 'combinations (map cadr defs))
       ))))
+;# for : expr -> expr -> expr
 (defmacro (for bindings body)
   (%for bindings body))
 
+;# cartesian-product : sequence -> sequence -> list
 (define (cartesian-product lst0 lst1)
   (mapcat (lambda (x) (zip (repeat x) lst1)) lst0))
 
+;# partition-by : (any -> any) -> collection -> list
 (define (partition-by f coll)
   (if (empty? coll)
     '()
@@ -1387,15 +1734,16 @@
       (lazy-seq pb-head (partition-by f (drop (size pb-head) lst1))))))
 
 
-; Similar to '->> but stops when the value becomes
-; Nothing or an exception is thrown.
-; if the value becomes nothing, default is returned.
-; if an error is thrown, error-default is returned
-; (compute*-> 'default 'error 1 inc inc inc)  ; => 4
-; (compute*-> 'default 'error 1 (+ 3) inc))   ; => 5
-; (compute*-> 'default 'error 1 ->list first) ; => default
-; (compute*-> 'default 'error 0 throw! inc)   ; => error
-; (compute*-> 'default 'error "r")            ; => "r"
+;# Similar to '->> but stops when the value becomes
+;# Nothing or an exception is thrown.
+;# if the value becomes nothing, default is returned.
+;# if an error is thrown, error-default is returned
+;#   (compute*-> 'default 'error 1 inc inc inc)  ; => 4
+;#   (compute*-> 'default 'error 1 (+ 3) inc))   ; => 5
+;#   (compute*-> 'default 'error 1 ->list first) ; => default
+;#   (compute*-> 'default 'error 0 throw! inc)   ; => error
+;#   (compute*-> 'default 'error "r")            ; => "r"
+;# compute*-> : expr -> expr -> expr -> [expr]* -> expr
 (defmacro (compute*-> default error-default m & funcs)
   (let* ((n (gensym 'compute)))
     (cond
@@ -1412,12 +1760,13 @@
           (list 'catch 'id 'e error-default))
       else default)))
 
-; Like compute*-> but the special cases all return Nothing.
-; (compute-> 1 inc inc inc)  ; => 4
-; (compute-> 1 (+ 3) inc))   ; => 5
-; (compute-> 1 ->list first) ; => Nothing
-; (compute-> 0 throw! inc)   ; => Nothing
-; (compute-> "r")            ; => "r"
+;# Like compute*-> but the special cases all return Nothing.
+;#   (compute-> 1 inc inc inc)  ; => 4
+;#   (compute-> 1 (+ 3) inc))   ; => 5
+;#   (compute-> 1 ->list first) ; => Nothing
+;#   (compute-> 0 throw! inc)   ; => Nothing
+;#   (compute-> "r")            ; => "r"
+;# compute-> : expr -> [expr]* -> expr
 (defmacro (compute-> m & funcs)
   `(compute*-> Nothing Nothing ~m ~@funcs))
 
@@ -1460,11 +1809,14 @@
     else
       (error! "parameter must be symbol, list, vector or map" 'syntax)))
 
+;# (destructure (('(a b) '(1 2)))) ;=> ((sym0 '(1 2)) (a (first sym0)) (sym1 (rest sym0)) (b (first sym1)))
+;# destructure : list -> list
 (define (destructure binds)
   (mapcat
     (lambda (e) (%let-destructure (first e) (second e)))
     binds))
 
+;# let : expr -> [expr]* -> expr
 (defmacro (let binds & body) ; let* with destructuring. Does not support :as yet.
   (if (vector? binds)
     (if (odd? (size binds))
@@ -1472,14 +1824,17 @@
       `(let ~(slices 2 binds) ~@body)) ; recursive call
     (cons 'let* (cons (destructure binds) body))))
 
-; Extended define
-; Supports destructuring
-; Will support keyword arguments in the future
+;# Extended define
+;# Supports destructuring
+;# Will support keyword arguments in the future
+;# define* : expr -> [expr]* -> expr
 (defmacro (define* binds & body)
   (let ((bind-aliases (map #(gensym 'bind) (cdr binds))))
     (list 'define (cons (car binds) bind-aliases) (cons 'let (cons (zip (cdr binds) bind-aliases) body)))))
 
 
+;# lambda' : expr -> [expr]* -> expr
+;# lambda' : symbol -> expr -> [expr]* -> expr
 (defmacro (lambda' binds body1 & body)
   (let ((named (symbol? binds))
         (name (if named binds (gensym 'lambda)))
@@ -1489,7 +1844,8 @@
     (list 'lambda* name bind-aliases (cons 'let (cons (remove #(= (car %1) '&) (zip binds bind-aliases)) body)))))
 
 
-; Parallel let
+;# Parallel let
+;# plet : expr -> [expr]* -> expr
 (defmacro (plet binds & body)
   (let* ((names (map first binds))
          (vals (map second binds))
