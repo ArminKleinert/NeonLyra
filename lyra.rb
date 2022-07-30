@@ -82,7 +82,11 @@ end
 begin
   puts elem_to_pretty(eval_str(IO.read("core.lyra")))
   src_files.each do |f|
-    puts elem_to_pretty(eval_str(IO.read(f)))
+    obj = eval_str(IO.read(f))
+    if obj.is_a?(LyraModule)
+      obj = list(obj.name, obj.abstract_name)
+    end
+    puts elem_to_pretty(obj)
   end
 
   if src_files.empty?

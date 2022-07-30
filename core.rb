@@ -490,7 +490,30 @@ def setup_core_functions
 
   add_var(:Nothing, nil)
 
-  add_fn(:load!, 1, -1) { |*files| files.map { |f| eval_str(IO.read(f), Env.global_env) }.to_cons_list }
+  add_fn_with_env(:"load!", 1, 2) do |xs, env|
+    file = xs.car
+    prefix = xs.cdr.car
+    prefix = "" if prefix.nil? || prefix.empty?
+    prefix = prefix.to_s
+    out = eval_str(IO.read(file), Env.global_env)
+    if out.is_a?(LyraModule)
+      binds = out.bindings
+      binds.each do |bind1|
+        bind = bind1.to_s.split("/", 2)[-1]
+        bind = if prefix.empty?
+          bind.to_sym
+        else
+          (prefix + "/" + bind).to_sym
+        end
+
+        env.next_module_env.set! bind, Env.global_env.find(bind1)
+        #puts "#{prefix} #{prefix.empty?} #{bind1} #{bind}"
+      end
+      list(out.name, out.abstract_name)
+    else
+      out
+    end
+  end
 
   add_fn(:"read-string", 1) do |s|
     tokens = tokenize(s)

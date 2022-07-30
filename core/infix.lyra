@@ -1,6 +1,6 @@
 ; Parse infix operations for parsing imperative languages which treat = as a setter.
 ; This is a heavily edited conversion of https://github.com/osoleve/Scheme-Infix-Calculator by osoleve (https://github.com/osoleve)
-(module infix
+(module lyra.core.infix
   (shunting-yard
    eval-rpn
    infix->prefix

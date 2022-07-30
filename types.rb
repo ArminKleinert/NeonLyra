@@ -4,6 +4,13 @@
 require 'singleton'
 require 'set'
 
+class LyraModule
+  attr_reader :name, :abstract_name, :bindings
+  def initialize(name, abstract_name, bindings)
+    @name, @abstract_name, @bindings = name, abstract_name, bindings
+  end
+end
+
 class LyraError < StandardError
   attr_reader :info, :internal_trace
 
@@ -586,6 +593,10 @@ class NativeLyraFn < LyraFn
 
   def to_s
     "<function #{@name}>"
+  end
+
+  def inspect
+    to_s
   end
 
   def native?

@@ -1,4 +1,4 @@
-(module random
+(module lyra.core.random
   ((random xorshift64s)
    random! xorshift64s xorshift64 xorshift32 (lfsr lfsr32)
    xorshift64s-seq xorshift64-seq xorshift32-seq lfsr32-seq 

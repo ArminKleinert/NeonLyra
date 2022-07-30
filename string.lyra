@@ -1,9 +1,5 @@
-(module string
+(module lyra.core.string
   (string? string-size string-range string-nth string-add string-append string-concat string-includes? string-eq? string-split-at string-chars strcat)
-  
-(define T (lambda (_) #t))
-
-(define  (list->vector x) (buildin->vector x))
 
 (define string? buildin-string?)
 

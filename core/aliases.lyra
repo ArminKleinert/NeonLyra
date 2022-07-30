@@ -1,4 +1,4 @@
-(module aliases
+(module lyra.core.aliases
   ((includes? contains?)
    (require! load!)
    (fold foldr)

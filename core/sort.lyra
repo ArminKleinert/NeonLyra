@@ -1,4 +1,4 @@
-(module sort
+(module lyra.core.sort
   ((sort mergesort)
    (sort-compare mergesort-with-comparator)
    mergesort

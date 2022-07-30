@@ -65,14 +65,18 @@ def top_env(env)
   env.next_module_env
 end
 
+# TODO Find a way to not parse modules twice 
 def ev_module(expr)
   expr = expr.cdr
   name = expr.car
 
   raise LyraError.new("Syntax error: Module name must be a symbol but is #{name}.", :syntax) unless name.is_a?(Symbol)
 
-  return name if IMPORTED_MODULES.include? name
-  IMPORTED_MODULES << name
+  already_parsed = IMPORTED_MODULES.include? name
+  #return name if IMPORTED_MODULES.include? name
+  unless already_parsed
+    IMPORTED_MODULES << name
+  end
 
   module_env = Env.create_module_env name
   expr = expr.cdr
@@ -80,22 +84,41 @@ def ev_module(expr)
   forms = expr.cdr
   raise LyraError.new("Syntax error: Module bindings must be a list.", :syntax) unless bindings.is_a?(ConsList)
   raise LyraError.new("Syntax error: Module forms must be a list.", :syntax) unless bindings.is_a?(ConsList)
+  
+  abstract_name = gensym(:module)
 
   eval_keep_last forms, module_env
 
   global = Env.global_env
+
+  binding_out = nil
+  binding_from = nil
+  out_bindings = []
   bindings.each do |binding|
-    #check_for_redef(binding.car, global)
     if binding.is_a? ConsList
-      global.set! binding.car, eval_ly(binding.cdr.car, module_env)
+      binding_out = binding.car
+      binding_from = binding.cdr.car
     elsif binding.is_a? Symbol
-      global.set! binding, eval_ly(binding, module_env)
+      binding_out = binding
+      binding_from = binding
     else
       raise LyraError.new("Syntax error: Module binding must be a list or symbol.", :syntax)
     end
+
+    # Turn binding name "function" into "module/function".
+    # E.g. list->vector from module core.vector becomes core.vector/list->vector.
+    # No such transformation is done for the namespace lyra.core.
+    #unless already_parsed
+    unless name == :"lyra.core"
+      binding_out = (abstract_name.to_s + "/" + binding_out.to_s).to_sym
+    end
+    global.set! binding_out, eval_ly(binding_from, module_env)
+    #end
+
+    out_bindings << binding_out
   end
 
-  name
+  LyraModule.new(name, abstract_name, out_bindings)
 end
 
 # Takes a List (list of expressions), calls eval_ly on each element

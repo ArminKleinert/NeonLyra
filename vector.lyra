@@ -1,4 +1,4 @@
-(module vector
+(module lyra.core.vector
   (list->vector mapv mapv-indexed filterv vector? vector vector-size vector-range vector-nth vector-add vector-append vector-includes? vector-eq?)
 
 (define  (list->vector x) (buildin->vector x))
