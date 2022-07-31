@@ -327,7 +327,8 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - `let` is now a destructuring let and `plet` is the new parallel let  
   - `let`, `plet`, `for` and `loop` now all have forms for using Clojure-like vector bindings.  
   - Variadic arithmetic  
-  - Some bugfixes.  
+  - Some bugfixes  
+  - Better module system (though much more work is needed)  
 
 ## Known bugs
 

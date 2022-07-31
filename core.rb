@@ -234,6 +234,13 @@ def setup_core_functions
     Env.global_env.set!(name, value)
   end
 
+  add_fn_with_env(:"par-with-timeout", 2, -1) do |fns, env|
+    timeout = fns.car
+    raise LyraError("Invalid join timeout. Expected a number, but got #{elem_to_pretty(timeout)}.", :"invalid-call") unless timeout.is_a?(Numeric)
+    arr = fns.cdr.map{|f| Thread.new{eval_ly(list(f), env)}}
+    arr.map{|t|timeout <= 0 ? t.join : t.join(timeout)}.map{|t| t.nil? ? nil : t.value}.to_cons_list
+  end
+
   add_fn(:"list-size", 1) { |x| cons?(x) ? x.size : (raise LyraError.new("Invalid call to list-size.", :"invalid-call")) }
   add_fn(:cons, 2) { |x, xs| cons(x, xs) }
   add_fn(:car, 1) { |x| cons?(x) ? x.car : (raise LyraError.new("Invalid call to car. Got #{x}.", :"invalid-call")) }
