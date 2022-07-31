@@ -58,10 +58,11 @@
   (map (lambda (x) (+ (rem x (- (inc max-n) min-n)) min-n)) seq))
 
 (load! "core/sort.lyra")
+(import! "lyra.core.sort" "sort")
 
 (define (shuffle seq seed)
   (map cadr
-    (sort-compare (lambda (x y) (compare (car x) (car y)))
+    (sort/sort-compare (lambda (x y) (compare (car x) (car y)))
       (zip (random-nums seed) seq))))
 )
 )

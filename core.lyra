@@ -2129,5 +2129,9 @@
         body))))
 )
 
-(cons 'core (map first (list (load! "string.lyra" "") (load! "vector.lyra" "") (load! "set.lyra" ""))))
+(load! "string.lyra")
+(load! "vector.lyra")
+(load! "set.lyra")
+
+(cons 'core (list (import! "lyra.core.string", "") (import! "lyra.core.vector" "") (import! "lyra.core.set" "")))
 

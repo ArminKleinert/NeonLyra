@@ -1,12 +1,19 @@
 (module tests
   ((run-tests run-all-tests))
 
-(load! "core/random.lyra" "")
-(load! "core/sort.lyra" "sort")
-(load! "core/aliases.lyra" "")
-(load! "core/infix.lyra" "")
-(load! "core/clj.lyra" "")
-(load! "core/queue.lyra" "")
+(load! "core/random.lyra")
+(load! "core/sort.lyra")
+(load! "core/aliases.lyra")
+(load! "core/infix.lyra")
+(load! "core/clj.lyra")
+(load! "core/queue.lyra")
+
+(import! "lyra.core.random" "")
+(import! "lyra.core.sort" "sort")
+(import! "lyra.core.aliases" "")
+(import! "lyra.core.infix" "")
+(import! "clj" "")
+(import! "lyra.core.queue" "")
 
 (defmacro (do-test! & cases)
   (let* ((details #t) ; Set to #f to hide details and only show overall success/failure numbers at the end
@@ -30,7 +37,10 @@
               "(" success-sym " / " (size cases) ")" 
               (list 'if (list '= success-sym (size cases)) " => success" " => failure"))
             Nothing)
-          (list '= success-sym (size cases))))))
+          (list 'list
+                (list '= success-sym (size cases))
+                (size cases)
+                )))))
 
 (define (crash!)
   (/ 0 0))
@@ -281,7 +291,8 @@
     (eval! (quote (= 2 2)))))
 
 (define (test-measure)
-  (float? (measure! 10 (lambda () #f))))
+  (do-test!
+    (float? (measure! 10 (lambda () #f)))))
 
 (define (test-=)
   (do-test!
@@ -1001,9 +1012,10 @@
       (list 'a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))))
 
 (define (test-eq?)
-  (all?
-    (lambda (e) (eq? e e))
-    '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1")))
+  (do-test!
+    (all?
+      (lambda (e) (eq? e e))
+      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))))
 
 (define (test-->int)
   (do-test!
@@ -1214,7 +1226,7 @@
            0 [1 2 3 4 5 6]))
     (= 21 (iterate-seq-p (lambda (acc e i) #t) (lambda (acc e i) (+ acc e))
            0 [1 2 3 4 5 6]))
-    (= "123" (iterate-seq-p (lambda (acc e i) #t) (lambda (acc e i) (append acc (->string e)))
+    (= "123456" (iterate-seq-p (lambda (acc e i) #t) (lambda (acc e i) (append acc (->string e)))
            "" [1 2 3 4 5 6]))
 
     (= 6 (iterate-seq-p (lambda (acc e i) #t) (lambda (acc e i) (inc acc))
@@ -1224,11 +1236,11 @@
     (= "123" (iterate-seq-p
                 (lambda (acc e i) #t)
                 (lambda (acc e i) (append acc (->string e)))
-                "" '(1 2 3))))
+                "" '(1 2 3)))
 
     ; Early break after 6 elements.
     (= 21 (iterate-seq-p (lambda (acc e i) (< i 6)) (lambda (acc e i) (+ acc e))
-           0 '(1 2 3 4 5 6 7 8 9 10))))
+           0 '(1 2 3 4 5 6 7 8 9 10)))))
 
 (define (test-map-of)
   (do-test!
@@ -1391,10 +1403,11 @@
 
 (define (test-comment)
   ; If the following are executed, the code will crash
-  (comment (/ 0 0))
-  (comment (no-such-function-exists))
-  (comment this is not valid code)
-  #t)
+  (do-test!
+    (not (comment (/ 0 0)))
+    (not (comment (no-such-function-exists)))
+    (not (comment this is not valid code))
+    #t))
 
 (define (test-size)
   (do-test!
@@ -2566,9 +2579,10 @@
       )))
 
 (define (test-frequencies)
-  (let* ((freqs (frequencies '(1 2 3 1 5 4 1 7 7 7 5 1))))
-    (eq? (map-of 1 4  2 1  3 1  5 2  4 1  7 3) freqs)
-    ))
+  (do-test!
+    (let* ((freqs (frequencies '(1 2 3 1 5 4 1 7 7 7 5 1))))
+      (eq? (map-of 1 4  2 1  3 1  5 2  4 1  7 3) freqs)
+      )))
 
 (define (test-unique)
   (do-test!
@@ -3722,17 +3736,18 @@
           (foldl
             (lambda (res f)
               (let* ((r (f)))
+                (println! "HIER " r)
                 (cond
-                  (= r 'TODO)
-                    (list (car res) (cadr res) (cons f (caddr res)))
-                  r
-                    (list (cons f (car res)) (cadr res) (caddr res))
+                  (= (car r) 'TODO)
+                    (list (car res) (cadr res) (cons f (caddr res)) (+ (cadr r) (cadddr res)))
+                  (car r)
+                    (list (cons f (car res)) (cadr res) (caddr res) (+ (cadr r) (cadddr res)))
                   else
-                    (list (car res) (cons f (cadr res)) (caddr res)))))
-            '(() () ())
+                    (list (car res) (cons f (cadr res)) (caddr res) (+ (cadr r) (cadddr res))))))
+            '(() () () 0)
             fns)))
     (string-concat
-      "Ran " (foldl + 0 [(size (car results)) (size (cadr results)) (size (caddr results))]) " tests.\n- "
+      "Ran " (foldl + 0 [(size (car results)) (size (cadr results)) (size (caddr results))]) " tests with " (cadddr results) " assertions.\n- "
       (size (car results)) " Successful.\n- "
       (size (cadr results)) " Failed: " (cadr results) "\n- "
       (size (caddr results)) " Not implemented: " (caddr results))))

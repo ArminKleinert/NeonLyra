@@ -497,28 +497,38 @@ def setup_core_functions
 
   add_var(:Nothing, nil)
 
-  add_fn_with_env(:"load!", 1, 2) do |xs, env|
+  add_fn_with_env(:"load!", 1) do |xs, env|
     file = xs.car
     prefix = xs.cdr.car
-    prefix = "" if prefix.nil? || prefix.empty?
-    prefix = prefix.to_s
-    out = eval_str(IO.read(file), Env.global_env)
-    if out.is_a?(LyraModule)
-      binds = out.bindings
+    puts "loading " + file
+    eval_str(IO.read(file), Env.global_env)
+  end
+
+  add_fn_with_env(:"import!", 2) do |xs, env|
+    mod_name = xs.car.to_sym
+    alias_name = xs.cdr.car
+    
+    mod = IMPORTED_MODULES.lazy.filter{|e|e.name == mod_name}.to_a.first
+    
+    if !mod.nil?
+      binds = mod.bindings
+      ttt = []
       binds.each do |bind1|
         bind = bind1.to_s.split("/", 2)[-1]
-        bind = if prefix.empty?
+        bind = if alias_name.empty?
           bind.to_sym
         else
-          (prefix + "/" + bind).to_sym
+          (alias_name + "/" + bind).to_sym
         end
+        ttt << bind
 
         env.next_module_env.set! bind, Env.global_env.find(bind1)
-        #puts "#{prefix} #{prefix.empty?} #{bind1} #{bind}"
+        #puts "#{alias_name} #{alias_name.empty?} #{bind1} #{bind}"
       end
-      list(out.name, out.abstract_name)
+
+      list(mod.name, mod.abstract_name)
     else
-      out
+      nil
     end
   end
 

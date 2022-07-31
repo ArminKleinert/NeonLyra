@@ -174,10 +174,12 @@
 (test-performance "lazy sequences" (->> -500 (iterate inc) (filter (lambda (n) (> n 0))) (map inc) (filter odd?) (map inc) (map (partial * 211)) (remove (lambda (n) (= (rem n 5) 0))) (take 50)))
 
 (load! "core/sort.lyra")
+(import! "lyra.core.sort" ""
 (let ((sequence (reverse (range 0 5000))))
   (test-performance "Sort 5000 elements:" (sort sequence)))
 
 (load! "core/random.lyra")
+(import! "lyra.core.sort" "")
 (let ((sequence (range 0 5000)))
   (test-performance "Shuffle 5000 elements:" (shuffle sequence 0xC0FFEE)))
 

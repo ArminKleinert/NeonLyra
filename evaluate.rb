@@ -72,10 +72,10 @@ def ev_module(expr)
 
   raise LyraError.new("Syntax error: Module name must be a symbol but is #{name}.", :syntax) unless name.is_a?(Symbol)
 
-  already_parsed = IMPORTED_MODULES.include? name
+  already_parsed = IMPORTED_MODULES.map(&:name).include? name
   #return name if IMPORTED_MODULES.include? name
-  unless already_parsed
-    IMPORTED_MODULES << name
+  if already_parsed
+    return IMPORTED_MODULES.first{|m|m.name == name}
   end
 
   module_env = Env.create_module_env name
@@ -118,7 +118,9 @@ def ev_module(expr)
     out_bindings << binding_out
   end
 
-  LyraModule.new(name, abstract_name, out_bindings)
+  mod = LyraModule.new(name, abstract_name, out_bindings)
+  IMPORTED_MODULES << mod
+  list(mod.name, mod.abstract_name)
 end
 
 # Takes a List (list of expressions), calls eval_ly on each element
@@ -392,36 +394,6 @@ def eval_try_star(expr, env)
     raise LyraError.new("No catch-clause in try*", :syntax)
   end
 end
-
-# TODO Remove
-=begin
-def quasiquote(expr, env)
-    if !expr.is_a?(List)
-      #puts list(:quote, expr)
-      return list(:quote, expr)
-    end
-
-    seq = expr
-    fst = first(seq)
-
-    #puts "fst: #{fst} seq: #{seq}"
-
-    if fst == :unquote
-      #puts second(seq)
-      return second(seq)
-    end
-
-    if fst.is_a?(List) && first(fst) == :"unquote-splicing"
-      #puts list(:concat, second(fst), rest(seq).to_cons_list)
-      list(:concat, second(fst), quasiquote(rest(seq).to_cons_list, env))
-    else
-      x = quasiquote(first(expr), env)
-      xs = quasiquote(rest(seq).to_cons_list, env)
-      #puts list(:cons, x, xs)
-      list(:cons, x, xs)
-    end
-end
-=end
 
 # The expression is a cons and probably starts with a symbol.
 # The evaluate function will try to treat the symbol as a function

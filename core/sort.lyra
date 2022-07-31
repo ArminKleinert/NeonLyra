@@ -6,11 +6,11 @@
    bubblesort)
 
 (define (bubble-up xs)
-    (if (empty? (cdr xs))   
-        xs
-        (if (< (car xs) (cadr xs))
-            (cons (car xs) (bubble-up (cdr xs)))   
-            (cons (cadr xs) (bubble-up (cons (car xs) (cddr xs)))))))
+  (if (empty? (cdr xs))   
+    xs
+    (if (< (car xs) (cadr xs))
+      (cons (car xs) (bubble-up (cdr xs)))   
+      (cons (cadr xs) (bubble-up (cons (car xs) (cddr xs)))))))
 
 (define (bubble-sort-aux n xs)    
   (let ((xs (->list xs)))
