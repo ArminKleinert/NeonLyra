@@ -3736,7 +3736,6 @@
           (foldl
             (lambda (res f)
               (let* ((r (f)))
-                (println! "HIER " r)
                 (cond
                   (= (car r) 'TODO)
                     (list (car res) (cadr res) (cons f (caddr res)) (+ (cadr r) (cadddr res)))

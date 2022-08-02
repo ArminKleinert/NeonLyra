@@ -57,6 +57,7 @@ ERROR_TYPE = TypeName.new "::error", 14
 CHAR_TYPE = TypeName.new "::char", 15
 KEYWORD_TYPE = TypeName.new "::keyword", 16
 ALIAS_TYPE = TypeName.new "::alias", 17
+DELAY_TYPE = TypeName.new "::delay", 18
 
 def type_of(x)
   if x.nil?
@@ -97,6 +98,8 @@ def type_of(x)
     KEYWORD_TYPE
   elsif x.is_a? Alias
     ALIAS_TYPE
+  elsif x.is_a? LyraDelay
+    DELAY_TYPE
   else
     raise LyraError.new("No name for type #{x.class} for object #{elem_to_s(x)}")
   end
@@ -234,11 +237,16 @@ def setup_core_functions
     Env.global_env.set!(name, value)
   end
 
-  add_fn_with_env(:"par-with-timeout", 2, -1) do |fns, env|
-    timeout = fns.car
-    raise LyraError("Invalid join timeout. Expected a number, but got #{elem_to_pretty(timeout)}.", :"invalid-call") unless timeout.is_a?(Numeric)
-    arr = fns.cdr.map{|f| Thread.new{eval_ly(list(f), env)}}
-    arr.map{|t|timeout <= 0 ? t.join : t.join(timeout)}.map{|t| t.nil? ? nil : t.value}.to_cons_list
+  add_fn_with_env(:delay, 1, 1) do |f, env|
+    if f.car.is_a? LyraFn
+      LyraDelay.new(Thread.new{eval_ly(f, env)})
+    else
+      raise LyraError.new("Invalid call to delay. Expected a function, but got #{elem_to_pretty(f)}", :"invalid-call")
+    end
+  end
+
+  add_fn(:"delay-timeout", 2) do |timeout, d|
+    d.with_timeout timeout
   end
 
   add_fn(:"list-size", 1) { |x| cons?(x) ? x.size : (raise LyraError.new("Invalid call to list-size.", :"invalid-call")) }
@@ -282,7 +290,7 @@ def setup_core_functions
   add_fn(:"always-false", 0, -1) { |*_| false }
 
   add_fn(:box, 1) { |x| Box.new(x) }
-  add_fn(:unbox, 1) { |b| b.is_a?(Box) ? b.value : nil }
+  add_fn(:unbox, 1) { |b| b.is_a?(Unwrapable) ? b.value : nil }
   add_fn(:"buildin-unwrap", 1) { |b|
     b.is_a?(Unwrapable) ? b.unwrap : b } # Intended for use with any boxing type
   add_fn(:"box-set!", 2) { |b, x| b.value = x; b }
@@ -500,7 +508,6 @@ def setup_core_functions
   add_fn_with_env(:"load!", 1) do |xs, env|
     file = xs.car
     prefix = xs.cdr.car
-    puts "loading " + file
     eval_str(IO.read(file), Env.global_env)
   end
 
@@ -568,7 +575,8 @@ def setup_core_functions
 
   [NOTHING_TYPE, BOOL_TYPE, VECTOR_TYPE, MAP_TYPE, LIST_TYPE, FUNCTION_TYPE,
    INTEGER_TYPE, FLOAT_TYPE, RATIO_TYPE, SET_TYPE, TYPE_NAME_TYPE, STRING_TYPE,
-   SYMBOL_TYPE, BOX_TYPE, ERROR_TYPE, CHAR_TYPE, KEYWORD_TYPE, ALIAS_TYPE].each do |t|
+   SYMBOL_TYPE, BOX_TYPE, ERROR_TYPE, CHAR_TYPE, KEYWORD_TYPE, ALIAS_TYPE,
+   DELAY_TYPE].each do |t|
     add_var t.to_sym, t
   end
 
@@ -583,33 +591,5 @@ def setup_core_functions
   add_fn(:"exit!", 1) { |s| exit(s) }
 
   add_fn(:"callstack", 0) { LYRA_CALL_STACK }
-=begin
-  add_fn(:"define-generic", 3) do |xs, env|
-    arg_name = xs.car
-    signature = xs.cdr.car
-    default_impl = xs.cdr.cdr.car
-    raise LyraError.new("def-generic: anchor-argument must be a symbol but is #{arg_name}", :syntax) unless arg_name.is_a?(Symbol)
-    raise LyraError.new("def-generic: signature must be a list with at least 2 elements but is #{signature}", :syntax) unless signature.is_a?(List) && !signature.cdr.is_empty?
-    raise LyraError.new("def-generic: default must be a function but is #{default_impl}", :syntax) unless default_impl.is_a?(LyraFn)
-    anchor_idx = signature.cdr.index(arg_name)
-    res = GenericFn.new name, args.size, anchor_idx, fallback
-    top_env(env).set!(name, res)
-    res
-  end
-  
-  add_fn(:"define-implementation", 3) do |xs, env|
-    type_name = xs.car
-    fn = xs.cdr.car
-    impl = xs.cdr.cdr.car
-    raise LyraError.new("def-generic: anchor-argument must be a symbol but is #{arg_name}") unless arg_name.is_a?(Symbol)
-    raise LyraError.new("def-generic: signature must be a list with at least 2 elements but is #{signature}") unless signature.is_a?(List) && !signature.cdr.is_empty?
-    raise LyraError.new("def-generic: default must be a function but is #{default_impl}") unless default_impl.is_a?(LyraFn)
-    anchor_idx = signature.cdr.index(arg_name)
-    res = GenericFn.new name, args.size, anchor_idx, fallback
-    top_env(env).set!(name, res)
-    res
-  end
-=end
-
   true
 end

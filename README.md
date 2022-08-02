@@ -52,6 +52,7 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 - Set  
 - Error  
 - Keyword  
+- Delay (responds to `unwrap`, `eager` and `unbox`)  
 
 ## Some friendly infos about the syntax 
 
@@ -329,6 +330,7 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Variadic arithmetic  
   - Some bugfixes  
   - Better module system (though much more work is needed)  
+  - Simple multithreading + delay type  
 
 ## Known bugs
 

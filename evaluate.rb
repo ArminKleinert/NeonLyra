@@ -65,7 +65,6 @@ def top_env(env)
   env.next_module_env
 end
 
-# TODO Find a way to not parse modules twice 
 def ev_module(expr)
   expr = expr.cdr
   name = expr.car

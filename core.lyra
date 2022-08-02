@@ -162,7 +162,7 @@
 ;# find : any -> collection -> any
 ;# Find associated key or value for an element. The type of return value depends on the type of the collection.
 ;# index-of for lists and vectors, true or false for sets.
-(def-generic xs (find v xs) (lambda (v xs) (index-of (seq xs))))
+(def-generic xs (find v xs) (lambda (v xs) (index-of v (seq xs))))
 
 ;## Function: ->symbol
 ;# ->symbol : any -> symbol
@@ -267,8 +267,8 @@
 ;# Increment number by 1 (using +)
 (define (inc n) (+ n 1))
 
-;## Function: inc
-;# inc : number -> number
+;## Function: dec
+;# dec : number -> number
 ;# Decrement number by 1 (using -)
 (define (dec n) (- n 1))
 
@@ -1657,19 +1657,6 @@
     (list (- (size args) 2) -1)
     (list (size args) (size args))))
 
-(comment define (%cl-form form arg-name)
-  (let* ((form-args (car form))
-         (arg-nums (%cl-arg-nums form-args)))
-    (if (list? (car form))
-      (cond
-        (= (cadr arg-nums) 0)
-          `((= (size ~arg-name) 0) (begin ~@(cdr form)))
-        (= (cadr arg-nums) -1)
-          `((>= (size ~arg-name) ~(car arg-nums)) (let ((~form-args ~arg-name))  ~@(cdr form)))
-        else
-          `((= (size ~arg-name) ~(car arg-nums)) (let ((~form-args ~arg-name)) ~@(cdr form))))
-      `(else (let ((~form-args ~arg-name)) ~@(cdr form))))))
-
 (define (%cl-form form arg-name)
   (let* ((form-args (car form))
          (arg-nums (%cl-arg-nums form-args)))
@@ -2098,9 +2085,9 @@
 
 ;## Function: par
 ;# par : [(() -> any)]* -> list
-;# Run functions in parallel. If a thread fails or cannot return, it returns Nothing.
+;# Run functions in parallel. Returns a list of delay objects
 (define (par f0 & fs)
-  (apply par-with-timeout -1 f0 fs))
+  (map delay (cons f0 fs)))
 
 ;## Macro par'
 ;# par' : [expr]* -> expr
@@ -2112,7 +2099,7 @@
 ;# par-with-timeout' : expr -> [expr]* -> expr
 ;# Takes a number (timeout) and a list of expressions and wraps each in a lambda. These functions are then evaluated by the par-with-timeout function. Timeouts <= 0 mean an infinite timeout. (Might as well use par')
 (defmacro (par-with-timeout' timeout expr1 & exprs)
-  `(par-with-timeout ~timeout (lambda () ~expr1) ~@(map (lambda (e) `(lambda () ~e)) exprs)))
+  `(map (lambda (f) (delay-timeout ~timeout (delay f))) ((lambda () ~expr1) ~@(map (lambda (e) `(lambda () ~e)) exprs))))
 
 ;## Macro: plet
 ;# plet : expr -> [expr]* -> expr

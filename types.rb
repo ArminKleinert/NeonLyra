@@ -743,8 +743,11 @@ end
 class WrappedLyraError
   attr_reader :msg, :info, :trace
 
-  def initialize(msg, info, trace)
+  def initialize(msg, info, trace = nil)
     @msg, @info, @trace = msg, info, trace
+    if trace
+      @trace = LYRA_CALL_STACK.clone
+    end
   end
 end
 
@@ -767,6 +770,49 @@ end
 
 def atom?(x)
   x.is_a?(Numeric) || x.is_a?(String) || x.is_a?(Symbol) || !!x == x || x.is_a?(LazyObj) || x.is_a?(LyraChar) || x.is_a?(Keyword) || x.is_a?(LyraFn)
+end
+
+class LyraDelay
+    include Lazy, Unwrapable
+  
+  def initialize(thread)
+    @thread = thread
+  end
+  
+  # if the thread is alive, return nil
+  # otherwise, return its value
+  def unbox
+    @thread.alive? ? nil : @thread.value
+  end
+  
+  def value
+    unbox
+  end
+  
+  # Eagerly run the thread with no timeout
+  # if the thread fails (with an error), return the error
+  # otherwise, return the value
+  def evaluate
+    v = @thread.value
+    if v.is_a?(Exception)
+      WrappedLyraError.new v.message, :thread
+    else
+      v
+    end
+  end
+  
+  # Wait `seconds` seconds before killing the thread
+  # (if necessary) and getting its value
+  def with_timeout(seconds)
+    @thread.join(seconds)
+    if @thread.alive?
+      sleep seconds
+    end
+    if @thread.alive?
+      @thread.kill
+    end
+    @thread.value
+  end
 end
 
 class LyraChar
