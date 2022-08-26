@@ -1779,8 +1779,8 @@
     (eq? '(1 2 3 4) (mapcar id '(1 2 3 4)))
     (eq? '(3 5 7 9) (mapcar + '(1 2 3 4) '(2 3 4 5)))
     (eq? '((1 2) (4 3)) (mapcar list '(1 4) '(2 3)))
-    (eq? '((1 2) (4)) (mapcar list '(1 4) '(2)))
-    (eq? '((1 2) (3)) (mapcar list '(1) '(2 3)))))
+    (eq? '((1 2)) (mapcar list '(1 4) '(2)))
+    (eq? '((1 2)) (mapcar list '(1) '(2 3)))))
 
 (define (test-mapcon)
   (do-test!
@@ -3715,8 +3715,8 @@
       ((lambda (as) (+ (car as) (sum (cdr as)))) '(1 2 3 4))
       ((lambda' ((a & as)) (+ a (sum as))) '(1 2 3 4)))
     (eq?
-      '((3) (7))
-      (map (lambda' ((a b)) (+ a b)) '((1 2) (3 4)))))
+      '(3 7)
+      (map (lambda' ((a b)) (+ a b)) '((1 2) (3 4))))))
 
 (define (test-compute*->)
   (do-test!
