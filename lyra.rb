@@ -77,6 +77,8 @@ else
   Env.global_env.set!(:"*ARGS*", empty_list)
 end
 
+Env.global_env.set!(:"*lyra-version*", LYRA_VERSION)
+
 # Treat the first console argument as a filename,
 # read from the file and evaluate the result.
 begin

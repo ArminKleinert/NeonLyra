@@ -3713,7 +3713,10 @@
       ((lambda' ((a b)) (+ a b)) '(1 2)))
     (eq?
       ((lambda (as) (+ (car as) (sum (cdr as)))) '(1 2 3 4))
-      ((lambda' ((a & as)) (+ a (sum as))) '(1 2 3 4)))))
+      ((lambda' ((a & as)) (+ a (sum as))) '(1 2 3 4)))
+    (eq?
+      '((3) (7))
+      (map (lambda' ((a b)) (+ a b)) '((1 2) (3 4)))))
 
 (define (test-compute*->)
   (do-test!

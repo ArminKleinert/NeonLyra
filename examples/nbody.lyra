@@ -1,0 +1,74 @@
+; Correctness not yet confirmed!
+
+(module examples.nbody
+  (make-bodies nbody nb-loop)
+
+(load! "core/random.lyra")
+(import! "lyra.core.random" "")
+
+(define nbody-gravity 6.6743)
+(define softening 0.000000001)
+
+; pow(sqrt(pow(x, 2) + pow(y, 2)), 3)
+(define (nbody-dist-help x y)
+  (let ((temp (sqrt (+ (* x x) (* y y)))))
+    (+ (* temp (* temp temp)) softening)))
+
+(define (calc-coords body acceleration)
+  (let (((x y mass vel-x vel-y) body)
+        ((acc-x acc-y) acceleration)
+        (new-vel-x (+ vel-x acc-x))
+        (new-vel-y (+ vel-y acc-y)))
+    (list (+ x new-vel-x)
+          (+ y new-vel-y)
+          mass
+          new-vel-x
+          new-vel-y)))
+
+(define* (calc-acc (idx (x y mass & _)) all-bodies)
+  (foldl
+    (lambda' ((inner-idx acc-x acc-y) (other-x other-y))
+      (if (/= idx inner-idx)
+        (let ((dist (nbody-dist-help (- x other-x)
+                                    (- y other-y)))
+              (koeff (* nbody-gravity (/ mass dist))))
+          (list (inc inner-idx)
+                (+ acc-x (* koeff (- other-x x)))
+                (+ acc-y (* koeff (- other-y y)))))
+        (list (inc inner-idx) acc-x acc-y)))
+    '(0 0 0)
+    (map (partial take 2) all-bodies)))
+
+(let ((part (partial apply-to calc-coords)))
+  (define (nb-loop times bodies)
+    (if (< times 1)
+      (mapv eager bodies)
+      (->>
+        (mapcar #(vector %1 %2) (xrange) bodies)
+        (pmap #(calc-acc %1 bodies))
+        (zip bodies)
+        (pmap part)
+        (recur (dec times)))))
+
+  (define (nbody num-iterations bodies)
+    (if (< times 1)
+      '()
+      (let*((bodies-after-iteration
+              (->>
+                (mapcar #(vector %1 %2) (xrange) bodies)
+                (pmap #(calc-acc %1 bodies))
+                (zip bodies)
+                (pmap part))))
+      (lazy-seq
+        bodies-after-iteration
+        (nbody (dec times) bodies-after-iteration)))))
+  )
+
+(define (make-bodies num rseed)
+  (mapv
+    (lambda (r) (let (((r1 r2 r3) r)) (list r1 r2 r3 0 0)))
+    (->> (with-bounds (random-nums rseed) 0 32)
+      (partition-all 3)
+      (take num))))
+
+)

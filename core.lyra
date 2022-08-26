@@ -1,17 +1,17 @@
 (module lyra.core
-  (cond lambda T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? seq? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf split-at split-unless split-if take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples partition-all xrange succ try count-by most? loop1 loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at quasiquote lazy-seq partition-by plet let lambda' conj take-nth interleave destructure name compute*-> compute-> par par')
+  (cond lambda T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? seq? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf split-at split-unless split-if take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples partition-all xrange succ try count-by most? loop1 loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at quasiquote lazy-seq partition-by plet let lambda' conj take-nth interleave destructure name compute*-> compute-> par par' pmap' pmap define* eval-seq!)
 
 ;;; SECTION: Some core things
 
 ;## Macro: lambda
-;# lambda : (symbol) -> [expr]* -> expr
+;# lambda : list|vector -> [expr]* -> expr
 ;# Simplified lambda* which auto-generates a name.
 ;# The rest is the same. Does not require any special functions, only buildins.
 (defmacro (lambda binds & body)
   (cons 'lambda* (cons (gensym 'lambda) (cons binds body))))
 
 ;## Macro: λ
-;# λ : (symbol) -> [expr]* -> expr
+;# λ : list|vector -> [expr]* -> expr
 ;# Plain alias for lambda
 (defmacro (λ bindings & body)
   (cons 'lambda (cons bindings body)))
@@ -365,7 +365,7 @@
   xs)
 
 ;## Macro: let1
-;# let1 : expr -> [expr]* -> expr
+;# let1 : list|vector -> [expr]* -> expr
 ;# Simpler let for a single binding.
 ;# (let1 (a 1) a) is equivalent to (let*((a 1)) a)
 (defmacro (let1 bindings & body)
@@ -649,9 +649,9 @@
       (recur f (f acc (first xs) i) (inc i) (rest xs))))
     f s 0 xs))
 
-;## Function: foldl1
-;# foldl1 : (any -> any -> any) -> collection -> any
-;# Similar to foldl1.
+;## Function: foldr1
+;# foldr1 : (any -> any -> any) -> collection -> any
+;# Similar to foldr1.
 ;# Requires empty?, size, first, rest
 (define (foldr1 f xs)
   (cond (empty? xs) Nothing
@@ -662,8 +662,8 @@
   (if (empty? xs)
     v
     (f (first xs) (%foldr-indexed f v (inc i) (rest xs)) i)))
-;## Function: foldl-indexed
-;# foldl-indexed : (any -> any -> int -> any) -> any -> collection -> any
+;## Function: foldr-indexed
+;# foldr-indexed : (any -> any -> int -> any) -> any -> collection -> any
 ;# foldr with index.
 ;# Requires: empty?, first, rest
 (define (foldr-indexed f v xs)
@@ -740,7 +740,7 @@
   (xcons 'let* '() exprs))
 
 ;## Macro: def-memo
-;# def-memo : ([expr]*) -> [expr]* -> (any* -> any)
+;# def-memo : list|vector -> [expr]* -> (any* -> any)
 ;# define memoized function.
 (defmacro (def-memo name-bindings & body)
   (list 'define (car name-bindings) (list 'memoize (xcons 'lambda (cdr name-bindings) body))))
@@ -759,6 +759,12 @@
 ;# (apply list 1 2 3 '(9 7 5)) ;=> (list 1 2 3 9 7 5) ;=> (1 2 3 9 7 5)
 (define (apply f & xs)
   (apply-to f (spread xs)))
+
+;## Function: eval-seq!
+;# eval-seq! : collection -> collection
+;# Forces a sequence to be evaluated. The sequence is then returned as it was.
+(define (eval-seq! xs)
+  (foldl fst xs xs))
 
 ;## Function: map
 ;# map : (any -> any) -> collection -> list
@@ -815,6 +821,10 @@
     '()
     (lazy-seq (f xs) (maplist f (rest xs)))))
 
+(define (%mapcar f ys)
+  (if (any? empty? ys)
+    '()
+    (lazy-seq (apply-to f (map first ys)) (%mapcar f (map rest ys)))))
 ;## Function: mapcar
 ;# mapcar : ([any]+ -> any) -> [collection]* -> list
 ;# Take any number of collections and map their first elements until all are empty.
@@ -823,7 +833,7 @@
 ;#   (mapcar + '(1 2 3) '(4 5) '(7 8 9)) ;=> (12 15 12)
 ;# Required: v-zip-with to work correctly with all inputs.
 (define (mapcar f & ys)
-  (v-zip-with f ys))
+  (%mapcar f ys))
 
 ;## Function: mapcon
 ;# mapcon : (any -> collection) -> collection -> collection
@@ -837,7 +847,7 @@
 (define (mapcat f xs)
   (if (empty? xs)
     '()
-    (let*((x (f (first xs))))
+    (let* ((x (f (first xs))))
       (lazy-seq (first x) (list-concat (rest x) (mapcat f (rest xs)))))))
 
 ;## Function: juxt
@@ -1695,9 +1705,9 @@
 ;#   ((x) "1") ; 1 arg
 ;#   ((x y) "2") ; 2 args
 ;#   ((w x y z & zs) "4 or more") ; 4+ args
-;#   (default "0 or more"))) ; Varargs going into a list called 'default
+;#   (default "3"))) ; Varargs going into a list called 'default
 ;# When called, the function decides which function to call by the number of arguments it got.
-;# (list (f) (f 6) (f 6 7) (f 6 7 8 9) (f 5 4 3)) ; ("0" "1" "2" "4 or more" "0 or more")
+;# (list (f) (f 6) (f 6 7) (f 6 7 8 9) (f 5 4 3)) ; ("0" "1" "2" "4 or more" "3")
 (defmacro (case-lambda* cl-name form1 & forms)
   (%case-lambda cl-name (cons form1 forms)))
 
@@ -1790,7 +1800,7 @@
 (define (%partition n step pad xs)
   (cond
     (= n 0) '()
-    (< (size xs) n)
+    (< (size xs) n) ; FIXME / TODO: Does not work for infinite sequences!
       (if (empty? pad)
         '()
         (list (list-concat xs (take (- n (size xs)) pad))))
@@ -1856,7 +1866,7 @@
 ;;; SECTION: loop macros
 
 ;## Macro: loop
-;# loop : expr -> [expr]* -> expr
+;# loop : list|vector -> [expr]* -> expr
 ;# loop macro similar to clojure. Supports destructuring.
 ;# (loop [(a b) '(1 2) res 0]
 ;#   (if (> res 0) res (recur '() (+ a b))))
@@ -1871,7 +1881,7 @@
       (cons `(lambda' ~name ~args ~@body) vals))))
 
 ;## Macro: loop
-;# loop : expr -> [expr]* -> expr
+;# loop : list|vector -> [expr]* -> expr
 ;# Simplified loop without destructuring
 (defmacro (loop1 bindings & body)
   (let*((binds (if (vector? bindings) (slices 2 bindings) bindings)))
@@ -1998,7 +2008,7 @@
       (cons 'combinations (map cadr defs))
       ))))
 ;## Macro: for
-;# for : expr -> expr -> expr
+;# for : list -> expr -> expr
 (defmacro (for bindings body)
   (%for bindings body))
 
@@ -2051,7 +2061,7 @@
     binds))
 
 ;## Macro: let
-;# let : expr -> [expr]* -> expr
+;# let : list|vector -> [expr]* -> expr
 (defmacro (let binds & body) ; let* with destructuring. Does not support :as yet.
   (if (vector? binds)
     (if (odd? (size binds))
@@ -2060,25 +2070,26 @@
     (cons 'let* (cons (destructure binds) body))))
 
 ;## Macro: define*
-;# define* : expr -> [expr]* -> expr
+;# define* : [list|vector] -> [expr]* -> expr
 ;# Extended define.
 ;# Supports destructuring.
 ;# Will support keyword arguments in the future
 (defmacro (define* binds & body)
-  (let ((bind-aliases (map #(gensym 'bind) (cdr binds))))
+  (let* ((bind-aliases (map #(gensym 'bind) (cdr binds))))
     (list 'define (cons (car binds) bind-aliases) (cons 'let (cons (zip (cdr binds) bind-aliases) body)))))
 
 
 ;## Macro: lambda'
-;# lambda' : expr -> [expr]* -> expr
-;# lambda' : symbol -> expr -> [expr]* -> expr
+;# lambda' : list -> [expr]* -> expr
+;# lambda' : symbol -> list -> [expr]* -> expr
 ;# Supports destructuring.
 (defmacro (lambda' binds body1 & body)
-  (let ((named (symbol? binds))
+  (let* ((named (symbol? binds))
         (name (if named binds (gensym 'lambda)))
         (binds (if named body1 binds))
         (body (if named body (cons body1 body)))
         (bind-aliases (map #(if (= %1 '&) '& (gensym 'bind)) binds)))
+    (foldl fst 0 bind-aliases)
     (list 'lambda* name bind-aliases (cons 'let (cons (remove #(= (car %1) '&) (zip binds bind-aliases)) body)))))
 
 ;;; SECTION: Parallel stuff
@@ -2101,6 +2112,23 @@
 (defmacro (par-with-timeout' timeout expr1 & exprs)
   `(map (lambda (f) (delay-timeout ~timeout (delay f))) ((lambda () ~expr1) ~@(map (lambda (e) `(lambda () ~e)) exprs))))
 
+;## Function: pmap'
+;# pmap' : (any -> any) -> collection -> list
+;# Parallel map. Returns a (lazy) list of delays.
+(define (pmap' f xs)
+  (map
+    (lambda (x) (delay (lambda () (f x))))
+    xs))
+
+;## Function: pmap
+;# pmap : (any -> any) -> collection -> list
+;# Parallel map. Like pmap', but returns values, not delays.
+(define (pmap f xs)
+  (map eager
+    (map
+      (lambda (x) (delay (lambda () (f x))))
+      xs)))
+
 ;## Macro: plet
 ;# plet : expr -> [expr]* -> expr
 ;# Parallel let. Supports destructuring
@@ -2121,4 +2149,5 @@
 (load! "set.lyra")
 
 (cons 'core (list (import! "lyra.core.string", "") (import! "lyra.core.vector" "") (import! "lyra.core.set" "")))
+
 

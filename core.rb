@@ -56,7 +56,7 @@ RATIO_TYPE = TypeName.new "::rational", 13
 ERROR_TYPE = TypeName.new "::error", 14
 CHAR_TYPE = TypeName.new "::char", 15
 KEYWORD_TYPE = TypeName.new "::keyword", 16
-ALIAS_TYPE = TypeName.new "::alias", 17
+#ALIAS_TYPE = TypeName.new "::alias", 17
 DELAY_TYPE = TypeName.new "::delay", 18
 
 def type_of(x)
@@ -96,8 +96,8 @@ def type_of(x)
     ERROR_TYPE
   elsif x.is_a? Keyword
     KEYWORD_TYPE
-  elsif x.is_a? Alias
-    ALIAS_TYPE
+#  elsif x.is_a? Alias
+#    ALIAS_TYPE
   elsif x.is_a? LyraDelay
     DELAY_TYPE
   else
@@ -569,13 +569,15 @@ def setup_core_functions
     end
     median.call(res) }
 
+  add_fn(:sqrt, 1) { |n| Math.sqrt(n) }
+
   add_fn(:ljust, 2) { |x, n| elem_to_s(x).ljust(n) }
 
   add_fn_with_env(:"apply-to", 2) { |xs, env| first(xs).call(second(xs).force, env) }
 
   [NOTHING_TYPE, BOOL_TYPE, VECTOR_TYPE, MAP_TYPE, LIST_TYPE, FUNCTION_TYPE,
    INTEGER_TYPE, FLOAT_TYPE, RATIO_TYPE, SET_TYPE, TYPE_NAME_TYPE, STRING_TYPE,
-   SYMBOL_TYPE, BOX_TYPE, ERROR_TYPE, CHAR_TYPE, KEYWORD_TYPE, ALIAS_TYPE,
+   SYMBOL_TYPE, BOX_TYPE, ERROR_TYPE, CHAR_TYPE, KEYWORD_TYPE,
    DELAY_TYPE].each do |t|
     add_var t.to_sym, t
   end

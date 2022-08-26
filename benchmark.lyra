@@ -140,6 +140,38 @@
 (define (find-first-with-mp-5 p)
   (cadar (drop-while (lambda (mp) (< (car mp) 5)) (map (lambda (n) (list (p n) n)) (iterate inc 1)))))
 
+; Calculate all solutions for the nqueens-problem.
+; Format: (3 1 4 2) (for a 4x4 field with `(queens 8)`) means 
+;         - - x -
+;         x - - -
+;         - - - x
+;         - x - -
+; For the benchmark, we use the size function.
+;   (size (queens 4)) => 2 ; ((3 1 4 2) (2 4 1 3))
+;   (size (queens 8)) => 92
+; Source: http://albertnetymk.github.io/2018/02/16/queens/
+(define (queens n)
+  (let ((one-to-n (xrange 1 (inc n)))
+        (init-board (list (list '() one-to-n)))
+        (queens-loop
+          (lambda* qloop (boards counter)
+            (if (= counter n)
+              (filter id boards)
+              (queens-loop (mapcat expand boards) (inc counter)))))
+        (expand
+          (lambda' qexpand ((board candidates))
+            (for ((x candidates)
+                  (:when (safe x board)))
+              [(cons x board) (remove (partial eq? x) candidates)])))
+        (safe
+          (lambda* qsafe (x board)
+            (all? id
+              (for (((n0 c) (zip-to-index board))
+                    (:let ((n (inc n0)))))
+                (and (/= x (+ c n))
+                     (/= x (- c n))))))))
+    (map first (queens-loop init-board 0))))
+
 
 (defmacro (test-performance text expr)
   (list 'println! (list 'string-concat (list 'ljust text 50) (list '->string (list 'measure! 'runs (list 'lambda () expr))))))
@@ -174,19 +206,29 @@
 (test-performance "lazy sequences" (->> -500 (iterate inc) (filter (lambda (n) (> n 0))) (map inc) (filter odd?) (map inc) (map (partial * 211)) (remove (lambda (n) (= (rem n 5) 0))) (take 50)))
 
 (load! "core/sort.lyra")
-(import! "lyra.core.sort" ""
+(import! "lyra.core.sort" "")
 (let ((sequence (reverse (range 0 5000))))
   (test-performance "Sort 5000 elements:" (sort sequence)))
 
 (load! "core/random.lyra")
-(import! "lyra.core.sort" "")
+(import! "lyra.core.random" "")
 (let ((sequence (range 0 5000)))
   (test-performance "Shuffle 5000 elements:" (shuffle sequence 0xC0FFEE)))
 
 (test-performance "9-billion-names (25):" (9-billion-names 25))
 
 (test-performance "Lots of recur:" (find-first-with-mp-5 multiplicative-persistance-recur))
-(test-performance "Lots of tail recursion" (find-first-with-mp-5 multiplicative-persistance-tr))
+(test-performance "Lots of tail recursion:" (find-first-with-mp-5 multiplicative-persistance-tr))
+
+; Do not use yet because the correctness has not been verified yet
+(comment
+(load! "examples/nbody.lyra")
+(import! "examples.nbody" "nbody")
+(let*((bodies (nbody/make-bodies 16 0xDEAD10CC)))
+  (test-performance "nbody 2d (8 iter, 16 bodies):" (nbody/nb-loop 8 bodies)))
+)
+
+(test-performance "queens 6:" (size (queens 6)))
 )
 
 
