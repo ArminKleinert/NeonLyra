@@ -514,9 +514,16 @@ def setup_core_functions
   add_fn_with_env(:"import!", 2) do |xs, env|
     mod_name = xs.car.to_sym
     alias_name = xs.cdr.car
-    
-    mod = IMPORTED_MODULES.lazy.filter{|e|e.name == mod_name}.to_a.first
-    
+
+    mod = IMPORTED_MODULES.lazy
+
+    if mod.respond_to?(:filter)
+      mod = mod.filter{|e|e.name == mod_name}.to_a.first
+    else
+      # select is an older version of filter. It forces the creation of an array and does not preserve  the lazyness of the Enumerable.
+      mod = mod.select{|e|e.name == mod_name}.first
+    end
+
     if !mod.nil?
       binds = mod.bindings
       ttt = []
