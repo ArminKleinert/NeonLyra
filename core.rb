@@ -217,6 +217,21 @@ def string_to_chars(s)
   s.is_a?(String) ? s.chars.map { |c| LyraChar.conv(c) || "\0" } : nil
 end
 
+def apply_op_to_list(xs, &op)
+  unless xs.empty?
+    until xs.size <= 1
+      x = xs[0]
+      y = xs[1]
+      xs = xs[1..-1]
+
+      unless yield(x, y)
+        return false
+      end
+    end
+  end
+  true
+end
+
 # Sets up the core functions and variables. The functions defined here are
 # of the type NativeLyraFn instead of LyraFn. They can not make use of tail-
 # recursion and are supposed to be very simple.
@@ -261,13 +276,13 @@ def setup_core_functions
   # "Primitive" operators. They are overridden in the core library of
   # Lyra as `=`, `<`, `>`, ... and can be extended there later on for
   # different types.
-  add_fn(:"=", 2) { |x, y| lyra_buildin_eq?(x, y) }
-  add_fn(:"/=", 2) { |x, y| !lyra_buildin_eq?(x, y) }
+  add_fn(:"=", 1, -1) { |*xs| apply_op_to_list(xs, &method(:lyra_buildin_eq?)) }
+  add_fn(:"/=", 1, -1) { |*xs| !apply_op_to_list(xs, &method(:lyra_buildin_eq?)) }
   add_fn(:"ref=", 2) { |x, y| x.object_id == y.object_id }
-  add_fn(:"<", 2) { |x, y| atom?(x) && atom?(y) ? x < y : false }
-  add_fn(:">", 2) { |x, y| atom?(x) && atom?(y) ? x > y : false }
-  add_fn(:"<=", 2) { |x, y| atom?(x) && atom?(y) ? x <= y : false }
-  add_fn(:">=", 2) { |x, y| atom?(x) && atom?(y) ? x >= y : false }
+  add_fn(:"<", 1, -1) { |*xs| apply_op_to_list(xs, &:<) }
+  add_fn(:">", 1, -1) { |*xs| apply_op_to_list(xs, &:>) }
+  add_fn(:"<=", 1, -1) { |*xs| apply_op_to_list(xs, &:<=) }
+  add_fn(:">=", 1, -1) { |*xs| apply_op_to_list(xs, &:>=) }
   add_fn(:"+", 1, -1) { |*xs| xs.inject(&:+) }
   add_fn(:"-", 1, -1) { |*xs| xs.size == 1 ? -xs[0] : xs.inject(&:-) }
   add_fn(:"*", 1, -1) { |*xs| xs.inject(&:*) }

@@ -2790,9 +2790,9 @@
       (loop ((a 1) (b 2) (c 3) (res 0))
         (cond
           (= a 0) res
-          (= b 0) (recur (- a 1) c a (v+ a b c res))
-          (= c 0) (recur a (- b 1) b (v+ a b c res))
-          else (recur a b (- c 1) (v+ a b c res)))))
+          (= b 0) (recur (- a 1) c a (+ a b c res))
+          (= c 0) (recur a (- b 1) b (+ a b c res))
+          else (recur a b (- c 1) (+ a b c res)))))
 
     (not (loop ()))
     (loop () #t)
