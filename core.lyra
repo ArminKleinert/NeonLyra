@@ -1,5 +1,5 @@
 (module lyra.core
-  (cond lambda T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? seq? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf split-at split-unless split-if take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat v+ v- v* v/ v% caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples partition-all xrange succ try count-by most? loop1 loop xcons v= v/= v< v> v<= v>= partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at quasiquote lazy-seq partition-by plet let lambda' conj take-nth interleave destructure name compute*-> compute-> par par' pmap' pmap define* eval-seq!)
+  (cond lambda T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? seq? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf split-at split-unless split-if take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples partition-all xrange succ try count-by most? loop1 loop xcons partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at quasiquote lazy-seq partition-by plet let lambda' conj take-nth interleave destructure name compute*-> compute-> par par' pmap' pmap define* eval-seq!)
 
 ;;; SECTION: Some core things
 
@@ -1183,61 +1183,6 @@
   (if (list? (car xs))
     (apply-to list-concat (cons x xs))
     (foldr1 append (cons x xs))))
-
-;## Function: v=
-;# v= : any -> [any]* -> bool
-;# Variadic version of = 
-(define (v= x & xs) (cond (empty? xs) #t (= x (car xs)) (apply-to v= (cdr xs)) #f))
-
-;## Function: v/=
-;# v/= : any -> [any]* -> bool
-;# Variadic version of /= 
-(define (v/= x & xs) (unique? (cons x xs)))
-
-;## Function: v<
-;# v< : any -> [any]* -> bool
-;# Variadic version of <
-(define (v< x & xs) (cond (empty? xs) #t (< x (car xs)) (apply-to v< (cdr xs)) #f))
-
-;## Function: v>
-;# v> : any -> [any]* -> bool
-;# Variadic version of >
-(define (v> x & xs) (cond (empty? xs) #t (> x (car xs)) (apply-to v> (cdr xs)) #f))
-
-;## Function: v<=
-;# v<= : any -> [any]* -> bool
-;# Variadic version of <= 
-(define (v<= x & xs) (cond (empty? xs) #t (<= x (car xs)) (apply-to v<= (cdr xs)) #f))
-
-;## Function: v>=
-;# v>= : any -> [any]* -> bool
-;# Variadic version of = 
-(define (v>= x & xs) (cond (empty? xs) #t (>= x (car xs)) (apply-to v>= (cdr xs)) #f))
-
-;## Function: v+
-;# v+ : any -> [any]* -> any
-;# Variadic version of +
-(define (v+ x & xs) (foldl + x xs))
-
-;## Function: v-
-;# v- : any -> [any]* -> any
-;# Variadic version of -
-(define (v- x & xs) (if (empty? xs) (- 0 x) (foldl - x xs)))
-
-;## Function: v*
-;# v* : any -> [any]* -> any
-;# Variadic version of *
-(define (v* x & xs) (foldl * x xs))
-
-;## Function: v/
-;# v/ : any -> [any]* -> any
-;# Variadic version of /
-(define (v/ x & xs) (foldl / x xs))
-
-;## Function: v%
-;# v% : any -> [any]* -> any
-;# Variadic version of rem
-(define (v% x & xs) (foldl rem x xs))
 
 ;## Function: divmod
 ;# divmod : any -> any -> list

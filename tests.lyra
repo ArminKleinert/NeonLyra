@@ -160,8 +160,8 @@
     (eq? [1 2] (apply concat [[1] [2]]))
     (eq? '(0 (1) (2)) (concat '(0) '((1) (2))))
     (eq? '(0 1 2) (apply concat '(0) (list (list 1) (list 2))))
-    (eq? 20 (apply v+ 1 2 3 '(2 3 4 5)))
-    (eq? 15 (apply v+ '(1 2 3 4 5)))))
+    (eq? 20 (apply + 1 2 3 '(2 3 4 5)))
+    (eq? 15 (apply + '(1 2 3 4 5)))))
 
 (define (test-quote)
   (quote (/ 9 0))
@@ -181,8 +181,7 @@
     (eq? '(1 2 3) `(1 2 3))
     (eq? '(1 3 4) `(1 ~(+ 1 2) 4))
     (eq? '(1 2 3 4) `(1 ~@(list 2 3) 4))
-    (eq? '(1 2 3 4) `(1 ~@(list 2 3) 4))
-    ))
+    (eq? '(1 2 3 4) `(1 ~@(list 2 3) 4))))
 
 (define (test-gensym)
   (do-test!
@@ -362,7 +361,7 @@
     (not (<= 1.2 0.5))
     (<= 1 1)
     (<= "" "")
-    
+
     (≤ 1 2)
     (≤ -1 0)
     (≤ "" "a")
@@ -386,7 +385,7 @@
     (not (>= 0.5 1.2))
     (>= 1 1)
     (>= "" "")
-    
+
     (≥ 2 1)
     (≥ 0 -1)
     (≥ "a" "")
@@ -406,50 +405,15 @@
     (= 1 (+ 0.5 0.5))
     (= 1.5 (+ 0.5 1))
     (= 6/5r (+ 3/5r 3/5r))
-    (= 11/5r (+ 6/5r 1))))
+    (= 11/5r (+ 6/5r 1))
 
-(define (test-v+)
-  (do-test!
-    (= 1 (v+ 1))
-    (= 19 (v+ 1 1 17))
-    (= 3 (v+ 2 1))
-    (= 5 (v+ 2 3))
-    (= 2.5 (v+ 0.5 0.5 0.5 0.5 0.5))
-    (= 3 (v+ 0.5 1 0.5 1))
-    (= 6/5r (v+ 3/5r 3/5r))))
-
-(define (test-v-)
-  (do-test!
-    (= -1 (v- 1))
-    (= -17 (v- 1 1 17))
-    (= 1 (v- 2 1))
-    (= -1 (v- 2 3))
-    (= -1.5 (v- 0.5 0.5 0.5 0.5 0.5))
-    (= -2 (v- 0.5 1 0.5 1))))
-
-(define (test-v*)
-  (do-test!
-    (= 1 (v* 1))
-    (= 17 (v* 1 1 17))
-    (= -2 (v* 2 -1))
-    (= 6 (v* 2 3))
-    (= 0.03125 (v* 0.5 0.5 0.5 0.5 0.5))
-    (= 1 (v* 0.5 2 0.5 2))))
-
-(define (test-v/)
-  (do-test!
-    (= 1 (v/ 1))
-    (= 0.125 (v/ 1.0 1 8))
-    (= -2.0 (v/ 2 -1.0))
-    (= 1.0 (v/ 2 2.0))
-    (= 8.0 (v/ 0.5 0.5 0.5 0.5 0.5))
-    (= 0.25 (v/ 0.5 2 0.5 2))))
-
-(define (test-v%)
-  (do-test!
-    (= 2 (v% 2 10 3))
-    (= 0.0 (v% 0.5 0.5))
-    (= 0.0 (v% 10 2))))
+    (= 1 (+ 1))
+    (= 19 (+ 1 1 17))
+    (= 3 (+ 2 1))
+    (= 5 (+ 2 3))
+    (= 2.5 (+ 0.5 0.5 0.5 0.5 0.5))
+    (= 3 (+ 0.5 1 0.5 1))
+    (= 6/5r (+ 3/5r 3/5r))))
 
 (define (test--)
   (do-test!
@@ -459,7 +423,14 @@
     (= 0 (- 0.5 0.5))
     (= -0.5 (- 0.5 1))
     (= 0/1r (- 3/5r 3/5r))
-    (= 1/1r (- 6/5r 1/5r))))
+    (= 1/1r (- 6/5r 1/5r))
+
+    (= -1 (- 1))
+    (= -17 (- 1 1 17))
+    (= 1 (- 2 1))
+    (= -1 (- 2 3))
+    (= -1.5 (- 0.5 0.5 0.5 0.5 0.5))
+    (= -2 (- 0.5 1 0.5 1))))
 
 (define (test-*)
   (do-test!
@@ -471,7 +442,13 @@
     (= 0/1r (* 3/5r 0))
     (= 3/5r (* 3/5r 1))
     (= 6/5r (* 3/5r 2))
-    ))
+
+    (= 1 (* 1))
+    (= 17 (* 1 1 17))
+    (= -2 (* 2 -1))
+    (= 6 (* 2 3))
+    (= 0.03125 (* 0.5 0.5 0.5 0.5 0.5))
+    (= 1 (* 0.5 2 0.5 2))))
 
 (define (test-/)
   (do-test!
@@ -479,7 +456,14 @@
     (= 0 (/ 1 10))
     (= 0.1 (/ 1 10.0))
     (= 2 (/ 1 0.5))
-    (= 4 (/ 1 0.25))))
+    (= 4 (/ 1 0.25))
+
+    (= 1 (/ 1))
+    (= 0.125 (/ 1.0 1 8))
+    (= -2.0 (/ 2 -1.0))
+    (= 1.0 (/ 2 2.0))
+    (= 8.0 (/ 0.5 0.5 0.5 0.5 0.5))
+    (= 0.25 (/ 0.5 2 0.5 2))))
 
 (define (test-rem)
   (do-test!
@@ -489,7 +473,11 @@
     (= 0 (rem 1 0.5))
     (= 0 (rem 1 0.25))
     (= 0.125 (rem 1/8r 0.25))
-    (= 0.125 (rem 1/8r 0.25))))
+    (= 0.125 (rem 1/8r 0.25))
+
+    (= 2 (rem 2 10 3))
+    (= 0.0 (rem 0.5 0.5))
+    (= 0.0 (rem 10 2))))
 
 (define (test-inc)
   (do-test!
@@ -1864,8 +1852,8 @@
   (do-test!
     (= 15 (foldl-indexed nothing 15 '()))
     (= 10 (foldl-indexed (lambda(s e i) (+ s i)) 0 '(1 2 3 4 5)))
-    (= 25 (foldl-indexed (lambda(s e i) (v+ s e i)) 0 '(1 2 3 4 5)))
-    (= 30 (foldl-indexed (lambda(s e i) (v+ s e i)) 5 '(1 2 3 4 5)))))
+    (= 25 (foldl-indexed (lambda(s e i) (+ s e i)) 0 '(1 2 3 4 5)))
+    (= 30 (foldl-indexed (lambda(s e i) (+ s e i)) 5 '(1 2 3 4 5)))))
 
 (define (test-foldr)
   (do-test!
@@ -1891,8 +1879,8 @@
   (do-test!
     (= 15 (foldr-indexed nothing 15 '()))
     (= 10 (foldr-indexed (lambda(e s i) (+ s i)) 0 '(1 2 3 4 5)))
-    (= 25 (foldr-indexed (lambda(e s i) (v+ s e i)) 0 '(1 2 3 4 5)))
-    (= 30 (foldr-indexed (lambda(e s i) (v+ s e i)) 5 '(1 2 3 4 5)))))
+    (= 25 (foldr-indexed (lambda(e s i) (+ s e i)) 0 '(1 2 3 4 5)))
+    (= 30 (foldr-indexed (lambda(e s i) (+ s e i)) 5 '(1 2 3 4 5)))))
 
 (define (test-repeat)
   (do-test!
@@ -2040,9 +2028,9 @@
 
 (define (test-v-zip-with)
   (do-test!
-    (eq? '(12 15 18) (v-zip-with v+ '((1 2 3) (4 5 6) (7 8 9))))
-    (eq? '(12 10 12) (v-zip-with v+ '((1 2 3) (4) (7 8 9))))
-    (eq? '(12 15 18 10) (v-zip-with v+ '((1 2 3) (4 5 6 10) (7 8 9))))
+    (eq? '(12 15 18) (v-zip-with + '((1 2 3) (4 5 6) (7 8 9))))
+    (eq? '(12 10 12) (v-zip-with + '((1 2 3) (4) (7 8 9))))
+    (eq? '(12 15 18 10) (v-zip-with + '((1 2 3) (4 5 6 10) (7 8 9))))
 
     (eq? '((1 4 7) (2 5 8) (3 6 9)) (v-zip-with list '((1 2 3) (4 5 6) (7 8 9))))
     (eq? '((1 4 7) (2 8) (3 9)) (v-zip-with list '((1 2 3) (4) (7 8 9))))
@@ -2430,7 +2418,7 @@
 
 (define (test-case-lambda)
   (let* ((l (case-lambda
-            ((a b c d & xs) (cons (v+ a b c d) xs))
+            ((a b c d & xs) (cons (+ a b c d) xs))
             ((x & xs) (cons (+ x 1) xs))
             (z '())))
         (l1 (case-lambda
@@ -2468,7 +2456,7 @@
 
 (define (test-case-lambda*)
   (let* ((l (case-lambda* l
-            ((a b c d & xs) (cons (v+ a b c d) xs))
+            ((a b c d & xs) (cons (+ a b c d) xs))
             ((x & xs) (cons (+ x 1) xs))
             (z '())))
         (l1 (case-lambda* l1
@@ -3761,8 +3749,7 @@
   'test-partial 'test-nothing 'test-lazy-seq
   'test-box 'test-unbox 'test-set-box 'test-read-string 'test-eval
   'test-measure 'test-= 'test-/= 'test-< 'test-> 'test-<= 'test->= 'test-+
-  'test-- 'test-* 'test-/ 'test-rem 'test-v+ 'test-v- 'test-v* 'test-v/
-  'test-v% 'test-set? 'test-map? 'test-inc 'test-dec 'test-min 'test-max
+  'test-- 'test-* 'test-/ 'test-rem 'test-set? 'test-map? 'test-inc 'test-dec 'test-min 'test-max
   'test-map 'test-not 'test-and 'test-or 'test-bit-and 'test-bit-or
   'test-bit-xor 'test-bit-shl 'test-bit-shr 'test-defined? 'test-nothing?
   'test-null? 'test-collection? 'test-sequence? 'test-list? 'test-vector?
