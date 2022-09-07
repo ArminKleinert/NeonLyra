@@ -236,7 +236,24 @@ def list_append(*lists)
   if lists.empty?
     EmptyList.instance
   else
-    lists.map(&:to_cons_list).inject { |l0, l1| ListPair.new(l0, l1) }
+=begin
+    res = list
+    until lists.empty?
+      f = lists[0].to_cons_list
+      if f.empty?
+        nil
+      elsif f.cdr.empty?
+        res = cons(f.car, res)
+      else
+        res = ListPair.new(f, res)
+      end
+      lists = lists[1..-1]
+    end
+    res
+=end
+    lists.map(&:to_cons_list).inject do |l0, l1|
+      ListPair.new(l0, l1)
+    end
   end
 end
 
