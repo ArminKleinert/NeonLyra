@@ -1,53 +1,148 @@
 (module lyra.core.string
   (string? string-size string-range string-nth string-add string-append string-concat string-includes? string-eq? string-split-at string-chars strcat)
 
+;## Function: string?
+;# string? : any -> bool
 (define string? buildin-string?)
 
+;## Function: string-size
+;# string-size : string -> int
 (define string-size buildin-string-size)
+
+;## Function: string-range
+;# string-range : int -> int -> string -> string
+;# Returns a substring `(string-range 2 5 text)` returns the third through 5th character.
+;# `(string-range 2 4 "abcde") ;=> "cd"`
 (define string-range buildin-string-range)
+
+;## Function: string-nth
+;# string-nth : string -> int -> char
 (define string-nth buildin-string-nth)
-(define string-add buildin-string-add)
-(define string-append buildin-string-append)
+
+;## Function: string-add
+;# string-add : string -> any -> string
+(define string-add (lambda (s x) (buildin-string-add s (->string x))))
+
+;## Function: string-append
+;# string-append : string -> string -> string
+(define string-append (lambda (s x) (buildin-string-append s (->string x))))
+
+;## Function: string-includes?
+;# string-includes? : string -> string -> bool
 (define string-includes? buildin-string-includes?)
+
+;## Function: string-eq?
+;# string-eq? : string -> string -> bool
+;# String equality check.
 (define string-eq? buildin-string-eq?)
+
+;## Function: string-split-at
+;# string-split-at : string -> string -> list
 (define string-split-at buildin-string-split-at)
+
+;## Function: string-chars
+;# string-chars : string -> list
 (define string-chars buildin-string-chars)
 
+;## Function: strcat
+;# strcat : string -> any -> string
+;# Similar to string-add, but uses buildin ->string for the second argument.
 (define strcat buildin-strcat)
 
-; Similar to concat, but turns each element into a string.
-; Required for xs: foldr1, map-eager
-; Required for elements of xs: ->string
+;## Function: string-concat
+;# string-concat : list -> string
+;# Similar to concat, but turns each element into a string.
+;# Required for xs: foldr1, map-eager
+;# Required for elements of xs: ->string
 (define (string-concat & xs)
   (or (foldr1 strcat (map-eager ->string xs)) ""))
 
+;## Function: nth#string
+;# nth#string : 
 (def-impl ::string nth buildin-nth)
+
+;## Function: contains?#string
+;# contains?#string : 
 (def-impl ::string contains? buildin-contains?)
+
+;## Function: append#string
+;# append#string : 
 (def-impl ::string append buildin-append)
+
+;## Function: ->set#string
+;# ->set#string : 
 (def-impl ::string ->set buildin->set)
+
+;## Function: ->map#string
+;# ->map#string : 
 (def-impl ::string ->map buildin->map)
+
+;## Function: size#string
+;# size#string : 
 (def-impl ::string size string-size)
+
+;## Function: first#string
+;# first#string : 
 (def-impl ::string first (lambda (v) (string-nth v 0)))
+
+;## Function: rest#string
+;# rest#string : 
 (def-impl ::string rest (lambda (v) (string-range v 1 (string-size v))))
+
+;## Function: foldr#string
+;# foldr#string : (character -> any -> any) -> any -> string -> any
 (def-impl ::string foldr (lambda (f v s) (buildin-foldr f v (string-chars s))))
+
+;## Function: foldl#string
+;# foldl#string : (any -> character -> any) -> any -> string -> any
 (def-impl ::string foldl (lambda (f v s) (buildin-foldl f v (string-chars s))))
+
+;## Function: eq?#string
+;# eq?#string : string -> string -> bool
 (def-impl ::string eq? string-eq?)
+
+;## Function: add#string
+;# add#string : string -> any -> string
 (def-impl ::string add (lambda (s o) (string-add s (->string o))))
+
+;## Function: add-front#string
+;# add-front#string : string -> any -> string
 (def-impl ::string add-front (lambda (s o) (string-add (string-add "" (->string o)) s)))
+
+;## Function: ->int#string
+;# ->int#string : string -> int
 (def-impl ::string ->int buildin->int)
+
+;## Function: >rational#string
+;# >rational#string : string -> rational
 (def-impl ::string ->rational buildin->rational)
+
+;## Function: ->float#string
+;# ->float#string : string -> float
 (def-impl ::string ->float buildin->float)
 
-; Implementations for ->vector and ->list for strings.
+;## Function: ->vector#string
+;# ->vector#string : string -> vector
+;# Turns a string into a vector of characters.
 (def-impl ::string ->vector string-chars)
+
+;## Function: ->list#string
+;# ->list#string : string -> list
+;# Turns a string into a list of characters.
 (def-impl ::string ->list (lambda (s) (->list (string-chars s))))
 
-; Strings are sequences.
-(def-impl ::string sequence? (lambda (_) #t))
+;## Function: sequence?#string
+;# sequence?#string : string -> bool
+;# Strings are sequences, so this always returns #t.
+(def-impl ::string sequence? T)
 
-; Special implementation for prepend for strings.
+;## Function: prepend#string
+;# prepend#string : string -> any -> string
+;# Special implementation for prepend for strings.
 (def-impl ::string prepend (lambda (s o) (string-append (->string o) s)))
 
+;## Function: succ#string
+;# succ#string : string -> string
 (def-impl ::string succ
   (lambda (s)
     (let ((len (- (string-size s) 1)))

@@ -1,597 +1,2099 @@
-# Core functions and expressions
+## Macros
+
+### Macro `par'` 
+```
+  par' : [expr]* -> expr
+  
+  Pure? Yes
+  
+  Takes a list of expressions and wraps each in a lambda. These functions are then evaluated by the par function.
+```
+### Macro `par-with-timeout'` 
+```
+  par-with-timeout' : expr -> [expr]* -> expr
+  
+  Pure? Yes
+  
+  Takes a number (timeout) and a list of expressions and wraps each in a lambda. These functions are then evaluated by the par-with-timeout function. Timeouts <= 0 mean an infinite timeout. (Might as well use par')
+```
+### Macro: `->` 
+```
+  -> : expr -> [expr]* -> expr
+  
+  Pure? Yes
+  
+  As in Clojure.
+```
+### Macro: `->>` 
+```
+  ->> : expr -> [expr]* -> expr
+  
+  Pure? Yes
+  
+  As in Clojure.
+```
+### Macro: `and` 
+```
+  and : expr -> expr -> expr
+  
+  Pure? Yes
+  
+  Macro for lazy `and`.
+   (and x y) returns y if x is #t or returns #f if x is not true.
+```
+### Macro: `as->` 
+```
+  as-> : symbol -> expr -> [expr]* -> expr
+  
+  Pure? Yes
+  
+  As in Clojure.
+```
+### Macro: `begin` 
+```
+  begin : [expr]* -> expr
+  
+  Pure? Yes
+  
+  Perform operations sequencially.
+```
+### Macro: `case` 
+```
+  case : expr -> [any, expr]* -> expr
+  
+  Pure? Yes
+  
 
 ```
-#     : Number of arguments.
-Pure? : Does the function have no sideeffects?
-Impl? : Is the function implemented?
-Gen?  : Is the function generic?
+### Macro: `case-lambda` 
 ```
-
-### File: core.rb, evaluate.rb
-
+  case-lambda : (expr, expr) -> [(expr, expr)]* -> expr
+  
+  Pure? Yes
+  
+  case-lambda* without a necessary name. Supports destructuring.
 ```
-Name                 |  #  |Pure?|Gen? | 
----------------------+-----+-----+-----+------------------------------------------------------------
-define               | >=2 |  x  |     | Different formats:
-                     |     |     |     | (define sym val) Sets the value for sym to val in the 
-                     |     |     |     | module environment. (value-define)
-                     |     |     |     | (define (sig) & body) Defines a function. (function-define)
-def-generic          | 3   |  x  |     | Defines a generic function. It takes a symbol, function 
-                     |     |     |     | signature and a fallback function.
-def-impl             | 3   |  x  |     | Defines implementations for generic functions.
-def-macro            | >=1 |  x  |     | Defines a macro. (See readme)
-def-type             | >=1 |  x  |     | Defines a new type. This adds a couple of other functions
-                     |     |     |     | automatically. (See readme)
-lambda*              | >=3 |  x  |     | Creates a function with a name. The name is bound
-                     |     |     |     | inside the function, but not outside of it.
-lambda               | >=2 |  x  |     | Creates an anonymous function.
-cond                 | >=1 |  x  |     | 
-if                   | 3   |  x  |     | 
-let                  | >=1 |  x  |     | Sets variables for a scope. References are looked up from
-                     |     |     |     | the old environment.
-let*                 | >=1 |  x  |     | Sets variables for a scope. Works sequentially.
-quote                | 1   |  x  |     | Return the argument without evaluating it.
-recur                | any |  x  |     | Explicit tail-recursion. Only valid in positions that can
-                     |     |     |     | trigger implicit tail-recursion.
-                     |     |     |     | 
-try*                 | 2   |  x  |     | Try to execute something and capture a potential error 
-                     |     |     |     | in the second form.
-catch                | >=2 |  x  |     | Part of try* and only valid inside it. The first argument
-                     |     |     |     | is a name for the error, the second is a validation
-                     |     |     |     | function and the rest are what happens to the error.
-                     |     |     |     | (try* <error> (catch (lambda (x) #t) e 'saved)
-                     |     |     |     | (try* <error> (catch (lambda (x) #f) e ..) ; Fails
-                     |     |     |     | 
-alias                | 1   |  x  |     | Creates an Alias object.
-                     |     |     |     | 
-gensym               | 0-1 |  x  |     | 
-module               | >=1 |  x  |     | 
-memoize              | 1   |  x  |     | 
-seq                  | 1   |  x  |     | Returns a equence for all non-empty collections, Nothing
-                     |     |     |     | otherwise.
-                     |     |     |     | 
-lazy                 | 1   |  x  |     | 
-eager                | 1   |  x  |     | 
-partial              | >=1 |  x  |     | 
-lazy-seq             | 2   |  x  |     | Creates a lazy sequence. First takes an element, then
-                     |     |     |     | the generator body:
-                     |     |     |     |   (define (repeat e) (lazy-seq e (repeat e)))
-                     |     |     |     | 
-nothing              | any |  x  |     | Swallows any numer of arguments and returns the Nothing
-                     |     |     |     | object.
-unwrap               | 1   |  x  |  x  | Gets the value of a Box, Alias or gets the value-vector of
-                     |     |     |     | a user-defined type object.
-                     |     |     |     | 
-box                  | 1   |  x  |     | Create a box.
-unbox                | 1   |  x  |     | Get the contents of a Box.
-set-box!             | 2   |  x  |     | 
-                     |     |     |     | 
-load!                | >=1 |     |     | Load files. Attention: load! always uses the global
-                     |     |     |     | environment, not the local one.
-                     |     |     |     |   (load! "core/random.lyra" "tests.lyra")
-read-string          | 1   |  x  |     | Parses a string into code.
-eval!                | 1   |     |     | Executes an object as code.
-                     |     |     |     | 
-measure!             | 2   |  x  |     | Takes an integer n and a function f. Executes f n
-                     |     |     |     | times and returns the median time of the execution in
-                     |     |     |     | milliseconds.
-                     |     |     |     | 
-=                    | 2   |  x  |     | Equality function for atoms. Compares references for
-                     |     |     |     | non-atoms.
-/=                   | 2   |  x  |     | 
-<                    | 2   |  x  |     | Comparison for atoms. Undefined for non-atoms.
->                    | 2   |  x  |     | Comparison for atoms. Undefined for non-atoms.
-<=                   | 2   |  x  |     | Comparison for atoms. Undefined for non-atoms.
->=                   | 2   |  x  |     | Comparison for atoms. Undefined for non-atoms.
-                     |     |     |     | 
-+                    | 2   |  x  |     | Addition for atoms. Nothing for non-atoms.
--                    | 2   |  x  |     | Subtraction for atoms. Nothing for non-atoms.
-*                    | 2   |  x  |     | Multiply for atoms. Nothing for non-atoms.
-/                    | 2   |  x  |     | Division for atoms. Nothing for non-atoms.
-rem                  | 2   |  x  |     | Modulo for atoms. Nothing for non-atoms.
-                     |     |     |     | 
-bit-and              | 2   |  x  |     | Bitwise-and for ints. Nothing for other types.
-bit-or               | 2   |  x  |     | Bitwise-or for ints. Nothing for other types.
-bit-xor              | 2   |  x  |     | Bitwise-xor for ints. Nothing for other types.
-bit-shl              | 2   |  x  |     | Bitwise-shift-left for ints. Nothing for other types.
-bit-shr              | 2   |  x  |     | Bitwise-shift-right for ints. Nothing for other types.
-                     |     |     |     | 
-defined?             | 1   |  x  |     | Checks whether or not a symbol is defined.
-nothing?             | 1   |  x  |     | True for the Nothing object.
-null?                | 1   |  x  |     | True for both Nothing and '().
-list?                | 1   |  x  |     | 
-vector?              | 1   |  x  |     | 
-int?                 | 1   |  x  |     | 
-float?               | 1   |  x  |     | 
-string?              | 1   |  x  |     | 
-symbol?              | 1   |  x  |     | 
-char?                | 1   |  x  |     | 
-boolean?             | 1   |  x  |     | 
-map?                 | 1   |  x  |     | 
-set?                 | 1   |  x  |     | 
-                     |     |     |     | 
-id                   | 1   |  x  |     | Returns the argument.
-id-fn                | 1   |  x  |     | Creates a function which always returns the object.
-hash                 | 1   |  x  |     | Returns the hash-code for an object
-                     |     |     |     | (reference for Boxes)
-                     |     |     |     | 
-list-size            | 1   |  x  |     | 
-car                  | 1   |  x  |     | 
-cdr                  | 1   |  x  |     | 
-cons                 | 2   |  x  |     | 
-                     |     |     |     | 
-vector               | any |  x  |     | 
-vector-size          | 1   |  x  |     | 
-vector-nth           | 2   |  x  |     | 
-vector-add           | 2   |  x  |     | 
-vector-append        | 2   |  x  |     | 
-vector-range         | 3   |  x  |     | 
-vector-includes?     | 2   |  x  |     | 
-vector-eq?           | 2   |  x  |     | 
-                     |     |     |     | 
-string-size          | 1   |  x  |     | 
-string-nth           | 2   |  x  |     | 
-string-append        | 2   |  x  |     | 
-string-includes?     | 2   |  x  |     | 
-string-eq?           | 2   |  x  |     | 
-                     |     |     |     | 
-iterate-seq          | 3   |  x  |     | Iterates a sequence with a function, accumular and the
-                     |     |     |     | sequence. The function takes 3 arguments: The accumulator,
-                     |     |     |     | the current element and the current index. Example:
-                     |     |     |     |   (iterate-seq (lambda (acc e idx) (+ acc e)) 0 sequence)
-                     |     |     |     | Attention! iterate-seq is optimized for vectors and 
-                     |     |     |     |   evaluates eagerly!
-iterate-seq-p        | 4   |  x  |     | Similar to iterate-seq, but the first argument is a
-                     |     |     |     | predicate. When the predicate returns a falsey value, the
-                     |     |     |     | iteration breaks.
-                     |     |     |     | Attention! iterate-seq-p is optimized for vectors and 
-                     |     |     |     |   evaluates eagerly!
-                     |     |     |     | 
-map-of               | any |  x  |     | 
-map-size             | 1   |  x  |     | 
-map-get              | 2   |  x  |     | 
-map-set              | 3   |  x  |     | 
-map-remove           | 2   |  x  |     | 
-map-keys             | 1   |  x  |     | 
-map-merge            | 2   |  x  |     | 
-                     |     |     |     | 
-set-of               | any |  x  |     | 
-set-size             | 1   |  x  |     | 
-set-add              | 2   |  x  |     | 
-set-union            | 2   |  x  |     | 
-set-difference       | 2   |  x  |     | 
-set-intersection     | 2   |  x  |     | 
-set-includes?        | 2   |  x  |     | 
-set-subset?          | 2   |  x  |     | 
-set-true-subset?     | 2   |  x  |     | 
-set-superset?        | 2   |  x  |     | 
-set-true-superset?   | 2   |  x  |     | 
-                     |     |     |     | 
-print!               | 1   |     |     | 
-println!             | 1   |     |     | 
-readln!              | 0   |     |     | 
-file-read!           | 1   |     |     | 
-file-write!          | 2   |     |     | 
-file-append!         | 2   |     |     | 
-                     |     |     |     | 
-is-a?                | 2   |  x  |     | Checks whether an object is of a certain type.
-                     |     |     |     | Example: (is-a? x ::integer)
-                     |     |     |     | 
-ljust                | 2   |  x  |     | Takes a string and a number. The string is then resized to
-                     |     |     |     | at least n characters by inserting spaces on the right
-                     |     |     |     | side.
+### Macro: `case-lambda*` 
 ```
-
-### File: core.lyra
+  case-lambda* : symbol -> (expr, expr) -> [(expr, expr)]* -> expr
+  
+  Pure? Yes
+  
+  Create a multi-function:
+  (define f (case-lambda* f
+    (() "0") ; 0 args
+    ((x) "1") ; 1 arg
+    ((x y) "2") ; 2 args
+    ((w x y z & zs) "4 or more") ; 4+ args
+    (default "3"))) ; Varargs going into a list called 'default
+  When called, the function decides which function to call by the number of arguments it got.
+  (list (f) (f 6) (f 6 7) (f 6 7 8 9) (f 5 4 3)) ; ("0" "1" "2" "4 or more" "3")
+```
+### Macro: `comment` 
+```
+  comment : [expr]* -> Nothing
+  
+  Pure? Yes
+  
+  Take any number arguments and return Nothing.
+```
+### Macro: `compute*->` 
+```
+  compute*-> : expr -> expr -> expr -> [expr]* -> expr
+  
+  Pure? Yes
+  
+  Similar to '->> but stops when the value becomes
+  Nothing or an exception is thrown.
+  if the value becomes nothing, default is returned.
+  if an error is thrown, error-default is returned
+    (compute*-> 'default 'error 1 inc inc inc)  ; => 4
+    (compute*-> 'default 'error 1 (+ 3) inc))   ; => 5
+    (compute*-> 'default 'error 1 ->list first) ; => default
+    (compute*-> 'default 'error 0 throw! inc)   ; => error
+    (compute*-> 'default 'error "r")            ; => "r"
+```
+### Macro: `compute->` 
+```
+  compute-> : expr -> [expr]* -> expr
+  
+  Pure? Yes
+  
+  Like compute*-> but the special cases all return Nothing.
+    (compute-> 1 inc inc inc)  ; => 4
+    (compute-> 1 (+ 3) inc))   ; => 5
+    (compute-> 1 ->list first) ; => Nothing
+    (compute-> 0 throw! inc)   ; => Nothing
+    (compute-> "r")            ; => "r"
+```
+### Macro: `cond` 
+```
+  cond : [expr]* -> expr
+  
+  Pure? Yes
+  
+  `if` with multiple arguments.
+  `(cond a b c d else e)` is equivalent to `(if a b (if c d (if else e Nothing)))`.
+  `(cond a b c d e)` if equivalent to `(if a b (if c d e))`.
+```
+### Macro: `condp` 
+```
+  condp : (any -> any -> bool) -> expr -> [(expr, expr)]* -> expr´
+  
+  Pure? Yes
+  
+  (let* ((f0 (lambda (e) (condp <= e  1 0  5 9  11))))
+    (f0 0) ; 0
+    (f0 1) ; 0
+    (f0 3) ; 9
+    (f0 6)) ; 11 ; default
+```
+### Macro: `def-memo` 
+```
+  def-memo : list|vector -> [expr]* -> (any* -> any)
+  
+  Pure? Yes
+  
+  define memoized function.
+```
+### Macro: `define*` 
+```
+  define* : [list|vector] -> [expr]* -> expr
+  
+  Pure? Yes
+  
+  Extended define.
+  Supports destructuring.
+  Will support keyword arguments in the future
+```
+### Macro: `for` 
+```
+  for : list -> expr -> expr
+  
+  Pure? Yes
+  
 
 ```
-Name                 |  #  |Pure?|Gen? | 
----------------------+-----+-----+-----+------------------------------------------------------------
-T                    | any |  x  |     | Takes any number of arguments and return #t.
-comment              | any |  x  |     | Takes any number of arguments without evaluating them
-                     |     |     |     | and returns Nothing.
-flip                 | 1   |  x  |     | Takes a function which takes 2 arguments and returns 
-                     |     |     |     | a new function which takes the same arguments reversed.
-fst                  | 2   |  x  |     | Take 2 arguments and return the first.
-snd                  | 2   |  x  |     | Take 2 arguments and return the second.
-compare              | 2   |  x  |  x  | Compares 2 variables x and y.
-                     |     |     |     |   x < y => -1
-                     |     |     |     |   x = y => 0
-                     |     |     |     |   x > y => 1
-                     |     |     |     | 
-list                 | any |  x  |     | Take any number of arguments and return them as a list.
-let1                 | 2   |  x  |     | Sets a single variable.
-defmacro             | >=1 |  x  |     | Alias for def-macro.
-                     |     |     |     | 
-size                 | 1   |  x  |  x  | Get the size of a collection. 
-first                | 1   |  x  |  x  | Get the first element of a collection.
-second               | 1   |  x  |  x  | Get the second element of a collection.
-                     |     |     |     | By default: (first (rest xs))
-rest                 | 1   |  x  |  x  | Get all but the first element of a collection.
-foldl                | 3   |  x  |  x  | Typical foldl.
-foldr                | 3   |  x  |  x  | Typical foldr.
-last                 | 1   |  x  |     | Get the last element of a collection.
-but-last             | 1   |  x  |     | Get all but the last element of a collection.
-empty?               | 1   |  x  |     | Check whether a collection is empty. #f by default.
-append               | 2   |  x  |  x  | Append 2 collections.
-add                  | 2   |  x  |  x  | Add a single element to a collection.
-contains?            | 2   |  x  |  x  | 
-included?            | 2   |  x  |     | Reverse of contains?.
-nth                  | 2   |  x  |  x  | 
-seq-eq?              | 2   |  x  |     | Comparison function for lists.
-eq?                  | 2   |  x  |  x  | General comparison function. Predefined as = for
-                     |     |     |     | non-collections. Same behavior as seq-eq? for collections.
-                     |     |     |     | 
-->symbol             | 1   |  x  |  x  | 
-->int                | 1   |  x  |  x  | 
-->float              | 1   |  x  |  x  | 
-->string             | 1   |  x  |  x  | 
-->bool               | 1   |  x  |  x  | 
-->list               | 1   |  x  |  x  | 
-->vector             | 1   |  x  |  x  | 
-->char               | 1   |  x  |  x  | 
-->map                | 1   |  x  |  x  | 
-->set                | 1   |  x  |  x  | 
-                     |     |     |     | 
-collection?          | 1   |  x  |  x  | True for lists, vectors, maps and sets, false for others.
-sequence?            | 1   |  x  |  x  | True if the input is a list or vector.
-number?              | 1   |  x  |  x  | 
-                     |     |     |     | 
-symbol               | 1   |  x  |     | Alias for ->symbol.
-not                  | 1   |  x  |     | 
-and                  | 2   |  x  |     | 
-or                   | 2   |  x  |     | 
-odd?                 | 1   |  x  |     | 
-even?                | 1   |  x  |     | 
-                     |     |     |     | 
-foldl1               | 2   |  x  |     | 
-foldl-indexed        | 3   |  x  |     | 
-foldr1               | 2   |  x  |     | 
-foldr-indexed        | 3   |  x  |     | 
-                     |     |     |     | 
-scanl                | 3   |  x  |     | As in Haskell.
-scanl1               | 2   |  x  |     | As in Haskell.
-scanr                | 3   |  x  |     | As in Haskell.
-scanr1               | 2   |  x  |     | As in Haskell.
-                     |     |     |     | 
-compose              | 2   |  x  |     | Given 2 functions f and g, makes a new function for
-                     |     |     |     | (f (g x))
-compose2             | 2   |  x  |     | Given 2 functions f and g, makes a new function for
-                     |     |     |     | (f (g x y))
-compose-and          | 2   |  x  |     | Given 2 functions f and g, makes a new function for
-                     |     |     |     | checking (and (f x) (g x))
-compose-or           | 2   |  x  |     | Given 2 functions f and g, makes a new function for
-                     |     |     |     | checking (or (f x) (g x))
-complement           | 1   |  x  |     | Returns given a function p, returns a function which
-                     |     |     |     | checks (not (p x)).
-                     |     |     |     | 
-begin                | any |  x  |     | 
-def-memo             | >=1 |  x  |     | A macro which defines a function and memoizes it.
-                     |     |     |     | 
-spread               | 1   |  x  |     | Takes a list and expands the last element.
-                     |     |     |     | (spread '(1 2 (1 2) (7 8))) => (1 2 (1 2) 7 8)
-apply                | >=1 |  x  |     | Takes a function and variadic arguments, calls spread on
-                     |     |     |     | the arguments and then applies the function.
-                     |     |     |     | 
-map                  | 2   |  x  |     | Lazy map. Returns a list.
-map-eager            | 2   |  x  |     | Eager map. Returns a list.
-mapv                 | 2   |  x  |     | Eager map. Returns a vector.
-map-indexed          | 2   |  x  |     | 
-mapv-indexed         | 2   |  x  |     | 
-map-while            | 3   |  x  |     | 
-map-until            | 3   |  x  |     | 
-maplist              | 2   |  x  |     | map but for the consecutive sublists. 
-                     |     |     |     | (maplist size '('a 'b 'c)) => (3 2 1)
-mapcar               | >=2 |  x  |     | Variadic map.
-mapcon               | 2   |  x  |     | Calls maplist, expects the result to be a sequence of 
-                     |     |     |     | lists and appends them.
-mapcat               | 2   |  x  |     | Calls map, expects the result to be a sequence of lists
-                     |     |     |     | and appends them.
-                     |     |     |     | 
-juxt                 | >=1 |  x  |     | (juxt f0 f1..) is the same as
-                     |     |     |     |    (lambda (x) (list (f0 x) (f1 x) ..))
-                     |     |     |     | Eg. ((juxt dec id inc) 1) ;=> (0 1 2)
-                     |     |     |     | 
-filter               | 2   |  x  |     | Lazy filter. Returns a list.
-filterv              | 2   |  x  |     | Eager filter. Returns a vector.
-filter-indexed       | 2   |  x  |     | 
-remove               | 2   |  x  |     | 
-remove-indexed       | 2   |  x  |     |  
-                     |     |     |     | 
-every-pred           | >=1 |  x  |     | Takes any number of predicate functions and returns a new 
-                     |     |     |     | function which checks if all those predicates are true on
-                     |     |     |     | a given element.
-                     |     |     |     | 
-fmap                 | 3   |  x  |     | filter, then map (like (filter p (map f xs)))
-mapf                 | 3   |  x  |     | map, then filter (like (map f (filter p xs)))
-                     |     |     |     | 
-take-drop            | 2   |  x  |     | Creates a list equal to
-                     |     |     |     |   (list (take n xs) (drop n xs))
-take-drop-while      | 2   |  x  |     | Creates a list equal to
-                     |     |     |     |   (list (take-while p xs) (drop-while p xs))
-take-drop-until      | 2   |  x  |     | Creates a list equal to
-                     |     |     |     |   (list (take-until p xs) (drop-until p xs))
-take                 | 2   |  x  |     | 
-take-while           | 2   |  x  |     | 
-take-until           | 2   |  x  |     | 
-drop                 | 2   |  x  |     | 
-drop-while           | 2   |  x  |     | 
-drop-until           | 2   |  x  |     | 
-                     |     |     |     | 
-all?                 | 2   |  x  |     | Checks whether a predicate is true for all elements in a 
-                     |     |     |     | list.
-none?                | 2   |  x  |     | Checks whether a predicate is true for no element in a 
-                     |     |     |     | list.
-any?                 | 2   |  x  |     | Checks whether a predicate is true for at least 1 element
-                     |     |     |     | in a list.
-                     |     |     |     | 
-zip-with             | 3   |  x  |     | 
-zip                  | 2   |  x  |     | (zip l0 l1) is equal to (zip-with list l0 l1)
-                     |     |     |     | (zip '(9 8 7) '(1 2 3)) => ((9 1) (8 2) (7 3))
-zip-to-index         | 1   |  x  |     | (zip-to-index '(5 4 3)) => ((0 5) (1 4) (2 3))
-v-zip-with           | 2   |  x  |     | zip-with but takes a sequence of sequences.
-                     |     |     |     | 
-split-by             | 2   |  x  |     | 
-split                | 2   |  x  |     | Take element and collection, split collection at each
-                     |     |     |     | occurance of the element.
-                     |     |     |     | 
-repeatedly           | 1   |  x  |     | 
-repeat               | 1   |  x  |     | Create an infinite sequence of the same element.
-iterate              | 2   |  x  |     | Infinite sequence as in Haskell:
-                     |     |     |     | iterate f e = e : iterate f (f e)
-                     |     |     |     | 
-va-all?              | >=1 |  x  |     | Variadic version of all?
-va-none?             | >=1 |  x  |     | Variadic version of none?
-va-any?              | >=1 |  x  |     | Variadic version of any?
-                     |     |     |     | 
-concat               | >=1 |  x  |     | Appends collections.
-string-concat        | >=1 |  x  |     | Appends strings.
-                     |     |     |     | 
-v+                   | >=1 |  x  |     | Variadic +
-v-                   | >=1 |  x  |     | Variadic - (if only 1 argument is given, it is negated)
-v*                   | >=1 |  x  |     | Variadic *
-v/                   | >=1 |  x  |     | Variadic /
-v%                   | >=1 |  x  |     | Variadic rem
-                     |     |     |     | 
-divmod               | 2   |  x  |     | (divmod x y) => (list (/ x y) (rem x y))
-                     |     |     |     | 
-constantly           | 1   |  x  |     | Takes an element x and returns a new function which, for any given input, returns x.
-const                | 1   |  x  |     | Alias for constantly
-                     |     |     |     | 
-reverse              | 1   |  x  |     | Reverse a list.
-sum                  | 1   |  x  |     | Sums the elements of a list. (0 if the list is empty)
-product              | 1   |  x  |     | Calculate the product of a list. (1 if empty)
-                     |     |     |     | 
-inc                  | 1   |  x  |     | Increases a number by 1.
-dec                  | 1   |  x  |     | Decreases a number by 1.
-min                  | 2   |  x  |     | Get minimum of 2 objects.
-max                  | 2   |  x  |     | Get maximum of 2 objects.
-minimum              | 1   |  x  |     | Get minimum of a list.
-maximum              | 1   |  x  |     | Get maximum of a list.
-                     |     |     |     | 
-range                | 2   |  x  |     | 
-indices-of           | 2   |  x  |     | 
-                     |     |     |     | 
-λ                    | >=2 |  x  |     | A fun macro which transforms into a lambda-form:
-                     |     |     |     | (λ x y . (+ x y)) becomes (lambda (x y) (+ x y))
-fact-seq             |     |     |     | An infinite list of the factorial numbers.
-                     |     |     |     | 
-->                   | >=1 |  x  |     | As in Clojure.
-->>                  | >=1 |  x  |     | As in Clojure.
-as->                 | >=2 |  x  |     | As in Clojure.
-                     |     |     |     | 
-case                 | >=1 |  x  |     | Similar to switch case.
-                     |     |     |     | Syntax: (case e c0 r0 c1 r1 ... cn rn default)
-                     |     |     |     | (case 1) ;=> Nothing
-                     |     |     |     | (case 1 #f) ;=> #f ; Default
-                     |     |     |     | (case 1 1 #t #f) ;=> #t ; Normal matching.
-                     |     |     |     | (case 1 '(1) #t #f) ;=> #t ; membership in collections.
-                     |     |     |     | (case 1 (partial = 1) #t #f) ;=> #t 
-                     |     |     |     | ; Function for matching.
-case-lambda          | >=0 |  x  |     | Creates a lambda which can accept different numbers
-                     |     |     |     | of arguments.
-                     |     |     |     | (let ((l (case-lambda ((x)x) ((x y)y) (xs(car xs)))))
-                     |     |     |     |   (list (l 9) (l 0 1) (l 2 3 4))) ;=> (9 1 2)
-case-lambda*         | >=1 |  x  |     | case-lambda but takes a name too.
-try                  | >=2 |  x  |     | Like try*, but can have multiple expressions in the body, 
-                     |     |     |     | multiple catch-clauses and a finally-clause at the end.
-condp                | >=3 |  x  |     | As in Clojure.
-                     |     |     |     | 
-frequencies          | >=3 |  x  |     | As in Clojure.
-unique               | 1   |  x  |     | Removes duplicates from a sequence but retains order.
-unique?              | 1   |  x  |     | Checks whether a sequence is unique.
-tuples               | 2   |  x  |     | (tuples 3 '(1 2 3 4 5)) ;=> ((1 2 3) (2 3 4) (3 4 5))
-slices               | 3   |  x  |     | (slices 3 '(1 2 3 4 5 6)) ;=> ((1 2 3) (4 5 6))
-loop                 | >=1 |  x  |     | 
-defmacro             | >=1 |  x  |     | Alias for def-macro
-into                 | 2   |  x  |     | Appends all elements of the second argument to the first,
-                     |     |     |     | keeping the type of the first.
-partition            | 1-2 |  x  |     | Extended version of both slices and tuples, as in Clojure.
-dedupe               | 1   |  x  |     | Returns a lazy sequence removing consecutive duplicates in
-                     |     |     |     | coll.
-                     |     |     |     |
-combinations         | Any |  x  |     | Returns a lazy sequence of ordered combinations of any
-                     |     |     |     | number of lists.
-                     |     |     |     | (combinations [1 2] [3 4]) ;=> ((1 3) (1 4) (2 3) (2 4))
-for                  | 2   |  x  |     | List comprehension. Similar to Clojure.
-                     |     |     |     | Also supports :let and :while.
-                     |     |  x  |     | (for ((x [1 2]) (y [3 4]) (:let ((z (+ x y))))) [x y z])
-                     |     |     |     |   ; => ([1 3 4] [1 4 5] [2 3 5] [2 4 6])
-                     |     |     |     |
-cartesian-product    | 2   |  x  |     | Builds the cartesian product of two collections. Requires the map and zip functions.
+### Macro: `lambda` 
 ```
-
-### File: core/aliases.lyra
+  lambda : list|vector -> [expr]* -> expr
+  
+  Pure? Yes
+  
+  Simplified lambda* which auto-generates a name.
+  The rest is the same. Does not require any special functions, only buildins.
+```
+### Macro: `lambda'` 
+```
+  lambda' : list -> [expr]* -> expr
+  lambda' : symbol -> list -> [expr]* -> expr
+  
+  Pure? Yes
+  
+  Supports destructuring.
+```
+### Macro: `lazy-seq` 
+```
+  lazy-seq : expr -> [expr]* -> expr
+  
+  Pure? Yes
+  
+  Generates a lazy list.
+  This allows for infinite sequences. Lyra does not understand the simpler syntax that languages like Clojure and Scheme have.
+  Example: `(define (iterate f start) (lazy-seq start (iterate f (f start))))`
+```
+### Macro: `let` 
+```
+  let : list|vector -> [expr]* -> expr
+  
+  Pure? Yes
+  
 
 ```
-Name                 |  #  |Pure?|Gen? | 
----------------------+-----+-----+-----+------------------------------------------------------------
-includes?            | 2   |  x  |     | Alias for contains?.
-require!             | 1   |     |     | Alias for load!
-fold                 | 3   |  x  |     | Alias for foldr.
-member?              | 2   |  x  |     | Alias for included?.
-~                    | 1   |  x  |     | Alias for complement.
-⋅                    | 2   |  x  |     | Alias for compose.
-∀                    | 2   |  x  |     | Alias for all?.
-∃                    | 2   |  x  |     | Alias for any?.
-∄                    | 2   |  x  |     | Alias for none?.
-≠                    | 2   |  x  |     | Alias for /=.
-≤                    | 2   |  x  |     | Alias for >=.
-≥                    | 2   |  x  |     | Alias for <=.
-∈                    | 2   |  x  |     | Alias for included?.
-∉                    | 2   |  x  |     | Alias for the complement of included?.
-<=>                  | 2   |  x  |  x  | Alias for compare.
-++                   | 2   |  x  |  x  | Alias for append.
+### Macro: `let1` 
+```
+  let1 : list|vector -> [expr]* -> expr
+  
+  Pure? Yes
+  
+  Simpler let for a single binding.
+  (let1 (a 1) a) is equivalent to (let*((a 1)) a)
+```
+### Macro: `loop` 
+```
+  loop : list|vector -> [expr]* -> expr
+  
+  Pure? Yes
+  
+  loop macro similar to clojure. Supports destructuring.
+  (loop [(a b) '(1 2) res 0]
+    (if (> res 0) res (recur '() (+ a b))))
+  ;=> 3
+```
+### Macro: `loop` 
+```
+  loop : list|vector -> [expr]* -> expr
+  
+  Pure? Yes
+  
+  Simplified loop without destructuring
+```
+### Macro: `or` 
+```
+  or : expr -> expr -> expr
+  
+  Pure? Yes
+  
+  Macro for lazy `or`.
+   (or x y) returns x if x is truthy or y if x is not truthy.
+```
+### Macro: `plet` 
+```
+  plet : expr -> [expr]* -> expr
+  
+  Pure? Yes
+  
+  Parallel let. Supports destructuring
+```
+### Macro: `quasiquote` 
+```
+  quasiquote : expr -> expr
+  
+  Pure? Yes
+  
+  Quotes an expression. Sub-sxpressions can be unquoted using unquote and unquote-splicing.
+```
+### Macro: `try` 
+```
+  try : expr -> [expr]* -> expr
+  
+  Pure? Yes
+  
+  Extended try*-catch with finally.
+  Can handle multiple catch-clauses.
+  (try (error! 'h 'not-that)
+    (catch (lambda (e) (eq? 'syntax (error-info e))) e 'error1)
+    (catch _ e 'error2)
+    (finally (box-set! b 25)))
+    ;=> 'error2
+```
+### Macro: `λ` 
+```
+  λ : list|vector -> [expr]* -> expr
+  
+  Pure? Yes
+  
+  Plain alias for lambda
 ```
 
-### File: core/clj.lyra
+## Functions
+
+### Function: `->char` 
+```
+  ->char : any -> char
+  
+  Pure? Yes
+  
+  Tries to make a char from an element. Returns Nothing on error.
+```
+### Function: `->float` 
+```
+  ->float : any -> float
+  
+  Pure? Yes
+  
+  Tries to make an element into a float. Returns Nothing on error.
+```
+### Function: `->int` 
+```
+  ->int : any -> int
+  
+  Pure? Yes
+  
+  Tries to make an element into an int. Requires ->float. Returns Nothing on error.
+```
+### Function: `->int#char` 
+```
+  ->int#char : char -> int
+  
+  Pure? Yes
+  
+  Implementation for ->int.Gets the utf-8 code of the char.
+```
+### Function: `->int#float` 
+```
+  ->int#float : float -> ->int
+  
+  Pure? Yes
+  
+  Implementation for ->int. Rounds down.
+```
+### Function: `->int#int` 
+```
+  ->int#int : int -> int
+  
+  Pure? Yes
+  
+  Implementation for ->int. Does nothing for ints.
+```
+### Function: `->int#rational` 
+```
+  ->int#rational : rational -> int
+  
+  Pure? Yes
+  
+  Implementation for ->int. Rounds down.
+```
+### Function: `->keyword` 
+```
+  ->keyword : any -> keyword
+  
+  Pure? Yes
+  
+  Try to make an element into a keyword. Returns Nothing on error.
+```
+### Function: `->list` 
+```
+  ->list : any -> list
+  
+  Pure? Yes
+  
+  Tries to make a list from an element. Returns Nothing on error.
+```
+### Function: `->map` 
+```
+  ->map : any -> map
+  
+  Pure? Yes
+  
+  Tries to make a map from an element. The default uses ->list and a native helper. Even the default might fail. Returns Nothing on error.
+  If the default is used, the list must have the format `((k v)*)`
+```
+### Function: `->map#list` 
+```
+  ->map#list : list -> map
+  
+  Pure? Yes
+  
+  Implementation for ->set
+```
+### Function: `->map#map` 
+```
+  ->map#map : map -> map
+  
+  Pure? Yes
+  
+  Implementation. Since the input is already a map, this returns the element itself.
+```
+### Function: `->rational` 
+```
+  ->rational : any -> rational
+  
+  Pure? Yes
+  
+  Tries to make an element into a ratonal. Returns Nothing on error.
+```
+### Function: `->rational#char` 
+```
+  ->rational#char : char -> rational
+  
+  Pure? Yes
+  
+  Implementation for ->rational.
+```
+### Function: `->rational#float` 
+```
+  ->rational#float : float -> rational
+  
+  Pure? Yes
+  
+  Implementation for ->rational.
+```
+### Function: `->rational#int` 
+```
+  ->rational#int : int -> rational
+  
+  Pure? Yes
+  
+  Implementation for ->rational.
+```
+### Function: `->rational#rational` 
+```
+  ->rational#rational : rational -> rational
+  
+  Pure? Yes
+  
+  Implementation for ->rational.
+```
+### Function: `->set` 
+```
+  ->set : any -> set
+  
+  Pure? Yes
+  
+  Try to make an element into a set. The default uses ->list and a native function. Returns Nothing on error.
+```
+### Function: `->set#list` 
+```
+  ->set#list : list -> set
+  
+  Pure? Yes
+  
+  Implementation for ->set
+```
+### Function: `->set#map` 
+```
+  ->set#map : map -> set
+  
+  Pure? Yes
+  
+  Implementation for ->set
+```
+### Function: `->string` 
+```
+  ->string : any -> string
+  
+  Pure? Yes
+  
+  Tries to make an element into a string. Returns an unreadable string on error.
+```
+### Function: `->string#list` 
+```
+  ->string#list : list -> map
+  
+  Pure? Yes
+  
+  Implementation for ->string.
+```
+### Function: `->string#map` 
+```
+  ->string#map : map -> string
+  
+  Pure? Yes
+  
+  Implementation for ->string.
+```
+### Function: `->symbol` 
+```
+  ->symbol : any -> symbol
+  
+  Pure? Yes
+  
+  Try to make an element into a symbol. Returns Nothing on error.
+```
+### Function: `->vector` 
+```
+  ->vector : any -> vector
+  
+  Pure? Yes
+  
+  Try to make an element into a vector. The default uses ->list and a native function. Returns Nothing on error.
+```
+### Function: `->vector#list` 
+```
+  ->vector#list : list -> vector
+  
+  Pure? Yes
+  
+  Implementation for ->vector
+```
+### Function: `->vector#map` 
+```
+  ->vector#map : map -> vector
+  
+  Pure? Yes
+  
+  Implementation for ->vector
+```
+### Function: `F` 
+```
+  F : ([any]* -> bool)
+  
+  Pure? Yes
+  
+  Always false
+```
+### Function: `T` 
+```
+  T : ([any]* -> bool)
+  
+  Pure? Yes
+  
+  Always true
+```
+### Function: `add` 
+```
+  add : collection -> any -> collection
+  
+  Pure? Yes
+  
+  Add an element y to the end of a collection xs.
+```
+### Function: `add#map` 
+```
+  add#map : map -> sequence -> map
+  
+  Pure? Yes
+  
+  Implementation for add. The sequence must have a size of 2.
+```
+### Function: `add-front` 
+```
+  add-front : collection -> any -> collection
+  
+  Pure? Yes
+  
+  Add an element y to the front of a sequence xs.
+  Default implementation requires ->list and returns a list.
+```
+### Function: `add-front#list` 
+```
+  add-front#list : list -> any -> list
+  
+  Pure? Yes
+  
+  Implementation for add-front.
+```
+### Function: `add-front#map` 
+```
+  add-front#map : map -> sequence -> map
+  
+  Pure? Yes
+  
+  Implementation for add-front. Same as add. The sequence must have a size of 2.
+```
+### Function: `all?` 
+```
+  all? : (any -> bool) -> collection -> bool
+  
+  Pure? Yes
+  
+  Check whether a predicate is true for all elements in a collection xs.
+  Requires empty?, first, rest and drop-while/drop-until to work.
+```
+### Function: `any?` 
+```
+  any? : (any -> bool) -> collection -> bool
+  
+  Pure? Yes
+  
+  Check whether a predicate is true for at least 1 element in a collection xs.
+  Requires empty?, first, rest and drop-while/drop-until to work.
+```
+### Function: `append` 
+```
+  append : collection -> collection -> collection
+  Append all elements from a sequence ys to collection xs. Requires: ->list
+  
+  Pure? Yes
+  
 
 ```
-Name                 |  #  |Pure?|Gen? | 
----------------------+-----+-----+-----+------------------------------------------------------------
-when                 | >=1 |  x  |     | (when p ...) => (if p (begin ...) Nothing)
-def                  | 2   |  x  |     | Alias for value-define.
-defn                 | 2   |  x  |     | Alias for value-define with the value being a fn.
-fn                   | >=1 |  x  |     | Alias for lambda, lambda*, case-lambda or case-lambda*,
-                     |     |     |     | depending on the exact syntax. For more info, see 
-                     |     |     |     | https://clojuredocs.org/clojure.core/fn
-do                   | any |  x  |     | Alias for begin.
-slurp!               | 1   |     |     | Alias for file-read!.
-spit!                | 2   |     |     | Alias for file-write!.
-count                | 1   |  x  |     | Alias for size.
-reduce               | 2-3 |  x  |     | Alias for foldl and foldl1.
-reductions           | 2-3 |  x  |     | Alias for scanl and scanl1.
-nthrest              | 2   |  x  |     | Alias for drop but the arguments are reversed.
-nthnext              | 2   |  x  |     | Like nthrest but returns Nothing if the rest is empty.
-next                 | 1   |  x  |     | Like rest but returns Nothing if the rest is empty.
-ffirst               | 1   |  x  |     | Same as (first (first ..))
-fnext                | 1   |  x  |     | Same as (first (next ..))
-nnext                | 1   |  x  |     | Same as (next (next ..))
-nfirst               | 1   |  x  |     | Same as (next (first ..))
-enumerate            | 1   |  x  |     | Alias for zip-to-index.
-conj                 | 2   |  x  |  x  | Alias for add.
+### Function: `append#map` 
 ```
-
-### File: core/random.lyra
-
+  append#map : map -> collection -> collection
+  
+  Pure? Yes
+  
+  Implementation for append.
 ```
-Name                 |  #  |Pure?|Gen? | 
----------------------+-----+-----+-----+------------------------------------------------------------
-random               | 1   |  x  |     | Takes a seed and generates a random number based on
-                     |     |     |     | it. (64 bits)
-random!              | 0   |     |     | Generates a random number and sets an invisible 
-                     |     |     |     | global seed. (64 bits)
-xorshift64s          | 1   |  x  |     | Take a seed and call xorshift64* on it. (64 bits)
-xorshift64           | 1   |  x  |     | Take a seed and call xorshift64 om it. (64 bits)
-xorshift32           | 1   |  x  |     | Take a seed and call xorshift32 on it. (32 bits)
-lfsr                 | 1   |  x  |     | Take a seed and call a simple lfsr on it. (32 bits)
-xorshift64s-seq      | 1   |  x  |     | Using a seed, generate an infinite sequence using 
-                     |     |     |     | xorshift64s.
-xorshift64-seq       | 1   |  x  |     | Using a seed, generate an infinite sequence using 
-                     |     |     |     | xorshift64.
-xorshift32-seq       | 1   |  x  |     | Using a seed, generate an infinite sequence using 
-                     |     |     |     | xorshift32.
-lfsr-seq             | 1   |  x  |     | Using a seed, generate an infinite sequence using 
-                     |     |     |     | lfsr (32 bits).
-random-nums          | 1   |  x  |     | Using a seed, generate an infinite sequence of 
-                     |     |     |     | random numbers.
-with-bounds          | 3   |  x  |     | Take a sequence of numbers, a minimum and a maximum. 
-                     |     |     |     | Then every number in the sequence is lazily adjusted
-                     |     |     |     | to be betweeen the minimum and maximum.
-shuffle              | 2   |  x  |     | Takes a sequence and a seed. Random numbers are 
-                     |     |     |     | generated based on the seed and used to shuffle the
-                     |     |     |     | sequence.
+### Function: `apply` 
 ```
-
-### File: core/sort.lyra
+  apply : ([any]* -> any) -> [any]* -> any
+  
+  Pure? Yes
+  
+  Apply a function to a variable number of arguments with the last one being expanded using spread.
+  (apply list 1 2 3 '(9 7 5)) ;=> (list 1 2 3 9 7 5) ;=> (1 2 3 9 7 5)
+```
+### Function: `but-last` 
+```
+  but-last : collection -> list
+  
+  Pure? Yes
+  
+  Get all elements, except for the last one from a collection. Requires ->list, first, rest, size.
+```
+### Function: `cartesian-product` 
+```
+  cartesian-product : sequence -> sequence -> list
+  
+  Pure? Yes
+  
 
 ```
-Name                 |  #  |Pure?|Gen? | 
----------------------+-----+-----+-----+------------------------------------------------------------
-sort                 | 1   |  x  |     | Sort a list.
-sort-compare         | 2   |  x  |     | Like sort, but uses a comparator (see compare).
-bubblesort           | 1   |  x  |     | Sort a list using bubblesort.
-mergesort            | 1   |  x  |     | Sort a list using mergesort.
-mergesort-compare    | 2   |  x  |     | Like mergesort, but the first parameter is a 
-                     |     |     |     | comparator.
+### Function: `collection?` 
 ```
-
-### File: core/infix.lyra
+  collection? : any -> bool
+  
+  Pure? Yes
+  
+  Check whether a variable is a collection.
+  By default, a variable is a collection if it is a sequence or if it is convertable to a list.
+```
+### Function: `combinations` 
+```
+  combinations : [sequence]* -> list
+  
+  Pure? Yes
+  
+  Lazily calculates all combinations of any number of lists while preserving order:
+  (combinations '(1 2) '(3 4) '(5 6))
+  => ((1 3 5) (1 3 6) (1 4 5) (1 4 6) (2 3 5) (2 3 6) (2 4 5) (2 4 6))
+```
+### Function: `comp` 
+```
+  comp : (any -> any) -> (any -> any) -> (any -> any)
+  
+  Pure? Yes
+  
+  Alias for compose.
+```
+### Function: `compare` 
+```
+  compare : any -> any -> bool
+  
+  Pure? Yes
+  
+  Compare two variables x and y. Returns 0 if (= x y), -1 if (< x y) or 1 otherwise.
+  The default requires = and < to work for x and y.
+```
+### Function: `complement` 
+```
+  complement : (any -> bool) -> (any -> bool)
+  
+  Pure? Yes
+  
+  Function complement
+```
+### Function: `compose` 
+```
+  compose : (any -> any) -> (any -> any) -> (any -> any)
+  
+  Pure? Yes
+  
+  Function composition
+```
+### Function: `compose-any` 
+```
+  compose-any : (any -> bool) -> (any -> bool) -> (any -> bool)
+  
+  Pure? Yes
+  
+  Function composition using and.
+  ((compose-or sequence? empty?) x) ;=> (or (sequence? x) (empty? x))
+```
+### Function: `compose-n` 
+```
+  compose-n : (any -> any) -> ([any]+ -> any) -> ([any]+ -> any)
+  
+  Pure? Yes
+  
+  Function composition, but the function g (which is applied first) takes 2 arguments.
+```
+### Function: `compose-or` 
+```
+  compose-or : (any -> bool) -> (any -> bool) -> (any -> bool)
+  
+  Pure? Yes
+  
+  Function composition using or.
+  ((compose-or sequence? number?) x) ;=> (or (sequence? x) (number? x))
+```
+### Function: `compose2` 
+```
+  compose2 : (any -> any) -> (any -> any -> any) -> (any -> any -> any)
+  
+  Pure? Yes
+  
+  Function composition, but the function g (which is applied first) takes 2 arguments.
+```
+### Function: `concat` 
+```
+  concat : collection -> [collection]* -> list
+  
+  Pure? Yes
+  
+  Append any number of sequences to each other.
+  Required: append, foldr1
+```
+### Function: `conj` 
+```
+  conj : collection -> any+ -> collection
+  
+  Pure? Yes
+  
+  Add a number of elements to the end of a list.
+```
+### Function: `const` 
+```
+  const : any -> ([any]* -> any)
+  
+  Pure? Yes
+  
+  Alias for constantly.
+```
+### Function: `constantly` 
+```
+  constantly : any -> ([any]* -> any)
+  
+  Pure? Yes
+  
+  Returns a function which always returns x.
+```
+### Function: `contains?` 
+```
+  contains? : collection -> any -> bool
+  
+  Pure? Yes
+  
+  Check whether the collection xs contains the element e.
+```
+### Function: `contains?#list` 
+```
+  contains?#list : list -> any -> bool
+  
+  Pure? Yes
+  
+  Implementation for contains?.
+```
+### Function: `contains?#map` 
+```
+  contains?#map : map -> any -> bool
+  
+  Pure? Yes
+  
+  Implementation for contains?.
+```
+### Function: `count-by` 
+```
+  count-by : (any -> bool) -> collection -> int
+  
+  Pure? Yes
+  
+  Count how many elements in xs satisfy predicate p.
+  Required: foldl
+```
+### Function: `cycle` 
+```
+  cycle : sequence -> list
+  
+  Pure? Yes
+  
+  Create an infinite sequence repeating the elements of xs.
+    (take 5 (cycle '(1 2)))) ;=> (1 2 1 2 1)
+  Required: empty?, first, rest
+```
+### Function: `dec` 
+```
+  dec : number -> number
+  
+  Pure? Yes
+  
+  Decrement number by 1 (using -)
+```
+### Function: `delete-at` 
+```
+  delete-at : int -> collection -> collection
+  
+  Pure? Yes
+  
+  Delete element at index i in a collection xs.
+  If xs is a collection, use a linear implementation for lists and return a lazy sequence.
+  Otherwise, return Nothing.
+```
+### Function: `destructure` 
+```
+  destructure : list -> list
+  
+  Pure? Yes
+  
+  (destructure (('(a b) '(1 2)))) ;=> ((sym0 '(1 2)) (a (first sym0)) (sym1 (rest sym0)) (b (first sym1)))
+```
+### Function: `divmod` 
+```
+  divmod : any -> any -> list
+  
+  Pure? Yes
+  
+  (divmod x y) ;=> (list (/ x y) (rem x y))
+```
+### Function: `doall!` 
+```
+  doall! : collection -> list
+  
+  Pure? No
+  
+  Evaluate a list
+```
+### Function: `drop` 
+```
+  drop : int -> collection -> sequence
+  
+  Pure? Yes
+  
+  Drop the first n elements of a collection xs.
+  Returns Nothing for atoms.
+  Requires: empty?, first, rest
+```
+### Function: `drop-until` 
+```
+  drop-until : (any -> bool) -> collection -> sequence
+  
+  Pure? Yes
+  
+  Drop the elements of a collection xs until a predicate is true.
+  Returns Nothing for atoms.
+  Requires: empty?, first, rest
+```
+### Function: `drop-while` 
+```
+  drop-while : (any -> bool) -> collection -> sequence
+  
+  Pure? Yes
+  
+  Drop the elements of a collection xs until a predicate is false.
+  Returns Nothing for atoms.
+  Requires: empty?, first, rest
+```
+### Function: `else` 
+```
+  
+  
+  Pure? Yes
+  
+  else : bool
+  Nicer-to-read alias for #t.
+```
+### Function: `empty?` 
+```
+  empty? : collection -> bool
+  
+  Pure? Yes
+  
+  Check whether a variable is empty, according to the following rules:
+    lists are empty if null? is true for them (true for empty list and Nothing).
+    collections are empty if their size is 0.
+    The special value Nothing is empty.
+    Other non-collections are not empty.
+```
+### Function: `eq?` 
+```
+  eq? : any -> any -> bool
+  
+  Pure? Yes
+  
+  More general equality function. Defaults to = but uses seq-eq? if sequence? is true for both x and y.
+```
+### Function: `eq?#list` 
+```
+  eq?#list : list -> sequence -> bool
+  
+  Pure? Yes
+  
+  Implementation of eq? for lists.
+```
+### Function: `eq?#map` 
+```
+  eq?#map : map -> map -> bool
+  
+  Pure? Yes
+  
+  Implementation of eq? for maps.
+```
+### Function: `eval-seq!` 
+```
+  eval-seq! : collection -> collection
+  
+  Pure? No
+  
+  Forces a sequence to be evaluated. The sequence is then returned as it was.
+```
+### Function: `even?` 
+```
+  even? : number -> bool
+  
+  Pure? Yes
+  
+  Check whether a number is odd or even. Requires ->int.
+```
+### Function: `every-pred` 
+```
+  every-pred : [(any -> bool)]+ -> (any -> bool)
+  
+  Pure? Yes
+  
+  Check whether all predicates are true on a given element
+```
+### Function: `fact-seq` 
+```
+  fact-seq : () -> list
+  
+  Pure? Yes
+  
+  Sequence of the factorial numbers, starting at 0.
+  (yes, it says 1, but starts at 0)
+```
+### Function: `filter` 
+```
+  filter : (any -> bool) -> collection -> list
+  
+  Pure? Yes
+  
+  Lazy filter.
+  Required: empty?, first, rest
+```
+### Function: `filter-indexed` 
+```
+  filter-indexed : (any -> int -> bool) -> collection -> list
+  
+  Pure? Yes
+  
+  Filter lazily with index.
+  Required: empty?, first, rest
+```
+### Function: `find` 
+```
+  find : any -> collection -> any
+  
+  Pure? Yes
+  
+  Find associated key or value for an element. The type of return value depends on the type of the collection.
+  index-of for lists and vectors, true or false for sets.
+```
+### Function: `first` 
+```
+  first : collection -> any
+  
+  Pure? Yes
+  
+  Get the first element of a collection.
+  Default requires ->list. If ->list is not available, returns Nothing.
+```
+### Function: `first#list` 
+```
+  first#list : list -> any
+  
+  Pure? Yes
+  
+  Implementation for first.
+```
+### Function: `first#map` 
+```
+  first#map : map -> any
+  
+  Pure? Yes
+  
+  Returns the first key in the map.
+```
+### Function: `flatten` 
+```
+  flatten : collection -> list
+  
+  Pure? Yes
+  
+  Flatten a collection.
+  Required: collection?, foldr, append
+  Could use some optimization
+```
+### Function: `flatten1` 
+```
+  flatten1 : collection -> list
+  
+  Pure? Yes
+  
+  Flatten by one level.
+  Required: map
+  Could use some optimization
+```
+### Function: `flip` 
+```
+  flip : function -> function
+  
+  Pure? Yes
+  
+  Take a function f, which takes two arguments and returns a new function which takes the arguments reversed.
+```
+### Function: `fmap` 
+```
+  fmap : (any -> any) -> (any -> bool) -> collection -> list
+  
+  Pure? Yes
+  
+  Filter, then map.
+  (fmap f p xs) is equivalent to (filter p (map f xs))
+  Required: empty?, first, rest
+```
+### Function: `foldl` 
+```
+  foldl : function -> any? -> collection -> any?
+  
+  Pure? Yes
+  
+  Generic for foldl
+```
+### Function: `foldl#list` 
+```
+  foldl#list : (any -> any -> any) -> any -> list -> any
+  
+  Pure? Yes
+  
+  Implementation for foldl.
+```
+### Function: `foldl#map` 
+```
+  foldl#map : (any -> any -> any) -> any -> map -> any
+  
+  Pure? Yes
+  
+  Implementation for foldl.
+```
+### Function: `foldl-indexed` 
+```
+  foldl-indexed : (any -> any -> int -> any) -> any -> collection -> any
+  
+  Pure? Yes
+  
+  foldl with index.
+  Requires: empty?, first, rest
+```
+### Function: `foldl1` 
+```
+  foldl1 : (any -> any -> any) -> collection -> any
+  
+  Pure? Yes
+  
+  (foldl1 + '()) ;=> Nothing
+  (foldl1 + '(1)) ;=> 1 (if only 1 element is given, return it.
+  (foldl1 + '(1 2 3)) ;=> 6
+  Requires: empty?, size, first, rest, foldl
+```
+### Function: `foldr` 
+```
+  foldr : function -> any? -> collection -> any?
+  
+  Pure? Yes
+  
+  Generics for foldr and foldl
+```
+### Function: `foldr#list` 
+```
+  foldr#list : (any -> any -> any) -> any -> list -> any
+  
+  Pure? Yes
+  
+  Implementation for foldr.
+```
+### Function: `foldr#map` 
+```
+  foldr#map : (any -> any -> any) -> any -> map -> any
+  
+  Pure? Yes
+  
+  Implementation for foldr.
+```
+### Function: `foldr-indexed` 
+```
+  foldr-indexed : (any -> any -> int -> any) -> any -> collection -> any
+  
+  Pure? Yes
+  
+  foldr with index.
+  Requires: empty?, first, rest
+```
+### Function: `foldr1` 
+```
+  foldr1 : (any -> any -> any) -> collection -> any
+  
+  Pure? Yes
+  
+  Similar to foldr1.
+  Requires empty?, size, first, rest
+```
+### Function: `frequencies` 
+```
+  frequencies : collection -> map
+  
+  Pure? Yes
+  
+  Map of the number of occurances of each item in a collection.
+  Required: foldl
+```
+### Function: `fst` 
+```
+  fst : any -> any -> any
+  
+  Pure? Yes
+  
+  Take 2 arguments, return the first.
+```
+### Function: `get` 
+```
+  get : collection -> any -> any
+  
+  Pure? Yes
+  
+  Get an element in a collection xs by its key k.
+  The default behaviour uses nth, but it has to be overridden for maps and sets.
+```
+### Function: `get#map` 
+```
+  get#map : map -> any -> any
+  
+  Pure? Yes
+  
+  Special implementation for get for map.
+```
+### Function: `get-in` 
+```
+  get-in : collection -> sequence -> any
+  
+  Pure? Yes
+  
+  Get an item from xs after calling get on it for each item in ks.
+    (get-in [1 [2 [3]]] '(0)) ;=> 1
+    (get-in [1 [2 [3]]] '(1 0)) ;=> 2
+    (get-in [1 [2 [3]]] '(1 1)) ;=> [3]
+    (get-in [1 [2 [3]]] '(1 1 0)) ;=> 3
+  Required for xs: get
+  Required for ks: empty?, first, rest
+```
+### Function: `inc` 
+```
+  inc : number -> number
+  
+  Pure? Yes
+  
+  Increment number by 1 (using +)
+```
+### Function: `included?` 
+```
+  included? : any -> collection -> bool
+  
+  Pure? Yes
+  
+  Check whether value e is in a collection xs. This is the reverse of contains?
+```
+### Function: `index-of` 
+```
+  index-of : any -> collection -> int
+  
+  Pure? Yes
+  
+  Tries to find the index of the element from the collection xs. Returns -1 if the element could not be found.
+```
+### Function: `indices-of` 
+```
+  indices-of : sequence -> any -> list
+  
+  Pure? Yes
+  
+  Get the indices of all occuranges of elem in seq.
+  Required for seq: foldr-indexed
+  Required for elements in seq: eq?
+```
+### Function: `interleave` 
+```
+  interleave : collection -> [collection]* -> list
+  
+  Pure? Yes
+  
 
 ```
-Name                 |  #  |Pure?|Gen? | 
----------------------+-----+-----+-----+------------------------------------------------------------
-infix->prefix        | >=2 |  x  |     | Convert an infix expression into prefix notation and
-                     |     |     |     | call it as lyra code.
-                     |     |     |     | The first parameter is a map with 4 entries: 
-                     |     |     |     | 'associativity-of Take a symbol and return either 
-                     |     |     |     | 'left or 'right.
-                     |     |     |     | 'precedence-of Take a symbol and return the fitting 
-                     |     |     |     | precedence.
-                     |     |     |     | 'unary-op? Take a symbol and return true if it is a 
-                     |     |     |     | unary operator.
-                     |     |     |     | 'bin-op? Take a symbol and return true if it is a 
-                     |     |     |     | binary operator.
-infix->lyra          | >=1 |  x  |     | Take an infix expression, convert it to lyra code and 
-                     |     |     |     | execute. Uses the aliases defined in aliases.lyra
-§                    | >=1 |  x  |     | Alias for infix->lyra
-show-infix-as-prefix | >=2 |  x  |     | Similar to infix->prefix but does not execute the 
-                     |     |     |     | code.
+### Function: `into` 
 ```
-
-### File: core/queue.lyra
+  into : () -> list
+  into : collection -> collection
+  into : collection -> collection -> collection
+  into : collection -> (collection -> collection) -> collection -> collection
+  
+  Pure? Yes
+  
+  Add items from 'from' to 'to', keeping the type of 'to'. (if add is correctly defined)
+    (into) ;=> () ; empty input -> empty list
+    (into '(1 2)) ;=> (1 2)
+    (into [1 2] '(3 4)) ;=> [1 2 3 4]
+    (into [1 2] unique '(3 3 4 3)) ;=> [1 2 3 4]
+  The last case works well for partials:
+    (let* ((f (partial into [1 2] unique))) ...)
+  Required: foldl, add
+```
+### Function: `iterate` 
+```
+  iterate : (any -> any) -> any -> list
+  
+  Pure? Yes
+  
+  Typical iterate function creating an infinite sequence.
+    (take 5 (iterate inc 0) => (0 1 2 3 4)
+    (take 3 (iterate list '()) => (() (()) ((())))
+```
+### Function: `juxt` 
+```
+  juxt : [(any -> any)]+ -> (any -> any)
+  
+  Pure? Yes
+  
+  See https://clojuredocs.org/clojure.core/juxt
+  (juxt identity name) is effectively equivalent to (lambda (x) (list (identity x) (name x)))
+```
+### Function: `last` 
+```
+  last : collection -> any
+  
+  Pure? Yes
+  
+  Get last element of a collection.
+  Default implementation requires ->list, first, rest, size.
+```
+### Function: `list` 
+```
+  list : any* -> list
+  
+  Pure? Yes
+  
+  Take any number of arguments and return a list of them.
+  (list 1 2 3) ;=> (1 2 3)
+```
+### Function: `log!` 
+```
+  log! : any* -> list
+  
+  Pure? No
+  
+  As println!, but returns the input as a list.
+```
+### Function: `log1!` 
+```
+  log1! : any -> any
+  
+  Pure? No
+  
+  As println!, but takes only one argument and returns it after printing.
+```
+### Function: `map` 
+```
+  map : (any -> any) -> collection -> list
+  
+  Pure? Yes
+  
+  Lazy map requires empty?, first, rest
+```
+### Function: `map-eager` 
+```
+  map-eager : (any -> any) -> collection -> list
+  
+  Pure? Yes
+  
+  Same as map, but works eagerly, not lazy.
+```
+### Function: `map-indexed` 
+```
+  map-indexed : (any -> int -> any) -> collection -> list
+  
+  Pure? Yes
+  
+  map with index.
+  Requires empty?, first, rest.
+```
+### Function: `map-invert` 
+```
+  map-invert : map -> map
+  
+  Pure? Yes
+  
+  Makes a map of key-value pairs into a map of value-key pairs.
+  This may loose information, so the following might not always hold:
+  (eq? m (map-invert (map-invert m)))
+  However, this feature is used often enough that including it makes sense.
+```
+### Function: `map-split` 
+```
+  map-split : ([any]* -> any) -> collection -> list
+  
+  Pure? Yes
+  
+  Takes a sequence of sequences and maps over each sub-sequence.
+  (map-split + '((1 2) (3 4) (5 6))) ;=> (3 7 11)
+```
+### Function: `map-until` 
+```
+  map-until : (any -> any) -> (any -> bool) -> collection -> list
+  
+  Pure? Yes
+  
+  map until a predicate if true. Uses map and take-until.
+```
+### Function: `map-while` 
+```
+  map-while : (any -> any) -> (any -> bool) -> collection -> list
+  
+  Pure? Yes
+  
+  map while a predicate if true. Uses map and take-whilel.
+```
+### Function: `mapcar` 
+```
+  mapcar : ([any]+ -> any) -> [collection]* -> list
+  
+  Pure? Yes
+  
+  Take any number of collections and map their first elements until all are empty.
+    (mapcar list '(1 2 3) '(4 5 6) '(7 8 9)) ;=> ((1 4 7) (2 5 8) (3 6 9))
+    (mapcar + '(1 2 3) '(4 5 6) '(7 8 9)) ;=> (12 15 18)
+    (mapcar + '(1 2 3) '(4 5) '(7 8 9)) ;=> (12 15 12)
+  Required: v-zip-with to work correctly with all inputs.
+```
+### Function: `mapcat` 
+```
+  mapcat : (any -> collection) -> collection -> list
+  
+  Pure? Yes
+  
+  map and then append (lazy).
+```
+### Function: `mapcon` 
+```
+  mapcon : (any -> collection) -> collection -> collection
+  
+  Pure? Yes
+  
+  maplist and append.
+```
+### Function: `mapf` 
+```
+  mapf : (any -> any) -> (any -> bool) -> collection -> list
+  
+  Pure? Yes
+  
+  map, then filter
+  (mapf f p xs) is equivalent to (map f (filter p xs))
+  Required: empty?, first, rest
+```
+### Function: `maplist` 
+```
+  maplist : (collection -> any) -> collection -> list
+  
+  Pure? Yes
+  
+  map but use the rest of the list.
+  (maplist size '(1 2 3)) ;=> (3 2 1)
+    Like (list (size '(1 2 3)) (size '(2 3)) (size '(3)))
+  Requires: empty?, rest
+```
+### Function: `max` 
+```
+  max : any -> any -> any
+  
+  Pure? Yes
+  
+  Get maximum of n m (using < or >)
+```
+### Function: `min` 
+```
+  min : any -> any -> any
+  
+  Pure? Yes
+  
+  Get minimum of n m (using < or >)
+```
+### Function: `minimum` 
+```
+  minimum : collection -> any
+  minimum : (any -> any) -> collection -> any
+  
+  Pure? Yes
+  
+  Get minimum of the elements in a sequence using min/max.
+  Required: foldl1, map
+```
+### Function: `minimum` 
+```
+  minimum : collection -> any
+  minimum : (any -> any) -> collection -> any
+  
+  Pure? Yes
+  
+  Get maximum of the elements in a sequence using min/max.
+  Required: foldl1, map
+```
+### Function: `most?` 
+```
+  most? : (any -> bool) -> collection -> bool
+  
+  Pure? Yes
+  
+  Check whether more than half of the elements of a collection satisfy a predicate p.
+  Required: size, count-by
+```
+### Function: `name` 
+```
+  name : any -> string
+  
+  Pure? Yes
+  
+  Turns symbols and keywords into strings. strings are unchanged. for all other types, the function returns Nothing.
+```
+### Function: `none?` 
+```
+  none? : (any -> bool) -> collection -> bool
+  
+  Pure? Yes
+  
+  Check whether a predicate is true for no elements in a collection xs.
+  Requires empty?, first, rest and drop-while/drop-until to work.
+```
+### Function: `not-eq?` 
+```
+  not-eq? : any -> any -> bool
+  
+  Pure? Yes
+  
+  Check for non-equality. This is the reverse of eq?.
+```
+### Function: `nth` 
+```
+  nth : collection -> int -> any
+  
+  Pure? Yes
+  
+  Get element from sequence xs at index i (starts at 0). Requires ->list.
+  Returns Nothing if the element cannot be found.
+```
+### Function: `nth#map` 
+```
+  nth#map : map -> int -> vector
+  
+  Pure? Yes
+  
+  Implementation of nth for maps. This converts the map into a sequence and then returns the pair (key, value).
+```
+### Function: `number?` 
+```
+  number? : any -> bool
+  
+  Pure? Yes
+  
+  Check whether a variable is a number.
+```
+### Function: `odd?` 
+```
+  odd? : number -> bool
+  
+  Pure? Yes
+  
+  Check whether a number is odd or even. Requires ->int.
+```
+### Function: `par` 
+```
+  par : [(() -> any)]* -> list
+  
+  Pure? Yes
+  
+  Run functions in parallel. Returns a list of delay objects
+```
+### Function: `partition` 
+```
+  partition : int -> collection -> list
+  partition : int -> int -> collection -> list
+  partition : int -> int -> collection -> collection -> list
+  
+  Pure? Yes
+  
+  Partition function
+  Required: size, take, drop
+   (partition 3 [1 2 3 4])) ;=> ((1 2 3))
+   (partition 3 [1 2 3 4 5 6])) ;=> ((1 2 3) (4 5 6))
+   (partition 1 [1 2 3 4 5 6])) ;=> ((1) (2) (3) (4) (5) (6))
+   (partition 0 [1 2 3 4 5 6])))) ;=> ()
+```
+### Function: `partition-all` 
+```
+  partition-all : int -> collection -> list
+  
+  Pure? Yes
+  
+  (partition-all 2 [0 1 2 3 4 5])) ;=> ((0 1) (2 3) (4 5))
+  Required: empty?, take, drop
+```
+### Function: `partition-by` 
+```
+  partition-by : (any -> any) -> collection -> list
+  
+  Pure? Yes
+  
 
 ```
-Name                 |  #  |Pure?|Gen? | 
----------------------+-----+-----+-----+------------------------------------------------------------
-queue                | >=0 |  x  |     | Create a new queue.
-deque                | >=0 |  x  |     | Create a new deque.
-queue?               | 1   |  x  |     | 
-deque?               | 1   |  x  |     | 
-                     |     |     |     | 
-enqueue              | 2   |  x  |     | 
-enqueue-all          | 2   |  x  |     | 
-dequeue              | 1   |  x  |     | 
-                     |     |     |     | 
-peek                 | 1   |  x  |     | Take the last element of a vector or the first for other 
-                     |     |     |     | collection types.
-pop                  | 1   |  x  |     | Remove the last element of a vector or the first for other 
-                     |     |     |     | collection types.
-push                 | 1   |  x  |     | Add an element to the end of a collection or the front of
-                     |     |     |     | a list.
-                     |     |     |     | 
-->queue              | 1   |  x  |     | Convert a sequence to a queue.
-->deque              | 1   |  x  |     | Convert a sequence to a deque.
-
-Other definitions:
-  first, rest, add, append, prepend, add-front, last, sequence?, ->list, ->vector, size, reverse, eq?
+### Function: `permutations` 
 ```
-
-## Variables
+  permutations : sequence -> list
+  
+  Pure? Yes
+  
+  Calculate all permutations of a collection.
+  Requires only ->list to be defined.
+```
+### Function: `pmap` 
+```
+  pmap : (any -> any) -> collection -> list
+  
+  Pure? Yes
+  
+  Parallel map. Like pmap', but returns values, not delays.
+```
+### Function: `pmap'` 
+```
+  pmap' : (any -> any) -> collection -> list
+  
+  Pure? Yes
+  
+  Parallel map. Returns a (lazy) list of delays.
+```
+### Function: `prepend` 
+```
+  prepend : collection -> collection -> collection
+  
+  Pure? Yes
+  
+  Reverse append. (append xs to ys)
+```
+### Function: `print!` 
+```
+  print! : any* -> Nothing
+  
+  Pure? No
+  
+  Printing. Can take any number of arguments (variadic and requires ->string to work correctly.
+  (print! 1 2 3) ;=> prints "123"
+```
+### Function: `println!` 
+```
+  println! : any* -> Nothing
+  
+  Pure? No
+  
+  Like print! but appends a linebreak.
+  (println! "abc" "abc" "abc") ;=> prints "abcabcabc\n"
+```
+### Function: `product` 
+```
+  product : collection -> number
+  product : (number -> number) -> collection -> number
+  
+  Pure? Yes
+  
+  Calculate the product of the elements of a collection using *.
+  Required: foldl, map
+```
+### Function: `range` 
+```
+  range : int -> int -> list
+  
+  Pure? Yes
+  
+  Lazily create a range of the numbers between from and to (inclusive)
+```
+### Function: `remove` 
+```
+  remove : (any -> bool) -> collection -> list
+  
+  Pure? Yes
+  
+  Filter with complement of p
+```
+### Function: `remove-indexed` 
+```
+  remove-indexed : (any -> int -> bool) -> collection -> list
+  
+  Pure? Yes
+  
+  Filter with index with complement of p
+```
+### Function: `repeat` 
+```
+  repeat : any -> list
+  
+  Pure? Yes
+  
+  Create an infinite sequence of the same element e.
+```
+### Function: `repeatedly` 
+```
+  repeatedly : (() -> any) -> list
+  
+  Pure? Yes
+  
+  Repeatedly execute f in a lazy sequence.
+```
+### Function: `replace-subseq` 
+```
+  replace-subseq : int -> int -> sequence -> sequence
+  
+  Pure? Yes
+  
+  Replaces a sub-sequence in a sequence.
+    (replace-subseq 0 4 '() '(1 2 3 4)) ;=> ()
+    (replace-subseq 1 2 '(3 4) '(1 2 3 4)) ;=> (1 3 4 4)
+    (replace-subseq 1 2 '(3 4 5 6) '(1 2 3 4)) ;=> (1 3 4 5 6 6)
+  Requires split-at to work correctly.
+```
+### Function: `rest` 
+```
+  rest : collection -> collection
+  
+  Pure? Yes
+  
+  Get the rest of the elements of a collection.
+  Default requires ->list. If ->list is not available, returns Nothing.
+```
+### Function: `rest#list` 
+```
+  rest#list : list -> list
+  
+  Pure? Yes
+  
+  Implementation for rest.
+```
+### Function: `rest#map` 
+```
+  rest#map : map -> sequence
+  
+  Pure? Yes
+  
+  Implementation for rest.
+```
+### Function: `reverse` 
+```
+  reverse : collection -> collection
+  
+  Pure? Yes
+  
+  Reverse a collection.
+  The default requires foldl and returns a list.
+```
+### Function: `reverse#map` 
+```
+  reverse#map : map -> map
+  
+  Pure? Yes
+  
+  Special implementation of reverse for maps.
+  Since maps are unordered, they are their own reversals.
+```
+### Function: `rget` 
+```
+  rget : any -> collection -> any
+  
+  Pure? Yes
+  
+  Reverse of get. Takes the collection first and the key second.
+```
+### Function: `rnth` 
+```
+  rnth : int -> collection -> any
+  
+  Pure? Yes
+  
+  Reverse of nth. Takes the collection first and the key second.
+```
+### Function: `scanl` 
+```
+  scanl : (any -> any -> any) -> any -> collection -> list
+  
+  Pure? Yes
+  
+  scan left. (known as reductions in clojure)
+  Return intermediate results of foldl as a list.
+  Requires empty?, first, rest
+```
+### Function: `scanl` 
+```
+  scanl : (any -> any -> any) -> collection -> list
+  
+  Pure? Yes
+  
+  scan left with no accumulator.
+  Requires empty?, size, first, rest.
+```
+### Function: `scanr` 
+```
+  scanr : (any -> any -> any) -> any -> collection -> list
+  
+  Pure? Yes
+  
+  Intermediate results of foldr as a lazy sequence
+    (scanr + 5 '(1 2 3 4)) ;=> (15 14 12 9 5)
+  Required: empty?, first, rest
+```
+### Function: `scanr1` 
+```
+  scanr : (any -> any -> any) -> collection -> list
+  
+  Pure? Yes
+  
+  Intermediate results of foldr1 as a lazy sequence
+    (scanr1 + '(1 2 3 4 5)) ;=> (15 14 12 9 5)
+  Required: empty?, first, rest, size
+```
+### Function: `second` 
+```
+  second : collection -> any
+  
+  Pure? Yes
+  
+  Get second element of a collection. Default requires first and rest.
+  The default is (first (rest xs)).
+```
+### Function: `seq-eq?` 
+```
+  seq-eq? : sequence -> sequence -> bool
+  
+  Pure? Yes
+  
+  Check whether 2 sequences are equal. They need to support empty?, first and rest
+```
+### Function: `seq?` 
+```
+  seq? : any -> bool
+  
+  Pure? Yes
+  
+  Alias for sequence?
+```
+### Function: `sequence?` 
+```
+  sequence? : any -> bool
+  
+  Pure? Yes
+  
+  Check whether a variable is a sequence.
+  Needs to be implemented for sequence types or some functions might not work.
+```
+### Function: `size` 
+```
+  size : collection -> int
+  
+  Pure? Yes
+  
+  Get the size of a collection xs. Default requires ->list.
+  Return 0 for types which are not convertable to list.
+  The result can become an infinite loop for infinite sequences.
+```
+### Function: `size#list` 
+```
+  size#list : list -> int
+  
+  Pure? Yes
+  
+  Implementation for size.
+```
+### Function: `size#map` 
+```
+  size#map : map -> int
+  
+  Pure? Yes
+  
+  Implementation for size.
+```
+### Function: `slices` 
+```
+  slices : int -> collection -> list
+  
+  Pure? Yes
+  
+  (slices 3 '(1 2 3 4 5 6)) ;=> ((1 2 3) (4 5 6))
+  Required: size, take, drop
+```
+### Function: `snd` 
+```
+  snd : any -> any -> any
+  
+  Pure? Yes
+  
+  Take 2 arguments, return the second.
+```
+### Function: `split` 
+```
+  split : int -> collection -> list
+  Required: empty?, ->list (for the rest), first, rest
+  
+  Pure? Yes
+  
+  Split a sequence into 2 parts: From index 0 to n and the rest.
+  (split n xs) is equivalent to (list (take n xs) (drop n xs))
+```
+### Function: `split` 
+```
+  split : any -> sequence -> list
+  
+  Pure? Yes
+  
+  Split at each occurance of v in xs.
+  Requires split-by to work for xs.
+  Requires eq? to be defined for v.
+```
+### Function: `split-by` 
+```
+  split-by : (any -> bool) -> sequence -> list
+  
+  Pure? Yes
+  
+  Split a sequence each time as predicate is true for the current element.
+  Always returns a list.
+    (split-by (lambda (x) (= x 1)) '(5 1 2 3 1 6)) ;=> ((5) (2 3) (6))
+  Required: foldr
+```
+### Function: `split-if` 
+```
+  split-if : (any -> bool) -> collection -> list
+  
+  Pure? Yes
+  
+  (split-if p xs) is equivalent to (list (take-while p xs) (drop-while p xs))
+  Required: empty?, first, rest
+```
+### Function: `split-unless` 
+```
+  split-unless : (any -> bool) -> collection -> list
+  
+  Pure? Yes
+  
+  (split-unless p xs) is equivalent to (list (take-until p xs) (drop-until p xs))
+  Required: empty?, first, rest
+```
+### Function: `spread` 
+```
+  spread : sequence -> sequence
+  
+  Pure? Yes
+  
+  Expand the last element of a sequence and returns a list.
+  (spread (list 1 2 3 '(9 7 5))) ;=> (1 2 3 9 7 5)
+  Requires: split-at, size
+```
+### Function: `subseq` 
+```
+  subseq : int -> int -> collection -> list
+  
+  Pure? Yes
+  
+  Returns a sub-sequence of a sequence.
+  Equivalent to (take length (drop start xs))
+```
+### Function: `succ` 
+```
+  succ : any -> any
+  
+  Pure? Yes
+  
+  Calculate successor of a variable.
+  For numbers, this defaults to inc.
+  chars have their internal value incremented by 1.
+  Other variables are their own successors (eg. a function has no successor).
+```
+### Function: `sum` 
+```
+  sum : collection -> number
+  sum : (number -> number) -> collection -> number
+  
+  Pure? Yes
+  
+  Sum up elements of a collection using +.
+  Required: foldl, map
+```
+### Function: `symbol` 
+```
+  symbol : any -> symbol
+  
+  Pure? Yes
+  
+  Alias for ->symbol.
+```
+### Function: `take` 
+```
+  take : int -> collection -> list
+  
+  Pure? Yes
+  
+  Take the first n elements of a collection xs or the whole collection, if its size is greater than n.
+  Returns Nothing for atoms. Otherwise, the output is always a list.
+  Requires: empty?, first, rest
+```
+### Function: `take-nth` 
+```
+  take-nth : int -> collection -> list
+  
+  Pure? Yes
+  
+  Take every nth item.
+```
+### Function: `take-until` 
+```
+  take-until : (any -> bool) -> collection -> list
+  
+  Pure? Yes
+  
+  Take until a predicate is true.
+  Required: empty?, first, rest
+```
+### Function: `take-while` 
+```
+  take-while : (any -> bool) -> collection -> list
+  
+  Pure? Yes
+  
+  Take while a predicate is true.
+  Required: empty?, first, rest
+```
+### Function: `times` 
+```
+  times : (any -> any) -> int -> (any -> any)
+  
+  Pure? Yes
+  
+  Creates a function which takes one argument and applies f to it n times.
+  (let* ((f (times inc 6)))
+    (f 9) ;=> 15
+    ((times inc 0) 9)) ;=> 9
+```
+### Function: `tuples` 
+```
+  tuples : int -> collection -> list
+  
+  Pure? Yes
+  
+  (tuples 3 '(1 2 3 4 5)) ;=> ((1 2 3) (2 3 4) (3 4 5))
+  Required: size, take, rest
+```
+### Function: `unique` 
+```
+  unique : collection -> list
+  
+  Pure? Yes
+  
+  Get a sequence with its duplicates removed.
+  Required: empty?, first, rest
+```
+### Function: `unique?` 
+```
+  unique? : collection -> bool
+  
+  Pure? Yes
+  
 
 ```
-Name        | File              | 
-------------+-------------------+-------------------------------------------------------------------
-#t          | core.rb           | Boolean true
-#f          | core.rb           | Boolean false
-true        | core.rb           | #t
-false       | core.rb           | #f
-else        | core.lyra         | Alias for #t (for use in cond expressions)
-Nothing     | core.rb           | The non-object
-::nothing   | core.rb           | Type name for the Nothing object.
-::bool      | core.rb           | Type name for #t and #f.
-::vector    | core.rb           | Type name for vectors.
-::map       | core.rb           | Type name for maps.
-::list      | core.rb           | Type name for lists.
-::function  | core.rb           | Type name for functions.
-::integer   | core.rb           | Type name for integers.
-::float     | core.rb           | Type name for floats.
-::set       | core.rb           | Type name for sets.
-::typename  | core.rb           | Type name for typename objects.
-::string    | core.rb           | Type name for strings.
-::symbol    | core.rb           | Type name for symbols.
-::box       | core.rb           | Type name for boxes.
-nil         | core/clj.lyra     | Nothing
-*current-function* | evaluate.rb| Holds the name of the current function.
-*ARGS*      | lyra.rb           | Holds the arguments that were passed to the program.
+### Function: `unwrap` 
+```
+  unwrap : box -> any
+  
+  Pure? Yes
+  
+  unbox a box or unpack a user-defined type. Can be overridden.
+```
+### Function: `v-zip-with` 
+```
+  v-zip-with : ([any]* -> any) -> sequence -> list
+  
+  Pure? Yes
+  
+  Similar to zip, but takes a sequence of sequences to zip.
+  The output is always a list.
+  Stops when all sequences are empty.
+   (v-zip-with v+ '((1 2 3) (4 5 6) (7 8 9))) ;=> (12 15 18)
+   (v-zip-with v+ '((1 2 3) (4) (7 8 9))) ;=> (12 10 12)
+   (v-zip-with v+ '((1 2 3) (4 5 6 10) (7 8 9))) ;=> (12 15 18 10)
+  Required for xs: map-eager, all?
+  Required for inner sequences: first, empty?, rest
+```
+### Function: `va-all?` 
+```
+  va-all? : (any -> bool) -> [any]* -> bool
+  
+  Pure? Yes
+  
+
+```
+### Function: `va-any?` 
+```
+  va-any? : (any -> bool) -> [any]* -> bool
+  
+  Pure? Yes
+  
+
+```
+### Function: `va-none?` 
+```
+  va-none? : (any -> bool) -> [any]* -> bool
+  
+  Pure? Yes
+  
+
+```
+### Function: `walk-with-path` 
+```
+  walk-with-path : (any -> list) -> collection -> collection
+  
+  Pure? Yes
+  
+  Not even in testing yet!
+```
+### Function: `xcons` 
+```
+  xcons : [any]* -> list
+  
+  Pure? Yes
+  
+  repeatedly apply cons to a list.
+  (xcons 1 2 3 4 '(5 6)) ;=> (1 2 3 4 5 6)
+  (xcons 1 2 '(3)) is equivalent to (cons 1 (cons 2 '(3)))
+```
+### Function: `xrange` 
+```
+  xrange : () -> list
+  xrange : int -> list
+  xrange : int -> int -> list
+  xrange : int -> int -> int -> list
+  
+  Pure? Yes
+  
+  Extended range function.
+  Takes 0 to 3 input numbers.
+  Arity | Output
+  0     | Infinite sequence starting at 0 and counting up.
+  1     | Infinite sequence starting at from.
+  2     | Lazy sequence counting from 'from' to 'to'.
+  3     | Lazy sequence counting from 'from' to 'to'
+        | If stop is a function, it is repeatedly applied to the current value of from until (>= from to).
+        | Otherwise, step is repeatedly added to from using +.
+```
+### Function: `zip` 
+```
+  zip : sequence -> sequence -> list
+  
+  Pure? Yes
+  
+  zip the elements of two collections using list.
+    (zip '(1 2 3) '(4 5 6)) ;=> ((1 4) (2 5) (3 6))
+  Required for both l0 and l1: empty?, first, rest
+```
+### Function: `zip-to-index` 
+```
+  zip-to-index : sequence -> list
+  
+  Pure? Yes
+  
+  zip the elements of a collection to their indices.
+    (zip-to-index '(9 8 7)) ;=> ((0 9) (1 8) (2 7))
+  Requires map-indexedd to work.
+```
+### Function: `zip-with` 
+```
+  zip-with : (any -> any -> any) -> sequence -> sequence -> list
+  
+  Pure? Yes
+  
+  zip the elements of two collections with a function.
+    (zip-with + '(1 2 3) '(4 5 6)) ;=> (5 7 9)
+    (zip-with list '(1 2 3) '(4 5 6)) ;=> ((1 4) (2 5) (3 6))
+  Required for both l0 and l1: empty?, first, rest
 ```

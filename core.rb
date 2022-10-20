@@ -403,7 +403,7 @@ def setup_core_functions
   
   add_fn(:"buildin-vector", 0, -1) { |*xs| xs }
   add_fn(:"buildin-vector-size", 1) { |xs| xs.size }
-  add_fn(:"buildin-vector-range", 3) { |xs, s, e| r = xs[s...e]; r.nil? ? [] : r }
+  add_fn(:"buildin-vector-range", 3) { |s, e, xs| r = xs[s...e]; r.nil? ? [] : r }
   add_fn(:"buildin-vector-nth", 2) { |xs, i| xs[i] }
   add_fn(:"buildin-vector-add", 2) { |xs, y| xs + [y] }
   add_fn(:"buildin-vector-append", 2) { |xs, ys| (xs.nil? || ys.nil?) ? nil : xs + ys }
@@ -411,10 +411,10 @@ def setup_core_functions
   add_fn(:"buildin-vector-eq?", 2) { |v, v1| v == v1 }
 
   add_fn(:"buildin-string-size", 1) { |xs| xs.size }
-  add_fn(:"buildin-string-range", 3) { |xs, s, e| r = xs[s...e]; r.nil? ? [] : r }
+  add_fn(:"buildin-string-range", 3) { |s, e, xs| r = xs[s...e]; r.nil? ? [] : r }
   add_fn(:"buildin-string-nth", 2) { |xs, i| xs[i] }
-  add_fn(:"buildin-string-add", 2) { |xs, y| xs + y }
-  add_fn(:"buildin-string-append", 2) { |xs, ys| (xs.nil? || ys.nil?) ? nil : xs + ys }
+  add_fn(:"buildin-string-add", 2) { |xs, y| xs + y.to_s }
+  add_fn(:"buildin-string-append", 2) { |xs, ys| (xs.nil? || ys.nil?) ? nil : xs + ys.to_s }
   add_fn(:"buildin-string-includes?", 2) { |xs, ys| xs.include? ys }
   add_fn(:"buildin-string-eq?", 2) { |v, v1| v == v1 }
   add_fn(:"buildin-string-split-at", 2) { |s, pat| s.split(pat) }

@@ -1,5 +1,5 @@
 (module lyra.core
-  (cond lambda T comment unwrap foldr foldl append contains? nth ->symbol ->int ->float ->rational ->string ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? seq? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf split-at split-unless split-if take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples partition-all xrange succ try count-by most? loop1 loop xcons partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at quasiquote lazy-seq partition-by plet let lambda' conj take-nth interleave destructure name compute*-> compute-> par par' pmap' pmap define* eval-seq!)
+  (cond lambda T comment unwrap foldr foldl append contains? nth rnth rget ->symbol ->int ->float ->rational ->string ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? seq? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf split-at split-unless split-if take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples partition-all xrange succ try count-by most? loop1 loop xcons partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at quasiquote lazy-seq partition-by plet let lambda' conj take-nth interleave destructure name compute*-> compute-> par par' pmap' pmap define* eval-seq! map-invert)
 
 ;;; SECTION: Some core things
 
@@ -46,10 +46,6 @@
 ;# unbox a box or unpack a user-defined type. Can be overridden.
 (def-generic x (unwrap x) buildin-unwrap)
 
-;## Function: %foldr
-;# %foldr : function -> start -> collection -> any?
-;# Standard implementation for foldr. Returns Nothing for atoms.
-;# Requires: empty?, first, rest
 (define (%foldr f s xs)
   (if (atom? xs)
     Nothing
@@ -57,10 +53,6 @@
       s
       (f (first xs) (%foldr f s (rest xs))))))
 
-;## Function: %foldl
-;# %foldl : function -> any? -> collection -> any?
-;# Standard implementation for foldl. Returns Nothing for atoms.
-;# Requires: empty?, first, rest
 (define (%foldl f s xs)
   (if (atom? xs)
     Nothing
@@ -78,17 +70,9 @@
 ;# Generic for foldl
 (def-generic xs (foldl f v xs) %foldl)
 
-;## Function: %add
-;# %add : collection -> any -> list
-;# Standard implementation for add.
-;# Requires: append
 (define (%add xs y)
   (append xs (list y)))
 
-;## Function: %contains
-;# %contains : collection -> any -> bool
-;# Check whether a sequence xs contains an element e.
-;# Requires: empty?, first, rest
 (define (%contains? xs e)
   (cond (empty? xs) #f
         (eq? (first xs) e) #t
@@ -144,6 +128,16 @@
 ;# Get an element in a collection xs by its key k.
 ;# The default behaviour uses nth, but it has to be overridden for maps and sets.
 (def-generic xs (get xs k) nth)
+
+;## Function: rnth
+;# rnth : int -> collection -> any
+;# Reverse of nth. Takes the collection first and the key second.
+(define (rnth i xs) (nth xs i))
+
+;## Function: rget
+;# rget : any -> collection -> any
+;# Reverse of get. Takes the collection first and the key second.
+(define (rget k xs)(get xs k))
 
 ;## Function: index-of
 ;# index-of : any -> collection -> int
@@ -290,6 +284,7 @@
 ;# Needs to be implemented for sequence types or some functions might not work.
 (def-generic x (sequence? x)
   (lambda (xs) (list? xs)))
+
 ;## Function: seq?
 ;# seq? : any -> bool
 ;# Alias for sequence?
@@ -340,6 +335,19 @@
 (define (println! & xs)
   (%print! xs)
   (buildin-print! "\n"))
+
+;## Function: log!
+;# log! : any* -> list
+;# As println!, but returns the input as a list.
+(define (log! & xs)
+  (%println! xs)
+  xs)
+;## Function: log1!
+;# log1! : any -> any
+;# As println!, but takes only one argument and returns it after printing.
+(define (log1! x)
+  (%println! x)
+  x)
 
 ;;; Utility functions
 
@@ -456,7 +464,7 @@
 ;## Function: rest#map
 ;# rest#map : map -> sequence
 ;# Implementation for rest.
-(def-impl ::map rest (lambda (m) (let*((v (map->vector m))) (vector-range v 1 (vector-size v)))))
+(def-impl ::map rest (lambda (m) (let*((v (map->vector m))) (vector-range 1 (vector-size v) v))))
 
 ;## Function: reverse#map
 ;# reverse#map : map -> map
@@ -466,7 +474,7 @@
 
 ;## Function: add#map
 ;# add#map : map -> sequence -> map
-;# Implementations for add. The sequence must have a size of 2.
+;# Implementation for add. The sequence must have a size of 2.
 (def-impl ::map add (lambda (m kv) (map-set (first kv) (second kv))))
 
 ;## Function: add-front#list
@@ -480,54 +488,56 @@
 
 ;## Function: ->int#int
 ;# ->int#int : int -> int
-;# Implementations for ->int. Does nothing for ints.
+;# Implementation for ->int. Does nothing for ints.
 (def-impl ::integer ->int id)
 ;## Function: ->int#float
 ;# ->int#float : float -> ->int
-;# Implementations for ->int. Rounds down.
+;# Implementation for ->int. Rounds down.
 (def-impl ::float ->int buildin->int)
 ;## Function: ->int#rational
 ;# ->int#rational : rational -> int
-;# Implementations for ->int. Rounds down.
+;# Implementation for ->int. Rounds down.
 (def-impl ::rational ->int buildin->int)
 ;## Function: ->int#char
 ;# ->int#char : char -> int
-;# Implementations for ->int.Gets the utf-8 code of the char.
+;# Implementation for ->int.Gets the utf-8 code of the char.
 (def-impl ::char ->int buildin->int)
 
 ;## Function: ->rational#int
 ;# ->rational#int : int -> rational
-;# Implementations for ->rational.
+;# Implementation for ->rational.
 (def-impl ::integer ->rational buildin->rational)
 ;## Function: ->rational#float
 ;# ->rational#float : float -> rational
-;# Implementations for ->rational.
+;# Implementation for ->rational.
 (def-impl ::float ->rational buildin->rational)
 ;## Function: ->rational#rational
 ;# ->rational#rational : rational -> rational
-;# Implementations for ->rational.
+;# Implementation for ->rational.
 (def-impl ::rational ->rational id)
 ;## Function: ->rational#char
 ;# ->rational#char : char -> rational
-;# Implementations for ->rational.
+;# Implementation for ->rational.
 (def-impl ::char ->rational buildin->rational)
 
 ;## Function: foldr#list
-;# foldr#list : function -> any -> list -> any
-;# Implementations for foldr.
+;# foldr#list : (any -> any -> any) -> any -> list -> any
+;# Implementation for foldr.
 (def-impl ::list foldr buildin-foldr)
+
 ;## Function: foldr#map
-;# foldr#map : function -> any -> map -> any
-;# Implementations for foldr.
+;# foldr#map : (any -> any -> any) -> any -> map -> any
+;# Implementation for foldr.
 (def-impl ::map foldr buildin-foldr)
 
 ;## Function: foldl#list
-;# foldl#list : function -> any -> list -> any
-;# Implementations for foldl.
+;# foldl#list : (any -> any -> any) -> any -> list -> any
+;# Implementation for foldl.
 (def-impl ::list foldl buildin-foldl)
+
 ;## Function: foldl#map
-;# foldl#map : function -> any -> map -> any
-;# Implementations for foldl.
+;# foldl#map : (any -> any -> any) -> any -> map -> any
+;# Implementation for foldl.
 (def-impl ::map foldl buildin-foldl)
 
 ;## Function: last
@@ -1349,7 +1359,7 @@
   (apply-to list-concat (map (lambda (x) (if (collection? x) (->list x) (list x))) xs)))
 
 ;## Function: range
-;# range : number -> number -> list
+;# range : int -> int -> list
 ;# Lazily create a range of the numbers between from and to (inclusive)
 (define (range from to)
   (if (> from to)
@@ -2087,6 +2097,17 @@
           (zip name-syms vals)
           (zip names name-syms))
         body))))
+
+;## Function: map-invert
+;# map-invert : map -> map
+;# Makes a map of key-value pairs into a map of value-key pairs.
+;# This may loose information, so the following might not always hold:
+;# (eq? m (map-invert (map-invert m)))
+;# However, this feature is used often enough that including it makes sense.
+(define (map-invert m)
+  (foldl
+    (lambda (res kv) (map-set res (second kv) (first kv)))
+    (map-of) m))
 )
 
 (load! "string.lyra")

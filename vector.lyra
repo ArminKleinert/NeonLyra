@@ -1,45 +1,128 @@
 (module lyra.core.vector
   (list->vector mapv mapv-indexed filterv vector? vector vector-size vector-range vector-nth vector-add vector-append vector-includes? vector-eq?)
 
+;## Function: list->vector
+;# list->vector : sequence -> vector
 (define  (list->vector x) (buildin->vector x))
 
+;## Function: vector?
+;# vector? : any -> bool
 (define vector? buildin-vector?)
+
+;## Function: vector
+;# vector : any* -> vector
 (define vector buildin-vector)
+
+;## Function: vector-size
+;# vector-size : vector -> int
 (define vector-size buildin-vector-size)
+
+;## Function: vector-range
+;# vector-range : int -> int -> vector -> vector
+;# Same as `range` from the core module, but for vectors.
 (define vector-range buildin-vector-range)
+
+;## Function: vector-nth
+;# vector-nth : vector -> int -> any
 (define vector-nth buildin-vector-nth)
+
+;## Function: vector-add
+;# vector-add : vector -> any -> vector
 (define vector-add buildin-vector-add)
+
+;## Function: vector-append
+;# vector-append : vector -> vector -> vector
 (define vector-append buildin-vector-append)
+
+;## Function: vector-includes?
+;# vector-includes? : vector -> any -> bool 
 (define vector-includes? buildin-vector-includes?)
+
+;## Function: vector-eq?
+;# vector-eq? : vector -> vector -> bool
 (define vector-eq? buildin-vector-eq?)
 
-
-; eager map which returns a vector. Relies on foldl and vector-add.
+;## Function: mapv
+;# mapv : (any -> any) -> collection -> vector
+;# eager map which returns a vector. Relies on foldl and vector-add.
 (define (mapv f xs) (foldl (lambda (v x) (vector-add v (f x))) [] xs))
-; eager mapv with index. Requires: foldl-indexed.
+
+;## Function: mapv-indexed
+;# mapv-indexed : (any -> int -> any) -> collection -> vector
+;# eager mapv with index. Requires: foldl-indexed.
 (define (mapv-indexed f xs) (foldl-indexed (lambda (v x i) (vector-add v (f x i))) [] xs))
 
-; Eagerly filter and return vector.
-; Required: foldl
+;## Function: filterv
+;# filterv : (any -> bool) -> collection -> vector
+;# Eagerly filter and return vector.
+;# Required: foldl
 (define (filterv p xs)
   (foldl (lambda (v x) (if (p x) (vector-add v x) v)) '() xs))
 
-
+;## Function: ->vector#vector
+;# ->vector#vector : vector -> vector
 (def-impl ::vector ->vector id)
+
+;## Function: ->set#vector
+;# ->set#vector : vector -> set
 (def-impl ::vector ->set buildin->set)
+
+;## Function: ->map#vector
+;# ->map#vector : vector -> map
 (def-impl ::vector ->map buildin->map)
+
+;## Function: ->string#vector
+;# ->string#vector : vector -> string 
 (def-impl ::vector ->string (lambda (xs) (buildin->string (mapv ->string xs))))
+
+;## Function: first#vector
+;# first#vector : vector -> any
 (def-impl ::vector first (lambda (v) (vector-nth v 0)))
-(def-impl ::vector rest (lambda (v) (vector-range v 1 (vector-size v))))
+
+;## Function: rest#vector
+;# rest#vector : vector -> vector
+(def-impl ::vector rest (lambda (v) (vector-range 1 (vector-size v) v)))
+
+;## Function: add#vector
+;# add#vector : vector -> 
 (def-impl ::vector add vector-add)
+
+;## Function: foldr#vector
+;# foldr#vector : (any -> any -> any) -> any -> vector -> any
 (def-impl ::vector foldr buildin-foldr)
+
+;## Function: foldl#vector
+;# foldl#vector : (any -> any -> any) -> any -> vector -> any
 (def-impl ::vector foldl buildin-foldl)
+
+;## Function: eq?#vector
+;# eq?#vector : vector -> 
 (def-impl ::vector eq? (lambda (v0 v1) (seq-eq? (->vector v0) (->vector v1))))
+
+;## Function: sequence?#vector
+;# sequence?#vector : vector -> bool
+;# Always true.
 (def-impl ::vector sequence? T)
+
+;## Function: collection?#vector
+;# collection?#vector : vector -> bool
+;# Always true.
 (def-impl ::vector collection? T)
+
+;## Function: nth#vector
+;# nth#vector : vector -> int -> any
 (def-impl ::vector nth vector-nth)
+
+;## Function: contains?#vector
+;# contains?#vector : vector -> any -> bool
 (def-impl ::vector contains? buildin-contains?)
+
+;## Function: size#vector
+;# size#vector : vector -> int
 (def-impl ::vector size vector-size)
+
+;## Function: append#vector
+;# append#vector : vector -> collection -> vector
 (def-impl ::vector append buildin-append)
 )
 

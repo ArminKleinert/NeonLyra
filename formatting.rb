@@ -1,4 +1,4 @@
-ls = File.foreach("core.lyra").lazy
+ls = File.foreach("core.lyra")
 
 =begin
 ls.drop(1).each do |l|
@@ -48,10 +48,26 @@ loop do
   sub = sub[1..-1]
   sigs = sub.filter{ |l| l =~ REG }
   description = sub.reject{ |l| l =~ REG }
-  pure = name.split(" ").last.strip.end_with?("!")
+  pure = !(name.split(" ").last.strip.end_with?("!"))
 
   blocks << Block.new(name, line, sigs, pure, description)
   puts blocks[-1].to_s
 end
 
-puts blocks.map(&:to_s)
+def format_block(b)
+  sig = b.sig.map{|s| s[3..-1]}
+  desc = b.description.map{|d|d[3..-1]}
+  res = "#{sig.join("\n")}\n\nPure? #{b.pure ? "Yes" : "No"}\n\n#{desc.join("\n")}".lines.map{|l|"  #{l}"}.join
+  res = "### #{b.name.split(" ").join(" `")}` \n```\n" + res + "\n```\n"
+  res
+end
+
+blocks2 = blocks.partition{|b|b.name.start_with?("Function")}.map{|xs|xs.sort_by(&:name)}.map{|xs| xs.map{|b|format_block(b)}.join}
+
+res = "## Macros\n\n"
+res += blocks2[1]
+res += "\n"
+res += "## Functions\n\n"
+res += blocks2[0]
+
+IO.write("core_functions.md", res)

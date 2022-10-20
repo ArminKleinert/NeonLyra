@@ -42,7 +42,7 @@
 
   (define (pop xs)
     (if (vector? xs)
-      (vector-range xs 0 (- (vector-size xs) 1))
+      (vector-range 0 (- (vector-size xs) 1) xs)
       (rest xs)))
 
   (define (push xs e)

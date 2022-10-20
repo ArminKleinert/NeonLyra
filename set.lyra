@@ -1,41 +1,143 @@
 (module lyra.core.set
   (list->set set? set-of set-size set-add set-union set-difference set-intersection set-includes? set-subset? set-true-subset? set-superset? set-true-superset? set->vector set-eq?)
 
+;## Function: list->set
+;# list->set : sequence -> set
+;# Turns a list (or any sequence for that matter) into a set.
+;# Notice that `(->list (list->set xs))` is does not necessarily return the elements in the same order!
 (define  (list->set x) (buildin->set x))
 
+;## Function: set?
+;# set? : any -> bool
 (define set? buildin-set?)
+
+;## Function: set-of
+;# set-of : any* -> set
 (define set-of buildin-set-of)
+
+;## Function: set-size
+;# set-size : set -> int
 (define set-size buildin-set-size)
+
+;## Function: set-add
+;# set-add : set -> any -> set
 (define set-add buildin-set-add)
+
+;## Function: set-union
+;# set-union : set -> set -> set
 (define set-union buildin-set-union)
+
+;## Function: set-difference
+;# set-difference : set -> set -> set
 (define set-difference buildin-set-difference)
+
+;## Function: set-intersection
+;# set-intersection : set -> set -> set
 (define set-intersection buildin-set-intersection)
+
+;## Function: set-includes?
+;# set-includes? : set -> set -> set
 (define set-includes? buildin-set-includes?)
+
+;## Function: set-subset?
+;# set-subset? : set -> set -> set
 (define set-subset? buildin-set-subset?)
+
+;## Function: set-true-subset?
+;# set-true-subset? : set -> set -> set
 (define set-true-subset? buildin-set-true-subset?)
+
+;## Function: set-superset?
+;# set-superset? : set -> set -> set
 (define set-superset? buildin-set-superset?)
+
+;## Function: set-true-superset?
+;# set-true-superset? : set -> set -> set
 (define set-true-superset? buildin-set-true-superset?)
+
+;## Function: set->vector
+;# set->vector : set -> vector
+;# Turns a set into a vector. There is no guarantees made about the order of elements.
 (define set->vector buildin-set->vector)
+
+;## Function: set-eq?
+;# set-eq? : set -> set -> bool
 (define set-eq? buildin-set-eq?)
 
+;## Function: collection?#set
+;# collection?#set : set -> bool
 (def-impl ::set collection? T)
+
+;## Function: ->vector#set
+;# ->vector#set : set -> vector
 (def-impl ::set ->vector buildin->vector)
+
+;## Function: ->set#set
+;# ->set#set : set -> set
 (def-impl ::set ->set id)
+
+;## Function: ->map#set
+;# ->map#set : set -> map
 (def-impl ::set ->map buildin->map)
+
+;## Function: nth#set
+;# nth#set : set -> int -> any
 (def-impl ::set nth (lambda (x i) (vector-nth (->vector x) i)))
+
+;## Function: contains?#set
+;# contains?#set : set -> any -> bool
 (def-impl ::set contains? buildin-contains?)
+
+;## Function: append#set
+;# append#set : set -> collection -> set
 (def-impl ::set append buildin-append)
+
+;## Function: size#set
+;# size#set : set -> int
 (def-impl ::set size set-size)
+
+;## Function: ->string#set
+;# ->string#set : set -> string
 (def-impl ::set ->string (lambda (xs) (buildin->string (->set (map-eager ->string xs)))))
+
+;## Function: first#set
+;# first#set : set -> set
 (def-impl ::set first (lambda (s) (vector-nth (set->vector s) 0)))
-(def-impl ::set rest (lambda (s) (let ((v (set->vector s))) (vector-range v 1 (vector-size v)))))
-(def-impl ::set reverse id)
+
+;## Function: rest#set
+;# rest#set : set -> set
+(def-impl ::set rest (lambda (s) (let ((v (set->vector s))) (vector-range 1 (vector-size v) v))))
+
+;## Function: reverse#set
+;# reverse#set : set -> set
+(def-impl ::set reverse id) ; There is nothing to reverse here, as sets make no guarantees about order. :)
+
+;## Function: add#set
+;# add#set : set -> any -> set
 (def-impl ::set add set-add)
+
+;## Function: add-front#set
+;# add-front#set : set -> any -> set
 (def-impl ::set add-front set-add)
+
+;## Function: foldr#set
+;# foldl#set : (any -> any -> any) -> any -> set -> any
 (def-impl ::set foldr buildin-foldr)
+
+;## Function: foldl#set
+;# foldl#set : (any -> any -> any) -> any -> set -> any
 (def-impl ::set foldl buildin-foldl)
+
+;## Function: eq?#set
+;# eq?#set : set -> set -> bool
 (def-impl ::set eq? set-eq?)
+
+;## Function: get#set
+;# get#set : set -> any -> bool
 (def-impl ::set get contains?)
+
+;## Function: find#set
+;# find#set : set -> any -> bool
 (def-impl ::set find contains?)
 )
 
