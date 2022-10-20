@@ -3822,6 +3822,7 @@
 
 (define (run-all-tests)
   (run-tests
+  'test-concat 
   'test-keyword-name 'test-loop 'test-lambda 'test-cond 'test-if 'test-spread
   'test-apply 'test-lambda* 'test-quote 'test-gensym 'test-seq 'test-quasiquote
   'test-partial 'test-nothing 'test-lazy-seq
@@ -3847,7 +3848,7 @@
   'test-set-includes? 'test-set-subset? 'test-set-true-subset?
   'test-set-superset? 'test-set-true-superset? 'test-begin 'test-comment
   'test-size 'test-indices-of 'test-contains? 'test-first 'test-rest
-  'test-last 'test-but-last 'test-append 'test-concat 'test-string-concat
+  'test-last 'test-but-last 'test-append 'test-string-concat
   'test-nth 'test-split 'test-split-by 'test-maplist 'test-mapcar
   'test-mapcon 'test-mapcon 'test-map-indexed 'test-fmap 'test-mapf
   'test-mapcat 'test-map-while 'test-map-until 'test-filter

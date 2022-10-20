@@ -1,5 +1,5 @@
 (module lyra.core
-  (cond lambda T comment unwrap foldr foldl append contains? nth rnth rget ->symbol ->int ->float ->rational ->string ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? seq? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf split-at split-unless split-if take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples partition-all xrange succ try count-by most? loop1 loop xcons partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at quasiquote lazy-seq partition-by plet let lambda' conj take-nth interleave destructure name compute*-> compute-> par par' pmap' pmap define* eval-seq! map-invert)
+  (cond lambda T comment unwrap foldr foldl append contains? nth rnth rget ->symbol ->int ->float ->rational ->string ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? seq? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf split-at split-unless split-if take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples partition-all xrange succ try count-by most? loop1 loop xcons partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at quasiquote lazy-seq partition-by plet let lambda' conj take-nth interleave destructure name compute*-> compute-> par par' pmap' pmap define* eval-seq! map-invert chunk-map)
 
 ;;; SECTION: Some core things
 
@@ -2078,15 +2078,24 @@
 ;## Function: pmap
 ;# pmap : (any -> any) -> collection -> list
 ;# Parallel map. Like pmap', but returns values, not delays.
+;# Please do not use this yet. The current implementation is hopelessly broken
 (define (pmap f xs)
-  (map eager
-    (map
-      (lambda (x) (delay (lambda () (f x))))
-      xs)))
+  (map eager (chunk-map 8 (lambda (x) (delay (lambda () (f x)))) xs)))
+
+;## Function: chunk-map
+;# chunk-map : int -> (any -> any) -> collection -> list
+;# Operates like map, but eagerly calculates each "chunk" once requested.
+(define (chunk-map chunk-size f xs)
+  (if (empty? xs)
+    '()
+    (let ((ys (map-eager f (take chunk-size xs))))
+      ;(list-concat ys (cdr (lazy-seq '() (chunk-map chunk-size f (drop chunk-size xs)))))
+      (lazy-seq (car ys) (list-concat (cdr ys) (chunk-map chunk-size f (drop chunk-size xs))))
+      )))
 
 ;## Macro: plet
 ;# plet : expr -> [expr]* -> expr
-;# Parallel let. Supports destructuring
+;# Parallel let. Supports destructuring.
 (defmacro (plet binds & body)
   (let* ((names (map first binds))
          (vals (map second binds))

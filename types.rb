@@ -232,25 +232,17 @@ class List
 end
 
 def list_append(*lists)
-  lists = lists.delete_if(&:empty?)
+  list_append1(lists)
+end
+
+# As list_append, but take an array without spreading.
+def list_append1(lists)
+  lists.delete_if(&:empty?)
   if lists.empty?
     EmptyList.instance
+  elsif lists.size == 1
+    lists[0]
   else
-=begin
-    res = list
-    until lists.empty?
-      f = lists[0].to_cons_list
-      if f.empty?
-        nil
-      elsif f.cdr.empty?
-        res = cons(f.car, res)
-      else
-        res = ListPair.new(f, res)
-      end
-      lists = lists[1..-1]
-    end
-    res
-=end
     lists.map(&:to_cons_list).inject do |l0, l1|
       ListPair.new(l0, l1)
     end
@@ -363,6 +355,7 @@ def cons(e, l)
   elsif l.is_a?(LyraFn)
     List.create(e, l)
   else
+    puts l.class
     raise LyraError.new("Tail must be a list but is #{l}.", :"illegal-argument")
   end
 end
@@ -630,7 +623,6 @@ class NativeLyraFn < LyraFn
 end
 
 class PartialLyraFn < LyraFn
-
   def initialize(func, args)
     @func, @args = func, args
     @name = func.name
