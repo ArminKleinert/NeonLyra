@@ -1,5 +1,5 @@
 (module lyra.core.queue
-  (deque queue push ->deque ->queue enqueue dequeue peek pop queue? deque? enqueue-all)
+  ()
 
   ; deque and queue are implemented as the same type.
   ; A deque is implemented as 2 lists: One for the front and one the back. 

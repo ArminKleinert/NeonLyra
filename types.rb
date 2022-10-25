@@ -301,6 +301,63 @@ class ListPair
   end
 end
 
+# TODO
+=begin
+class ChunkedSeq
+  include Enumerable, ConsList
+  
+  class Chunks
+    @chunks = []
+    def size
+      @chunks.map(&:size).sum
+    end
+  end
+  
+  
+
+  def car
+    @inner.chunks.
+  end
+
+  def cdr
+    ChunkedSeq.new(@offset+1)
+  end
+
+  def nth(i)
+    
+  end
+  
+  def take(n)
+    arr = []
+    cs = @inner.chunks
+    while n > 0
+      sz = cs[0].size
+      if sz <= n
+        arr += cs[0]
+        n -= sz
+        cs = cs[1..-1]
+      else
+        arr += cs[0].take(n)
+      end
+    end
+    arr
+  end
+  
+  def size
+    if @size == -1
+      @size = inner.map(&:size).sum
+    end
+    @size
+  end
+  
+  def each(&block)
+    @inner.chunks.each do |c|
+      c.each{|x|block.call(x)}
+    end
+  end
+end
+=end
+
 class LazyList
   include Enumerable, ConsList, Lazy
 

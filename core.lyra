@@ -2089,7 +2089,6 @@
   (if (empty? xs)
     '()
     (let ((ys (map-eager f (take chunk-size xs))))
-      ;(list-concat ys (cdr (lazy-seq '() (chunk-map chunk-size f (drop chunk-size xs)))))
       (lazy-seq (car ys) (list-concat (cdr ys) (chunk-map chunk-size f (drop chunk-size xs))))
       )))
 

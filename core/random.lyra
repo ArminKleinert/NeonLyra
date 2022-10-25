@@ -1,8 +1,5 @@
 (module lyra.core.random
-  ((random xorshift64s)
-   random! xorshift64s xorshift64 xorshift32 (lfsr lfsr32)
-   xorshift64s-seq xorshift64-seq xorshift32-seq lfsr32-seq 
-   random-nums with-bounds shuffle)
+  ()
 
 (let ((max-32 0xFFFFFFFF)
       (max-64 0xFFFFFFFFFFFFFFFF))
@@ -13,6 +10,8 @@
          (x2 (bit-xor x1 (bit-shr x1 27))))
     (bit-and (* x2 2685821657736338717) max-64)))
     
+(define random xorshift64s)
+
 (define (xorshift64 seed)
   (let* ((x0 (bit-xor seed (bit-shl seed 13)))
          (x1 (bit-xor x0 (bit-shr x0 7)))
@@ -29,6 +28,8 @@
   (let* ((x (bit-and x max-32))
          (b (foldl bit-xor x (list (bit-shr x 31) (bit-shr x 28)))))
     (bit-or (bit-shr x 1) (bit-shl b 31))))
+
+(define lfsr lfsr32)
 
 (let ((state (box 0xCAFEBABE)))
   (define (random!)

@@ -540,18 +540,16 @@ def setup_core_functions
     end
 
     if !mod.nil?
-      binds = mod.bindings
-      ttt = []
-      binds.each do |bind1|
+      mod.bindings.each do |bind1|
         bind = bind1.to_s.split("/", 2)[-1]
-        bind = if alias_name.empty?
-          bind.to_sym
-        else
-          (alias_name + "/" + bind).to_sym
-        end
-        ttt << bind
 
-        env.next_module_env.set! bind, Env.global_env.find(bind1)
+        if alias_name.empty?
+          bind = bind.to_sym
+        else
+          bind = (alias_name + "/" + bind).to_sym
+        end
+
+        env.next_module_env.set_no_export! bind, Env.global_env.find(bind1)
         #puts "#{alias_name} #{alias_name.empty?} #{bind1} #{bind}"
       end
 

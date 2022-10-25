@@ -8,13 +8,12 @@ GLOBAL_ENV = Boxed.new nil
 
 class Env
 
-  attr_reader :module_name, :next_module_env, :inner
+  attr_reader :module_name, :next_module_env, :inner, :exportables, :is_module_env
 
   def initialize(module_name, parent0 = nil, parent1 = nil, module_env = nil, is_module_env = false)
     @module_name, @next_module_env = module_name, module_env
     @parent0, @parent1 = parent0, parent1
     @inner = Hash.new(NOT_FOUND_IN_LYRA_ENV)
-    #@next_module_env = @parent0.next_module_env if module_env.nil? && !@parent0.nil?
     if @next_module_env.nil?
       if @parent0.nil? || is_module_env
         @next_module_env = self
@@ -23,6 +22,8 @@ class Env
         @next_module_env = @parent0&.next_module_env
       end
     end
+    @is_module_env = is_module_env
+    @exportables = []
   end
 
   def self.create_module_env(module_name)
@@ -70,9 +71,20 @@ class Env
     if sym != :"_" # Ignore the _ symbol.
       if @inner.include? sym
         raise LyraError.new("Symbol already defined: #{sym}")
-      else
-        @inner[sym] = val
+      elsif (@is_module_env || @module_name == :global) && !sym.to_s.start_with?("%")
+        @exportables << sym
       end
+      @inner[sym] = val
+    end
+    self
+  end
+
+  def set_no_export!(sym, val)
+    if sym != :"_" # Ignore the _ symbol.
+      if @inner.include? sym
+        raise LyraError.new("Symbol already defined: #{sym}")
+      end
+      @inner[sym] = val
     end
     self
   end
@@ -119,4 +131,18 @@ class Env
   def is_the_global_env?
     object_id == Env.global_env.object_id
   end
+  
+  def public_module_vars
+=begin
+    e = @next_module_env
+    res = {}
+    e.inner.each do |k, v|
+      res[k] = v if !k.to_s.start_with?("%")
+    end
+    res
+=end
+    @next_module_env.inner.slice(*@exportables)
+  end
+  
+  
 end

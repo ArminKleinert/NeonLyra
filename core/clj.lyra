@@ -1,19 +1,5 @@
 (module clj
-  (when def defn fn
-  (do begin)
-  (slurp! file-read!)
-  (spit! file-write!)
-  (count size)
-  (nil Nothing)
-  (enumerate zip-to-index)
-  (distinct unique)
-  (str string-concat)
-  (vec ->vector)
-  (not-any? none?)
-  (every? all?)
-  reduce reductions some some? some-fn
-  nthrest nthnext next fnext ffirst nnext
-  keep)
+  ()
 
 (defmacro (when p & body)
   (list 'if p (xcons 'begin Nothing body) Nothing))
@@ -49,8 +35,6 @@
       (%multifn (gensym 'fn) (cons name body))
     else
       (error! "Syntax error: Invalid format for fn." 'syntax)))
-  
-
 
 (define (nthrest xs i) (drop i xs))
 (define (nthnext xs i) (let ((r (nthrest xs i))) (if (empty? r) Nothing r)))
@@ -91,6 +75,18 @@
 
 (define (keep f xs)
   (remove nothing? (map f xs)))
+
+(define do begin)
+(define slurp! file-read!)
+(define spit! file-write!)
+(define count size)
+(define nil Nothing)
+(define enumerate zip-to-index)
+(define distinct unique)
+(define str string-concat)
+(define vec ->vector)
+(define not-any? none?)
+(define every? all?)
 )
 
 

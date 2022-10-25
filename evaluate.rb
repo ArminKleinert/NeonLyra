@@ -79,30 +79,27 @@ def ev_module(expr)
 
   module_env = Env.create_module_env name
   expr = expr.cdr
-  bindings = expr.car
+  meta = expr.car # Currently unused.
   forms = expr.cdr
-  raise LyraError.new("Syntax error: Module bindings must be a list.", :syntax) unless bindings.is_a?(ConsList)
-  raise LyraError.new("Syntax error: Module forms must be a list.", :syntax) unless bindings.is_a?(ConsList)
   
   abstract_name = gensym(:module)
-
-  eval_keep_last forms, module_env
+  
+  begin
+    eval_keep_last forms, module_env
+  rescue => e
+    $stderr.puts "Error while parsing module #{name}:"
+    raise e
+  end
 
   global = Env.global_env
-
+  
   binding_out = nil
   binding_from = nil
   out_bindings = []
-  bindings.each do |binding|
-    if binding.is_a? ConsList
-      binding_out = binding.car
-      binding_from = binding.cdr.car
-    elsif binding.is_a? Symbol
-      binding_out = binding
-      binding_from = binding
-    else
-      raise LyraError.new("Syntax error: Module binding must be a list or symbol.", :syntax)
-    end
+  bindings = module_env.public_module_vars
+  bindings.each do |key, val|
+    binding_out = key
+    binding_from = key
 
     # Turn binding name "function" into "module/function".
     # E.g. list->vector from module core.vector becomes core.vector/list->vector.
@@ -111,8 +108,8 @@ def ev_module(expr)
     unless name == :"lyra.core"
       binding_out = (abstract_name.to_s + "/" + binding_out.to_s).to_sym
     end
-    global.set! binding_out, eval_ly(binding_from, module_env)
-    #end
+
+    global.set! binding_out, val
 
     out_bindings << binding_out
   end
@@ -409,7 +406,6 @@ def eval_list_expr(expr, env, is_in_call_params = false)
     # Form is `(if predicate then-branch else-branch)`.
     # If the predicate holds true, the then-branch is executed.
     # Otherwise, the else-branch is executed.
-    puts expr if expr.size != 4
     raise LyraError.new("if needs 3 arguments.", :syntax) if expr.size != 4 # includes the 'if
     pred = eval_ly(second(expr), env, true)
     if truthy?(pred)
