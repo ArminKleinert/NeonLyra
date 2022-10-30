@@ -2044,7 +2044,7 @@
         (binds (if named body1 binds))
         (body (if named body (cons body1 body)))
         (bind-aliases (map #(if (= %1 '&) '& (gensym 'bind)) binds)))
-    (foldl fst 0 bind-aliases)
+    (eval-seq! bind-aliases)
     (list 'lambda* name bind-aliases (cons 'let (cons (remove #(= (car %1) '&) (zip binds bind-aliases)) body)))))
 
 ;;; SECTION: Parallel stuff
