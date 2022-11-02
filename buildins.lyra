@@ -104,15 +104,10 @@
 ;## Function: always-false
 ;# always-false : any* -> bool
 ;# Always returns #f.
-  add_fn(:"always-false", 0, -1) { |*_| false }
 
 ;## Function: box
 ;# box : any -> box
 ;# Wraps the argument into a box.
-
-;## Function: unbox
-;# unbox : box -> any
-;# Unraps the argument.
 
 ;## Function: unbox
 ;# unbox : box -> any

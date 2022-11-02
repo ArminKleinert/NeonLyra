@@ -3120,14 +3120,6 @@ Attention! It is not adviced to use any function with the prefix "buildin" direc
   
   Unraps the argument.
 ```
-### Function: `unbox` 
-```
-  unbox : box -> any
-  
-  Pure? Yes
-  
-  Unraps the argument.
-```
 # File: set.lyra
 
 
