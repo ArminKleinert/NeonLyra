@@ -1,5 +1,7 @@
 # File: core.lyra
 
+
+
 ## Macros
 
 ### Macro `par'` 
@@ -64,8 +66,6 @@
   case : expr -> [any, expr]* -> expr
   
   Pure? Yes
-  
-
 ```
 ### Macro: `case-lambda` 
 ```
@@ -173,8 +173,6 @@
   for : list -> expr -> expr
   
   Pure? Yes
-  
-
 ```
 ### Macro: `lambda` 
 ```
@@ -209,8 +207,6 @@
   let : list|vector -> [expr]* -> expr
   
   Pure? Yes
-  
-
 ```
 ### Macro: `let1` 
 ```
@@ -285,7 +281,7 @@
   
   Pure? Yes
   
-  Plain alias for lambda
+  Plain alias for lambda.
 ```
 
 ## Functions
@@ -585,11 +581,9 @@
 ### Function: `append` 
 ```
   append : collection -> collection -> collection
-  Append all elements from a sequence ys to collection xs. Requires: ->list
+  Append all elements from a sequence ys to collection xs. Requires: ->list.
   
   Pure? Yes
-  
-
 ```
 ### Function: `append#map` 
 ```
@@ -621,8 +615,6 @@
   cartesian-product : sequence -> sequence -> list
   
   Pure? Yes
-  
-
 ```
 ### Function: `chunk-map` 
 ```
@@ -1040,7 +1032,7 @@
   
   Pure? Yes
   
-  Generic for foldl
+  Generic for foldl.
 ```
 ### Function: `foldl#list` 
 ```
@@ -1084,7 +1076,7 @@
   
   Pure? Yes
   
-  Generics for foldr and foldl
+  Generics for foldr and foldl.
 ```
 ### Function: `foldr#list` 
 ```
@@ -1207,8 +1199,6 @@
   interleave : collection -> [collection]* -> list
   
   Pure? Yes
-  
-
 ```
 ### Function: `into` 
 ```
@@ -1531,8 +1521,6 @@
   partition-by : (any -> any) -> collection -> list
   
   Pure? Yes
-  
-
 ```
 ### Function: `permutations` 
 ```
@@ -1566,7 +1554,7 @@
   
   Pure? Yes
   
-  Reverse append. (append xs to ys)
+  Reverse append. (append xs to ys).
 ```
 ### Function: `print!` 
 ```
@@ -1990,8 +1978,6 @@
   unique? : collection -> bool
   
   Pure? Yes
-  
-
 ```
 ### Function: `unwrap` 
 ```
@@ -2021,24 +2007,18 @@
   va-all? : (any -> bool) -> [any]* -> bool
   
   Pure? Yes
-  
-
 ```
 ### Function: `va-any?` 
 ```
   va-any? : (any -> bool) -> [any]* -> bool
   
   Pure? Yes
-  
-
 ```
 ### Function: `va-none?` 
 ```
   va-none? : (any -> bool) -> [any]* -> bool
   
   Pure? Yes
-  
-
 ```
 ### Function: `walk-with-path` 
 ```
@@ -2108,7 +2088,1049 @@
     (zip-with list '(1 2 3) '(4 5 6)) ;=> ((1 4) (2 5) (3 6))
   Required for both l0 and l1: empty?, first, rest
 ```
+# File: buildins.lyra
+
+Attention! It is not adviced to use any function with the prefix "buildin" directly! They may not always act as intended and may be removed at any time in any version.`
+
+## Macros
+
+
+## Functions
+
+### Function: `*` 
+```
+  * : any -> any -> any
+  
+  Pure? Yes
+```
+### Function: `+` 
+```
+  + : any -> any -> any
+  
+  Pure? Yes
+```
+### Function: `-` 
+```
+  - : any -> any -> any
+  
+  Pure? Yes
+```
+### Function: `/` 
+```
+  / : any -> any -> any
+  
+  Pure? Yes
+```
+### Function: `/=` 
+```
+  /= : any -> any -> bool
+  
+  Pure? Yes
+```
+### Function: `<` 
+```
+  < : any -> any -> bool
+  
+  Pure? Yes
+```
+### Function: `<=` 
+```
+  <= : any -> any -> bool
+  
+  Pure? Yes
+```
+### Function: `=` 
+```
+  = : any -> any -> bool
+  
+  Pure? Yes
+```
+### Function: `>` 
+```
+  > : any -> any -> bool
+  
+  Pure? Yes
+```
+### Function: `>=` 
+```
+  >= : any -> any -> bool
+  
+  Pure? Yes
+```
+### Function: `abs` 
+```
+  abs : number -> number
+  
+  Pure? Yes
+```
+### Function: `all?` 
+```
+  all? : (any -> bool) -> collection -> bool
+  
+  Pure? Yes
+```
+### Function: `always-false` 
+```
+  always-false : any* -> bool
+  
+  Pure? Yes
+  
+  Always returns #f.
+```
+### Function: `always-true` 
+```
+  always-true : any* -> bool
+  
+  Pure? Yes
+  
+  Always returns #t.
+```
+### Function: `any?` 
+```
+  any? : (any -> bool) -> collection -> bool
+  
+  Pure? Yes
+```
+### Function: `apply-to` 
+```
+  apply-to : function -> list -> any
+  
+  Pure? Yes
+```
+### Function: `atom?` 
+```
+  atom? : any -> bool
+  
+  Pure? Yes
+  
+  Returns #t for symbols, bools, strings and numbers.
+  Returns #f for anything else.
+```
+### Function: `bit-and` 
+```
+  bit-and : int -> int -> int
+  
+  Pure? Yes
+```
+### Function: `bit-or` 
+```
+  bit-or : int -> int -> int
+  
+  Pure? Yes
+```
+### Function: `bit-shl` 
+```
+  bit-shl : int -> int -> int
+  
+  Pure? Yes
+```
+### Function: `bit-shr` 
+```
+  bit-shr : int -> int -> int
+  
+  Pure? Yes
+```
+### Function: `bit-xor` 
+```
+  bit-xor : int -> int -> int
+  
+  Pure? Yes
+```
+### Function: `boolean?` 
+```
+  boolean? : any -> bool
+  
+  Pure? Yes
+```
+### Function: `box` 
+```
+  box : any -> box
+  
+  Pure? Yes
+  
+  Wraps the argument into a box.
+```
+### Function: `box-set!` 
+```
+  box-set! : box -> any -> box
+  
+  Pure? No
+  
+  Changes the value of a box.
+```
+### Function: `box?` 
+```
+  box? : any -> bool
+  
+  Pure? Yes
+```
+### Function: `buildin->bool` 
+```
+  buildin->bool : any -> bool
+  
+  Pure? Yes
+  
+  Turns a variable into a bool. Returns Nothing if this is not possible.
+```
+### Function: `buildin->char` 
+```
+  buildin->char : any -> char
+  
+  Pure? Yes
+  
+  Turns a variable into a char. Returns Nothing if this is not possible.
+```
+### Function: `buildin->float` 
+```
+  buildin->float : any -> float
+  
+  Pure? Yes
+  
+  Turns a variable into a float. Returns Nothing if this is not possible.
+```
+### Function: `buildin->int` 
+```
+  buildin->int : any -> int
+  
+  Pure? Yes
+  
+  Turns a variable into an int. Returns Nothing if this is not possible.
+```
+### Function: `buildin->keyword` 
+```
+  buildin->keyword : any -> keyword
+  
+  Pure? Yes
+  
+  Turns a variable into a keyword Returns Nothing if this is not possible.
+```
+### Function: `buildin->list` 
+```
+  buildin->list : any -> list
+  
+  Pure? Yes
+  
+  Turns a variable into a list. Returns Nothing if this is not possible.
+```
+### Function: `buildin->map` 
+```
+  buildin->map : any -> map
+  
+  Pure? Yes
+  
+  Turns a variable into a map. Returns Nothing if this is not possible.
+```
+### Function: `buildin->pretty-string` 
+```
+  buildin->pretty-string : any -> string
+  
+  Pure? Yes
+  
+  Turns a variable into a string. Returns Nothing if this is not possible.
+```
+### Function: `buildin->rational` 
+```
+  buildin->rational : any -> rational
+  
+  Pure? Yes
+  
+  Turns a variable into a rational. Returns Nothing if this is not possible.
+```
+### Function: `buildin->set` 
+```
+  buildin->set : any -> set
+  
+  Pure? Yes
+  
+  Turns a variable into a set. Returns Nothing if this is not possible.
+```
+### Function: `buildin->string` 
+```
+  buildin->string : any -> string
+  
+  Pure? Yes
+  
+  Turns a variable into a string. Returns Nothing if this is not possible.
+```
+### Function: `buildin->symbol` 
+```
+  buildin->symbol : any -> symbol
+  
+  Pure? Yes
+  
+  Turns a variable into a symbol. Returns Nothing if this is not possible.
+```
+### Function: `buildin->vector` 
+```
+  buildin->vector : any -> vector
+  
+  Pure? Yes
+  
+  Turns a variable into a vector. Returns Nothing if this is not possible.
+```
+### Function: `buildin-append` 
+```
+  buildin-append : collection -> collection -> collection
+  
+  Pure? Yes
+```
+### Function: `buildin-contains?` 
+```
+  buildin-contains? : collection -> any -> bool
+  
+  Pure? Yes
+```
+### Function: `buildin-foldl` 
+```
+  buildin-foldl : (any -> any -> any) -> any -> sequence -> any
+  
+  Pure? Yes
+```
+### Function: `buildin-foldr` 
+```
+  buildin-foldr : (any -> any -> any) -> any -> sequence -> any
+  
+  Pure? Yes
+```
+### Function: `buildin-nth` 
+```
+  buildin-nth : collection -> int -> any
+  
+  Pure? Yes
+```
+### Function: `buildin-print!` 
+```
+  buildin-print! : string -> Nothing
+  
+  Pure? No
+```
+### Function: `buildin-set->vector` 
+```
+  buildin-set->vector : set -> vector
+  
+  Pure? Yes
+```
+### Function: `buildin-set-add` 
+```
+  buildin-set-add : set ->  -> set
+  
+  Pure? Yes
+```
+### Function: `buildin-set-difference` 
+```
+  buildin-set-difference : set -> set -> set
+  
+  Pure? Yes
+```
+### Function: `buildin-set-eq?` 
+```
+  buildin-set-eq? : set -> set -> bool
+  
+  Pure? Yes
+```
+### Function: `buildin-set-includes?` 
+```
+  buildin-set-includes? : set -> set -> set
+  
+  Pure? Yes
+```
+### Function: `buildin-set-intersection` 
+```
+  buildin-set-intersection : set -> set -> set
+  
+  Pure? Yes
+```
+### Function: `buildin-set-of` 
+```
+  buildin-set-of : any* -> set
+  
+  Pure? Yes
+```
+### Function: `buildin-set-size` 
+```
+  buildin-set-size : set -> int
+  
+  Pure? Yes
+```
+### Function: `buildin-set-subset?` 
+```
+  buildin-set-subset? : set -> set -> set
+  
+  Pure? Yes
+```
+### Function: `buildin-set-superset?` 
+```
+  buildin-set-superset? : set -> set -> set
+  
+  Pure? Yes
+```
+### Function: `buildin-set-true-subset?` 
+```
+  buildin-set-true-subset? : set -> set -> set
+  
+  Pure? Yes
+```
+### Function: `buildin-set-true-superset?` 
+```
+  buildin-set-true-superset? : set -> set -> set
+  
+  Pure? Yes
+```
+### Function: `buildin-set-union` 
+```
+  buildin-set-union : set -> set -> set
+  
+  Pure? Yes
+```
+### Function: `buildin-set?` 
+```
+  buildin-set? : any -> bool
+  
+  Pure? Yes
+```
+### Function: `buildin-strcat` 
+```
+  buildin-strcat : string -> string -> string
+  
+  Pure? Yes
+```
+### Function: `buildin-string-add` 
+```
+  buildin-string-add : string -> any -> string
+  
+  Pure? Yes
+```
+### Function: `buildin-string-append` 
+```
+  buildin-string-append : string -> string -> string
+  
+  Pure? Yes
+```
+### Function: `buildin-string-chars` 
+```
+  buildin-string-chars : string -> sequence
+  
+  Pure? Yes
+```
+### Function: `buildin-string-eq?` 
+```
+  buildin-string-eq? : string -> string -> string
+  
+  Pure? Yes
+```
+### Function: `buildin-string-includes?` 
+```
+  buildin-string-includes? : string -> string -> string
+  
+  Pure? Yes
+```
+### Function: `buildin-string-nth` 
+```
+  buildin-string-nth : string -> int -> any
+  
+  Pure? Yes
+```
+### Function: `buildin-string-range` 
+```
+  buildin-string-range : string -> int -> int -> string
+  
+  Pure? Yes
+```
+### Function: `buildin-string-size` 
+```
+  buildin-string-size : string -> int
+  
+  Pure? Yes
+```
+### Function: `buildin-string-split-at` 
+```
+  buildin-string-split-at : string -> int -> sequence
+  
+  Pure? Yes
+```
+### Function: `buildin-string?` 
+```
+  buildin-string? : any -> bool
+  
+  Pure? Yes
+```
+### Function: `buildin-take` 
+```
+  buildin-take : list -> int -> list
+  
+  Pure? Yes
+```
+### Function: `buildin-unwrap` 
+```
+  buildin-unwrap : unwrappable -> any
+  
+  Pure? Yes
+  
+  Unraps the argument.
+```
+### Function: `buildin-vector` 
+```
+  buildin-vector : any* -> vector
+  
+  Pure? Yes
+```
+### Function: `buildin-vector-add` 
+```
+  buildin-vector-add : vector -> any -> vector
+  
+  Pure? Yes
+```
+### Function: `buildin-vector-append` 
+```
+  buildin-vector-append : vector -> vector -> vector
+  
+  Pure? Yes
+```
+### Function: `buildin-vector-eq?` 
+```
+  buildin-vector-eq? : vector -> vector -> vector
+  
+  Pure? Yes
+```
+### Function: `buildin-vector-includes?` 
+```
+  buildin-vector-includes? : vector -> vector -> vector
+  
+  Pure? Yes
+```
+### Function: `buildin-vector-nth` 
+```
+  buildin-vector-nth : vector -> int -> any
+  
+  Pure? Yes
+```
+### Function: `buildin-vector-range` 
+```
+  buildin-vector-range : vector -> int -> int -> vector
+  
+  Pure? Yes
+```
+### Function: `buildin-vector-size` 
+```
+  buildin-vector-size : vector -> int
+  
+  Pure? Yes
+```
+### Function: `buildin-vector?` 
+```
+  buildin-vector? : any -> bool
+  
+  Pure? Yes
+```
+### Function: `callstack` 
+```
+  
+  
+  Pure? Yes
+  
+  callstack : sequence
+```
+### Function: `car` 
+```
+  car : list -> any
+  
+  Pure? Yes
+```
+### Function: `cdr` 
+```
+  cdr : list -> list
+  
+  Pure? Yes
+```
+### Function: `char?` 
+```
+  char? : any -> bool
+  
+  Pure? Yes
+```
+### Function: `class` 
+```
+  class : any -> symbol
+  
+  Pure? Yes
+```
+### Function: `cons` 
+```
+  cons : any -> list -> list
+  
+  Pure? Yes
+```
+### Function: `copy` 
+```
+  copy : any -> any
+  
+  Pure? Yes
+  
+  Only copies boxes. For all other types, it returns its input.
+```
+### Function: `defined?` 
+```
+  defined? : any -> bool
+  
+  Pure? Yes
+  
+  Checks whether a symbol is defined.
+```
+### Function: `delay` 
+```
+  delay : function -> delay
+  
+  Pure? Yes
+```
+### Function: `delay-timeout` 
+```
+  delay-timeout : function -> int -> delay
+  
+  Pure? Yes
+```
+### Function: `denominator` 
+```
+  denominator : rational -> int|#
+  
+  Pure? Yes
+```
+### Function: `eager` 
+```
+  eager : any -> any
+  
+  Pure? Yes
+  
+  Eagerly evaluates a variable (delay, lazy list, etc.).
+```
+### Function: `eq?` 
+```
+  eq? : any -> any -> bool
+  
+  Pure? Yes
+```
+### Function: `error!` 
+```
+  error! : string -> error
+  error! : string -> any -> error
+  error! : string -> any -> sequence -> error
+  
+  Pure? No
+```
+### Function: `error-info` 
+```
+  error-info : error -> any
+  
+  Pure? Yes
+```
+### Function: `error-msg` 
+```
+  error-msg : error -> string
+  
+  Pure? Yes
+```
+### Function: `error-trace` 
+```
+  error-trace : error -> sequence
+  
+  Pure? Yes
+```
+### Function: `eval!` 
+```
+  eval! : expr -> any
+  
+  Pure? No
+```
+### Function: `evaluated` 
+```
+  evaluated : any -> bool
+  
+  Pure? Yes
+  
+  Checks whether a variable has been evaluated.
+```
+### Function: `exit!` 
+```
+  exit! : int -> Nothing
+  
+  Pure? No
+```
+### Function: `file-append!` 
+```
+  file-append! : string -> string -> string
+  
+  Pure? No
+```
+### Function: `file-read!` 
+```
+  file-read! : string -> string
+  
+  Pure? No
+```
+### Function: `file-write!` 
+```
+  file-write! : string -> string -> string
+  
+  Pure? No
+```
+### Function: `float?` 
+```
+  float? : any -> bool
+  
+  Pure? Yes
+```
+### Function: `function?` 
+```
+  function? : any -> bool
+  
+  Pure? Yes
+```
+### Function: `gensym` 
+```
+  gensym : symbol -> symbol
+  
+  Pure? Yes
+  
+  Builds a unique symbol.
+  (gensym 'lambda) => some unique symbol including lambda.
+  (gensym 'lambda) => a different unique symbol including lambda.
+```
+### Function: `hash` 
+```
+  hash : any -> int
+  
+  Pure? Yes
+```
+### Function: `id` 
+```
+  id : any -> any
+  
+  Pure? Yes
+  
+  Returns its input.
+```
+### Function: `import!` 
+```
+  import! : string -> string ->
+  
+  Pure? No
+```
+### Function: `int?` 
+```
+  int? : any -> bool
+  
+  Pure? Yes
+```
+### Function: `iterate-seq` 
+```
+  iterate-seq : (any -> any -> int) -> any -> sequence -> any
+  
+  Pure? Yes
+  
+  Takes a function, an accumulator and a sequence. The function is applied
+  to the accumulator, the current element and the current index for every
+  element in the sequence.
+  This function only works for buildin lists and buildin vectors. Usage is
+  generally not adviced.
+   (iterate-seq (lambda (acc x i) (+ acc i))
+                0 '(a b c d e)) ;=> 10
+```
+### Function: `iterate-seq-p` 
+```
+  iterate-seq-p : (any -> any -> int -> bool) -> (any -> any) -> any -> sequence -> any
+  
+  Pure? Yes
+  
+  Takes a function, an accumulator and a sequence. The function is applied
+  to the accumulator, the current element and the current index for every
+  element in the sequence.
+  This is done as long as the predicate function p holds true.
+  This function only works for buildin lists and buildin vectors. Usage is
+  generally not adviced.
+   (iterate-seq-p (lambda (acc x i) (< i 3))
+                  (lambda (acc x i) (+ acc i))
+                  0 '(a b c d e)) ;=> 3
+```
+### Function: `keyword-name` 
+```
+  keyword-name : keyword -> symbol
+  
+  Pure? Yes
+```
+### Function: `keyword?` 
+```
+  keyword? : any -> bool
+  
+  Pure? Yes
+```
+### Function: `lazy` 
+```
+  lazy : any -> lazy
+  
+  Pure? Yes
+```
+### Function: `lazy-obj?` 
+```
+  lazy-obj? : any -> bool
+  
+  Pure? Yes
+```
+### Function: `lazy?` 
+```
+  lazy? : any -> bool
+  
+  Pure? Yes
+```
+### Function: `list-concat` 
+```
+  list-concat : list -> list -> list
+  
+  Pure? Yes
+```
+### Function: `list-size` 
+```
+  list-size : list -> int
+  
+  Pure? Yes
+```
+### Function: `list?` 
+```
+  list? : any -> bool
+  
+  Pure? Yes
+```
+### Function: `ljust` 
+```
+  ljust : string -> int -> string
+  
+  Pure? Yes
+```
+### Function: `load!` 
+```
+  
+  
+  Pure? No
+  
+  load! : string ->
+```
+### Function: `map->vector` 
+```
+  map->vector : map -> vector
+  
+  Pure? Yes
+```
+### Function: `map-entries` 
+```
+  map-entries : map -> sequence
+  
+  Pure? Yes
+```
+### Function: `map-eq?` 
+```
+  map-eq? : map -> map -> bool
+  
+  Pure? Yes
+```
+### Function: `map-get` 
+```
+  map-get : map -> any -> any
+  
+  Pure? Yes
+```
+### Function: `map-has-key?` 
+```
+  map-has-key? : map -> any -> bool
+  
+  Pure? Yes
+```
+### Function: `map-has-value?` 
+```
+  map-has-value? : map -> any -> bool
+  
+  Pure? Yes
+```
+### Function: `map-keys` 
+```
+  map-keys : map -> collection
+  
+  Pure? Yes
+```
+### Function: `map-merge` 
+```
+  map-merge : map -> map -> map
+  
+  Pure? Yes
+```
+### Function: `map-of` 
+```
+  map-of : any* -> map
+  
+  Pure? Yes
+```
+### Function: `map-remove` 
+```
+  map-remove : map -> any -> map
+  
+  Pure? Yes
+```
+### Function: `map-set` 
+```
+  map-set : map -> any -> any -> map
+  
+  Pure? Yes
+```
+### Function: `map-size` 
+```
+  map-size : map -> int
+  
+  Pure? Yes
+```
+### Function: `map?` 
+```
+  map? : any -> bool
+  
+  Pure? Yes
+```
+### Function: `measure!` 
+```
+  measure! : int -> (any) -> int
+  
+  Pure? No
+```
+### Function: `memoize` 
+```
+  memoize : function -> function
+  
+  Pure? Yes
+```
+### Function: `nil?` 
+```
+  nil? : any -> bool
+  
+  Pure? Yes
+  
+  #t for Nothing. #f for anything else.
+```
+### Function: `none?` 
+```
+  none? : (any -> bool) -> collection -> bool
+  
+  Pure? Yes
+```
+### Function: `not` 
+```
+  not : any -> bool
+  
+  Pure? Yes
+  
+  Returns #f for a truthy value and #t for a falsey value.
+```
+### Function: `nothing` 
+```
+  nothing : any* -> Nothing
+  
+  Pure? Yes
+  
+  Takes any number of arguments and returns Nothing.
+```
+### Function: `nothing?` 
+```
+  nothing? : any -> bool
+  
+  Pure? Yes
+  
+  #t for Nothing. #f for anything else.
+```
+### Function: `null?` 
+```
+  null? : any -> bool
+  
+  Pure? Yes
+  
+  #t for Nothing and the empty list. #f for anything else.
+```
+### Function: `numerator` 
+```
+  numerator : rational -> int
+  
+  Pure? Yes
+```
+### Function: `partial` 
+```
+  partial : function -> any* -> function
+  
+  Pure? Yes
+  
+  Creates a partial function.
+```
+### Function: `rational?` 
+```
+  rational? : any -> bool
+  
+  Pure? Yes
+```
+### Function: `read-string` 
+```
+  read-string : string -> expr
+  
+  Pure? Yes
+```
+### Function: `readln!` 
+```
+  readln! : string -> Nothing
+  
+  Pure? No
+```
+### Function: `ref=` 
+```
+  ref= : any -> any -> bool
+  
+  Pure? Yes
+```
+### Function: `rem` 
+```
+  rem : any -> any -> any
+  
+  Pure? Yes
+```
+### Function: `seq` 
+```
+  seq : any -> list
+  
+  Pure? Yes
+  
+  Turns a variable into a list. If the variable is not a collecttion or if the variable is empty, it returns Nothing instead.
+```
+### Function: `sqrt` 
+```
+  sqrt : number -> number
+  
+  Pure? Yes
+```
+### Function: `symbol?` 
+```
+  symbol? : any -> bool
+  
+  Pure? Yes
+```
+### Function: `unbox` 
+```
+  unbox : box -> any
+  
+  Pure? Yes
+  
+  Unraps the argument.
+```
+### Function: `unbox` 
+```
+  unbox : box -> any
+  
+  Pure? Yes
+  
+  Unraps the argument.
+```
 # File: set.lyra
+
+
 
 ## Macros
 
@@ -2120,120 +3142,90 @@
   ->map#set : set -> map
   
   Pure? Yes
-  
-
 ```
 ### Function: `->set#set` 
 ```
   ->set#set : set -> set
   
   Pure? Yes
-  
-
 ```
 ### Function: `->string#set` 
 ```
   ->string#set : set -> string
   
   Pure? Yes
-  
-
 ```
 ### Function: `->vector#set` 
 ```
   ->vector#set : set -> vector
   
   Pure? Yes
-  
-
 ```
 ### Function: `add#set` 
 ```
   add#set : set -> any -> set
   
   Pure? Yes
-  
-
 ```
 ### Function: `add-front#set` 
 ```
   add-front#set : set -> any -> set
   
   Pure? Yes
-  
-
 ```
 ### Function: `append#set` 
 ```
   append#set : set -> collection -> set
   
   Pure? Yes
-  
-
 ```
 ### Function: `collection?#set` 
 ```
   collection?#set : set -> bool
   
   Pure? Yes
-  
-
 ```
 ### Function: `contains?#set` 
 ```
   contains?#set : set -> any -> bool
   
   Pure? Yes
-  
-
 ```
 ### Function: `eq?#set` 
 ```
   eq?#set : set -> set -> bool
   
   Pure? Yes
-  
-
 ```
 ### Function: `find#set` 
 ```
   find#set : set -> any -> bool
   
   Pure? Yes
-  
-
 ```
 ### Function: `first#set` 
 ```
   first#set : set -> set
   
   Pure? Yes
-  
-
 ```
 ### Function: `foldl#set` 
 ```
   foldl#set : (any -> any -> any) -> any -> set -> any
   
   Pure? Yes
-  
-
 ```
 ### Function: `foldr#set` 
 ```
   foldl#set : (any -> any -> any) -> any -> set -> any
   
   Pure? Yes
-  
-
 ```
 ### Function: `get#set` 
 ```
   get#set : set -> any -> bool
   
   Pure? Yes
-  
-
 ```
 ### Function: `list->set` 
 ```
@@ -2249,24 +3241,18 @@
   nth#set : set -> int -> any
   
   Pure? Yes
-  
-
 ```
 ### Function: `rest#set` 
 ```
   rest#set : set -> set
   
   Pure? Yes
-  
-
 ```
 ### Function: `reverse#set` 
 ```
   reverse#set : set -> set
   
   Pure? Yes
-  
-
 ```
 ### Function: `set->vector` 
 ```
@@ -2281,114 +3267,88 @@
   set-add : set -> any -> set
   
   Pure? Yes
-  
-
 ```
 ### Function: `set-difference` 
 ```
   set-difference : set -> set -> set
   
   Pure? Yes
-  
-
 ```
 ### Function: `set-eq?` 
 ```
   set-eq? : set -> set -> bool
   
   Pure? Yes
-  
-
 ```
 ### Function: `set-includes?` 
 ```
   set-includes? : set -> set -> set
   
   Pure? Yes
-  
-
 ```
 ### Function: `set-intersection` 
 ```
   set-intersection : set -> set -> set
   
   Pure? Yes
-  
-
 ```
 ### Function: `set-of` 
 ```
   set-of : any* -> set
   
   Pure? Yes
-  
-
 ```
 ### Function: `set-size` 
 ```
   set-size : set -> int
   
   Pure? Yes
-  
-
 ```
 ### Function: `set-subset?` 
 ```
   set-subset? : set -> set -> set
   
   Pure? Yes
-  
-
 ```
 ### Function: `set-superset?` 
 ```
   set-superset? : set -> set -> set
   
   Pure? Yes
-  
-
 ```
 ### Function: `set-true-subset?` 
 ```
   set-true-subset? : set -> set -> set
   
   Pure? Yes
-  
-
 ```
 ### Function: `set-true-superset?` 
 ```
   set-true-superset? : set -> set -> set
   
   Pure? Yes
-  
-
 ```
 ### Function: `set-union` 
 ```
   set-union : set -> set -> set
   
   Pure? Yes
-  
-
 ```
 ### Function: `set?` 
 ```
   set? : any -> bool
   
   Pure? Yes
-  
-
 ```
 ### Function: `size#set` 
 ```
   size#set : set -> int
   
   Pure? Yes
-  
-
 ```
 # File: string.lyra
+
+
 
 ## Macros
 
@@ -2400,16 +3360,12 @@
   ->float#string : string -> float
   
   Pure? Yes
-  
-
 ```
 ### Function: `->int#string` 
 ```
   ->int#string : string -> int
   
   Pure? Yes
-  
-
 ```
 ### Function: `->list#string` 
 ```
@@ -2448,24 +3404,18 @@
   >rational#string : string -> rational
   
   Pure? Yes
-  
-
 ```
 ### Function: `add#string` 
 ```
   add#string : string -> any -> string
   
   Pure? Yes
-  
-
 ```
 ### Function: `add-front#string` 
 ```
   add-front#string : string -> any -> string
   
   Pure? Yes
-  
-
 ```
 ### Function: `append#string` 
 ```
@@ -2488,8 +3438,6 @@
   eq?#string : string -> string -> bool
   
   Pure? Yes
-  
-
 ```
 ### Function: `first#string` 
 ```
@@ -2504,16 +3452,12 @@
   foldl#string : (any -> character -> any) -> any -> string -> any
   
   Pure? Yes
-  
-
 ```
 ### Function: `foldr#string` 
 ```
   foldr#string : (character -> any -> any) -> any -> string -> any
   
   Pure? Yes
-  
-
 ```
 ### Function: `nth#string` 
 ```
@@ -2568,24 +3512,18 @@
   string-add : string -> any -> string
   
   Pure? Yes
-  
-
 ```
 ### Function: `string-append` 
 ```
   string-append : string -> string -> string
   
   Pure? Yes
-  
-
 ```
 ### Function: `string-chars` 
 ```
   string-chars : string -> list
   
   Pure? Yes
-  
-
 ```
 ### Function: `string-concat` 
 ```
@@ -2610,16 +3548,12 @@
   string-includes? : string -> string -> bool
   
   Pure? Yes
-  
-
 ```
 ### Function: `string-nth` 
 ```
   string-nth : string -> int -> char
   
   Pure? Yes
-  
-
 ```
 ### Function: `string-range` 
 ```
@@ -2635,34 +3569,28 @@
   string-size : string -> int
   
   Pure? Yes
-  
-
 ```
 ### Function: `string-split-at` 
 ```
   string-split-at : string -> string -> list
   
   Pure? Yes
-  
-
 ```
 ### Function: `string?` 
 ```
   string? : any -> bool
   
   Pure? Yes
-  
-
 ```
 ### Function: `succ#string` 
 ```
   succ#string : string -> string
   
   Pure? Yes
-  
-
 ```
 # File: vector.lyra
+
+
 
 ## Macros
 
@@ -2674,32 +3602,24 @@
   ->map#vector : vector -> map
   
   Pure? Yes
-  
-
 ```
 ### Function: `->set#vector` 
 ```
   ->set#vector : vector -> set
   
   Pure? Yes
-  
-
 ```
 ### Function: `->string#vector` 
 ```
   ->string#vector : vector -> string
   
   Pure? Yes
-  
-
 ```
 ### Function: `->vector#vector` 
 ```
   ->vector#vector : vector -> vector
   
   Pure? Yes
-  
-
 ```
 ### Function: `add#vector` 
 ```
@@ -2714,8 +3634,6 @@
   append#vector : vector -> collection -> vector
   
   Pure? Yes
-  
-
 ```
 ### Function: `collection?#vector` 
 ```
@@ -2730,8 +3648,6 @@
   contains?#vector : vector -> any -> bool
   
   Pure? Yes
-  
-
 ```
 ### Function: `eq?#vector` 
 ```
@@ -2755,32 +3671,24 @@
   first#vector : vector -> any
   
   Pure? Yes
-  
-
 ```
 ### Function: `foldl#vector` 
 ```
   foldl#vector : (any -> any -> any) -> any -> vector -> any
   
   Pure? Yes
-  
-
 ```
 ### Function: `foldr#vector` 
 ```
   foldr#vector : (any -> any -> any) -> any -> vector -> any
   
   Pure? Yes
-  
-
 ```
 ### Function: `list->vector` 
 ```
   list->vector : sequence -> vector
   
   Pure? Yes
-  
-
 ```
 ### Function: `mapv` 
 ```
@@ -2803,16 +3711,12 @@
   nth#vector : vector -> int -> any
   
   Pure? Yes
-  
-
 ```
 ### Function: `rest#vector` 
 ```
   rest#vector : vector -> vector
   
   Pure? Yes
-  
-
 ```
 ### Function: `sequence?#vector` 
 ```
@@ -2827,56 +3731,42 @@
   size#vector : vector -> int
   
   Pure? Yes
-  
-
 ```
 ### Function: `vector` 
 ```
   vector : any* -> vector
   
   Pure? Yes
-  
-
 ```
 ### Function: `vector-add` 
 ```
   vector-add : vector -> any -> vector
   
   Pure? Yes
-  
-
 ```
 ### Function: `vector-append` 
 ```
   vector-append : vector -> vector -> vector
   
   Pure? Yes
-  
-
 ```
 ### Function: `vector-eq?` 
 ```
   vector-eq? : vector -> vector -> bool
   
   Pure? Yes
-  
-
 ```
 ### Function: `vector-includes?` 
 ```
   vector-includes? : vector -> any -> bool
   
   Pure? Yes
-  
-
 ```
 ### Function: `vector-nth` 
 ```
   vector-nth : vector -> int -> any
   
   Pure? Yes
-  
-
 ```
 ### Function: `vector-range` 
 ```
@@ -2891,14 +3781,10 @@
   vector-size : vector -> int
   
   Pure? Yes
-  
-
 ```
 ### Function: `vector?` 
 ```
   vector? : any -> bool
   
   Pure? Yes
-  
-
 ```

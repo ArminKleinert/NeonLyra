@@ -13,6 +13,9 @@
     (cond (= n 1) (%bubble-up xs)
           else (%bubble-sort-aux (- n 1) (%bubble-up xs)))))
 
+;## Function: bubblesort
+;# bubblesort : collection -> list.
+;# Sorts a collection
 (define (bubblesort xs)
   (if (or (empty? xs) (= 1 (size xs)))
     xs
@@ -28,10 +31,12 @@
   (cond (< (size xss) 2) xss
         else (%merge-lists (cons (%merge (car xss) (cadr xss)) (cddr xss)))))
 
-; (map-eager list xs) puts every element into its own list.
+;## Function: mergesort
+;# mergesort : collection -> list.
+;# Sorts a collection.
 (define (mergesort xs)
+  ; (map-eager list xs) puts every element into its own list.
   (car (%merge-lists (map list xs))))
-
 
 (define (%merge-w-c c xs ys)
   (cond (empty? xs) ys
@@ -43,10 +48,26 @@
   (cond (< (size xss) 2) xss
         else (%merge-lists-w-c c (cons (%merge-w-c c (car xss) (cadr xss)) (cddr xss)))))
 
+;## Function: mergesort-with-comparator
+;# mergesort-with-comparator : (any -> any -> int) -> collection -> list.
+;# Sorts a collection with an algorithm that compares 2 variables.
+;# The algorithm returns -1, 0 or 1.
 (define (mergesort-with-comparator c xs)
   (car (%merge-lists-w-c c (map list xs))))
 
+;## Function: mergesort-compare
+;# mergesort-compare : (any -> any -> int) -> collection -> list.
+;# Alias for mergesort-with-comparator.
 (define mergesort-compare mergesort-with-comparator)
+
+;## Function: sort-compare
+;# sort-compare : (any -> any -> int) -> collection -> list.
+;# Sorts a collection with an algorithm that compares 2 variables.
+;# The algorithm returns -1, 0 or 1.
 (define sort-compare mergesort-with-comparator)
+
+;## Function: sort
+;# sort : collection -> list.
+;# Sorts a collection.
 (define sort mergesort)
 )

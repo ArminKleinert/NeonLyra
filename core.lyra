@@ -12,7 +12,7 @@
 
 ;## Macro: λ
 ;# λ : list|vector -> [expr]* -> expr
-;# Plain alias for lambda
+;# Plain alias for lambda.
 (defmacro (λ bindings & body)
   (cons 'lambda (cons bindings body)))
 
@@ -62,12 +62,12 @@
 
 ;## Function: foldr
 ;# foldr : function -> any? -> collection -> any?
-;# Generics for foldr and foldl
+;# Generics for foldr and foldl.
 (def-generic xs (foldr f v xs) %foldr)
 
 ;## Function: foldl
 ;# foldl : function -> any? -> collection -> any?
-;# Generic for foldl
+;# Generic for foldl.
 (def-generic xs (foldl f v xs) %foldl)
 
 (define (%add xs y)
@@ -80,12 +80,12 @@
 
 ;## Function: append
 ;# append : collection -> collection -> collection
-;# Append all elements from a sequence ys to collection xs. Requires: ->list
+;# Append all elements from a sequence ys to collection xs. Requires: ->list.
 (def-generic xs (append xs ys) (lambda (xs ys) (buildin-append (->list xs) (->list ys))))
 
 ;## Function: prepend
 ;# prepend : collection -> collection -> collection 
-;# Reverse append. (append xs to ys)
+;# Reverse append. (append xs to ys).
 (def-generic xs (prepend xs ys) (lambda (xs ys) (buildin-append ys xs)))
 
 ;## Function: add

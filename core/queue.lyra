@@ -16,71 +16,155 @@
   ; first, rest, append and ->list are implemented, so all sequence operations work.
   (def-type deque front back)
 
+  ;## Function: deque
+  ;# deque : any* -> deque
+  ;# Takes any number of arguments any returns a deque of them.
   (define (deque & xs)
     (make-deque xs '()))
 
+  ;## Function: queue
+  ;# queue : any* -> queue
+  ;# Takes any number of arguments any returns a queue of them.
   (define queue deque)
+
+  ;## Function: queue?
+  ;# queue? : any -> bool
+  ;# Checks whether a variable is a queue.
   (define queue? deque?)
 
+  ;## Function: enqueue
+  ;# enqueue : queue -> any -> queue
   (define (enqueue q x)
     (if (empty? (deque-front q))
       (make-deque (add (reverse (deque-back q)) x) '())
       (make-deque (deque-front q) (cons x (deque-back q)))))
 
+  ;## Function: dequeue
+  ;# dequeue : queue -> queue
+  ;# Removes the first element from a queue.
   (define (dequeue q)
     (if (= (size (deque-front q)) 1)
       (make-deque (reverse (deque-back q)) '())
       (make-deque (cdr (deque-front q)) (deque-back q))))
 
+  ;## Function: dequeue
+  ;# dequeue : queue -> collection -> queue
+  ;# Enqueues all elements of a collection.
   (define (enqueue-all q xs)
     (foldl enqueue q xs))
 
+  ;## Function: peek
+  ;# peek : sequence -> any
+  ;# Get the first element from a sequence. If the sequence is a vector,
+  ;# it gets the last element instead.
   (define (peek xs)
     (if (vector? xs)
       (vector-nth xs (- (size xs) 1))
       (first xs)))
 
+  ;## Function: pop
+  ;# pop : sequence -> any
+  ;# Removes the first element from a sequence.
+  ;# If the sequence is a vector, it removes the last element instead.
   (define (pop xs)
     (if (vector? xs)
       (vector-range 0 (- (vector-size xs) 1) xs)
       (rest xs)))
 
+
+  ;## Function: push
+  ;# push : sequence -> any -> sequence
+  ;# Appends an element to a sequence If the sequence is a list, the 
+  ;# element is prepended instead.
   (define (push xs e)
     (if (list? xs)
       (cons e xs)
       (add xs e)))
 
+  ;## Function: deque-eq?
+  ;# deque-eq? : deque -> deque -> bool
+  ;# Checks whether 2 deques are equal.
   (define (deque-eq? q0 q1)
     (eq? (->list q1) (->list q0)))
 
+  ;## Function: first#deque
+  ;# first#deque : deque -> any
+  ;# Implementation for first.
   (def-impl ::deque first (lambda (q) (car (deque-front q))))
+  
+  ;## Function: rest#deque
+  ;# rest#deque : deque -> deque
+  ;# Implementation for rest.
   (def-impl ::deque rest dequeue)
+  
+  ;## Function: add#deque
+  ;# add#deque : deque -> any -> deque
+  ;# Implementation for add. Alias for enqueue.
   (def-impl ::deque add enqueue)
+  
+  ;## Function: append#deque
+  ;# append#deque : deque -> collection -> deque
+  ;# Implementation for append. Alias for enqueue-all.
   (def-impl ::deque append enqueue-all)
+  
+  ;## Function: prepend#deque
+  ;# prepend#deque : deque -> any -> deque
+  ;# Implementation for prepend.
   (def-impl ::deque prepend (lambda (q xs) (make-deque (append (->list xs) (deque-front q)) (deque-back q))))
+  
+  ;## Function: add-front#deque
+  ;# add-front#deque : deque -> any -> deque
+  ;# Implementation for add-front.
   (def-impl ::deque add-front (lambda (q x) (make-deque (cons x (deque-front q)) (deque-back q))))
   (def-impl ::deque last
     (lambda (q)
       (cond (empty? (deque-back q)) (last (deque-front q))
             else (car (deque-back q)))))
 
+  ;## Function: ->deque
+  ;# ->deque : collection -> deque
+  ;# Turns a collection into a deque.
   (def-generic xs (->deque xs) (partial enqueue-all (deque)))
+  ;## Function: ->queue
+  ;# ->queue : collection -> queue
+  ;# Turns a collection into a queue.
   (def-generic xs (->queue xs) ->deque)
 
-  (def-impl ::deque sequence? (lambda (x) #t))
+  ;## Function: sequence?#deque
+  ;# sequence?#deque : any -> bool
+  ;# Returns #t.
+  (def-impl ::deque sequence? (const #t))
   
+  ;## Function: ->list#deque
+  ;# ->list#deque : deque -> list
+  ;# Turns the deque into a list.
   (def-impl ::deque ->list (lambda (q) (append (deque-front q) (reverse (deque-back q)))))
+  ;## Function: ->vector#deque
+  ;# ->vector#deque : deque -> vector
+  ;# Turns the deque into a vector.
   (def-impl ::deque ->vector (lambda (q) (append [] (append (deque-front q) (reverse (deque-back q))))))
   
+  ;## Function: ->vector#deque
+  ;# ->vector#deque : deque -> int
+  ;# Returns the size of the deque.
   (def-impl ::deque size (lambda (q) (+ (size (deque-front q)) (size (deque-back q)))))
   
+  ;## Function: reverse#deque
+  ;# reverse#deque : deque -> deque
+  ;# Reverses a deque.
   (def-impl ::deque reverse
     (lambda (q)
       (if (empty? (deque-back q))
         (make-deque (reverse (deque-front q)) '())
         (make-deque (deque-back q) (deque-front q)))))
 
+  ;## Function: eq?#deque
+  ;# eq?#deque : deque -> deque -> deque
+  ;# Alias for deque-eq?.
   (def-impl ::deque eq? deque-eq?)
 
+  ;## Function: ->string#deque
+  ;# ->string#deque : deque -> string
+  ;# String representation of a deque.
   (def-impl ::deque ->string (lambda (q) (->string (cons 'deque (->list q)))))
 )

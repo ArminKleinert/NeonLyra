@@ -1,0 +1,527 @@
+
+;## Function: delay
+;# delay : function -> delay
+
+;## Function: delay-timeout
+;# delay-timeout : function -> int -> delay
+
+;## Function: list-size
+;# list-size : list -> int
+
+;## Function: cons
+;# cons : any -> list -> list
+
+;## Function: car
+;# car : list -> any
+
+;## Function: cdr
+;# cdr : list -> list
+
+;## Function: list-concat
+;# list-concat : list -> list -> list
+
+;## Function: not
+;# not : any -> bool
+;# Returns #f for a truthy value and #t for a falsey value.
+
+;## Function: =
+;# = : any -> any -> bool
+
+;## Function: /=
+;# /= : any -> any -> bool
+
+;## Function: ref=
+;# ref= : any -> any -> bool
+
+;## Function: <
+;# < : any -> any -> bool
+
+;## Function: >
+;# > : any -> any -> bool
+
+;## Function: <=
+;# <= : any -> any -> bool
+
+;## Function: >=
+;# >= : any -> any -> bool
+
+;## Function: +
+;# + : any -> any -> any
+
+;## Function: -
+;# - : any -> any -> any
+
+;## Function: *
+;# * : any -> any -> any
+
+;## Function: /
+;# / : any -> any -> any
+
+;## Function: rem
+;# rem : any -> any -> any
+
+;## Function: bit-and
+;# bit-and : int -> int -> int
+
+;## Function: bit-or
+;# bit-or : int -> int -> int
+
+;## Function: bit-xor
+;# bit-xor : int -> int -> int
+
+;## Function: bit-shl
+;# bit-shl : int -> int -> int
+
+;## Function: bit-shr
+;# bit-shr : int -> int -> int
+
+;## Function: abs
+;# abs : number -> number
+
+;## Function: numerator
+;# numerator : rational -> int
+  
+;## Function: denominator
+;# denominator : rational -> int|#
+  
+;## Function: gensym
+;# gensym : symbol -> symbol
+;# Builds a unique symbol.
+;# (gensym 'lambda) => some unique symbol including lambda.
+;# (gensym 'lambda) => a different unique symbol including lambda.
+  
+  
+;## Function: seq
+;# seq : any -> list
+;# Turns a variable into a list. If the variable is not a collecttion or if the variable is empty, it returns Nothing instead.
+  add_fn(:seq, 1) { |x| (!x.is_a?(Enumerable) || x.empty?) ? nil : x.to_cons_list }
+
+;## Function: always-true
+;# always-true : any* -> bool
+;# Always returns #t.
+  add_fn(:"always-true", 0, -1) { |*_| true }
+
+;## Function: always-false
+;# always-false : any* -> bool
+;# Always returns #f.
+  add_fn(:"always-false", 0, -1) { |*_| false }
+
+;## Function: box
+;# box : any -> box
+;# Wraps the argument into a box.
+
+;## Function: unbox
+;# unbox : box -> any
+;# Unraps the argument.
+
+;## Function: unbox
+;# unbox : box -> any
+;# Unraps the argument.
+
+;## Function: buildin-unwrap
+;# buildin-unwrap : unwrappable -> any
+;# Unraps the argument.
+
+;## Function: box-set!
+;# box-set! : box -> any -> box
+;# Changes the value of a box.
+
+;## Function: eager
+;# eager : any -> any
+;# Eagerly evaluates a variable (delay, lazy list, etc.).
+
+;## Function: evaluated
+;# evaluated : any -> bool
+;# Checks whether a variable has been evaluated.
+
+;## Function: lazy
+;# lazy : any -> lazy
+
+;## Function: partial
+;# partial : function -> any* -> function
+;# Creates a partial function.
+
+;## Function: nothing
+;# nothing : any* -> Nothing
+;# Takes any number of arguments and returns Nothing.
+
+;## Function: buildin-take
+;# buildin-take : list -> int -> list
+
+;## Function: atom?
+;# atom? : any -> bool
+;# Returns #t for symbols, bools, strings and numbers.
+;# Returns #f for anything else.
+
+;## Function: defined?
+;# defined? : any -> bool
+;# Checks whether a symbol is defined.
+
+;## Function: nothing?
+;# nothing? : any -> bool
+;# #t for Nothing. #f for anything else.
+
+;## Function: nil?
+;# nil? : any -> bool
+;# #t for Nothing. #f for anything else.
+
+;## Function: null?
+;# null? : any -> bool
+;# #t for Nothing and the empty list. #f for anything else.
+
+;## Function: list?
+;# list? : any -> bool
+
+;## Function: buildin-vector?
+;# buildin-vector? : any -> bool
+
+;## Function: int?
+;# int? : any -> bool
+
+;## Function: float?
+;# float? : any -> bool
+
+;## Function: rational?
+;# rational? : any -> bool
+
+;## Function: buildin-string?
+;# buildin-string? : any -> bool
+
+;## Function: symbol?
+;# symbol? : any -> bool
+
+;## Function: box?
+;# box? : any -> bool
+
+;## Function: char?
+;# char? : any -> bool
+
+;## Function: boolean?
+;# boolean? : any -> bool
+
+;## Function: map?
+;# map? : any -> bool
+
+;## Function: buildin-set?
+;# buildin-set? : any -> bool
+
+;## Function: function?
+;# function? : any -> bool
+
+;## Function: lazy?
+;# lazy? : any -> bool
+
+;## Function: lazy-obj?
+;# lazy-obj? : any -> bool
+
+;## Function: keyword?
+;# keyword? : any -> bool
+
+;## Function: keyword-name
+;# keyword-name : keyword -> symbol
+
+;## Function: id
+;# id : any -> any
+;# Returns its input.
+
+;## Function: hash
+;# hash : any -> int
+
+;## Function: eq?
+;# eq? : any -> any -> bool
+
+;## Function: all?
+;# all? : (any -> bool) -> collection -> bool
+
+;## Function: none?
+;# none? : (any -> bool) -> collection -> bool
+
+;## Function: any?
+;# any? : (any -> bool) -> collection -> bool
+
+;## Function: buildin->symbol
+;# buildin->symbol : any -> symbol
+;# Turns a variable into a symbol. Returns Nothing if this is not possible.
+
+;## Function: buildin->int
+;# buildin->int : any -> int
+;# Turns a variable into an int. Returns Nothing if this is not possible.
+
+;## Function: buildin->float
+;# buildin->float : any -> float
+;# Turns a variable into a float. Returns Nothing if this is not possible.
+
+;## Function: buildin->rational
+;# buildin->rational : any -> rational
+;# Turns a variable into a rational. Returns Nothing if this is not possible.
+
+;## Function: buildin->string
+;# buildin->string : any -> string
+;# Turns a variable into a string. Returns Nothing if this is not possible.
+
+;## Function: buildin->pretty-string
+;# buildin->pretty-string : any -> string
+;# Turns a variable into a string. Returns Nothing if this is not possible.
+
+;## Function: buildin->keyword
+;# buildin->keyword : any -> keyword
+;# Turns a variable into a keyword Returns Nothing if this is not possible.
+
+;## Function: buildin->bool
+;# buildin->bool : any -> bool
+;# Turns a variable into a bool. Returns Nothing if this is not possible.
+
+;## Function: buildin->list
+;# buildin->list : any -> list
+;# Turns a variable into a list. Returns Nothing if this is not possible.
+
+;## Function: buildin->vector
+;# buildin->vector : any -> vector
+;# Turns a variable into a vector. Returns Nothing if this is not possible.
+
+;## Function: buildin->char
+;# buildin->char : any -> char
+;# Turns a variable into a char. Returns Nothing if this is not possible.
+
+;## Function: buildin->map
+;# buildin->map : any -> map
+;# Turns a variable into a map. Returns Nothing if this is not possible.
+
+;## Function: buildin->set
+;# buildin->set : any -> set
+;# Turns a variable into a set. Returns Nothing if this is not possible.
+
+;## Function: buildin-vector
+;# buildin-vector : any* -> vector
+
+;## Function: buildin-vector-size
+;# buildin-vector-size : vector -> int
+
+;## Function: buildin-vector-range
+;# buildin-vector-range : vector -> int -> int -> vector
+
+;## Function: buildin-vector-nth
+;# buildin-vector-nth : vector -> int -> any
+
+;## Function: buildin-vector-add
+;# buildin-vector-add : vector -> any -> vector
+
+;## Function: buildin-vector-append
+;# buildin-vector-append : vector -> vector -> vector
+
+;## Function: buildin-vector-includes?
+;# buildin-vector-includes? : vector -> vector -> vector
+
+;## Function: buildin-vector-eq?
+;# buildin-vector-eq? : vector -> vector -> vector
+
+;## Function: buildin-string-size
+;# buildin-string-size : string -> int
+
+;## Function: buildin-string-range
+;# buildin-string-range : string -> int -> int -> string
+
+;## Function: buildin-string-nth
+;# buildin-string-nth : string -> int -> any
+
+;## Function: buildin-string-add
+;# buildin-string-add : string -> any -> string
+
+;## Function: buildin-string-append
+;# buildin-string-append : string -> string -> string
+
+;## Function: buildin-string-includes?
+;# buildin-string-includes? : string -> string -> string
+
+;## Function: buildin-string-eq?
+;# buildin-string-eq? : string -> string -> string
+
+;## Function: buildin-string-split-at
+;# buildin-string-split-at : string -> int -> sequence
+
+;## Function: buildin-string-chars
+;# buildin-string-chars : string -> sequence
+
+;## Function: iterate-seq
+;# iterate-seq : (any -> any -> int) -> any -> sequence -> any
+;# Takes a function, an accumulator and a sequence. The function is applied 
+;# to the accumulator, the current element and the current index for every
+;# element in the sequence.
+;# This function only works for buildin lists and buildin vectors. Usage is
+;# generally not adviced.
+;#  (iterate-seq (lambda (acc x i) (+ acc i))
+;#               0 '(a b c d e)) ;=> 10
+
+;## Function: iterate-seq-p
+;# iterate-seq-p : (any -> any -> int -> bool) -> (any -> any) -> any -> sequence -> any
+;# Takes a function, an accumulator and a sequence. The function is applied 
+;# to the accumulator, the current element and the current index for every
+;# element in the sequence.
+;# This is done as long as the predicate function p holds true.
+;# This function only works for buildin lists and buildin vectors. Usage is
+;# generally not adviced.
+;#  (iterate-seq-p (lambda (acc x i) (< i 3))
+;#                 (lambda (acc x i) (+ acc i))
+;#                 0 '(a b c d e)) ;=> 3
+
+;## Function: map-of
+;# map-of : any* -> map
+
+;## Function: map-size
+;# map-size : map -> int
+
+;## Function: map-get
+;# map-get : map -> any -> any
+
+;## Function: map-set
+;# map-set : map -> any -> any -> map
+
+;## Function: map-remove
+;# map-remove : map -> any -> map
+
+;## Function: map-keys
+;# map-keys : map -> collection
+
+;## Function: map-merge
+;# map-merge : map -> map -> map
+
+;## Function: map-has-key?
+;# map-has-key? : map -> any -> bool
+
+;## Function: map-has-value?
+;# map-has-value? : map -> any -> bool
+
+;## Function: map-entries
+;# map-entries : map -> sequence
+
+;## Function: map->vector
+;# map->vector : map -> vector
+
+;## Function: map-eq?
+;# map-eq? : map -> map -> bool
+
+;## Function: buildin-set-of
+;# buildin-set-of : any* -> set
+
+;## Function: buildin-set-size
+;# buildin-set-size : set -> int
+
+;## Function: buildin-set-add
+;# buildin-set-add : set ->  -> set
+
+;## Function: buildin-set-union
+;# buildin-set-union : set -> set -> set
+
+;## Function: buildin-set-difference
+;# buildin-set-difference : set -> set -> set
+
+;## Function: buildin-set-intersection
+;# buildin-set-intersection : set -> set -> set
+
+;## Function: buildin-set-includes?
+;# buildin-set-includes? : set -> set -> set
+
+;## Function: buildin-set-subset?
+;# buildin-set-subset? : set -> set -> set
+
+;## Function: buildin-set-true-subset?
+;# buildin-set-true-subset? : set -> set -> set
+
+;## Function: buildin-set-superset?
+;# buildin-set-superset? : set -> set -> set
+
+;## Function: buildin-set-true-superset?
+;# buildin-set-true-superset? : set -> set -> set
+
+;## Function: buildin-set->vector
+;# buildin-set->vector : set -> vector
+
+;## Function: buildin-set-eq?
+;# buildin-set-eq? : set -> set -> bool
+
+;## Function: buildin-foldr
+;# buildin-foldr : (any -> any -> any) -> any -> sequence -> any
+
+;## Function: buildin-foldl
+;# buildin-foldl : (any -> any -> any) -> any -> sequence -> any
+
+;## Function: buildin-contains?
+;# buildin-contains? : collection -> any -> bool
+
+;## Function: buildin-nth
+;# buildin-nth : collection -> int -> any
+
+;## Function: buildin-strcat
+;# buildin-strcat : string -> string -> string 
+
+;## Function: buildin-append
+;# buildin-append : collection -> collection -> collection
+
+;## Function: buildin-print!
+;# buildin-print! : string -> Nothing
+
+;## Function: readln!
+;# readln! : string -> Nothing
+
+;## Function: file-read!
+;# file-read! : string -> string
+
+;## Function: file-write!
+;# file-write! : string -> string -> string
+
+;## Function: file-append!
+;# file-append! : string -> string -> string
+
+;## Function: copy
+;# copy : any -> any
+;# Only copies boxes. For all other types, it returns its input.
+
+;## Function: memoize
+;# memoize : function -> function
+
+;## Function: load!
+;# load! : string -> 
+
+;## Function: import!
+;# import! : string -> string -> 
+
+;## Function: read-string
+;# read-string : string -> expr
+
+;## Function: eval!
+;# eval! : expr -> any
+
+;## Function: measure!
+;# measure! : int -> (any) -> int
+
+;## Function: sqrt
+;# sqrt : number -> number
+
+;## Function: ljust
+;# ljust : string -> int -> string
+
+;## Function: apply-to
+;# apply-to : function -> list -> any
+
+;## Function: class
+;# class : any -> symbol
+
+;## Function: error!
+;# error! : string -> error
+;# error! : string -> any -> error
+;# error! : string -> any -> sequence -> error
+
+;## Function: error-msg
+;# error-msg : error -> string
+
+;## Function: error-info
+;# error-info : error -> any
+
+;## Function: error-trace
+;# error-trace : error -> sequence
+
+;## Function: exit!
+;# exit! : int -> Nothing
+
+;## Function: callstack
+;# callstack : sequence
