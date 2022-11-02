@@ -1,3 +1,5 @@
+# File: core.lyra
+
 ## Macros
 
 ### Macro `par'` 
@@ -253,7 +255,7 @@
   
   Pure? Yes
   
-  Parallel let. Supports destructuring
+  Parallel let. Supports destructuring.
 ```
 ### Macro: `quasiquote` 
 ```
@@ -621,6 +623,14 @@
   Pure? Yes
   
 
+```
+### Function: `chunk-map` 
+```
+  chunk-map : int -> (any -> any) -> collection -> list
+  
+  Pure? Yes
+  
+  Operates like map, but eagerly calculates each "chunk" once requested.
 ```
 ### Function: `collection?` 
 ```
@@ -1540,6 +1550,7 @@
   Pure? Yes
   
   Parallel map. Like pmap', but returns values, not delays.
+  Please do not use this yet. The current implementation is hopelessly broken
 ```
 ### Function: `pmap'` 
 ```
@@ -2096,4 +2107,798 @@
     (zip-with + '(1 2 3) '(4 5 6)) ;=> (5 7 9)
     (zip-with list '(1 2 3) '(4 5 6)) ;=> ((1 4) (2 5) (3 6))
   Required for both l0 and l1: empty?, first, rest
+```
+# File: set.lyra
+
+## Macros
+
+
+## Functions
+
+### Function: `->map#set` 
+```
+  ->map#set : set -> map
+  
+  Pure? Yes
+  
+
+```
+### Function: `->set#set` 
+```
+  ->set#set : set -> set
+  
+  Pure? Yes
+  
+
+```
+### Function: `->string#set` 
+```
+  ->string#set : set -> string
+  
+  Pure? Yes
+  
+
+```
+### Function: `->vector#set` 
+```
+  ->vector#set : set -> vector
+  
+  Pure? Yes
+  
+
+```
+### Function: `add#set` 
+```
+  add#set : set -> any -> set
+  
+  Pure? Yes
+  
+
+```
+### Function: `add-front#set` 
+```
+  add-front#set : set -> any -> set
+  
+  Pure? Yes
+  
+
+```
+### Function: `append#set` 
+```
+  append#set : set -> collection -> set
+  
+  Pure? Yes
+  
+
+```
+### Function: `collection?#set` 
+```
+  collection?#set : set -> bool
+  
+  Pure? Yes
+  
+
+```
+### Function: `contains?#set` 
+```
+  contains?#set : set -> any -> bool
+  
+  Pure? Yes
+  
+
+```
+### Function: `eq?#set` 
+```
+  eq?#set : set -> set -> bool
+  
+  Pure? Yes
+  
+
+```
+### Function: `find#set` 
+```
+  find#set : set -> any -> bool
+  
+  Pure? Yes
+  
+
+```
+### Function: `first#set` 
+```
+  first#set : set -> set
+  
+  Pure? Yes
+  
+
+```
+### Function: `foldl#set` 
+```
+  foldl#set : (any -> any -> any) -> any -> set -> any
+  
+  Pure? Yes
+  
+
+```
+### Function: `foldr#set` 
+```
+  foldl#set : (any -> any -> any) -> any -> set -> any
+  
+  Pure? Yes
+  
+
+```
+### Function: `get#set` 
+```
+  get#set : set -> any -> bool
+  
+  Pure? Yes
+  
+
+```
+### Function: `list->set` 
+```
+  list->set : sequence -> set
+  
+  Pure? Yes
+  
+  Turns a list (or any sequence for that matter) into a set.
+  Notice that `(->list (list->set xs))` is does not necessarily return the elements in the same order!
+```
+### Function: `nth#set` 
+```
+  nth#set : set -> int -> any
+  
+  Pure? Yes
+  
+
+```
+### Function: `rest#set` 
+```
+  rest#set : set -> set
+  
+  Pure? Yes
+  
+
+```
+### Function: `reverse#set` 
+```
+  reverse#set : set -> set
+  
+  Pure? Yes
+  
+
+```
+### Function: `set->vector` 
+```
+  set->vector : set -> vector
+  
+  Pure? Yes
+  
+  Turns a set into a vector. There is no guarantees made about the order of elements.
+```
+### Function: `set-add` 
+```
+  set-add : set -> any -> set
+  
+  Pure? Yes
+  
+
+```
+### Function: `set-difference` 
+```
+  set-difference : set -> set -> set
+  
+  Pure? Yes
+  
+
+```
+### Function: `set-eq?` 
+```
+  set-eq? : set -> set -> bool
+  
+  Pure? Yes
+  
+
+```
+### Function: `set-includes?` 
+```
+  set-includes? : set -> set -> set
+  
+  Pure? Yes
+  
+
+```
+### Function: `set-intersection` 
+```
+  set-intersection : set -> set -> set
+  
+  Pure? Yes
+  
+
+```
+### Function: `set-of` 
+```
+  set-of : any* -> set
+  
+  Pure? Yes
+  
+
+```
+### Function: `set-size` 
+```
+  set-size : set -> int
+  
+  Pure? Yes
+  
+
+```
+### Function: `set-subset?` 
+```
+  set-subset? : set -> set -> set
+  
+  Pure? Yes
+  
+
+```
+### Function: `set-superset?` 
+```
+  set-superset? : set -> set -> set
+  
+  Pure? Yes
+  
+
+```
+### Function: `set-true-subset?` 
+```
+  set-true-subset? : set -> set -> set
+  
+  Pure? Yes
+  
+
+```
+### Function: `set-true-superset?` 
+```
+  set-true-superset? : set -> set -> set
+  
+  Pure? Yes
+  
+
+```
+### Function: `set-union` 
+```
+  set-union : set -> set -> set
+  
+  Pure? Yes
+  
+
+```
+### Function: `set?` 
+```
+  set? : any -> bool
+  
+  Pure? Yes
+  
+
+```
+### Function: `size#set` 
+```
+  size#set : set -> int
+  
+  Pure? Yes
+  
+
+```
+# File: string.lyra
+
+## Macros
+
+
+## Functions
+
+### Function: `->float#string` 
+```
+  ->float#string : string -> float
+  
+  Pure? Yes
+  
+
+```
+### Function: `->int#string` 
+```
+  ->int#string : string -> int
+  
+  Pure? Yes
+  
+
+```
+### Function: `->list#string` 
+```
+  ->list#string : string -> list
+  
+  Pure? Yes
+  
+  Turns a string into a list of characters.
+```
+### Function: `->map#string` 
+```
+  
+  
+  Pure? Yes
+  
+  ->map#string :
+```
+### Function: `->set#string` 
+```
+  
+  
+  Pure? Yes
+  
+  ->set#string :
+```
+### Function: `->vector#string` 
+```
+  ->vector#string : string -> vector
+  
+  Pure? Yes
+  
+  Turns a string into a vector of characters.
+```
+### Function: `>rational#string` 
+```
+  >rational#string : string -> rational
+  
+  Pure? Yes
+  
+
+```
+### Function: `add#string` 
+```
+  add#string : string -> any -> string
+  
+  Pure? Yes
+  
+
+```
+### Function: `add-front#string` 
+```
+  add-front#string : string -> any -> string
+  
+  Pure? Yes
+  
+
+```
+### Function: `append#string` 
+```
+  
+  
+  Pure? Yes
+  
+  append#string :
+```
+### Function: `contains?#string` 
+```
+  
+  
+  Pure? Yes
+  
+  contains?#string :
+```
+### Function: `eq?#string` 
+```
+  eq?#string : string -> string -> bool
+  
+  Pure? Yes
+  
+
+```
+### Function: `first#string` 
+```
+  
+  
+  Pure? Yes
+  
+  first#string :
+```
+### Function: `foldl#string` 
+```
+  foldl#string : (any -> character -> any) -> any -> string -> any
+  
+  Pure? Yes
+  
+
+```
+### Function: `foldr#string` 
+```
+  foldr#string : (character -> any -> any) -> any -> string -> any
+  
+  Pure? Yes
+  
+
+```
+### Function: `nth#string` 
+```
+  
+  
+  Pure? Yes
+  
+  nth#string :
+```
+### Function: `prepend#string` 
+```
+  prepend#string : string -> any -> string
+  
+  Pure? Yes
+  
+  Special implementation for prepend for strings.
+```
+### Function: `rest#string` 
+```
+  
+  
+  Pure? Yes
+  
+  rest#string :
+```
+### Function: `sequence?#string` 
+```
+  sequence?#string : string -> bool
+  
+  Pure? Yes
+  
+  Strings are sequences, so this always returns #t.
+```
+### Function: `size#string` 
+```
+  
+  
+  Pure? Yes
+  
+  size#string :
+```
+### Function: `strcat` 
+```
+  strcat : string -> any -> string
+  
+  Pure? Yes
+  
+  Similar to string-add, but uses buildin ->string for the second argument.
+```
+### Function: `string-add` 
+```
+  string-add : string -> any -> string
+  
+  Pure? Yes
+  
+
+```
+### Function: `string-append` 
+```
+  string-append : string -> string -> string
+  
+  Pure? Yes
+  
+
+```
+### Function: `string-chars` 
+```
+  string-chars : string -> list
+  
+  Pure? Yes
+  
+
+```
+### Function: `string-concat` 
+```
+  string-concat : list -> string
+  Required for elements of xs: ->string
+  
+  Pure? Yes
+  
+  Similar to concat, but turns each element into a string.
+  Required for xs: foldr1, map-eager
+```
+### Function: `string-eq?` 
+```
+  string-eq? : string -> string -> bool
+  
+  Pure? Yes
+  
+  String equality check.
+```
+### Function: `string-includes?` 
+```
+  string-includes? : string -> string -> bool
+  
+  Pure? Yes
+  
+
+```
+### Function: `string-nth` 
+```
+  string-nth : string -> int -> char
+  
+  Pure? Yes
+  
+
+```
+### Function: `string-range` 
+```
+  string-range : int -> int -> string -> string
+  
+  Pure? Yes
+  
+  Returns a substring `(string-range 2 5 text)` returns the third through 5th character.
+  `(string-range 2 4 "abcde") ;=> "cd"`
+```
+### Function: `string-size` 
+```
+  string-size : string -> int
+  
+  Pure? Yes
+  
+
+```
+### Function: `string-split-at` 
+```
+  string-split-at : string -> string -> list
+  
+  Pure? Yes
+  
+
+```
+### Function: `string?` 
+```
+  string? : any -> bool
+  
+  Pure? Yes
+  
+
+```
+### Function: `succ#string` 
+```
+  succ#string : string -> string
+  
+  Pure? Yes
+  
+
+```
+# File: vector.lyra
+
+## Macros
+
+
+## Functions
+
+### Function: `->map#vector` 
+```
+  ->map#vector : vector -> map
+  
+  Pure? Yes
+  
+
+```
+### Function: `->set#vector` 
+```
+  ->set#vector : vector -> set
+  
+  Pure? Yes
+  
+
+```
+### Function: `->string#vector` 
+```
+  ->string#vector : vector -> string
+  
+  Pure? Yes
+  
+
+```
+### Function: `->vector#vector` 
+```
+  ->vector#vector : vector -> vector
+  
+  Pure? Yes
+  
+
+```
+### Function: `add#vector` 
+```
+  
+  
+  Pure? Yes
+  
+  add#vector : vector ->
+```
+### Function: `append#vector` 
+```
+  append#vector : vector -> collection -> vector
+  
+  Pure? Yes
+  
+
+```
+### Function: `collection?#vector` 
+```
+  collection?#vector : vector -> bool
+  
+  Pure? Yes
+  
+  Always true.
+```
+### Function: `contains?#vector` 
+```
+  contains?#vector : vector -> any -> bool
+  
+  Pure? Yes
+  
+
+```
+### Function: `eq?#vector` 
+```
+  
+  
+  Pure? Yes
+  
+  eq?#vector : vector ->
+```
+### Function: `filterv` 
+```
+  filterv : (any -> bool) -> collection -> vector
+  
+  Pure? Yes
+  
+  Eagerly filter and return vector.
+  Required: foldl
+```
+### Function: `first#vector` 
+```
+  first#vector : vector -> any
+  
+  Pure? Yes
+  
+
+```
+### Function: `foldl#vector` 
+```
+  foldl#vector : (any -> any -> any) -> any -> vector -> any
+  
+  Pure? Yes
+  
+
+```
+### Function: `foldr#vector` 
+```
+  foldr#vector : (any -> any -> any) -> any -> vector -> any
+  
+  Pure? Yes
+  
+
+```
+### Function: `list->vector` 
+```
+  list->vector : sequence -> vector
+  
+  Pure? Yes
+  
+
+```
+### Function: `mapv` 
+```
+  mapv : (any -> any) -> collection -> vector
+  
+  Pure? Yes
+  
+  eager map which returns a vector. Relies on foldl and vector-add.
+```
+### Function: `mapv-indexed` 
+```
+  mapv-indexed : (any -> int -> any) -> collection -> vector
+  
+  Pure? Yes
+  
+  eager mapv with index. Requires: foldl-indexed.
+```
+### Function: `nth#vector` 
+```
+  nth#vector : vector -> int -> any
+  
+  Pure? Yes
+  
+
+```
+### Function: `rest#vector` 
+```
+  rest#vector : vector -> vector
+  
+  Pure? Yes
+  
+
+```
+### Function: `sequence?#vector` 
+```
+  sequence?#vector : vector -> bool
+  
+  Pure? Yes
+  
+  Always true.
+```
+### Function: `size#vector` 
+```
+  size#vector : vector -> int
+  
+  Pure? Yes
+  
+
+```
+### Function: `vector` 
+```
+  vector : any* -> vector
+  
+  Pure? Yes
+  
+
+```
+### Function: `vector-add` 
+```
+  vector-add : vector -> any -> vector
+  
+  Pure? Yes
+  
+
+```
+### Function: `vector-append` 
+```
+  vector-append : vector -> vector -> vector
+  
+  Pure? Yes
+  
+
+```
+### Function: `vector-eq?` 
+```
+  vector-eq? : vector -> vector -> bool
+  
+  Pure? Yes
+  
+
+```
+### Function: `vector-includes?` 
+```
+  vector-includes? : vector -> any -> bool
+  
+  Pure? Yes
+  
+
+```
+### Function: `vector-nth` 
+```
+  vector-nth : vector -> int -> any
+  
+  Pure? Yes
+  
+
+```
+### Function: `vector-range` 
+```
+  vector-range : int -> int -> vector -> vector
+  
+  Pure? Yes
+  
+  Same as `range` from the core module, but for vectors.
+```
+### Function: `vector-size` 
+```
+  vector-size : vector -> int
+  
+  Pure? Yes
+  
+
+```
+### Function: `vector?` 
+```
+  vector? : any -> bool
+  
+  Pure? Yes
+  
+
 ```

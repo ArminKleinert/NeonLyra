@@ -1,21 +1,83 @@
 (module lyra.core.aliases
   ()
 
+;## Function: ∉
+;# ∉ : any -> collection -> bool
+;# Alias for (comp not included?)
 (define ∉ (lambda (e s) (not (included? e s))))
 
+;## Function: includes?
+;# includes? : collection -> any -> bool
+;# Alias for contains?
 (define includes? contains?)
+
+;## Function: require!
+;# require! : sequence -> sequence
+;# Alias for load!
 (define require! load!)
+
+;## Function: fold
+;# fold : (any -> any -> any) -> any -> collection -> any
+;# Alias for foldr.
 (define fold foldr)
+
+;## Function: member?
+;# member? : any -> collection -> bool
+;# Alias for included?
 (define member? included?)
+
+;## Function: ⋅
+;# ⋅ : (any -> any) -> (any -> any) -> (any -> any)
+;# Alias for 
 (define ⋅ compose)
+
+;## Function: ∀
+;# ∀ : (any -> bool) -> collection -> bool
+;# Alias for all?.
 (define ∀ all?)
+
+;## Function: ∃
+;# ∃ : (any -> bool) -> collection -> bool
+;# Alias for any?.
 (define ∃ any?)
+
+;## Function: ∄
+;# ∄ : (any -> bool) -> collection -> bool
+;# Alias for none?.
 (define ∄ none?)
+
+;## Function: ≠
+;# ≠ : number -> number -> bool
+;# Alias for /=.
 (define ≠ /=)
+
+;## Function: ≥
+;# ≥ : number -> number -> bool
+;# Alias for >=.
 (define ≥ >=)
+
+;## Function: ≤
+;# ≤ : number -> number -> bool
+;# Alias for <=.
 (define ≤ <=)
+
+;## Function: ∈
+;# ∈ : any -> collection -> bool
+;# Alias for included?.
 (define ∈ included?)
+
+;## Function: <=>
+;# <=> : any -> any -> bool
+;# Alias for compare.
 (define <=> compare)
+
+;## Function: ++
+;# ++ : sequence -> sequence -> sequence
+;# Alias for append.
 (define ++ append)
+
+;## Function: uniq
+;# uniq : collection -> collection
+;# Alias for unique.
 (define uniq unique)
 )

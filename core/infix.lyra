@@ -96,10 +96,10 @@
         (null? stack) '()
         else (cons (car stack) (%shunting-yard '() (cdr stack) binds))))
 
+; Converts infix-notation mathematical equations into
+; postfix-notation mathematical equations, using an
+; implementation of Dijkstra's Shunting-yard Algorithm.
 (define (%shunting-yard stmt stack binds)
-  "Converts infix-notation mathematical equations into
-postfix-notation mathematical equations, using an
-implementation of Dijkstra's Shunting-yard Algorithm."
   (cond (null? stmt)
          (%stack-operations stack binds)
         (number? (car stmt))
@@ -191,6 +191,9 @@ implementation of Dijkstra's Shunting-yard Algorithm."
 (println! (infix->lyra 117 = 9 + 9 * 8 + 2 * (9 + 9))) ; => #t
 (println! (show-infix-as-prefix lyra-binds 117 = 9 + 9 * 8 + 2 * (9 + 9))) ; => (= 117 (+ (+ 9 (* 9 8)) (* 2 (+ 9 9))))
 )
+
+(define (default-infix-binds) default-binds)
+(define (lyra-infix-binds) lyra-binds)
 
 )
 
