@@ -1,5 +1,5 @@
 (module lyra.core.set
-  (list->set set? set-of set-size set-add set-union set-difference set-intersection set-includes? set-subset? set-true-subset? set-superset? set-true-superset? set->vector set-eq?)
+  ()
 
 ;## Function: list->set
 ;# list->set : sequence -> set

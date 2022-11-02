@@ -1,23 +1,15 @@
 (module clj
-  (when def defn fn
-  (do begin)
-  (slurp! file-read!)
-  (spit! file-write!)
-  (count size)
-  (nil Nothing)
-  (enumerate zip-to-index)
-  (distinct unique)
-  (str string-concat)
-  (vec ->vector)
-  (not-any? none?)
-  (every? all?)
-  reduce reductions some some? some-fn
-  nthrest nthnext next fnext ffirst nnext
-  keep)
+  ()
 
+;## Macro: when
+;# when : expr -> expr* -> expr
+;# Works as an if without an else branch. If the predicate does not hold true, Nothing is returned.
 (defmacro (when p & body)
   (list 'if p (xcons 'begin Nothing body) Nothing))
 
+;## Macro: def
+;# def : symbol -> expr -> expr
+;# Works as define for variables.
 (defmacro (def name val)
   (list 'define name val))
 
@@ -25,6 +17,12 @@
   (if (or (string? bindings) (map? bindings))
     (%defn name (car body) (cdr body)) ; ignore docstring or attr-map
     (list 'define name (xcons 'fn name bindings body))))
+;## Macro: defn
+;# defn : symbol -> sequence|string|map -> sequence? -> expr* -> expr
+;# Works as define for functions. Does not support inlined documentation and meta-data.
+;# (defn f [a b] ...)                 => (define (f a b) ...)
+;# (defn f {meta-data} [a b] ...)     => (define (f a b) ...)
+;# (defn f "documentation" [a b] ...) => (define (f a b) ...)
 (defmacro (defn name bindings & body)
   (%defn name bindings body))
 
@@ -39,6 +37,13 @@
 (define (%multifn name body)
   (xcons 'case-lambda* name (map-eager (lambda (xs) (cons (->list (car xs)) (cdr xs))) body)))
 
+;## Macro: fn
+;# fn : (symbol|sequence -> expr*)+ -> expr
+;# Defines a function, as lambda does, but can also create named funktions like lambda* or case-lambdas, depending on the form.
+;# (fn [a b] ...)               => (lambda (a b) ...)
+;# (fn f [a b] ...)             => (lambda* f (a b) ...)
+;# (fn ([a] ...) ([a b] ...))   => (case-lambda ((a) ...) ((a b) ...))
+;# (fn f ([a] ...) ([a b] ...)) => (case-lambda* f ((a) ...) ((a b) ...))
 (defmacro (fn name & body)
   (cond
     (symbol? name)
@@ -49,35 +54,77 @@
       (%multifn (gensym 'fn) (cons name body))
     else
       (error! "Syntax error: Invalid format for fn." 'syntax)))
-  
 
-
+;## Function: nthrest
+;# nthrest : sequence -> int -> sequence
+;# Drops the first i elements from a sequence.
 (define (nthrest xs i) (drop i xs))
+
+;## Function: nthnext
+;# nthnext : sequence -> int -> sequence
+;# Drops the first i elements from a sequence. Returns Nothing if the size was less than i.
 (define (nthnext xs i) (let ((r (nthrest xs i))) (if (empty? r) Nothing r)))
+
+;## Function: next
+;# next : sequence -> sequence
+;# Drops the first element from a sequence. Returns Nothing if the size was less than i.
 (define (next xs) (let ((r (rest xs))) (if (empty? r) Nothing r)))
+
+;## Function: fnext
+;# fnext : sequence -> any
+;# Same as (first (next xs)).
 (define (fnext xs) (first (next xs)))
+
+
+;## Function: ffirst
+;# ffirst : sequence -> any
+;# Same as (first (first xs)).
 (define (ffirst xs) (first (first xs)))
+
+;## Function: nnext
+;# nnext : sequence -> sequence
+;# Same as (next (next xs)).
 (define (nnext xs) (next (next xs)))
+
+;## Function: nfirst
+;# nfirst : sequence -> sequence
+;# Same as (next (first xs)).
 (define (nfirst xs) (next (first xs)))
 
+;## Function: reduce
+;# reduce : (any -> any -> any) -> any -> sequence -> any
+;# reduce : (any -> any -> any) -> sequence -> any
+;# Same as foldl if 3 arguments are given or foldl1 if there are 2 arguments.
 (define reduce
   (case-lambda* reduce
     ((f s xs) (foldl f s xs))
     ((f xs) (foldl1 f xs))))
 
+;## Function: reductions
+;# reductions : (any -> any -> any) -> any -> collection -> list
+;# reductions : (any -> any -> any) -> collection -> list
+;# Same as scanl if 3 arguments are given or scanl1 if there are 2 arguments.
 (define reductions
   (case-lambda* reductions
     ((f s xs) (scanl f s xs))
     ((f xs) (scanl1 f xs))))
 
+;## Function: some
+;# some : (any -> bool) -> sequence -> any
+;# Checks whether any element in xs matches the predicate p. If so, the element is returned. Otherwise, returns Nothing.
 (define (some p xs)
   (first (drop-until p xs))); first returns Nothing on empty sequences.
 
+;## Function: some?
+;# some? : any -> bool
+;# Same as (not (nothing? x)).
 (define (some? x)
   (not (nothing? x)))
 
-; For some reason, clojure returns nil if some gives negative results,
-; but false for some-fn...
+;## Function: some-fn
+;# some-fn : (any* -> any) -> (any* -> any)* -> (any -> any)
+;# Takes any number (> 0) of (any* -> any) functions. If any of them
+;# return a truthy value for a given argument, returns the matching value.
 (define (some-fn p & ps)
   (lambda (& xs)
     (->>
@@ -86,11 +133,71 @@
       (remove empty?)
       first first)))
 
+;## Function: any?
+;# any? : any -> bool
+;# Returns #t for any argument. Why does this exist in clojure anyways?
 (define (any? x)
   #t)
 
+;## Function: keep
+;# keep : (any -> any) -> collection -> sequence
 (define (keep f xs)
   (remove nothing? (map f xs)))
+
+;## Function: do
+;# do : 
+;# Alias for begin.
+(define do begin)
+
+;## Function: slurp!
+;# slurp! : 
+;# Alias for file-read!.
+(define slurp! file-read!)
+
+;## Function: spit!
+;# spit! : 
+;# Alias for file-write!.
+(define spit! file-write!)
+
+;## Function: count
+;# count : 
+;# Alias for size.
+(define count size)
+
+;## Variable: nil
+;# nil : 
+;# Alias for Nothing.
+(define nil Nothing)
+
+;## Function: enumerate
+;# enumerate : 
+;# Alias for zip-to-index.
+(define enumerate zip-to-index)
+
+;## Function: distinct
+;# distinct : 
+;# Alias for unique.
+(define distinct unique)
+
+;## Function: str
+;# str : 
+;# Alias for string-concat.
+(define str string-concat)
+
+;## Function: vec
+;# vec : 
+;# Alias for ->vector.
+(define vec ->vector)
+
+;## Function: not-any?.
+;# not-any? : 
+;# Alias for none?
+(define not-any? none?)
+
+;## Function: every?
+;# every? : 
+;# Alias for all?.
+(define every? all?)
 )
 
 

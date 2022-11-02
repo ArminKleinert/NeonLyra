@@ -1,52 +1,73 @@
 (module lyra.core.sort
-  ((sort mergesort)
-   (sort-compare mergesort-with-comparator)
-   mergesort
-   (mergesort-compare mergesort-with-comparator)
-   bubblesort)
+  ()
 
-(define (bubble-up xs)
+(define (%bubble-up xs)
   (if (empty? (cdr xs))   
     xs
     (if (< (car xs) (cadr xs))
-      (cons (car xs) (bubble-up (cdr xs)))   
-      (cons (cadr xs) (bubble-up (cons (car xs) (cddr xs)))))))
+      (cons (car xs) (%bubble-up (cdr xs)))   
+      (cons (cadr xs) (%bubble-up (cons (car xs) (cddr xs)))))))
 
-(define (bubble-sort-aux n xs)    
+(define (%bubble-sort-aux n xs)    
   (let ((xs (->list xs)))
-    (cond (= n 1) (bubble-up xs)
-          else (bubble-sort-aux (- n 1) (bubble-up xs)))))
+    (cond (= n 1) (%bubble-up xs)
+          else (%bubble-sort-aux (- n 1) (%bubble-up xs)))))
 
+;## Function: bubblesort
+;# bubblesort : collection -> list.
+;# Sorts a collection
 (define (bubblesort xs)
   (if (or (empty? xs) (= 1 (size xs)))
     xs
-    (bubble-sort-aux (size xs) (->list xs))))
+    (%bubble-sort-aux (size xs) (->list xs))))
 
-(define (merge xs ys)
+(define (%merge xs ys)
   (cond (empty? xs) ys
         (empty? ys) xs
-        (<= (car xs) (car ys)) (cons (car xs) (merge (cdr xs) ys))
-        else (cons (car ys) (merge xs (cdr ys)))))
+        (<= (car xs) (car ys)) (cons (car xs) (%merge (cdr xs) ys))
+        else (cons (car ys) (%merge xs (cdr ys)))))
 
-(define (merge-lists xss)
+(define (%merge-lists xss)
   (cond (< (size xss) 2) xss
-        else (merge-lists (cons (merge (car xss) (cadr xss)) (cddr xss)))))
+        else (%merge-lists (cons (%merge (car xss) (cadr xss)) (cddr xss)))))
 
-; (map-eager list xs) puts every element into its own list.
+;## Function: mergesort
+;# mergesort : collection -> list.
+;# Sorts a collection.
 (define (mergesort xs)
-  (car (merge-lists (map list xs))))
+  ; (map-eager list xs) puts every element into its own list.
+  (car (%merge-lists (map list xs))))
 
-
-(define (merge-w-c c xs ys)
+(define (%merge-w-c c xs ys)
   (cond (empty? xs) ys
         (empty? ys) xs
-        (< (c (car xs) (car ys)) 1) (lazy-seq (car xs) (merge-w-c c (cdr xs) ys))
-        else (lazy-seq (car ys) (merge-w-c c xs (cdr ys)))))
+        (< (c (car xs) (car ys)) 1) (lazy-seq (car xs) (%merge-w-c c (cdr xs) ys))
+        else (lazy-seq (car ys) (%merge-w-c c xs (cdr ys)))))
 
-(define (merge-lists-w-c c xss)
+(define (%merge-lists-w-c c xss)
   (cond (< (size xss) 2) xss
-        else (merge-lists-w-c c (cons (merge-w-c c (car xss) (cadr xss)) (cddr xss)))))
+        else (%merge-lists-w-c c (cons (%merge-w-c c (car xss) (cadr xss)) (cddr xss)))))
 
+;## Function: mergesort-with-comparator
+;# mergesort-with-comparator : (any -> any -> int) -> collection -> list.
+;# Sorts a collection with an algorithm that compares 2 variables.
+;# The algorithm returns -1, 0 or 1.
 (define (mergesort-with-comparator c xs)
-  (car (merge-lists-w-c c (map list xs))))
+  (car (%merge-lists-w-c c (map list xs))))
+
+;## Function: mergesort-compare
+;# mergesort-compare : (any -> any -> int) -> collection -> list.
+;# Alias for mergesort-with-comparator.
+(define mergesort-compare mergesort-with-comparator)
+
+;## Function: sort-compare
+;# sort-compare : (any -> any -> int) -> collection -> list.
+;# Sorts a collection with an algorithm that compares 2 variables.
+;# The algorithm returns -1, 0 or 1.
+(define sort-compare mergesort-with-comparator)
+
+;## Function: sort
+;# sort : collection -> list.
+;# Sorts a collection.
+(define sort mergesort)
 )

@@ -1,7 +1,7 @@
 ;## Function: queens
 ; queens : int -> list 
 ; Calculates all solutions for the nqueens problem on a nxn field.
-; Format: (3 1 4 2) (for a 4x4 field with `(queens 8)`) means 
+; Format: (3 1 4 2) (for a 4x4 field with `(queens 4)`) means 
 ;         - - x -
 ;         x - - -
 ;         - - - x

@@ -2,8 +2,8 @@
 
 Lyra is a lisp I make for fun and learning. NeonLyra is an improved version.
 
-Current stable version: 0.1.7  
-Current version: 0.1.7
+Current stable version: 0.1.8  
+Current version: 0.1.8
 
 Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 
@@ -21,7 +21,7 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 
 ## Usage:
 
-- Install Ruby (Tested with Ruby 3.0.2, jruby 9.1.17.0 and Truffleruby 21.2.0.1)  
+- Install Ruby (Tested with Ruby 3.0.2 and Truffleruby 21.2.0.1)  
 - Clone the repo or download it as a zip  
 - Run `ruby lyra.rb` to load `core.lyra` and start the repl.  
 - Run `ruby lyra.rb tests.lyra` to ensure that everything works as intended.  
@@ -59,8 +59,8 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 - `(...)` is used for function calls.  
 - `'expr` quotes an expression and is equivalent to `(quote expr)`  
 - \``expr` quotes an expression and is equivalent to `(quasiquote expr)`  
-- `~expr` quotes an expression and is equivalent to `(unquote expr)`  
-- `~@expr` quotes an expression and is equivalent to `(unquote-splicing expr)`  
+- `~expr` is equivalent to `(unquote expr)`  
+- `~@expr` is equivalent to `(unquote-splicing expr)`  
 - `[...]` creates a vector. It is not fully the same as `(vector ...)`, but gives the same value.  
 - `'()` is the empty list. (`()` is also valid, but discouraged)  
 - `let` is the sequential let expression.  
@@ -71,7 +71,7 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 - `#t` is literal true  
 - `#f` is literal false  
 - `#(...)` shortened form for lambda. Arguments are called `%1`, `%2`, ..., `%15` and are initialized as `Nothing` unless specified. Arguments beyond 15 are in `%&`. The total argument list is `%&&`.  
-- `\p(...)` is a shortcut for partial functions.__
+- `\p(...)` is a shortcut for partial functions.  
 - `#{...}` is a literal set.  
 - `{...}` is a literal map.  
 - `:<word>` is a keyword literal. (eg. `:a`)  
@@ -332,6 +332,8 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Better module system (though much more work is needed)  
   - Simple multithreading + delay type  
   - Better documentation  
+- 0.1.8  
+  - Any function or variable with a name which does not start with a '%' is public.
 
 ## Known bugs
 

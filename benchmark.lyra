@@ -120,6 +120,8 @@
             (= x 11) (map-merge m m))))
       0 r)))
 
+(let ((xs (xrange 0 100))) (measure! 1000 (lambda () (eager (map odd? xs)))))
+(let ((xs (xrange 0 100))) (measure! 1000 (lambda () (eager (pmap odd? xs)))))
 
 (define (multiplicative-persistance-recur n)
   (let* ((mult-digits
