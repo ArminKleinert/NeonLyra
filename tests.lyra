@@ -3803,6 +3803,18 @@
       (eq? (map-of 5 2 3 4) (map-invert (map-invert (map-of 1 2 3 4 5 2)))))
     ))
 
+(define (%test-split-with)
+  (%do-test!
+    (eq? (list (take-while odd? '(0 2 3 4 5)) (drop-while odd? '(0 2 3 4 5)))
+         (split-with odd? '(0 2 3 4 5)))
+    ))
+
+(define (%test-group-by)
+  (%do-test!
+    (eq? (map-of 0 '(0 2 4 6 8) 1 '(1 3 5 7 9))
+         (group-by (lambda (x) (rem x 2)) '(0 1 2 3 4 5 6 7 8 9)))
+    ))
+
 (define (%run-tests & fns)
   (let* ((results
           (foldl
@@ -3884,8 +3896,8 @@
   '%test-partition-all '%test-let* '%test-let '%test-plet '%test-lambda'
   ;'%test-lazy-crash '%test-lazy '%test-eager 
   '%test-compute*-> '%test-compute-> '%test-map-invert
-  '%test-rget '%test-rnth
-  '%test-mapv '%test-mapv-indexed
+  '%test-rget '%test-rnth '%test-mapv '%test-mapv-indexed '%test-split-with
+  '%test-group-by
   ))
 
 (println! "Starting tests...")

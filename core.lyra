@@ -2116,6 +2116,25 @@
   (foldl
     (lambda (res kv) (map-set res (second kv) (first kv)))
     (map-of) m))
+
+;## Function: split-with
+;# split-with : (any -> bool) -> sequence -> sequence
+;# (split-with p xs) is the same as (list (take-while p xs) (drop-while p xs)).
+(define (split-with p xs)
+  (list (take-while p xs) (drop-while p xs)))
+
+;## Function: group-by
+;# group-by : (any -> any) -> collection -> map
+(define (group-by f xs)
+(foldl
+  (lambda (acc x)
+    (let ((y (f x)))
+      (map-set acc y
+        (if (map-has-key? acc y)
+          (add (map-get acc y) x)
+          (list x)))))
+  (map-of)
+  xs))
 )
 
 (load! "string.lyra")
