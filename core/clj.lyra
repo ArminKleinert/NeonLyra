@@ -1,9 +1,15 @@
 (module clj
   ()
 
+;## Macro: when
+;# when : expr -> expr* -> expr
+;# Works as an if without an else branch. If the predicate does not hold true, Nothing is returned.
 (defmacro (when p & body)
   (list 'if p (xcons 'begin Nothing body) Nothing))
 
+;## Macro: def
+;# def : symbol -> expr -> expr
+;# Works as define for variables.
 (defmacro (def name val)
   (list 'define name val))
 
@@ -11,6 +17,12 @@
   (if (or (string? bindings) (map? bindings))
     (%defn name (car body) (cdr body)) ; ignore docstring or attr-map
     (list 'define name (xcons 'fn name bindings body))))
+;## Macro: defn
+;# defn : symbol -> sequence|string|map -> sequence? -> expr* -> expr
+;# Works as define for functions. Does not support inlined documentation and meta-data.
+;# (defn f [a b] ...)                 => (define (f a b) ...)
+;# (defn f {meta-data} [a b] ...)     => (define (f a b) ...)
+;# (defn f "documentation" [a b] ...) => (define (f a b) ...)
 (defmacro (defn name bindings & body)
   (%defn name bindings body))
 
@@ -25,6 +37,13 @@
 (define (%multifn name body)
   (xcons 'case-lambda* name (map-eager (lambda (xs) (cons (->list (car xs)) (cdr xs))) body)))
 
+;## Macro: fn
+;# fn : (symbol|sequence -> expr*)+ -> expr
+;# Defines a function, as lambda does, but can also create named funktions like lambda* or case-lambdas, depending on the form.
+;# (fn [a b] ...)               => (lambda (a b) ...)
+;# (fn f [a b] ...)             => (lambda* f (a b) ...)
+;# (fn ([a] ...) ([a b] ...))   => (case-lambda ((a) ...) ((a b) ...))
+;# (fn f ([a] ...) ([a b] ...)) => (case-lambda* f ((a) ...) ((a b) ...))
 (defmacro (fn name & body)
   (cond
     (symbol? name)

@@ -137,6 +137,45 @@
 
 ## Macros
 
+### Macro: `def` 
+```
+  def : symbol -> expr -> expr
+  
+  Pure? Yes
+  
+  Works as define for variables.
+```
+### Macro: `defn` 
+```
+  defn : symbol -> sequence|string|map -> sequence? -> expr* -> expr
+  
+  Pure? Yes
+  
+  Works as define for functions. Does not support inlined documentation and meta-data.
+  (defn f [a b] ...)                 => (define (f a b) ...)
+  (defn f {meta-data} [a b] ...)     => (define (f a b) ...)
+  (defn f "documentation" [a b] ...) => (define (f a b) ...)
+```
+### Macro: `fn` 
+```
+  fn : (symbol|sequence -> expr*)+ -> expr
+  
+  Pure? Yes
+  
+  Defines a function, as lambda does, but can also create named funktions like lambda* or case-lambdas, depending on the form.
+  (fn [a b] ...)               => (lambda (a b) ...)
+  (fn f [a b] ...)             => (lambda* f (a b) ...)
+  (fn ([a] ...) ([a b] ...))   => (case-lambda ((a) ...) ((a b) ...))
+  (fn f ([a] ...) ([a b] ...)) => (case-lambda* f ((a) ...) ((a b) ...))
+```
+### Macro: `when` 
+```
+  when : expr -> expr* -> expr
+  
+  Pure? Yes
+  
+  Works as an if without an else branch. If the predicate does not hold true, Nothing is returned.
+```
 
 ## Functions
 
