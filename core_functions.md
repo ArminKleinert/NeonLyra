@@ -1160,6 +1160,12 @@
   Required for xs: get
   Required for ks: empty?, first, rest
 ```
+### Function: `group-by` 
+```
+  group-by : (any -> any) -> collection -> map
+  
+  Pure? Yes
+```
 ### Function: `inc` 
 ```
   inc : number -> number
@@ -1859,6 +1865,14 @@
   
   (split-unless p xs) is equivalent to (list (take-until p xs) (drop-until p xs))
   Required: empty?, first, rest
+```
+### Function: `split-with` 
+```
+  split-with : (any -> bool) -> sequence -> sequence
+  
+  Pure? Yes
+  
+  (split-with p xs) is the same as (list (take-while p xs) (drop-while p xs)).
 ```
 ### Function: `spread` 
 ```
