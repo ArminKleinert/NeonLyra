@@ -1701,6 +1701,14 @@
   
   Reverse of nth. Takes the collection first and the key second.
 ```
+### Function: `scalar?` 
+```
+  scalar? : any -> bool
+  
+  Pure? Yes
+  
+  Short for (and (atom? x) (not (symbol? x))).
+```
 ### Function: `scanl` 
 ```
   scanl : (any -> any -> any) -> any -> collection -> list

@@ -3829,6 +3829,19 @@
          (group-by odd? '(0 1 2 3 4 5 6 7 8 9)))
     ))
 
+(define (%test-scalar?)
+  (%do-test!
+    (scalar? 0)
+    (scalar? 0.1)
+    (scalar? 1/4r)
+    (scalar? "abc")
+    (not (scalar? '(1 2)))
+    (not (scalar? [1 2]))
+    (not (scalar? {1 2 3 4}))
+    (not (scalar? #{1 2 3 4}))
+    (and (atom? 'sym) (not (scalar? 'sym)))
+    ))
+
 (define (%run-tests & fns)
   (let* ((results
           (foldl
@@ -3911,7 +3924,7 @@
   ;'%test-lazy-crash '%test-lazy '%test-eager 
   '%test-compute*-> '%test-compute-> '%test-map-invert
   '%test-rget '%test-rnth '%test-mapv '%test-mapv-indexed '%test-split-with
-  '%test-group-by
+  '%test-group-by '%test-scalar?
   ))
 
 (println! "Starting tests...")

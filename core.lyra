@@ -2135,6 +2135,12 @@
           (list x)))))
   (map-of)
   xs))
+
+;## Function: scalar?
+;# scalar? : any -> bool
+;# Short for (and (atom? x) (not (symbol? x))).
+(define (scalar? x)
+  (and (atom? x) (not (symbol? x))))
 )
 
 (load! "string.lyra")
