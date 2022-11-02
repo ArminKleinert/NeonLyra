@@ -2141,12 +2141,15 @@
 ;# Short for (and (atom? x) (not (symbol? x))).
 (define (scalar? x)
   (and (atom? x) (not (symbol? x))))
-)
+
+;## Macro: letfn
+;# letfn : sequence -> expr* -> expr
+(defmacro (letfn binds & exprs)
+  `(let ~(map (lambda (bind) (list (first bind) (cons lambda' bind))) binds) ~@exprs)))
 
 (load! "string.lyra")
 (load! "vector.lyra")
 (load! "set.lyra")
 
 (cons 'core (list (import! "lyra.core.string", "") (import! "lyra.core.vector" "") (import! "lyra.core.set" "")))
-
 

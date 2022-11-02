@@ -217,6 +217,12 @@
   Simpler let for a single binding.
   (let1 (a 1) a) is equivalent to (let*((a 1)) a)
 ```
+### Macro: `letfn` 
+```
+  letfn : sequence -> expr* -> expr
+  
+  Pure? Yes
+```
 ### Macro: `loop` 
 ```
   loop : list|vector -> [expr]* -> expr

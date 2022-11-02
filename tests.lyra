@@ -3842,6 +3842,17 @@
     (and (atom? 'sym) (not (scalar? 'sym)))
     ))
 
+(define (%test-letfn)
+(letfn ((f1 (a) (* a 2))
+        (f2 (& a) (map odd? a)))
+  (%do-test!
+  (= 4 (f1 2))
+  (= 88 (f1 44))
+  (eq? '() (f2))
+  (eq? '(#t #f #t #f #t #f #t #f #t #f) (f2 1 2 3 4 5 6 7 8 9 10))
+)
+))
+
 (define (%run-tests & fns)
   (let* ((results
           (foldl
@@ -3924,7 +3935,7 @@
   ;'%test-lazy-crash '%test-lazy '%test-eager 
   '%test-compute*-> '%test-compute-> '%test-map-invert
   '%test-rget '%test-rnth '%test-mapv '%test-mapv-indexed '%test-split-with
-  '%test-group-by '%test-scalar?
+  '%test-group-by '%test-scalar? '%test-letfn
   ))
 
 (println! "Starting tests...")
