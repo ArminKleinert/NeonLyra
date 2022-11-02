@@ -3807,12 +3807,26 @@
   (%do-test!
     (eq? (list (take-while odd? '(0 2 3 4 5)) (drop-while odd? '(0 2 3 4 5)))
          (split-with odd? '(0 2 3 4 5)))
+    (eq? (list (list) '(0 2 3 4 5))
+         (split-with odd? '(0 2 3 4 5)))
+    (eq? (list (list) (list 1 0 2 3 4 5))
+         (split-with even? '(1 0 2 3 4 5)))
+    (eq? 2
+         (size (split-with odd? '(0 2 3 4 5))))
+    (eq? 2
+         (size (split-with even? '(1 0 2 3 4 5))))
+    (eq? 2
+         (size (split-with even? '(0 2 3 4 5))))
+    (eq? 2
+         (size (split-with odd? '(1 0 2 3 4 5))))
     ))
 
 (define (%test-group-by)
   (%do-test!
     (eq? (map-of 0 '(0 2 4 6 8) 1 '(1 3 5 7 9))
          (group-by (lambda (x) (rem x 2)) '(0 1 2 3 4 5 6 7 8 9)))
+    (eq? (map-of #f '(0 2 4 6 8) #t '(1 3 5 7 9))
+         (group-by odd? '(0 1 2 3 4 5 6 7 8 9)))
     ))
 
 (define (%run-tests & fns)

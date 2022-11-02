@@ -5,6 +5,7 @@ bootstrap/necessary
 exclude
 wishlist
 tempstorage
+git.sh
 
 *.gem
 *.rbc
