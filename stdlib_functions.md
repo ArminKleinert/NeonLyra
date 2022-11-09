@@ -186,7 +186,7 @@
   
   Pure? Yes
   
-  nil :
+  nil : Nothing
   Alias for Nothing.
 ```
 
@@ -202,47 +202,42 @@
 ```
 ### Function: `count` 
 ```
-  
+  count : collection -> int
   
   Pure? Yes
   
-  count :
   Alias for size.
 ```
 ### Function: `distinct` 
 ```
-  
+  distinct : collection -> collection
   
   Pure? Yes
   
-  distinct :
   Alias for unique.
 ```
 ### Function: `do` 
 ```
-  
+  do : [expr]* -> expr
   
   Pure? Yes
   
-  do :
   Alias for begin.
 ```
 ### Function: `enumerate` 
 ```
-  
+  enumerate : sequence -> sequence
   
   Pure? Yes
   
-  enumerate :
   Alias for zip-to-index.
 ```
 ### Function: `every?` 
 ```
-  
+  every? : (any -> bool) -> collection -> bool
   
   Pure? Yes
   
-  every? :
   Alias for all?.
 ```
 ### Function: `ffirst` 
@@ -293,11 +288,10 @@
 ```
 ### Function: `not-any?.` 
 ```
-  
+  not-any? : (any -> bool) -> collection -> bool
   
   Pure? Yes
   
-  not-any? :
   Alias for none?
 ```
 ### Function: `nthnext` 
@@ -336,11 +330,10 @@
 ```
 ### Function: `slurp!` 
 ```
-  
+  slurp! : string -> string
   
   Pure? No
   
-  slurp! :
   Alias for file-read!.
 ```
 ### Function: `some` 
@@ -370,29 +363,26 @@
 ```
 ### Function: `spit!` 
 ```
-  
+  spit! : string -> string -> int
   
   Pure? No
   
-  spit! :
   Alias for file-write!.
 ```
 ### Function: `str` 
 ```
-  
+  str : string -> string* -> string
   
   Pure? Yes
   
-  str :
   Alias for string-concat.
 ```
 ### Function: `vec` 
 ```
-  
+  vec : collection -> vector
   
   Pure? Yes
   
-  vec :
   Alias for ->vector.
 ```
 # File: core/infix.lyra
