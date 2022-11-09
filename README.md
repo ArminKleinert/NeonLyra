@@ -333,7 +333,10 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
   - Simple multithreading + delay type  
   - Better documentation  
 - 0.1.8  
-  - Any function or variable with a name which does not start with a '%' is public.
+  - Simpler module system.
+  - Any function or variable with a name which does not start with a '%' is public automatically.
+  - More functions and macros.
+  - Better documentation, again.
 
 ## Known bugs
 
