@@ -268,7 +268,7 @@
   
   Pure? Yes
   
-  Drops the first element from a sequence. Returns Nothing if the size was less than i.
+  Drops the first element from a sequence. Returns Nothing if the size was less than 1.
 ```
 ### Function: `nfirst` 
 ```
