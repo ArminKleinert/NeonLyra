@@ -120,7 +120,7 @@ Here are some differences to Clojure I could think of:
 - All impure functions must end with the postfix `!` (like `load!`, `readln!`, ...).  
 - Nested `#(...)` is allowed.  
 
-The aliases can be imported using `(load! "core/clj.lyra")`. 
+The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`. 
 
 ## Example
 
@@ -341,3 +341,12 @@ The aliases can be imported using `(load! "core/clj.lyra")`.
 ## Known bugs
 
 - Sets and maps only work for atomic types.
+
+## Dancing
+
+```
+((lambda' \p(@~a `and)
+  (unbox and unquote a partial quasiquote))
+ "■)" '(println! ("(⌐" "■ ")) '("ノ♪" "ヾ"))
+; ヾ(⌐■ ■)ノ♪
+```

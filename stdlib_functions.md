@@ -192,14 +192,6 @@
 
 ## Functions
 
-### Function: `any?` 
-```
-  any? : any -> bool
-  
-  Pure? Yes
-  
-  Returns #t for any argument. Why does this exist in clojure anyways?
-```
 ### Function: `count` 
 ```
   count : collection -> int

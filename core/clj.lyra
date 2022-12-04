@@ -133,11 +133,11 @@
       (remove empty?)
       first first)))
 
-;## Function: any?
-;# any? : any -> bool
-;# Returns #t for any argument. Why does this exist in clojure anyways?
-(define (any? x)
-  #t)
+;;## Function: any?
+;;# any? : any -> bool
+;;# Returns #t for any argument. Why does this exist in clojure anyways?
+;(define (any? x)
+;  #t)
 
 ;## Function: keep
 ;# keep : (any -> any) -> collection -> sequence
