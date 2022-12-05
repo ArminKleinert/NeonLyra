@@ -869,7 +869,7 @@
 
 ;## Function: filter
 ;# filter : (any -> bool) -> collection -> list
-;# Lazy filter.^
+;# Lazy filter.
 ;# Required: empty?, first, rest
 (define (filter p xs)
   (cond (empty? xs) '()

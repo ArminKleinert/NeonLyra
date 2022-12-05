@@ -870,7 +870,11 @@ class LyraDelay
   # Wait `seconds` seconds before killing the thread
   # (if necessary) and getting its value
   def with_timeout(seconds)
-    @thread.join(seconds)
+    if seconds <= 0
+      @thread.join
+    else
+      @thread.join(seconds)
+    end
     if @thread.alive?
       sleep seconds
     end

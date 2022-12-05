@@ -948,7 +948,7 @@
   
   Pure? Yes
   
-  Lazy filter.^
+  Lazy filter.
   Required: empty?, first, rest
 ```
 ### Function: `filter-indexed` 
