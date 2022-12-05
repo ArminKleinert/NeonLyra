@@ -142,9 +142,10 @@
   (%do-test!
     (= :a :a)
     (= :abcdef :abcdef)
-    (:a {:a #t :b #f})
-    (not (:a {:a #f :b #t}))
-    (nothing? (:a {:b #t}))))
+    (:a {:a #t :b #f}) ; Accessing a map via keyword
+    (not (:a {:a #f :b #t})) ; Accessing a map via keyword
+    (nothing? (:a {:b #t})) ; Accessing a map via keyword
+    ))
 
 (define (%test-spread)
   (%do-test!
@@ -2850,6 +2851,11 @@
     (= 10 ((fn f0 [a b] (+ a b)) 5 5)) ; named normal
     (= 10 ((fn f1 ([a b] (+ a b)) ([a] a)) 5 5)) ; named multi
     (= 5 ((fn f1 ([a b] (+ a b)) ([a] a)) 5)) ; named multi
+    
+    (= 10 ((fn [[a b]] (+ a b)) [5 5])) ; Normal destructuring
+    (= 10 ((fn ([[a b]] (+ a b)) ([a] a)) [5 5])) ; anonymous multi destructuring
+    (= 10 ((fn f0 [[a b]] (+ a b)) [5 5])) ; named normal destructuring
+    (= 10 ((fn f1 ([[a b]] (+ a b))) [5 5])) ; named multi destructuring
     ))
 
 (define (%test-when)

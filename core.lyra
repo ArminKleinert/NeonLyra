@@ -1,5 +1,5 @@
 (module lyra.core
-  (cond lambda T comment unwrap foldr foldl append contains? nth rnth rget ->symbol ->int ->float ->rational ->string ->list ->vector ->char ->map ->set eq? size rest first second reverse compare collection? sequence? seq? number? print! println! flip fst snd list let1 (list-nth nth) last but-last empty? included? seq-eq? not-eq? symbol else and or odd? even? foldl1 foldl-indexed foldr1 foldr-indexed compose compose-or compose-and (comp compose) complement begin def-memo spread apply map map-split map-eager map-indexed map-while map-until maplist mapcar mapcon mapcat filter filter-indexed remove remove-indexed fmap mapf split-at split-unless split-if take take-while take-until drop drop-while drop-until subseq replace-subseq all? none? any? zip-with zip zip-to-index v-zip-with split-by split repeatedly repeat iterate va-all? va-none? va-any? concat caar cadr cdar cddr caaar caadr cadar caddr cdaar cdadr cddar cdddr caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr flatten flatten1 sum product inc dec min max minimum maximum range indices-of λ doall! fact-seq -> ->> as-> divmod constantly const case cycle case-lambda scanl scanl1 scanr scanr1 condp case-lambda* frequencies unique unique? add compose2 slices tuples partition-all xrange succ try count-by most? loop1 loop xcons partition dedupe times prepend add-front permutations walk-with-path get get-in combinations for juxt every-pred find index-of cartesian-product delete-at quasiquote lazy-seq partition-by plet let lambda' conj take-nth interleave destructure name compute*-> compute-> par par' pmap' pmap define* eval-seq! map-invert chunk-map)
+  ()
 
 ;;; SECTION: Some core things
 
@@ -1571,17 +1571,18 @@
   (let* ((n (gensym 'compute)))
     (cond
       (not funcs) m
-      m (list 'try*
-          (list 'let* (list (list n m))
-            (list 'if n
-              (xcons 'compute*-> default error-default
+      m `(try*
+          (let* ((~n ~m))
+            (if ~n
+              ~(xcons 'compute*-> default error-default
                 (if (list? (car funcs))
                   (list-concat (car funcs) (list n))
                   (list (car funcs) n))
                 (cdr funcs))
-              default))
-          (list 'catch 'id 'e error-default))
+              ~default))
+          (catch id e ~error-default))
       else default)))
+      
 
 ;## Macro: compute->
 ;# compute-> : expr -> [expr]* -> expr
@@ -1637,14 +1638,11 @@
 
 (define (%case-lambda cl-name forms)
   (let* ((args (gensym 'cl-args)))
-    (list
-      'lambda* cl-name
-      (list '& args)
-      (cons
-        'cond
-        (concat
-          (mapcat (lambda (form) (%cl-form form args)) forms)
-          `(else (error! (string-concat "invalid number of arguments for function " ~cl-name ". Got " (size ~args)) 'syntax)))))))
+  `(lambda* ~cl-name
+      (& ~args)
+      (cond
+        ~@(mapcat (lambda (form) (%cl-form form args)) forms)
+        else (error! (string-concat "invalid number of arguments for function " ~cl-name ". Got " (size ~args)) 'syntax)))))
 
 ;## Macro: case-lambda
 ;# case-lambda : (expr, expr) -> [(expr, expr)]* -> expr
@@ -1788,11 +1786,11 @@
 ;#   (finally (box-set! b 25)))
 ;#   ;=> 'error2
 (defmacro (try f0 & fs)
-  (let*((forms (split-unless
+  (let* ((forms (split-unless
                 (lambda (f) (and (list? f) (eq? (car f) 'catch)))
                 (cons f0 fs)))
-        (body (car forms))
-        (_ (if (all?
+         (body (car forms))
+         (_ (if (all?
                 (lambda (f)
                   (and
                     (list? f)
@@ -1801,21 +1799,21 @@
                 (cadr forms))
               #t
               (error! "Syntax error: Invalid format for try-catch-finally" 'syntax)))
-        (catch-finally (split-unless
+         (catch-finally (split-unless
                         (lambda (f) (eq? (car f) 'finally))
                         (cadr forms)))
-        (catch-clauses (car catch-finally))
-        (finally-clause (cadr catch-finally))
-        (res-name (gensym 'try))
-        (err-name (gensym 'error)))
-    (list 'try*
-      (list 'let* (list (list res-name 
-        (foldl (lambda (bd ct) (list 'try* bd ct)) (cons 'begin body) catch-clauses)))
-        (if (empty? finally-clause) Nothing (cons 'begin (cdar finally-clause)))
-        res-name)
-      (list 'catch (constantly #t) err-name
-        (if (empty? finally-clause) Nothing (cons 'begin (cdar finally-clause)))
-        (list 'error! (list 'error-msg err-name) (list 'error-info err-name) (list 'error-trace err-name))))
+         (catch-clauses (car catch-finally))
+         (finally-clause (cadr catch-finally))
+         (res-name (gensym 'try))
+         (err-name (gensym 'error)))
+    `(try*
+      (let* ((~res-name 
+        ~(foldl (lambda (bd ct) (list 'try* bd ct)) `(begin ~@body) catch-clauses)))
+        ~(if (empty? finally-clause) Nothing `(begin ~@(cdar finally-clause)))
+        ~res-name)
+      (catch ~(constantly #t) ~err-name
+        ~(if (empty? finally-clause) Nothing `(begin ~@(cdar finally-clause)))
+        (error! (error-msg ~err-name) (error-info ~err-name) (error-trace ~err-name))))
     ))
 
 ;;; SECTION: loop macros
@@ -1833,7 +1831,8 @@
         (vals (map second binds)))
     (if (any? (comp (partial /= 2) size) binds)
       (error! "Invalid number of members in loop binding." 'syntax)
-      (cons `(lambda' ~name ~args ~@body) vals))))
+      `((lambda' ~name ~args ~@body)
+        ~@vals))))
 
 ;## Macro: loop
 ;# loop : list|vector -> [expr]* -> expr
@@ -1842,9 +1841,8 @@
   (let*((binds (if (vector? bindings) (slices 2 bindings) bindings)))
     (if (any? (comp (partial /= 2) size) binds)
       (error! "Invalid number of members in loop binding." 'syntax)
-      (cons
-        `(lambda* ~(gensym 'loop) ~(map first binds) ~@body)
-        (map second binds)))))
+      `((lambda* ~(gensym 'loop) ~(map first binds) ~@body)
+        ~@(map second binds)))))
 
 ;## Function: times
 ;# times : (any -> any) -> int -> (any -> any)
@@ -1943,12 +1941,12 @@
           (lets (cadr binds))
           (whiles (caddr binds))
           (whens (cadddr binds)))
-   (list %for-lazy-take
-    (list 'map-split
-      (list 'lambda' (gensym 'for) (map car defs)
-        (list 'let (mapcat ->list lets)
-          (cons 'cond
-            (concat
+  `(~%for-lazy-take
+    (map-split
+      (lambda' ~(gensym 'for) ~(map car defs)
+        (let ~(mapcat ->list lets)
+          (cond
+            ~@(concat
               (if (empty? whiles)
                 '()
                 (list
@@ -1960,8 +1958,9 @@
                   (list any? not (cons 'list whens))
                   (list list #f #t Nothing)))
               (list else (cons 'list (list #f #f body)))))))
-      (cons 'combinations (map cadr defs))
-      ))))
+      (combinations ~@(map cadr defs))
+      ))
+      ))
 ;## Macro: for
 ;# for : list -> expr -> expr
 (defmacro (for bindings body)
@@ -2022,7 +2021,8 @@
     (if (odd? (size binds))
       (error! "odd number of bindings for let" 'syntax)
       `(let ~(slices 2 binds) ~@body)) ; recursive call
-    (cons 'let* (cons (destructure binds) body))))
+    `(let* ~(destructure binds) ~@body)
+    ))
 
 ;## Macro: define*
 ;# define* : [list|vector] -> [expr]* -> expr
@@ -2031,7 +2031,8 @@
 ;# Will support keyword arguments in the future
 (defmacro (define* binds & body)
   (let* ((bind-aliases (map #(gensym 'bind) (cdr binds))))
-    (list 'define (cons (car binds) bind-aliases) (cons 'let (cons (zip (cdr binds) bind-aliases) body)))))
+    `(define (~(car binds) ~@bind-aliases) (let ~(zip (cdr binds) bind-aliases) ~@body))))
+    
 
 
 ;## Macro: lambda'
@@ -2045,7 +2046,8 @@
         (body (if named body (cons body1 body)))
         (bind-aliases (map #(if (= %1 '&) '& (gensym 'bind)) binds)))
     (eval-seq! bind-aliases)
-    (list 'lambda* name bind-aliases (cons 'let (cons (remove #(= (car %1) '&) (zip binds bind-aliases)) body)))))
+    `(lambda* ~name ~bind-aliases (let ~(remove #(= (car %1) '&) (zip binds bind-aliases)) ~@body))))
+    
 
 ;;; SECTION: Parallel stuff
 
@@ -2099,12 +2101,7 @@
   (let* ((names (map first binds))
          (vals (map second binds))
          (name-syms (map #(gensym 'name) names)))
-    (cons 'let
-      (cons
-        (list-concat
-          (zip name-syms vals)
-          (zip names name-syms))
-        body))))
+    `(let ~(list-concat (zip name-syms vals) (zip names name-syms)) ~@body)))
 
 ;## Function: map-invert
 ;# map-invert : map -> map
@@ -2145,7 +2142,9 @@
 ;## Macro: letfn
 ;# letfn : sequence -> expr* -> expr
 (defmacro (letfn binds & exprs)
-  `(let ~(map (lambda (bind) (list (first bind) (cons lambda' bind))) binds) ~@exprs)))
+  `(let ~(map (lambda (bind) (list (first bind) (cons lambda' bind))) binds) ~@exprs))
+
+)
 
 (load! "string.lyra")
 (load! "vector.lyra")

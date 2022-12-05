@@ -11,7 +11,7 @@
 ;# def : symbol -> expr -> expr
 ;# Works as define for variables.
 (defmacro (def name val)
-  (list 'define name val))
+  (list 'define' name val))
 
 (define (%defn name bindings body)
   (if (or (string? bindings) (map? bindings))
@@ -31,7 +31,7 @@
     (list? bindings) ; Probably multi-fn
       (%multifn name (cons bindings body))
     (vector? bindings)
-      (cons 'lambda* (xcons name (->list bindings) body))
+      (cons 'lambda' (xcons name (->list bindings) body))
     else (error! "Syntax error: Invalid format for fn." 'syntax)))
 
 (define (%multifn name body)
@@ -67,7 +67,7 @@
 
 ;## Function: next
 ;# next : sequence -> sequence
-;# Drops the first element from a sequence. Returns Nothing if the size was less than i.
+;# Drops the first element from a sequence. Returns Nothing if the size was less than 1.
 (define (next xs) (let ((r (rest xs))) (if (empty? r) Nothing r)))
 
 ;## Function: fnext
@@ -133,11 +133,11 @@
       (remove empty?)
       first first)))
 
-;## Function: any?
-;# any? : any -> bool
-;# Returns #t for any argument. Why does this exist in clojure anyways?
-(define (any? x)
-  #t)
+;;## Function: any?
+;;# any? : any -> bool
+;;# Returns #t for any argument. Why does this exist in clojure anyways?
+;(define (any? x)
+;  #t)
 
 ;## Function: keep
 ;# keep : (any -> any) -> collection -> sequence
@@ -145,57 +145,57 @@
   (remove nothing? (map f xs)))
 
 ;## Function: do
-;# do : 
+;# do : [expr]* -> expr
 ;# Alias for begin.
 (define do begin)
 
 ;## Function: slurp!
-;# slurp! : 
+;# slurp! : string -> string
 ;# Alias for file-read!.
 (define slurp! file-read!)
 
 ;## Function: spit!
-;# spit! : 
+;# spit! : string -> string -> int
 ;# Alias for file-write!.
 (define spit! file-write!)
 
 ;## Function: count
-;# count : 
+;# count : collection -> int
 ;# Alias for size.
 (define count size)
 
 ;## Variable: nil
-;# nil : 
+;# nil : Nothing
 ;# Alias for Nothing.
 (define nil Nothing)
 
 ;## Function: enumerate
-;# enumerate : 
+;# enumerate : sequence -> sequence
 ;# Alias for zip-to-index.
 (define enumerate zip-to-index)
 
 ;## Function: distinct
-;# distinct : 
+;# distinct : collection -> collection
 ;# Alias for unique.
 (define distinct unique)
 
 ;## Function: str
-;# str : 
+;# str : string -> string* -> string 
 ;# Alias for string-concat.
 (define str string-concat)
 
 ;## Function: vec
-;# vec : 
+;# vec : collection -> vector
 ;# Alias for ->vector.
 (define vec ->vector)
 
 ;## Function: not-any?.
-;# not-any? : 
+;# not-any? : (any -> bool) -> collection -> bool
 ;# Alias for none?
 (define not-any? none?)
 
 ;## Function: every?
-;# every? : 
+;# every? : (any -> bool) -> collection -> bool
 ;# Alias for all?.
 (define every? all?)
 )

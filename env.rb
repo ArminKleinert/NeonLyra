@@ -39,6 +39,7 @@ class Env
     GLOBAL_ENV.val
   end
 
+  # NOT_FOUND_IN_LYRA_ENV == v can not be reversed
   def safe_find(sym, include_global = true)
     return NOT_FOUND_IN_LYRA_ENV if self == Env.global_env && !include_global
     v = @inner[sym]
