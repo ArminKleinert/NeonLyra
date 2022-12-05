@@ -337,6 +337,9 @@ The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`.
   - Any function or variable with a name which does not start with a '%' is public automatically.
   - More functions and macros.
   - Better documentation, again.
+- 0.1.9
+  - Using more destructuring.
+  - Using more quasiquoting and unquoting.
 
 ## Known bugs
 
