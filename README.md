@@ -2,7 +2,7 @@
 
 Lyra is a lisp I make for fun and learning. NeonLyra is an improved version.
 
-Current stable version: 0.1.8  
+Current stable version: 0.1.9  
 Current version: 0.1.9
 
 Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
@@ -96,9 +96,8 @@ Here are some differences to Clojure I could think of:
 - `nil` is called `Nothing` in reference to Haskell. (`nil` is provided as an alias though)  
 - No meta-data.  
 - No method-access using `.` and `..`.  
-- No `letfn` (yet).  
 - No access to the host language.  
-- No arrays.  
+- No mutable arrays.  
 - No build-in loops.  
 - Keyword access only works for maps. (Not for user-defined types)  
 - No primitive (value) types.  
@@ -108,17 +107,18 @@ Here are some differences to Clojure I could think of:
 - Still going through a lot of changes.  
 - Tail recursion. (`recur` is available too)  
 - The empty list is a singleton and false.  
-- Type-conversion functions are always marked with `->`.  
+- Type-conversion functions are always marked with `->`. (`->int`, `->string`, etc.)  
 - Type-conversion functions return `Nothing` if conversion failed.  
 - There are no type hints.  
 - User-defined types are not maps.  
-- `(lambda (...) ...)` instead of `(fn [...] ...)`. (fn is available as an alias)  
+- `(lambda' (...) ...)` instead of `(fn [...] ...)`. (fn is available as an alias)  
 - `#f`, `Nothing` and `'()` are all false.  
 - `module` surrounds a list of expressions instead of being used at the top of a file only.  
 - `seq` returns `Nothing` for all types that aren't collections.  
 - modules (`module`) instead of namespaces (`ns`).  
 - All impure functions must end with the postfix `!` (like `load!`, `readln!`, ...).  
 - Nested `#(...)` is allowed.  
+- For `map` with more than 1 collection, you need to use `mapcar`.  
 
 The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`. 
 
@@ -340,6 +340,8 @@ The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`.
 - 0.1.9
   - Using more destructuring.
   - Using more quasiquoting and unquoting.
+  - Added `interpose`, `printall!`
+  - Fixed `partition`
 
 ## Known bugs
 

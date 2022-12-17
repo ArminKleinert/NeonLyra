@@ -1212,6 +1212,15 @@
   
   Pure? Yes
 ```
+### Function: `interpose` 
+```
+  interpose : any -> sequence -> list
+  
+  Pure? Yes
+  
+  Takes a separator and a sequence. After each element of the sequence, the separator is inserted, except after the last one.
+  (interpose 0 '(1 2 3 4 5)) ;=> (1 0 2 0 3 0 4 0 5)
+```
 ### Function: `into` 
 ```
   into : () -> list
@@ -1382,6 +1391,14 @@
   (mapf f p xs) is equivalent to (map f (filter p xs))
   Required: empty?, first, rest
 ```
+### Function: `mapl` 
+```
+  mapl : (any -> any) -> collection -> list
+  
+  Pure? Yes
+  
+  Alias for map-eager. The name is supposed to show a similarity to mapv, but the output is a list, not a vector.
+```
 ### Function: `maplist` 
 ```
   maplist : (collection -> any) -> collection -> list
@@ -1518,6 +1535,9 @@
    (partition 3 [1 2 3 4 5 6])) ;=> ((1 2 3) (4 5 6))
    (partition 1 [1 2 3 4 5 6])) ;=> ((1) (2) (3) (4) (5) (6))
    (partition 0 [1 2 3 4 5 6])))) ;=> ()
+   (partition 3 2 [1 2 3 4 5])) ;=> ((1 2 3) (3 4 5))
+   (partition 3 1 [1 2 3 4 5])) ;=> ((1 2 3) (2 3 4) (3 4 5))
+   (partition 3 3 [1 2 3] [1 2 3 4])) ;=> ((1 2 3) (4 1 2))
 ```
 ### Function: `partition-all` 
 ```
@@ -1576,6 +1596,15 @@
   
   Printing. Can take any number of arguments (variadic and requires ->string to work correctly.
   (print! 1 2 3) ;=> prints "123"
+```
+### Function: `printall!` 
+```
+  printall! : any* -> Nothing
+  
+  Pure? No
+  
+  Like println!, but separates the arguments with a space.
+  (printall! "abc" "abc" "abc") ;=> prints "abc abc abc\n"
 ```
 ### Function: `println!` 
 ```

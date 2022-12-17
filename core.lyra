@@ -335,6 +335,13 @@
 (define (println! & xs)
   (%print! xs)
   (buildin-print! "\n"))
+;## Function: printall!
+;# printall! : any* -> Nothing
+;# Like println!, but separates the arguments with a space.
+;# (printall! "abc" "abc" "abc") ;=> prints "abc abc abc\n"
+(define (printall! & xs)
+  (apply-to println! (interpose " " xs))
+  xs)
 
 ;## Function: log!
 ;# log! : any* -> list
@@ -797,9 +804,13 @@
 ;# map-eager : (any -> any) -> collection -> list
 ;# Same as map, but works eagerly, not lazy.
 (define (map-eager f xs)
-  (if (empty? xs)
-    '()
-    (cons (f (first xs)) (map-eager f (rest xs)))))
+  (eager (map f xs)))
+
+;## Function: mapl
+;# mapl : (any -> any) -> collection -> list
+;# Alias for map-eager. The name is supposed to show a similarity to mapv, but the output is a list, not a vector.
+(define (mapl f xs)
+  (eager (map f xs)))
 
 (define (%map-indexed f xs i)
   (if (empty? xs)
@@ -844,6 +855,7 @@
 ;# Required: v-zip-with to work correctly with all inputs.
 (define (mapcar f & ys)
   (%mapcar f ys))
+
 
 ;## Function: mapcon
 ;# mapcon : (any -> collection) -> collection -> collection
@@ -1750,14 +1762,40 @@
     ((to from) (foldl add to from))
     ((to f from) (foldl add to (f from)))))
 
-(define (%partition n step pad xs)
+(defmacro (if-let binding branch-then branch-else)
+  (let* ((bind-name (gensym 'if-let-bind)))
+    `(let ((~bind-name ~(second binding)))
+      (if ~bind-name
+        (let ((~(first binding) ~bind-name))
+          ~branch-then)
+        ~branch-else)
+)))
+
+(define (%partition-no-pad n step xs)
+  (let ((front (take n xs))
+        (front-size (size front)))
+    (cond
+      (>= front-size n)
+        (lazy-seq front (%partition-no-pad n step (drop step xs)))
+      (empty? front)
+        '()
+      else
+        '())))
+(define (%partition-pad n step pad xs)
+  (let ((front (take n xs))
+        (front-size (size front)))
+    (cond
+      (>= front-size n)
+        (lazy-seq front (%partition-pad n step pad (drop step xs)))
+      (empty? front)
+        '()
+      else
+        (list (list-concat front (take (- n front-size) pad))))))
+(define (%partition n step pad xs has-pad)
   (cond
     (= n 0) '()
-    (< (size xs) n) ; FIXME / TODO: Does not work for infinite sequences!
-      (if (empty? pad)
-        '()
-        (list (list-concat xs (take (- n (size xs)) pad))))
-    else (lazy-seq (take n xs) (%partition n step pad (drop step xs)))))
+    has-pad (%partition-pad n step pad xs)
+    else (%partition-no-pad n step xs)))
 ;## Function: partition
 ;# partition : int -> collection -> list
 ;# partition : int -> int -> collection -> list
@@ -1768,11 +1806,14 @@
 ;#  (partition 3 [1 2 3 4 5 6])) ;=> ((1 2 3) (4 5 6))
 ;#  (partition 1 [1 2 3 4 5 6])) ;=> ((1) (2) (3) (4) (5) (6))
 ;#  (partition 0 [1 2 3 4 5 6])))) ;=> ()
+;#  (partition 3 2 [1 2 3 4 5])) ;=> ((1 2 3) (3 4 5))
+;#  (partition 3 1 [1 2 3 4 5])) ;=> ((1 2 3) (2 3 4) (3 4 5))
+;#  (partition 3 3 [1 2 3] [1 2 3 4])) ;=> ((1 2 3) (4 1 2))
 (define partition
   (case-lambda* partition
-    ((n xs) (%partition n n '() xs))
-    ((n step xs) (%partition n step '() xs))
-    ((n step pad xs) (%partition n step pad xs))))
+    ((n xs) (%partition n n Nothing xs #f))
+    ((n step xs) (%partition n step Nothing xs #f))
+    ((n step pad xs) (%partition n step pad xs #t))))
 
 ;;; SECTION: try-catch-finally
 
@@ -2142,8 +2183,16 @@
 ;## Macro: letfn
 ;# letfn : sequence -> expr* -> expr
 (defmacro (letfn binds & exprs)
-  `(let ~(map (lambda (bind) (list (first bind) (cons lambda' bind))) binds) ~@exprs))
+  `(let ~(map (lambda' (bind) (list (first bind) (cons lambda' bind))) binds) ~@exprs))
 
+;## Function: interpose
+;# interpose : any -> sequence -> list
+;# Takes a separator and a sequence. After each element of the sequence, the separator is inserted, except after the last one.
+;# (interpose 0 '(1 2 3 4 5)) ;=> (1 0 2 0 3 0 4 0 5)
+(define (interpose sep xs)
+  (if (<= (size (take 2 xs)) 1) ; If 1 or 0 elements
+    xs
+    (lazy-seq (first xs) (list-concat (list sep) (interpose sep (rest xs))))))
 )
 
 (load! "string.lyra")
@@ -2151,4 +2200,5 @@
 (load! "set.lyra")
 
 (cons 'core (list (import! "lyra.core.string", "") (import! "lyra.core.vector" "") (import! "lyra.core.set" "")))
+
 

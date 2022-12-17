@@ -2752,7 +2752,14 @@
     (eq? '((1 2 3)) (partition 3 [1 2 3 4]))
     (eq? '((1 2 3) (4 5 6)) (partition 3 [1 2 3 4 5 6]))
     (eq? '((1) (2) (3) (4) (5) (6)) (partition 1 [1 2 3 4 5 6]))
-    (eq? '() (partition 0 [1 2 3 4 5 6]))))
+    (eq? '() (partition 0 [1 2 3 4 5 6]))
+    
+    (eq? '((1 2 3) (3 4 5)) (partition 3 2 [1 2 3 4 5]))
+    (eq? '((1 2 3) (2 3 4) (3 4 5)) (partition 3 1 [1 2 3 4 5])) 
+    
+    (eq? '((1 2 3) (4 1 2)) (partition 3 3 [1 2 3] [1 2 3 4]))
+    (eq? '((1 2 3) (4)) (partition 3 3 [] [1 2 3 4]))
+    (eq? '((1 2 3) (4 1)) (partition 3 3 [1] [1 2 3 4]))))
 
 (define (%test-partition-by)
   (%do-test!
@@ -3849,15 +3856,22 @@
     ))
 
 (define (%test-letfn)
-(letfn ((f1 (a) (* a 2))
-        (f2 (& a) (map odd? a)))
+  (letfn ((f1 (a) (* a 2))
+          (f2 (& a) (map odd? a)))
+    (%do-test!
+      (= 4 (f1 2))
+      (= 88 (f1 44))
+      (eq? '() (f2))
+      (eq? '(#t #f #t #f #t #f #t #f #t #f)
+            (f2 1 2 3 4 5 6 7 8 9 10)))))
+
+(define (%test-interpose)
   (%do-test!
-  (= 4 (f1 2))
-  (= 88 (f1 44))
-  (eq? '() (f2))
-  (eq? '(#t #f #t #f #t #f #t #f #t #f) (f2 1 2 3 4 5 6 7 8 9 10))
-)
-))
+    (eq? '(1 0 2 0 3 0 4 0 5) (interpose 0 '(1 2 3 4 5))) ; Normal
+    (eq? '() (interpose 0 '())) ; Empty
+    (eq? '(1 0 2 0 3 0 4 0 5) (take 9 (interpose 0 (iterate inc 1)))) ; Lazy
+    ))
+ ;=> 
 
 (define (%run-tests & fns)
   (let* ((results
@@ -3941,7 +3955,7 @@
   ;'%test-lazy-crash '%test-lazy '%test-eager 
   '%test-compute*-> '%test-compute-> '%test-map-invert
   '%test-rget '%test-rnth '%test-mapv '%test-mapv-indexed '%test-split-with
-  '%test-group-by '%test-scalar? '%test-letfn
+  '%test-group-by '%test-scalar? '%test-letfn '%test-interpose
   ))
 
 (println! "Starting tests...")
