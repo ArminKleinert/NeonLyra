@@ -169,11 +169,6 @@
 ;# Alias for Nothing.
 (define nil Nothing)
 
-;## Function: enumerate
-;# enumerate : sequence -> sequence
-;# Alias for zip-to-index.
-(define enumerate zip-to-index)
-
 ;## Function: distinct
 ;# distinct : collection -> collection
 ;# Alias for unique.

@@ -141,5 +141,3 @@
 (def-impl ::set find contains?)
 )
 
-
-  

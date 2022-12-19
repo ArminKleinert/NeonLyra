@@ -80,26 +80,23 @@
 
 ;## Function: numerator
 ;# numerator : rational -> int
-  
+
 ;## Function: denominator
 ;# denominator : rational -> int|#
-  
+
 ;## Function: gensym
 ;# gensym : symbol -> symbol
 ;# Builds a unique symbol.
 ;# (gensym 'lambda) => some unique symbol including lambda.
 ;# (gensym 'lambda) => a different unique symbol including lambda.
-  
-  
+
 ;## Function: seq
 ;# seq : any -> list
 ;# Turns a variable into a list. If the variable is not a collecttion or if the variable is empty, it returns Nothing instead.
-  add_fn(:seq, 1) { |x| (!x.is_a?(Enumerable) || x.empty?) ? nil : x.to_cons_list }
 
 ;## Function: always-true
 ;# always-true : any* -> bool
 ;# Always returns #t.
-  add_fn(:"always-true", 0, -1) { |*_| true }
 
 ;## Function: always-false
 ;# always-false : any* -> bool

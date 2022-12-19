@@ -194,7 +194,7 @@
 
 (let ((ops (foldr compose id (list (partial + 5)(partial - 5)(partial * 5)(partial / 5)(partial + 5)(partial - 5)(partial * 5)(partial / 5)(partial + 5)(partial - 5)(partial * 5)(partial / 5)(partial + 5)(partial - 5)(partial * 5)(partial / 5)(partial + 5)(partial - 5)(partial * 5)(partial / 5)(partial + 5)(partial - 5)(partial * 5)(partial / 5)(partial + 5)(partial - 5)(partial * 5)(partial / 5)))))
   (test-performance "Same as partials with composition:" (ops 5)))
-  
+
 (test-performance "set operations" (test-set-stuff))
 
 (test-performance "map operations" (test-map-stuff))
@@ -375,7 +375,7 @@ truffleruby:
   Sort 5000 elements:                               2622.209
   Shuffle 5000 elements:                            4988.6715
   9-billion-names (25):                             802.0735
-  
+
 0.1.5
 Ruby:
   Generic utility (Do not change):                  75.5054225
@@ -525,7 +525,7 @@ truffleruby
   9-billion-names (25):                             714.9475
   Lots of recur:                                    3691.9025
   Lots of tail recursion                            3681.5355
-  
+
 0.1.7
 ruby
   Generic utility (Do not change):                  55.4999925
@@ -623,7 +623,7 @@ truffleruby
   Lots of recur:                                    3729.0895
   Lots of tail recursion:                           3729.013
   queens 6:                                         1752.2150000000001
-  
+
 0.1.9
 ruby
   Generic utility (Do not change):                  59.859412

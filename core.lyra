@@ -1038,7 +1038,7 @@
 ;## Function: subseq
 ;# subseq : int -> int -> collection -> list
 ;# Returns a sub-sequence of a sequence.
-;# Equivalent to (take length (drop start xs))
+;# Equivalent to (take length (drop start xs)).
 (define (subseq start length xs)
   (take length (drop start xs)))
 
@@ -1108,7 +1108,7 @@
 ;# Required for both l0 and l1: empty?, first, rest
 (define (zip l0 l1)
   (zip-with list l0 l1))
-  
+
 ;## Function: zip-to-index
 ;# zip-to-index : sequence -> list
 ;# zip the elements of a collection to their indices.
@@ -1550,13 +1550,23 @@
 ;# -> : expr -> [expr]* -> expr
 ;# As in Clojure.
 (defmacro (-> x & exprs)
-  (foldl (lambda (acc expr) (if (list? expr) (xcons (car expr) acc (cdr expr)) (list expr acc))) x exprs))
+  (foldl
+    (lambda (acc expr)
+      (if (list? expr)
+        (xcons (car expr) acc (cdr expr))
+        (list expr acc)))
+    x exprs))
 
 ;## Macro: ->>
 ;# ->> : expr -> [expr]* -> expr
 ;# As in Clojure.
 (defmacro (->> x & exprs)
-  (foldl (lambda (acc expr) (if (list? expr) (append expr (list acc)) (list expr acc))) x exprs))
+  (foldl
+    (lambda (acc expr) 
+      (if (list? expr)
+        (append expr (list acc))
+        (list expr acc)))
+    x exprs))
 
 (define (%as-> name x exprs)
   (if (empty? exprs)
@@ -1579,22 +1589,21 @@
 ;#   (compute*-> 'default 'error 1 ->list first) ; => default
 ;#   (compute*-> 'default 'error 0 throw! inc)   ; => error
 ;#   (compute*-> 'default 'error "r")            ; => "r"
-(defmacro (compute*-> default error-default m & funcs)
-  (let* ((n (gensym 'compute)))
+(defmacro (compute*-> default error-default expr & funcs)
+  (let* ((current-name (gensym 'compute)))
     (cond
-      (not funcs) m
-      m `(try*
-          (let* ((~n ~m))
-            (if ~n
+      (not funcs) expr
+      expr `(try*
+          (let* ((~current-name ~expr))
+            (if ~current-name
               ~(xcons 'compute*-> default error-default
                 (if (list? (car funcs))
-                  (list-concat (car funcs) (list n))
-                  (list (car funcs) n))
+                  (list-concat (car funcs) (list current-name))
+                  (list (car funcs) current-name))
                 (cdr funcs))
               ~default))
           (catch id e ~error-default))
       else default)))
-      
 
 ;## Macro: compute->
 ;# compute-> : expr -> [expr]* -> expr
@@ -1908,7 +1917,7 @@
     (sequence? coll)
     (map-indexed
       (lambda (v i)
-        (let*((path (cons i _path)))
+        (let* ((path (cons i _path)))
           (%walk-with-path f (f v path) path)))
       coll)
 
@@ -1916,17 +1925,17 @@
     (->set
     (map-indexed
       (lambda (v i)
-        (let*((path (cons i _path)))
+        (let* ((path (cons i _path)))
           (%walk-with-path f (f v path) path)))
       coll))
 
     (map? coll)
     (->map (flatten1
-    (map-indexed
-      (lambda (v i)
-        (let*((path (cons i _path)))
-          (%walk-with-path f (f v path) path)))
-      coll)))
+      (map-indexed
+        (lambda (v i)
+          (let* ((path (cons i _path)))
+            (%walk-with-path f (f v path) path)))
+        coll)))
 
     ; coll is not a collection
     else (f coll _path)
@@ -1978,7 +1987,7 @@
 (define (%for bindings body)
   (let* ((binds (%for-binds bindings))
           (defs (car binds))
-          
+
           (lets (cadr binds))
           (whiles (caddr binds))
           (whens (cadddr binds)))
@@ -2000,8 +2009,8 @@
                   (list list #f #t Nothing)))
               (list else (cons 'list (list #f #f body)))))))
       (combinations ~@(map cadr defs))
-      ))
-      ))
+      ))))
+
 ;## Macro: for
 ;# for : list -> expr -> expr
 (defmacro (for bindings body)
@@ -2072,9 +2081,8 @@
 ;# Will support keyword arguments in the future
 (defmacro (define* binds & body)
   (let* ((bind-aliases (map #(gensym 'bind) (cdr binds))))
-    `(define (~(car binds) ~@bind-aliases) (let ~(zip (cdr binds) bind-aliases) ~@body))))
-    
-
+    `(define (~(car binds) ~@bind-aliases)
+      (let ~(zip (cdr binds) bind-aliases) ~@body))))
 
 ;## Macro: lambda'
 ;# lambda' : list -> [expr]* -> expr
@@ -2088,7 +2096,7 @@
         (bind-aliases (map #(if (= %1 '&) '& (gensym 'bind)) binds)))
     (eval-seq! bind-aliases)
     `(lambda* ~name ~bind-aliases (let ~(remove #(= (car %1) '&) (zip binds bind-aliases)) ~@body))))
-    
+
 
 ;;; SECTION: Parallel stuff
 
@@ -2164,15 +2172,15 @@
 ;## Function: group-by
 ;# group-by : (any -> any) -> collection -> map
 (define (group-by f xs)
-(foldl
-  (lambda (acc x)
-    (let ((y (f x)))
-      (map-set acc y
-        (if (map-has-key? acc y)
-          (add (map-get acc y) x)
-          (list x)))))
-  (map-of)
-  xs))
+  (foldl
+    (lambda (acc x)
+      (let ((y (f x)))
+        (map-set acc y
+          (if (map-has-key? acc y)
+            (add (map-get acc y) x)
+            (list x)))))
+    (map-of)
+    xs))
 
 ;## Function: scalar?
 ;# scalar? : any -> bool
@@ -2183,7 +2191,8 @@
 ;## Macro: letfn
 ;# letfn : sequence -> expr* -> expr
 (defmacro (letfn binds & exprs)
-  `(let ~(map (lambda' (bind) (list (first bind) (cons lambda' bind))) binds) ~@exprs))
+  `(let ~(map (lambda' (bind) (list (first bind) (cons lambda' bind))) binds)
+    ~@exprs))
 
 ;## Function: interpose
 ;# interpose : any -> sequence -> list
@@ -2193,6 +2202,15 @@
   (if (<= (size (take 2 xs)) 1) ; If 1 or 0 elements
     xs
     (lazy-seq (first xs) (list-concat (list sep) (interpose sep (rest xs))))))
+
+;## Function: enumerate
+;# enumerate : sequence -> sequence
+;# Alias for zip-to-index.
+(define enumerate
+  (case-lambda* enumerate
+    ((xs) (map-indexed (lambda (x i) (list i x)) xs))
+    ((start xs) (map-indexed (lambda (x i) (list (+ start i) x)) xs))
+    ))
 )
 
 (load! "string.lyra")

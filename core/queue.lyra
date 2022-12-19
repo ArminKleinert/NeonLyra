@@ -91,27 +91,27 @@
   ;# first#deque : deque -> any
   ;# Implementation for first.
   (def-impl ::deque first (lambda (q) (car (deque-front q))))
-  
+
   ;## Function: rest#deque
   ;# rest#deque : deque -> deque
   ;# Implementation for rest.
   (def-impl ::deque rest dequeue)
-  
+
   ;## Function: add#deque
   ;# add#deque : deque -> any -> deque
   ;# Implementation for add. Alias for enqueue.
   (def-impl ::deque add enqueue)
-  
+
   ;## Function: append#deque
   ;# append#deque : deque -> collection -> deque
   ;# Implementation for append. Alias for enqueue-all.
   (def-impl ::deque append enqueue-all)
-  
+
   ;## Function: prepend#deque
   ;# prepend#deque : deque -> any -> deque
   ;# Implementation for prepend.
   (def-impl ::deque prepend (lambda (q xs) (make-deque (append (->list xs) (deque-front q)) (deque-back q))))
-  
+
   ;## Function: add-front#deque
   ;# add-front#deque : deque -> any -> deque
   ;# Implementation for add-front.
@@ -134,21 +134,22 @@
   ;# sequence?#deque : any -> bool
   ;# Returns #t.
   (def-impl ::deque sequence? (const #t))
-  
+
   ;## Function: ->list#deque
   ;# ->list#deque : deque -> list
   ;# Turns the deque into a list.
   (def-impl ::deque ->list (lambda (q) (append (deque-front q) (reverse (deque-back q)))))
+
   ;## Function: ->vector#deque
   ;# ->vector#deque : deque -> vector
   ;# Turns the deque into a vector.
   (def-impl ::deque ->vector (lambda (q) (append [] (append (deque-front q) (reverse (deque-back q))))))
-  
+
   ;## Function: ->vector#deque
   ;# ->vector#deque : deque -> int
   ;# Returns the size of the deque.
   (def-impl ::deque size (lambda (q) (+ (size (deque-front q)) (size (deque-back q)))))
-  
+
   ;## Function: reverse#deque
   ;# reverse#deque : deque -> deque
   ;# Reverses a deque.

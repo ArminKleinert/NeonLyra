@@ -127,15 +127,17 @@
     (= 3 (size {1 2 3 4 5 6}))
     (= 1 (size {1 1 1 1 1 1}))
     (empty? {})))
-    
+
 (define (%test-char-literal)
   (%do-test!
     ; Test special characters
-    (eq? "[+ - * / & % ! | ( ) { } [ ]]" (->string [\+ \- \* \/ \& \% \! \| \( \) \{ \} \[ \]]))
-    
+    (eq? "[+ - * / & % ! | ( ) { } [ ]]"
+    (->string [\+ \- \* \/ \& \% \! \| \( \) \{ \} \[ \]]))
+
     ; Test numbers
-    (eq? "[0 1 2 3 4 5 6 7 8 9]" (->string [\0 \1 \2 \3 \4 \5 \6 \7 \8 \9]))
-    
+    (eq? "[0 1 2 3 4 5 6 7 8 9]"
+    (->string [\0 \1 \2 \3 \4 \5 \6 \7 \8 \9]))
+
     (= \a \a)))
 
 (define (%test-keyword-literal)
@@ -1430,7 +1432,7 @@
     (not (contains? [1 1 2 1 1] 5))
     (contains? '(1 1 2 1 1) 2)
     (contains? [1 1 2 1 1] 2)
-    
+
     (not (included? 1 '()))
     (not (included? 1 []))
     (included? 1 '(1 2))
@@ -1441,7 +1443,7 @@
     (not (included? 5 [1 1 2 1 1]))
     (included? 2 '(1 1 2 1 1))
     (included? 2 [1 1 2 1 1])
-    
+
     (not (member? 1 '()))
     (not (member? 1 []))
     (member? 1 '(1 2))
@@ -1452,7 +1454,7 @@
     (not (member? 5 [1 1 2 1 1]))
     (member? 2 '(1 1 2 1 1))
     (member? 2 [1 1 2 1 1])
-    
+
     (not (∈ 1 '()))
     (not (∈ 1 []))
     (∈ 1 '(1 2))
@@ -1463,7 +1465,7 @@
     (not (∈ 5 [1 1 2 1 1]))
     (∈ 2 '(1 1 2 1 1))
     (∈ 2 [1 1 2 1 1])
-    
+
     (∉ 1 '())
     (∉ 1 [])
     (not (∉ 1 '(1 2)))
@@ -1534,12 +1536,12 @@
     (= "" (append "" ""))
     (= "1" (append "" "1"))
     (= "21" (append "2" "1"))
-    
+
     ; Appending to string transforms the 2. element into a string
     (= "1" (append "" 1))
     (= "11" (append "" 11))
     (= "21" (append "2" 1))
-    
+
     ; Appending empty sequences
     (empty? (append '() '()))
     (empty? (append [] []))
@@ -1551,7 +1553,7 @@
     (eq? [1 2 1 2] (append [1 2] [1 2]))
     (eq? '(1 2 1 2) (append '(1 2) [1 2]))
     (eq? [1 2 1 2] (append [1 2] '(1 2)))
-    
+
     ; Appending any atom type will return Nothing
     (nothing? (append '(1 2) 88))
     (nothing? (append [1 2] 88))
@@ -1565,12 +1567,12 @@
     (= "" (prepend "" ""))
     (= "1" (prepend "" "1"))
     (= "12" (prepend "2" "1"))
-    
+
     ; Prepending to string transforms the 2. element into a string
     (= "1" (prepend "" 1))
     (= "11" (prepend "" 11))
     (= "12" (prepend "2" 1))
-    
+
     ; Prepending empty sequences
     (empty? (prepend '() '()))
     (empty? (prepend [] []))
@@ -1586,7 +1588,7 @@
     (eq? [3 2 1 2] (prepend [1 2] [3 2]))
     (eq? '(3 2 1 2) (prepend '(1 2) [3 2]))
     (eq? [3 2 1 2] (prepend [1 2] '(3 2)))
-    
+
     ; Prepending any atom type will return Nothing
     (nothing? (prepend '(1 2) 88))
     (nothing? (prepend [1 2] 88))
@@ -1615,7 +1617,7 @@
     (eq? [1 2 2 3 3 4] (concat '(1 2) '(2 3) [3 4]))
     (eq? '(1 2 2 3 3 4) (concat '(1 2) [2 3] '(3 4)))
     (eq? [1 2 2 3 3 4] (concat [1 2] [2 3] [3 4]))
-    
+
     ; Appending any atom type will return Nothing
     (nothing? (concat '(1 2) 88 0))
     (nothing? (concat 0 [1 2] 88))
@@ -1632,14 +1634,14 @@
     (= "" (string-concat "" "" ""))
     (= "1" (string-concat "" "1" ""))
     (= "321" (string-concat "3" "2" "1"))
-    
+
     ; Appending to string transforms the 2. element into a string
     (= "19" (string-concat "" 1 9))
     (= "11a" (string-concat "" 11 'a))
     (= "21" (string-concat "2" 1 ""))
-    
+
     (= "" (string-concat))))
-    
+
 (define (%test-nth)
   (%do-test!
     (nothing? (nth '() 0))
@@ -1650,13 +1652,13 @@
 
     ; Test on infinite sequence
     (= 6 (nth (iterate inc 0) 6))
-    
+
     (nothing? (nth [] 0))
     (nothing? (nth [1 2 3] 15))
     (= 1 (nth [1 2 3] 0))
     (= 2 (nth [1 2 3] 1))
     (= 3 (nth [1 2 3] 2))))
-    
+
 (define (%test-rnth)
   (%do-test!
     (nothing? (rnth 0 '()))
@@ -1667,7 +1669,7 @@
 
     ; Test on infinite sequence
     (= 6 (rnth 6 (iterate inc 0)))
-    
+
     (nothing? (rnth 0 []))
     (nothing? (rnth 15 [1 2 3]))
     (= 1 (rnth 0 [1 2 3]))
@@ -1695,7 +1697,7 @@
     (eq? '(() (2 3)) (split-by (lambda (x) (< x 2)) [1 2 3]))
     (eq? '((5) (2 3) (6)) (split-by (lambda (x) (< x 2)) '(5 1 2 3 1 6)))
     (eq? '((5) (2 3) (6)) (split-by (lambda (x) (< x 2)) [5 1 2 3 1 6]))
-    
+
     (eq? '(()) (split-by (lambda (x) (> x 15)) '()))
     (eq? '(()) (split-by (lambda (x) (> x 15)) []))
     (eq? '(() (2)) (split-by (lambda (x) (< x 2)) '(-6 2)))
@@ -1709,7 +1711,7 @@
     (eq? (list 1 4 9 16 25) (map (lambda (n) (* n n)) (list 1 2 3 4 5)))
     (eq? (list "1" "2" "3") (map ->string (list 1 2 3)))
     (eq? (list "a" "b" "c") (map ->string (list "a" "b" "c")))
-    
+
     (eq? [] (map ->string []))
     (eq? [1 4 9 16 25] (map (lambda (n) (* n n)) [1 2 3 4 5]))
     (eq? ["1" "2" "3"] (map ->string [1 2 3]))
@@ -1721,11 +1723,23 @@
     (eq? (vector 1 4 9 16 25) (mapv (lambda (n) (* n n)) (list 1 2 3 4 5)))
     (eq? (vector "1" "2" "3") (mapv ->string (list 1 2 3)))
     (eq? (vector "a" "b" "c") (mapv ->string (list "a" "b" "c")))
-    
+
     (eq? [] (mapv ->string []))
     (eq? [1 4 9 16 25] (mapv (lambda (n) (* n n)) [1 2 3 4 5]))
     (eq? ["1" "2" "3"] (mapv ->string [1 2 3]))
     (eq? ["a" "b" "c"] (mapv ->string ["a" "b" "c"]))))
+
+(define (%test-mapl)
+  (%do-test!
+    (eq? (list) (mapl ->string (list)))
+    (eq? (list 1 4 9 16 25) (mapl (lambda (n) (* n n)) (list 1 2 3 4 5)))
+    (eq? (list "1" "2" "3") (mapl ->string (list 1 2 3)))
+    (eq? (list "a" "b" "c") (mapl ->string (list "a" "b" "c")))
+
+    (eq? '() (mapv ->string []))
+    (eq? '(1 4 9 16 25) (mapl (lambda (n) (* n n)) [1 2 3 4 5]))
+    (eq? '("1" "2" "3") (mapl ->string [1 2 3]))
+    (eq? '("a" "b" "c") (mapl ->string ["a" "b" "c"]))))
 
 (define (%test-map-indexed)
   (%do-test!
@@ -1735,7 +1749,7 @@
     (eq? (list "a" "b" "c") (map-indexed (lambda (e i) (->string e)) (list "a" "b" "c")))
     (eq? (list 1 2 3 4 5) (map-indexed (lambda (e i) e) (list 1 2 3 4 5)))
     (eq? (list 0 1 2 3 4) (map-indexed (lambda (e i) i) (list 1 2 3 4 5)))
-    
+
     (eq? [] (map-indexed (lambda (e i) (->string e)) []))
     (eq? [1 4 9 16 25] (map-indexed (lambda (n i) (* n n)) [1 2 3 4 5]))
     (eq? ["1" "2" "3"] (map-indexed (lambda (e i) (->string e)) [1 2 3]))
@@ -1751,7 +1765,7 @@
     (eq? (vector "a" "b" "c") (map-indexed (lambda (e i) (->string e)) (list "a" "b" "c")))
     (eq? (vector 1 2 3 4 5) (map-indexed (lambda (e i) e) (list 1 2 3 4 5)))
     (eq? (vector 0 1 2 3 4) (map-indexed (lambda (e i) i) (list 1 2 3 4 5)))
-    
+
     (eq? [] (map-indexed (lambda (e i) (->string e)) []))
     (eq? [1 4 9 16 25] (map-indexed (lambda (n i) (* n n)) [1 2 3 4 5]))
     (eq? ["1" "2" "3"] (map-indexed (lambda (e i) (->string e)) [1 2 3]))
@@ -1769,7 +1783,7 @@
       (fmap id id (list 1 #f 2 #f 3 #t #f Nothing)))
     (eq? (list 1 9 25)
       (fmap (lambda (n) (* n n)) odd? (list 1 2 3 4 5 6)))
-    
+
     (eq? []
       (fmap ->string (lambda (e) #t) []))
     (eq? [1 4 9 16 25]
@@ -1789,7 +1803,7 @@
       (mapf id id (list 1 #f 2 #f 3 #t #f Nothing)))
     (eq? (list 1 9 25)
       (mapf (lambda (n) (* n n)) odd? (list 1 2 3 4 5 6)))
-    
+
     (eq? []
       (mapf ->string (lambda (e) #t) []))
     (eq? [1 4 9 16 25]
@@ -1999,7 +2013,7 @@
     (eq? '(5 6 7) (drop-until (partial < 4) '(1 2 3 4 5 6 7)))
     (eq? '() (drop-until (partial > 5) []))
     (eq? '(5 6 7) (drop-until (partial < 4) [1 2 3 4 5 6 7]))))
-  
+
 (define (%test-split-at)
   (%do-test!
     (eq? '(() ()) (split-at 1 '()))
@@ -2031,7 +2045,7 @@
     (eq? '((1 4) (2 5)) (zip '(1 2) '(4 5 6)))
     (eq? '((1 4) (2 5)) (zip '(1 2 3) '(4 5)))
     (eq? '((1 4) (2 5) (3 6)) (zip '(1 2 3) '(4 5 6)))
-    
+
     (empty? (zip [] []))
     (empty? (zip [] [1 2 3]))
     (empty? (zip [1 2 3] []))
@@ -2054,7 +2068,7 @@
     (eq? '((1 4) (2 5)) (zip-with list [1 2] [4 5 6]))
     (eq? '((1 4) (2 5)) (zip-with list [1 2 3] [4 5]))
     (eq? '((1 4) (2 5) (3 6)) (zip-with list [1 2 3] [4 5 6]))
-    
+
     (eq? '(5 7) (zip-with + '(1 2) '(4 5 6)))
     (eq? '(5 7) (zip-with + '(1 2 3) '(4 5)))
     (eq? '(5 7 9) (zip-with + '(1 2 3) '(4 5 6)))
@@ -2069,6 +2083,18 @@
 
     (eq? '((0 4) (1 5) (2 6)) (zip-to-index '(4 5 6)))
     (eq? '((0 4) (1 5) (2 6)) (zip-to-index [4 5 6]))))
+
+(define (%test-enumerate)
+  (%do-test!
+    (empty? (enumerate '()))
+    (empty? (enumerate []))
+    (eq? '((0 4) (1 5) (2 6)) (enumerate '(4 5 6)))
+    (eq? '((0 4) (1 5) (2 6)) (enumerate [4 5 6]))
+
+    (empty? (enumerate 1 '()))
+    (empty? (enumerate 1 []))
+    (eq? '((1 4) (2 5) (3 6)) (enumerate 1 '(4 5 6)))
+    (eq? '((1 4) (2 5) (3 6)) (enumerate 1 [4 5 6]))))
 
 (define (%test-v-zip-with)
   (%do-test!
@@ -2086,11 +2112,11 @@
     (all? (partial > 6) '(1 2 3 4 5))
     (not (all? (partial > 3) '(1 2 3 4 5)))
     (not (all? (partial < 6) '(1 2 3 4 5)))
-    
+
     (all? nothing? '(Nothing Nothing Nothing Nothing))
     (all? empty? '(() () () () () ()))
     (not (all? empty? (take 6 (repeat '(1 2 3 4 5 6)))))
-    
+
     (∀ (partial > 5) '())
     (∀ (partial > 6) '(1 2 3 4 5))
     (not (∀ (partial > 3) '(1 2 3 4 5)))
@@ -2102,28 +2128,24 @@
     (not (none? (partial > 6) '(1 2 3 4 5)))
     (not (none? (partial > 3) '(1 2 3 4 5)))
     (none? (partial < 6) '(1 2 3 4 5))
-    
+
     (∄ (partial > 5) '())
     (not (∄ (partial > 6) '(1 2 3 4 5)))
     (not (∄ (partial > 3) '(1 2 3 4 5)))
     (∄ (partial < 6) '(1 2 3 4 5))))
 
-(define (%test-any?) ;; FIXME When using the normal any?, this gives the warning that any? only requires 1 argument, which is obviously false. The definitions are equivalent.
-(let* ((any? (lambda (p xs)
-  (cond (empty? xs) #f
-        (p (first xs)) #t
-        else (any? p (rest xs))))))
+(define (%test-any?)
   (%do-test!
     (not (any? (partial > 5) '()))
     (any? (partial > 6) '(1 2 3 4 5))
     (any? (partial > 3) '(1 2 3 4 5))
     (not (any? (partial < 6) '(1 2 3 4 5)))
-    
+
     (not (∃ (partial > 5) '()))
     (∃ (partial > 6) '(1 2 3 4 5))
     (∃ (partial > 3) '(1 2 3 4 5))
     (not (∃ (partial < 6) '(1 2 3 4 5)))
-    )))
+    ))
 
 (define (%test-va-all?)
   (%do-test!
@@ -2753,10 +2775,10 @@
     (eq? '((1 2 3) (4 5 6)) (partition 3 [1 2 3 4 5 6]))
     (eq? '((1) (2) (3) (4) (5) (6)) (partition 1 [1 2 3 4 5 6]))
     (eq? '() (partition 0 [1 2 3 4 5 6]))
-    
+
     (eq? '((1 2 3) (3 4 5)) (partition 3 2 [1 2 3 4 5]))
     (eq? '((1 2 3) (2 3 4) (3 4 5)) (partition 3 1 [1 2 3 4 5])) 
-    
+
     (eq? '((1 2 3) (4 1 2)) (partition 3 3 [1 2 3] [1 2 3 4]))
     (eq? '((1 2 3) (4)) (partition 3 3 [] [1 2 3 4]))
     (eq? '((1 2 3) (4 1)) (partition 3 3 [1] [1 2 3 4]))))
@@ -2847,7 +2869,6 @@
     (loop [] #t)
     (= 3
       (loop [(a b) '(1 2) res 0] (if (> res 0) res (recur '() (+ a b)))))
-
     ))
 
 (define (%test-fn)
@@ -2858,7 +2879,7 @@
     (= 10 ((fn f0 [a b] (+ a b)) 5 5)) ; named normal
     (= 10 ((fn f1 ([a b] (+ a b)) ([a] a)) 5 5)) ; named multi
     (= 5 ((fn f1 ([a b] (+ a b)) ([a] a)) 5)) ; named multi
-    
+
     (= 10 ((fn [[a b]] (+ a b)) [5 5])) ; Normal destructuring
     (= 10 ((fn ([[a b]] (+ a b)) ([a] a)) [5 5])) ; anonymous multi destructuring
     (= 10 ((fn f0 [[a b]] (+ a b)) [5 5])) ; named normal destructuring
@@ -2956,7 +2977,7 @@
     (eq? (queue 1 2 3) (enqueue-all (queue 1 2 3) (deque)))
     (eq? (queue 1 2 3) (enqueue-all (queue 1 2 3) (queue)))
     (eq? (queue 1 2 3) (enqueue-all (queue 1 2 3) []))
-    
+
     (eq? (deque) (enqueue-all (deque) '()))
     (eq? (deque) (enqueue-all (deque) (deque)))
     (eq? (deque 1 2 3 4 5 6 7 8 9) (enqueue-all (deque) [1 2 3 4 5 6 7 8 9]))
@@ -2973,7 +2994,7 @@
     (eq? (queue 1 2 3 4 5 6 7 8 9) (enqueue-all (queue 1 2 3 4) (queue 5 6 7 8 9)))
     (eq? (queue 1 2 3 4 5 6 7 8 9) (enqueue-all (queue 1 2 3 4) (deque 5 6 7 8 9)))
     (eq? (queue 1 2 3 4 5 6 7 8 9) (enqueue-all (queue 1 2 3 4) [5 6 7 8 9]))
-    
+
     (eq? (deque 1 2 3 4 5 6 7 8 9) (enqueue-all (deque) '(1 2 3 4 5 6 7 8 9)))
     (eq? (deque 1 2 3 4 5 6 7 8 9) (enqueue-all (deque) (queue 1 2 3 4 5 6 7 8 9)))
     (eq? (deque 1 2 3 4 5 6 7 8 9) (enqueue-all (deque) (deque 1 2 3 4 5 6 7 8 9)))
@@ -3119,7 +3140,7 @@
     (eq? (queue) (rest (queue)))
     (eq? Nothing (last (queue)))
     (eq? 1 (last (enqueue (queue) 1)))
-    
+
     (eq? (queue 1 2) (queue 1 2))
     (= 2 (size (queue 1 2)))
     (= 1 (first (queue 1 2)))
@@ -3187,7 +3208,7 @@
     (eq? (deque) (rest (deque)))
     (eq? Nothing (last (deque)))
     (eq? 1 (last (enqueue (deque) 1)))
-    
+
     (eq? (deque 1 2) (deque 1 2))
     (= 2 (size (deque 1 2)))
     (= 1 (first (deque 1 2)))
@@ -3278,19 +3299,19 @@
     (= 1 (get '(1) 0))
     (= 5 (get '(1 2 3 4 5) 4))
     (= 5 (get (iterate inc 0) 5))
-    
+
     (nothing? (get [1] 1))
     (= 1 (get [1] 0))
     (= 5 (get [1 2 3 4 5] 4))
-    
+
     (nothing? (get {0 1 2 3} 1))
     (= 1 (get {0 1 1 2 2 3} 0))
     (= 5 (get {0 1 1 2 4 5} 4))
-    
+
     ; For sets, the definition is not clear because they are not
     ; ordered. The only requirement is that the output is consistent.
     (= (get #{0 1 2 3 4} 4) (get #{0 1 2 3 4} 4))
-    
+
     (= 5 (get (queue 1 2 3 4 5) 4))
     ))
 
@@ -3301,19 +3322,19 @@
     (= 1 (rget 0 '(1)))
     (= 5 (rget 4 '(1 2 3 4 5)))
     (= 5 (rget 5 (iterate inc 0)))
-    
+
     (nothing? (rget 1 [1]))
     (= 1 (rget 0 [1]))
     (= 5 (rget 4 [1 2 3 4 5]))
-    
+
     (nothing? (rget 1 {0 1 2 3}))
     (= 1 (rget 0 {0 1 1 2 2 3}))
     (= 5 (rget 4 {0 1 1 2 4 5}))
-    
+
     ; For sets, the definition is not clear because they are not
     ; ordered. The only requirement is that the output is consistent.
     (= (rget 4 #{0 1 2 3 4}) (rget 4 #{0 1 2 3 4}))
-    
+
     (= 5 (rget 4 (queue 1 2 3 4 5)))
     ))
 
@@ -3322,7 +3343,7 @@
     (= 0 (get-in 0 '()))
     (eq? [0] (get-in [0] '()))
     (nothing? (get-in 0 '(1)))
-    
+
     (= 0 (get-in '(0 (1 {0 8 3 9}) [6 7 8]) '(0)))
     (eq? [6 7 8] (get-in '(0 (1 {0 8 3 9}) [6 7 8]) '(2)))
     (= 7 (get-in '(0 (1 {0 8 3 9}) [6 7 8]) '(2 1)))
@@ -3333,8 +3354,14 @@
 
 (define (%test-subseq)
   (%do-test!
+    (eq? '(1 2 3 4) (subseq 0 99 '(1 2 3 4)))
     (eq? '(2 3) (subseq 1 2 '(1 2 3 4)))
-    (eq? '() (subseq 0 0 '(1 2 3 4)))))
+    (eq? '() (subseq 0 0 '(1 2 3 4)))
+    (eq? '(1 2 3) (subseq -1 4 '(1 2 3)))
+    (eq? '(1) (subseq -1 1 '(1 2 3)))
+    (eq? '(1 2) (subseq -1 2 '(1 2 3)))
+    (empty? (subseq 1 2 '()))
+    (empty? (subseq 0 0 '()))))
 
 (define (%test-replace-subseq)
   (%do-test!
@@ -3350,7 +3377,7 @@
     (eq? '((1) (2) (3)) (combinations '(1 2 3)))
     (eq? '((1 3) (1 4) (2 3) (2 4)) (combinations '(1 2) '(3 4)))
     (eq? '((1 3) (1 4) (1 5) (2 3) (2 4) (2 5)) (combinations '(1 2) '(3 4 5)))
-    
+
     ; Usage with more lists and infinite lists
     (eq? '((1 3 5) (1 3 6) (1 4 5) (1 4 6) (2 3 5) (2 3 6) (2 4 5) (2 4 6))
          (combinations '(1 2) '(3 4) '(5 6)))
@@ -3358,7 +3385,7 @@
          (take 9 (combinations (iterate inc 1) '(3 4) '(5 6))))
     (eq? '((1 3 1) (1 3 2) (1 3 3) (1 3 4) (1 3 5) (1 3 6) (1 3 7) (1 3 8) (1 3 9))
          (take 9 (combinations '(1 2) '(3 4) (iterate inc 1))))
-    
+
     ; Behaviour when including empty lists
     (eq? '() (combinations '()))
     (eq? '() (combinations '() '() '() '()))
@@ -3366,7 +3393,7 @@
     (eq? '((1) (2) (3)) (combinations '() '(1 2 3) '()))
     (eq? '((1 3) (1 4) (2 3) (2 4)) (combinations '(1 2) '() '(3 4)))
     (eq? '((1 3) (1 4) (2 3) (2 4)) (combinations '() '(1 2) '(3 4)))
-    
+
     ; Behaviour when including empty lists again
     (eq? '((1 3 5) (1 3 6) (1 4 5) (1 4 6) (2 3 5) (2 3 6) (2 4 5) (2 4 6))
          (combinations '() '(1 2) '(3 4) '(5 6)))
@@ -3379,7 +3406,7 @@
     (eq? '((1) (2) (3)) (combinations [1 2 3]))
     (eq? '((1 3) (1 4) (2 3) (2 4)) (combinations [1 2] '(3 4)))
     (eq? '((1 3) (1 4) (1 5) (2 3) (2 4) (2 5)) (combinations '(1 2) [3 4 5]))
-    
+
     ; Usage with more lists and infinite lists and vectors
     (eq? '((1 3 5) (1 3 6) (1 4 5) (1 4 6) (2 3 5) (2 3 6) (2 4 5) (2 4 6))
          (combinations [1 2] '(3 4) [5 6]))
@@ -3427,7 +3454,7 @@
             (:let ((z (+ x y))))
             (:while (< z 10)))
         (string-concat x '+ y '= z)))
-    
+
     ; when, let, while, lazy
     (eq? (list "1+1=2" "1+2=3" "3+1=4" "3+2=5" "4+1=5" "4+2=6" "5+1=6" "5+2=7" "6+1=7" "6+2=8" "7+1=8" "7+2=9" "8+1=9")
       (for ((x (xrange 1))
@@ -3445,14 +3472,14 @@
               (:when (/= x 2))
               (:let ((z (+ x y)))))
           (string-concat x '+ y '= z))))
-    
-    ; Multible in :let block
+
+    ; Multiple in :let block
     (eq? (list "1+1=4" "1+2=6" "2+1=6" "2+2=8" "3+1=8" "3+2=10" "4+1=10" "4+2=12" "5+1=12" "5+2=14" "6+1=14" "6+2=16")
       (for ((x (list 1 2 3 4 5 6))
             (y (list 1 2))
             (:let ((z1 (+ x y)) (z (* z1 2)))))
         (string-concat x '+ y '= z)))
-    
+
     ; Basic destructuring
     (eq? (for (((a b) [[1 2] [3 4]])) a)
          '(1 3))
@@ -3496,7 +3523,7 @@
             :let ((z (+ x y)))
             :while (< z 10)]
         (string-concat x '+ y '= z)))
-    
+
     (eq? (list "1+1=2" "1+2=3" "3+1=4" "3+2=5" "4+1=5" "4+2=6" "5+1=6" "5+2=7" "6+1=7" "6+2=8" "7+1=8" "7+2=9" "8+1=9")
       (for [x (xrange 1)
             y (list 1 2)
@@ -3930,7 +3957,7 @@
   '%test-foldr-indexed '%test-repeat '%test-repeatedly '%test-take
   '%test-take-while '%test-take-until '%test-drop '%test-drop-while
   '%test-drop-until '%test-split-at '%test-split-if
-  '%test-split-unless '%test-zip '%test-zip-with '%test-zip-to-index
+  '%test-split-unless '%test-zip '%test-zip-with '%test-zip-to-index %test-enumerate
   '%test-all? '%test-none? '%test-va-all? '%test-va-none? '%test-va-any?
   '%test-reverse '%test-sum '%test-minimum '%test-maximum '%test-unwrap
   '%test-iterate '%test-random '%test-xorshift64s '%test-xorshift64
@@ -3954,8 +3981,8 @@
   '%test-partition-all '%test-let* '%test-let '%test-plet '%test-lambda'
   ;'%test-lazy-crash '%test-lazy '%test-eager 
   '%test-compute*-> '%test-compute-> '%test-map-invert
-  '%test-rget '%test-rnth '%test-mapv '%test-mapv-indexed '%test-split-with
-  '%test-group-by '%test-scalar? '%test-letfn '%test-interpose
+  '%test-rget '%test-rnth '%test-mapv '%test-mapv-indexed %test-mapl 
+  '%test-split-with '%test-group-by '%test-scalar? '%test-letfn '%test-interpose
   ))
 
 (println! "Starting tests...")

@@ -5,7 +5,7 @@
 
 (let ((open-bracket (symbol "("))
       (close-bracket (symbol ")"))
-      
+
       ; Default bindings for operators used in imperative languages.
       ; This includes =, +=, etc for setting variables.
       (default-binds
@@ -33,12 +33,12 @@
         (contains? '(! not ++ --) op) 12
         (contains? '(.) op)     13
         else                    0))
-        
+
     'unary-op? (lambda (sym) (contains? '(! ++ -- not) sym))
 
     'bin-op? (lambda (sym) (contains? '(= += -= *= /= %= mod= <<= >>= &= ^= |= || or && and | ^ & ** ^ == != < > <= >= + - * / % . mod) sym))
         ))
-        
+
     ; Bindings for Lyra. This includes some of the aliases found in aliases.lyra
     (lyra-binds
   (map-of
