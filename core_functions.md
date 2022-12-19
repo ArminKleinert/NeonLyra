@@ -885,6 +885,14 @@
     The special value Nothing is empty.
     Other non-collections are not empty.
 ```
+### Function: `enumerate` 
+```
+  enumerate : sequence -> sequence
+  
+  Pure? Yes
+  
+  Alias for zip-to-index.
+```
 ### Function: `eq?` 
 ```
   eq? : any -> any -> bool
@@ -1934,7 +1942,7 @@
   Pure? Yes
   
   Returns a sub-sequence of a sequence.
-  Equivalent to (take length (drop start xs))
+  Equivalent to (take length (drop start xs)).
 ```
 ### Function: `succ` 
 ```

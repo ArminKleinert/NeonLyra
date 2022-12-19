@@ -216,14 +216,6 @@
   
   Alias for begin.
 ```
-### Function: `enumerate` 
-```
-  enumerate : sequence -> sequence
-  
-  Pure? Yes
-  
-  Alias for zip-to-index.
-```
 ### Function: `every?` 
 ```
   every? : (any -> bool) -> collection -> bool
