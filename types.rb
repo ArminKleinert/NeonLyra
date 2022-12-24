@@ -301,59 +301,56 @@ class ListPair
   end
 end
 
-# TODO
+
 =begin
+# TODO
 class ChunkedSeq
   include Enumerable, ConsList
   
-  class Chunks
-    @chunks = []
-    def size
-      @chunks.map(&:size).sum
+  def self.create(chunks)
+    chunks.reject!(&:nil?)
+    chunks.reject!(&:empty?)
+    if chunks.empty?
+      EmptyList.instance
+    else
+      ChunkedSeq.new(chunks)
     end
   end
   
-  
+  def initialize(chunks)
+    @chunks = chunks
+    @size = -1
+  end
 
   def car
-    @inner.chunks.
+    @chunks[0].car
   end
 
   def cdr
-    ChunkedSeq.new(@offset+1)
-  end
-
-  def nth(i)
-    
-  end
-  
-  def take(n)
-    arr = []
-    cs = @inner.chunks
-    while n > 0
-      sz = cs[0].size
-      if sz <= n
-        arr += cs[0]
-        n -= sz
-        cs = cs[1..-1]
-      else
-        arr += cs[0].take(n)
-      end
+    if !@chunks[0][1..-1].empty?
+      ChunkedSeq.new([@chunks[0].cdr] + @chunks[1..-1])
+    elsif @chunks.size == 1
+      EmptyList.instance
+    else
+      ChunkedSeq.new(@chunks[1..-1])
     end
-    arr
   end
   
   def size
     if @size == -1
-      @size = inner.map(&:size).sum
+      @size = @chunks.map(&:size).sum
     end
     @size
   end
   
   def each(&block)
-    @inner.chunks.each do |c|
+    @chunks.each do |c|
       c.each{|x|block.call(x)}
     end
+  end
+  
+  def empty?
+    false
   end
 end
 =end

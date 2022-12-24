@@ -553,7 +553,10 @@
 ;# Default implementation requires ->list, first, rest, size.
 (def-generic xs (last xs)
   (lambda (xs)
-    (let*((l (->list xs))) (if (list? l) (first (drop (dec (size l)) l)) (nothing)))))
+    (let* ((l (->list xs)))
+      (if (list? l)
+        (first (drop (dec (size l)) l))
+        (nothing)))))
 
 ;## Function: but-last
 ;# but-last : collection -> list
@@ -1308,7 +1311,7 @@
 ;# case : expr -> [any, expr]* -> expr
 (defmacro (case e & cases)
   (let* ((n (gensym 'case))
-        (e-name (gensym 'case-elem)))
+         (e-name (gensym 'case-elem)))
     (list 'let* (list (list e-name e)) (%case e-name n cases))))
 
 

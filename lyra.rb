@@ -60,21 +60,20 @@ def _readline(prompt)
   end
 end
 
-LYRA_VERSION = "0_1_7"
+LYRA_VERSION = "0_2.0"
 
 if ARGV[0] == "--show_expand_macros"
   $show_expand_macros = true
   ARGV.shift
 end
 
-empty_list = list
 if ARGV.include? "-args"
   src_files, lyra_args = ARGV.slice_after { |e| e == "-args" }.to_a
-  Env.global_env.set!(:"*ARGS*", lyra_args ? lyra_args.map(&:freeze).to_cons_list.freeze : empty_list)
+  Env.global_env.set!(:"*ARGS*", lyra_args ? lyra_args.map(&:freeze).to_cons_list.freeze : EmptyList.instance)
   src_files.shift
 else
   src_files = ARGV
-  Env.global_env.set!(:"*ARGS*", empty_list)
+  Env.global_env.set!(:"*ARGS*", EmptyList.instance)
 end
 
 Env.global_env.set!(:"*lyra-version*", LYRA_VERSION)

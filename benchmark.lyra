@@ -648,4 +648,46 @@ jruby
   ; Did not work due to low internal stack-capacity
 truffleruby
   ; Exited with error when multithreading.
+
+0.2.0
+ruby
+  Generic utility (Do not change):                  57.219202499999994
+  Many math ops:                                    0.17908000000000002
+  Without -> :                                      0.17758000000000002
+  Many math ops (lambda):                           0.19157049999999998
+  Many math ops (hash-lambda):                      0.197343
+  Same as partials with composition:                0.700154
+  set operations                                    1036.012586
+  map operations                                    138.644066
+  (ack 3 4)                                         1598.8887995
+  (ack-destructure-lambda 3 4)                      1370.871479
+  (ack-destructure-let 3 4)                         1365.938361
+  lazy sequences                                    59.60943949999999
+  Sort 5000 elements:                               2997.0096725000003
+  Shuffle 5000 elements:                            4270.780827500001
+  9-billion-names (25):                             2336.5051439999997
+  Lots of recur:                                    410.87586250000004
+  Lots of tail recursion:                           408.0970965
+  queens 6:                                         1073.8031415
+jruby
+  ; Did not work due to low internal stack-capacity
+truffleruby
+  Generic utility (Do not change):                  136.67650000000003
+  Many math ops:                                    0.6520000000000001
+  Without -> :                                      0.37600000000000006
+  Many math ops (lambda):                           0.4425
+  Many math ops (hash-lambda):                      0.462
+  Same as partials with composition:                2.2880000000000003
+  set operations                                    468.389
+  map operations                                    47.57600000000001
+  (ack 3 4)                                         4497.807
+  (ack-destructure-lambda 3 4)                      4426.4529999999995
+  (ack-destructure-let 3 4)                         4425.8385
+  lazy sequences                                    242.94000000000003
+  Sort 5000 elements:                               3161.4134999999997
+  Shuffle 5000 elements:                            3599.3585000000003
+  9-billion-names (25):                             850.5
+  Lots of recur:                                    3780.6135
+  Lots of tail recursion:                           3775.193
+  queens 6:                                         1753.152
 )
