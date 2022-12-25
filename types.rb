@@ -238,19 +238,28 @@ end
 # As list_append, but take an array without spreading.
 def list_append1(lists)
   lists.delete_if(&:empty?)
+  lists.map!(&:to_cons_list)
   if lists.empty?
     EmptyList.instance
   elsif lists.size == 1
     lists[0]
   else
-    lists.map(&:to_cons_list).inject do |l0, l1|
-      ListPair.new(l0, l1)
+    res = lists.pop
+    lists.reverse_each do |l|
+      if l.is_a?(ListPair)
+        res = ListPair.new(l.list0, ListPair.new(l.list1, res))
+      else
+        res = ListPair.new(l, res)
+      end
     end
+    res
   end
 end
 
 class ListPair
   include Enumerable, ConsList
+
+  attr_reader :list0, :list1
 
   def initialize(list0, list1)
     @list0 = list0
