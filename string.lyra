@@ -105,6 +105,16 @@
 ;# add#string : string -> any -> string
 (def-impl ::string add (lambda (s o) (string-add s (->string o))))
 
+
+;## Function: string-reverse
+;# string-reverse : string -> string
+(define (string-reverse s)
+  (foldr (lambda (c outp) (string-add outp c)) "" s))
+
+;## Function: reverse#string
+;# reverse#string : string -> string
+(def-impl ::string reverse string-reverse)
+
 ;## Function: add-front#string
 ;# add-front#string : string -> any -> string
 (def-impl ::string add-front (lambda (s o) (string-add (string-add "" (->string o)) s)))

@@ -222,6 +222,11 @@
   letfn : sequence -> expr* -> expr
   
   Pure? Yes
+  
+  (letfn ((f1 (a) (* a 2))
+          (f2 (& a) (map odd? a)))
+     (println! (f1 2)) ; => 4
+     (println! (f1 44))) ; => 88
 ```
 ### Macro: `loop` 
 ```
@@ -892,6 +897,11 @@
   Pure? Yes
   
   Alias for zip-to-index.
+  
+  (empty? (enumerate '()))
+  (empty? (enumerate []))
+  (eq? '((0 4) (1 5) (2 6)) (enumerate '(4 5 6)))
+  (eq? '((0 4) (1 5) (2 6)) (enumerate [4 5 6]))
 ```
 ### Function: `eq?` 
 ```
@@ -3540,6 +3550,12 @@ Attention! It is not adviced to use any function with the prefix "buildin" direc
   
   rest#string :
 ```
+### Function: `reverse#string` 
+```
+  reverse#string : string -> string
+  
+  Pure? Yes
+```
 ### Function: `sequence?#string` 
 ```
   sequence?#string : string -> bool
@@ -3620,6 +3636,12 @@ Attention! It is not adviced to use any function with the prefix "buildin" direc
   
   Returns a substring `(string-range 2 5 text)` returns the third through 5th character.
   `(string-range 2 4 "abcde") ;=> "cd"`
+```
+### Function: `string-reverse` 
+```
+  string-reverse : string -> string
+  
+  Pure? Yes
 ```
 ### Function: `string-size` 
 ```

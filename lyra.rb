@@ -54,13 +54,13 @@ def _readline(prompt)
       line
     end
   else
-    print(">> ")
+    print(prompt)
     res = gets
     res ? res.rstrip : res
   end
 end
 
-LYRA_VERSION = "0_2.0"
+LYRA_VERSION = "0_2_0"
 
 if ARGV[0] == "--show_expand_macros"
   $show_expand_macros = true

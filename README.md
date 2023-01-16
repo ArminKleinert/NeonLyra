@@ -1,6 +1,6 @@
 # NeonLyra
 
-Lyra is a lisp I make for fun and learning. NeonLyra is an improved version.
+Lyra is a lisp I made for fun and learning. NeonLyra is an improved version.
 
 Current stable version: 0.1.9  
 Current version: 0.2.0
@@ -88,12 +88,12 @@ Here are some differences to Clojure I could think of:
 - Lyra is a hobby project and not a serious attempt at making something great.  
 - Bad performance. :(  
 - The boolean literals are `#t` and `#f` (but are aliased as `true` and `false`)
-- Box instead of `Atom`.  
+- `Box` instead of `Atom`.  
 - Boxes are not synchronized.  
 - Creators for user-defined types should start with `make-` instead of `->`.  
 - Disallows overriding old defs.  
 - Functions and variables are created using scheme-style `define`. (though `def` and `defn` are available as aliases but discouraged)  
-- `nil` is called `Nothing` in reference to Haskell. (`nil` is provided as an alias though)  
+- `nil` is called `Nothing` as a reference to Haskell. (`nil` is provided as an alias though)  
 - No meta-data.  
 - No method-access using `.` and `..`.  
 - No access to the host language.  
@@ -111,7 +111,7 @@ Here are some differences to Clojure I could think of:
 - Type-conversion functions return `Nothing` if conversion failed.  
 - There are no type hints.  
 - User-defined types are not maps.  
-- `(lambda' (...) ...)` instead of `(fn [...] ...)`. (fn is available as an alias)  
+- `(lambda' (...) ...)` instead of `(fn [...] ...)`. (`fn` is available as an alias)  
 - `#f`, `Nothing` and `'()` are all false.  
 - `module` surrounds a list of expressions instead of being used at the top of a file only.  
 - `seq` returns `Nothing` for all types that aren't collections.  
@@ -342,6 +342,8 @@ The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`.
   - Using more quasiquoting and unquoting.
   - Added `interpose`, `printall!`
   - Fixed `partition`
+- 0.2.0
+  - Better list concatenation algorithm.
 
 ## Known bugs
 

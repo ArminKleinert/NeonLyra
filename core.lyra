@@ -2193,6 +2193,10 @@
 
 ;## Macro: letfn
 ;# letfn : sequence -> expr* -> expr
+;# (letfn ((f1 (a) (* a 2))
+;#         (f2 (& a) (map odd? a)))
+;#    (println! (f1 2)) ; => 4
+;#    (println! (f1 44))) ; => 88
 (defmacro (letfn binds & exprs)
   `(let ~(map (lambda' (bind) (list (first bind) (cons lambda' bind))) binds)
     ~@exprs))
@@ -2209,6 +2213,11 @@
 ;## Function: enumerate
 ;# enumerate : sequence -> sequence
 ;# Alias for zip-to-index.
+;#
+;# (empty? (enumerate '()))
+;# (empty? (enumerate []))
+;# (eq? '((0 4) (1 5) (2 6)) (enumerate '(4 5 6)))
+;# (eq? '((0 4) (1 5) (2 6)) (enumerate [4 5 6]))
 (define enumerate
   (case-lambda* enumerate
     ((xs) (map-indexed (lambda (x i) (list i x)) xs))
