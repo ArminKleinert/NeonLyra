@@ -105,7 +105,6 @@
 ;# add#string : string -> any -> string
 (def-impl ::string add (lambda (s o) (string-add s (->string o))))
 
-
 ;## Function: string-reverse
 ;# string-reverse : string -> string
 (define (string-reverse s)

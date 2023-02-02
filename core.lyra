@@ -2091,6 +2091,14 @@
 ;# lambda' : list -> [expr]* -> expr
 ;# lambda' : symbol -> list -> [expr]* -> expr
 ;# Supports destructuring.
+;#
+;# This lambda will take a list of at least 2 elements a and b and the rest of the list. It adds a to b and prepends the result to the list again.
+;#  ((lambda' ((a b & rest)) (cons (+ a b) rest))
+;#    '(1 2 3 4 5 6)) ; => (3 3 4 5 6)
+;# Or more generalized:
+;#  (lambda' ((a b & rest)) (add-front rest (+ a b)))
+;# The destructuring works for any type that supports 'first and 'rest.
+;#
 (defmacro (lambda' binds body1 & body)
   (let* ((named (symbol? binds))
         (name (if named binds (gensym 'lambda)))

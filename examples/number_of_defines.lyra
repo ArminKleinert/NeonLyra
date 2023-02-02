@@ -1,0 +1,19 @@
+
+(define (count-defines-in-data data)
+  (case data
+    list? (sum (map (λ (x) (count-defines-in-data x)) data))
+    '[define define*] 1
+    0))
+
+(define (count-defines-in-file path)
+  (println!
+    (count-defines-in-data (read-string (file-read! path)))
+    " defines in " path))
+
+(map-eager
+  count-defines-in-file
+  ["examples/number_of_defines.lyra"
+   "core.lyra" "benchmark.lyra" "vector.lyra" "set.lyra"
+   "core/aliases.lyra" "core/clj.lyra" "core/queue.lyra"
+   "core/infix.lyra" "core/random.lyra" "core/sort.lyra"
+   "examples/nbody.lyra"])
