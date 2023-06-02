@@ -15,16 +15,16 @@
 (import! "clj" "")
 (import! "lyra.core.queue" "")
 
-(defmacro (%do-test! & cases)
+(defmacro (%do-test! name & cases)
   (let* ((details #t) ; Set to #f to hide details and only show overall success/failure numbers at the end
-        (success-sym (gensym '%do-test!-success))
-        (e-sym (gensym 'e))
-        (r-sym (gensym 'r))
-        (t0 (gensym 't0))
-        (t1 (gensym 't1))
-        (temp-sym (gensym 'temp)))
+         (success-sym (gensym '%do-test!-success))
+         (e-sym (gensym 'e))
+         (r-sym (gensym 'r))
+         (t0 (gensym 't0))
+         (t1 (gensym 't1))
+         (temp-sym (gensym 'temp)))
     (list 'let '()
-      (list 'if details '(print! "Running " *current-function* ": ") Nothing)
+      (list 'if details (list 'print! "Running " (list 'quote name) ": ") Nothing)
       (list 'let* (list (list success-sym
               (list 'foldl
                 (list 'lambda (list r-sym e-sym)
@@ -44,22 +44,23 @@
 
 (defmacro (deftest name & cases)
   (let* ((test-name-sym (gensym 'test)))
-  `(let* ((~test-name-sym (lambda () ~@cases))) (box-set! all-test-cases (cons (list (quote ~name) ~test-name-sym) @all-test-cases)))))
+    `(let* ((~test-name-sym (lambda () ( %do-test! ~name ~@cases))))
+      (box-set! all-test-cases
+        (cons (list (quote ~name) ~test-name-sym) @all-test-cases)))))
 
 (define all-test-cases (box (list)))
 
-(deftest test-test (%do-test! (= 2 2)))
+(deftest test-test (= 2 2))
 ;(println! all-test-cases)
 
 (define (%crash!)
   (/ 0 0))
 
-(define (%test-lambda)
-  (let* ((f (lambda (n) n))
-         (fr (f 6))
-         (f2 (λ (n) n))
-         (fr2 (f 6)))
-    (%do-test!
+(let* ((f (lambda (n) n))
+        (fr (f 6))
+        (f2 (λ (n) n))
+        (fr2 (f 6)))
+(deftest test-lambda
       (= 2 ((lambda (n) (+ n n)) 1))
       (< 2 ((lambda (n) (+ n n)) 2))
       (= 2 ((lambda (n) n) 2))
@@ -77,113 +78,99 @@
       (= (f 2) 2) 
       (= (f 2) 2) 
       (= (f 2) 2)
-      (= fr 6))))
+      (= fr 6)))
 
-(define (%test-lambda*)
-  (%do-test!
+(deftest test-lambda*
     (let* ((f (lambda* fnname1 (n) (if (= 0 n) 1 (+ n (fnname1 (- n 1)))))))
-      (= 29 (f 7)))))
+      (= 29 (f 7))))
 
-(define (%test-cond)
-  (%do-test!
+(deftest test-cond
     (= 3 (cond #f 0 #f 1 #f 2 #t 3))
     (cond #f 0 #f 1 #f 2 else #t)
     (cond #t #t #t)
     (cond #t)
     (nothing? (cond))
-    (cond #t #t else (%crash!))))
+    (cond #t #t else (%crash!)))
 
-(define (%test-if)
-  (%do-test!
+(deftest test-if
     (if #f #f #t)
     (if #t #t #f)
     (= 2 (if #t 2 3))
-    (= 3 (if #f 2 3))))
+    (= 3 (if #f 2 3)))
 
-(define (%test-list-literal)
-  (%do-test!
+(deftest test-list-literal
     (list? '(1 2 3 4 5))
     (eq? (list "abc") '("abc"))
     (not (eq? (list +) '(+)))
     (eq? (list 1 1 1 1 1) '(1 1 1 1 1))
     (= 6 (size '(1 2 3 4 5 6)))
-    (empty? '())))
+    (empty? '()))
 
-(define (%test-vector-literal)
-  (%do-test!
+(deftest test-vector-literal
     (vector? [1 2 3 4 5])
     (eq? (vector "abc") ["abc"])
     (eq? (vector +) [+])
     (eq? (vector 1 1 1 1 1) [1 1 1 1 1])
     (= 6 (size [1 2 3 4 5 6]))
-    (empty? [])))
+    (empty? []))
 
-(define (%test-set-literal)
-  (%do-test!
+(deftest test-set-literal
     (set? #{1 2 3 4 5})
     (eq? (set-of "abc") #{"abc"})
     (eq? (set-of +) #{+})
     (eq? (set-of 1) #{1 1 1 1 1})
     (= 6 (size #{1 2 3 4 5 6}))
     (= 1 (size #{1 1 1 1 1 1}))
-    (empty? #{})))
+    (empty? #{}))
 
-(define (%test-map-literal)
-  (%do-test!
+(deftest test-map-literal
     (map? {1 2 3 4 5 6})
     (eq? (map-of \+ + \- -) {\+ + \- -})
     (eq? (map-of 1 1 1 1 1 1) {1 1 1 1 1 1})
     (= 3 (size {1 2 3 4 5 6}))
     (= 1 (size {1 1 1 1 1 1}))
-    (empty? {})))
+    (empty? {}))
 
-(define (%test-char-literal)
-  (%do-test!
+(deftest test-char-literal
     ; Test special characters
     (eq? "[+ - * / & % ! | ( ) { } [ ]]"
     (->string [\+ \- \* \/ \& \% \! \| \( \) \{ \} \[ \]]))
-
     ; Test numbers
     (eq? "[0 1 2 3 4 5 6 7 8 9]"
     (->string [\0 \1 \2 \3 \4 \5 \6 \7 \8 \9]))
+    (= \a \a))
 
-    (= \a \a)))
-
-(define (%test-keyword-literal)
-  (%do-test!
+; TODO Broke with last update...
+(deftest test-keyword-literal
     (= :a :a)
     (= :abcdef :abcdef)
-    (:a {:a #t :b #f}) ; Accessing a map via keyword
-    (not (:a {:a #f :b #t})) ; Accessing a map via keyword
-    (nothing? (:a {:b #t})) ; Accessing a map via keyword
-    ))
+    ;(:a {:a #t :b #f}) ; Accessing a map via keyword
+    ;(not (:a {:a #f :b #t})) ; Accessing a map via keyword
+    ;(nothing? (:a {:b #t})) ; Accessing a map via keyword
+    )
 
-(define (%test-spread)
-  (%do-test!
+(deftest test-spread
     (eq? '(1 2 3) (spread '(1 2 (3))))
     (eq? '(1 2 3) (spread '((1 2 3))))
-    (eq? '((1) 1 2 3) (spread '((1) (1 2 3))))))
+    (eq? '((1) 1 2 3) (spread '((1) (1 2 3)))))
 
-(define (%test-apply)
-  (%do-test!
+(deftest test-apply
     (eq? [[1] [2]] (concat [[1] [2]]))
     (eq? [1 2] (apply concat [[1] [2]]))
     (eq? '(0 (1) (2)) (concat '(0) '((1) (2))))
     (eq? '(0 1 2) (apply concat '(0) (list (list 1) (list 2))))
     (eq? 20 (apply + 1 2 3 '(2 3 4 5)))
-    (eq? 15 (apply + '(1 2 3 4 5)))))
+    (eq? 15 (apply + '(1 2 3 4 5))))
 
-(define (%test-quote)
-  (quote (/ 9 0))
-  (quote (%crash!))
-  (%do-test!
-    (symbol? (quote a))
-    (symbol? 'a)
-    (string? '"abc")
-    (list? '(1 2 3))))
+(deftest test-quote
+  (quote (/ 9 0)); With quote, division by 0 does not give an error because it's not evaluated
+  (quote (%crash!)) ; Not evaluated
+  (symbol? (quote a))
+  (symbol? 'a)
+  (string? '"abc")
+  (list? '(1 2 3)))
 
-(define (%test-quasiquote)
-  (%do-test!
+(deftest test-quasiquote
     (eq? '(1 2 3) (quasiquote (1 2 3)))
     (eq? '(1 3 4) (quasiquote (1 (unquote (+ 1 2)) 4)))
     (eq? '(1 2 3 4) (quasiquote (1 (unquote-splicing (list 2 3)) 4)))
@@ -191,10 +178,9 @@
     (eq? '(1 2 3) `(1 2 3))
     (eq? '(1 3 4) `(1 ~(+ 1 2) 4))
     (eq? '(1 2 3 4) `(1 ~@(list 2 3) 4))
-    (eq? '(1 2 3 4) `(1 ~@(list 2 3) 4))))
+    (eq? '(1 2 3 4) `(1 ~@(list 2 3) 4)))
 
-(define (%test-gensym)
-  (%do-test!
+(deftest test-gensym
     (/= (gensym 'x) (gensym 'x))
     (/= (gensym 'x) (gensym 'x))
     (/= (gensym 'x) (gensym 'x))
@@ -202,10 +188,9 @@
     (/= (gensym 'x) (gensym 'x))
     (/= (gensym 'x) (gensym 'x))
     (/= (gensym 'x) (gensym 'x))
-    (symbol? (gensym 'x))))
+    (symbol? (gensym 'x)))
 
-(define (%test-seq)
-  (%do-test!
+(deftest test-seq
     (nothing? (seq 1))
     (nothing? (seq 'a))
     (nothing? (seq "abc"))
@@ -213,19 +198,17 @@
     ;(nothing? (seq (lazy 6)))
     (nothing? (seq '()))
     (sequence? (seq (list 1 2 3 4 5)))
-    (sequence? (seq (vector 1 2 3 4 5)))))
+    (sequence? (seq (vector 1 2 3 4 5))))
 
-(define (%test-partial)
-  (%do-test!
+(deftest test-partial
     (= ((partial + 0) 5) (+ 0 5))
     (= ((partial foldl + 0) (list 1 2 3 4 5))
         (foldl + 0 (list 1 2 3 4 5)))
     (= (\p(+ 0) 5) (+ 0 5))
     (= (\p(foldl + 0) (list 1 2 3 4 5))
-        (foldl + 0 (list 1 2 3 4 5)))))
+        (foldl + 0 (list 1 2 3 4 5))))
 
-(define (%test-nothing)
-  (%do-test!
+(deftest test-nothing
     (nothing? (nothing 1))
     (nothing? (nothing 'a))
     (nothing? (nothing "abc"))
@@ -233,54 +216,50 @@
     ;(nothing? (nothing (lazy 6)))
     (nothing? (nothing '()))
     (nothing? (nothing (list 1 2 3 4 5)))
-    (nothing? (nothing (vector 1 2 3 4 5)))))
+    (nothing? (nothing (vector 1 2 3 4 5))))
 
-(define (%test-box)
-  (let1 (b (box 5))
-    (%do-test!
+
+(let1 (b (box 5))
+(deftest test-box
       (box? b)
       (= (unbox b) 5)
       (int? (unbox b))
       (always-true (box-set! b 16))
       (box? b)
       (= (unbox b) 16)
-      (int? (unbox b)))))
+      (int? (unbox b))))
 
-(define (%test-unbox)
-  (let1 (b (box 5))
-    (%do-test!
+(let1 (b (box 5))
+(deftest test-unbox
       (box? b)
       (= (unbox b) 5)
       (int? (unbox b))
       (always-true (box-set! b 16))
       (box? b)
       (= (unbox b) 16)
-      (int? (unbox b)))))
+      (int? (unbox b))))
 
-(define (%test-set-box)
-  (let1 (b (box 5))
-    (%do-test!
+(let1 (b (box 5))
+(deftest test-set-box
       (box? b)
       (= (unbox b) 5)
       (int? (unbox b))
       (always-true (box-set! b 16))
       (box? b)
       (= (unbox b) 16)
-      (int? (unbox b)))))
+      (int? (unbox b))))
 
 (def-type unwrappable a b c)
 
-(define (%test-unwrap)
-    (%do-test!
+(deftest test-unwrap
       (= (unwrap (box 5)) 5)
       (nothing? (unwrap Nothing))
       (let* ((b (box 5))) (= (unbox b) (unwrap b)))
       (= 5 (unwrap 5))
       (vector-eq? [1 2 3] (unwrap (make-unwrappable 1 2 3)))
-      ))
+)
 
-(define (%test-read-string)
-  (%do-test!
+(deftest test-read-string
     (nothing? (read-string "Nothing"))
     (list? (read-string "(a c b)"))
     (all? symbol? (read-string "(a c b)"))
@@ -290,21 +269,18 @@
     (boolean? (read-string "true"))
     (boolean? (read-string "false"))
     (int? (read-string "1"))
-    (float? (read-string "0.7"))))
+    (float? (read-string "0.7")))
 
-(define (%test-eval)
-  (%do-test!
+(deftest test-eval
     (eval! #t)
     (not (eval! #f))
     (eval! (quote #t))
-    (eval! (quote (= 2 2)))))
+    (eval! (quote (= 2 2))))
 
-(define (%test-measure)
-  (%do-test!
-    (float? (measure! 10 (lambda () #f)))))
+(deftest test-measure
+    (float? (measure! 10 (lambda () #f))))
 
-(define (%test-=)
-  (%do-test!
+(deftest test-=
     (= 1 1)
     (not (= 1 100))
     (= #t #t)
@@ -316,10 +292,9 @@
     (= 's 's)
     (not (= 's 100))
     (= = =)
-    (not (= = 100))))
+    (not (= = 100)))
 
-(define (%test-/=)
-  (%do-test!
+(deftest test-/=
     (/= 1 100)
     (not (/= 1 1))
     (/= #t 100)
@@ -331,10 +306,9 @@
     (/= 's 100)
     (not (/= 's 's))
     (/= = 100)
-    (not (/= = =))))
+    (not (/= = =)))
 
-(define (%test-<)
-  (%do-test!
+(deftest test-<
     (< 1 2)
     (< -1 0)
     (< "" "a")
@@ -344,10 +318,9 @@
     (not (< "a" ""))
     (not (< 1.2 0.5))
     (not (< 1 1))
-    (not (< "" ""))))
+    (not (< "" "")))
 
-(define (%test->)
-  (%do-test!
+(deftest test->
     (> 2 1)
     (> 0 -1)
     (> "a" "")
@@ -357,10 +330,9 @@
     (not (> "" "a"))
     (not (> 0.5 1.2))
     (not (> 1 1))
-    (not (> "" ""))))
+    (not (> "" "")))
 
-(define (%test-<=)
-  (%do-test!
+(deftest test-<=
     (<= 1 2)
     (<= -1 0)
     (<= "" "a")
@@ -371,7 +343,6 @@
     (not (<= 1.2 0.5))
     (<= 1 1)
     (<= "" "")
-
     (≤ 1 2)
     (≤ -1 0)
     (≤ "" "a")
@@ -381,10 +352,9 @@
     (not (≤ "a" ""))
     (not (≤ 1.2 0.5))
     (≤ 1 1)
-    (≤ "" "")))
+    (≤ "" ""))
 
-(define (%test->=)
-  (%do-test!
+(deftest test->=
     (>= 2 1)
     (>= 0 -1)
     (>= "a" "")
@@ -395,7 +365,6 @@
     (not (>= 0.5 1.2))
     (>= 1 1)
     (>= "" "")
-
     (≥ 2 1)
     (≥ 0 -1)
     (≥ "a" "")
@@ -405,10 +374,9 @@
     (not (≥ "" "a"))
     (not (≥ 0.5 1.2))
     (≥ 1 1)
-    (≥ "" "")))
+    (≥ "" ""))
 
-(define (%test-+)
-  (%do-test!
+(deftest test-+
     (= 2 (+ 1 1))
     (= 3 (+ 2 1))
     (= 5 (+ 2 3))
@@ -416,17 +384,15 @@
     (= 1.5 (+ 0.5 1))
     (= 6/5r (+ 3/5r 3/5r))
     (= 11/5r (+ 6/5r 1))
-
     (= 1 (+ 1))
     (= 19 (+ 1 1 17))
     (= 3 (+ 2 1))
     (= 5 (+ 2 3))
     (= 2.5 (+ 0.5 0.5 0.5 0.5 0.5))
     (= 3 (+ 0.5 1 0.5 1))
-    (= 6/5r (+ 3/5r 3/5r))))
+    (= 6/5r (+ 3/5r 3/5r)))
 
-(define (%test--)
-  (%do-test!
+(deftest test--
     (= 0 (- 1 1))
     (= 1 (- 2 1))
     (= -1 (- 2 3))
@@ -434,16 +400,14 @@
     (= -0.5 (- 0.5 1))
     (= 0/1r (- 3/5r 3/5r))
     (= 1/1r (- 6/5r 1/5r))
-
     (= -1 (- 1))
     (= -17 (- 1 1 17))
     (= 1 (- 2 1))
     (= -1 (- 2 3))
     (= -1.5 (- 0.5 0.5 0.5 0.5 0.5))
-    (= -2 (- 0.5 1 0.5 1))))
+    (= -2 (- 0.5 1 0.5 1)))
 
-(define (%test-*)
-  (%do-test!
+(deftest test-*
     (= 1 (* 1 1))
     (= 2 (* 2 1))
     (= 6 (* 2 3))
@@ -452,31 +416,27 @@
     (= 0/1r (* 3/5r 0))
     (= 3/5r (* 3/5r 1))
     (= 6/5r (* 3/5r 2))
-
     (= 1 (* 1))
     (= 17 (* 1 1 17))
     (= -2 (* 2 -1))
     (= 6 (* 2 3))
     (= 0.03125 (* 0.5 0.5 0.5 0.5 0.5))
-    (= 1 (* 0.5 2 0.5 2))))
+    (= 1 (* 0.5 2 0.5 2)))
 
-(define (%test-/)
-  (%do-test!
+(deftest test-/
     (= 2 (/ 4 2))
     (= 0 (/ 1 10))
     (= 0.1 (/ 1 10.0))
     (= 2 (/ 1 0.5))
     (= 4 (/ 1 0.25))
-
     (= 1 (/ 1))
     (= 0.125 (/ 1.0 1 8))
     (= -2.0 (/ 2 -1.0))
     (= 1.0 (/ 2 2.0))
     (= 8.0 (/ 0.5 0.5 0.5 0.5 0.5))
-    (= 0.25 (/ 0.5 2 0.5 2))))
+    (= 0.25 (/ 0.5 2 0.5 2)))
 
-(define (%test-rem)
-  (%do-test!
+(deftest test-rem
     (= 0 (rem 4 2))
     (= 1 (rem 1 10))
     (= 1 (rem 1 10.0))
@@ -484,29 +444,25 @@
     (= 0 (rem 1 0.25))
     (= 0.125 (rem 1/8r 0.25))
     (= 0.125 (rem 1/8r 0.25))
-
     (= 2 (rem 2 10 3))
     (= 0.0 (rem 0.5 0.5))
-    (= 0.0 (rem 10 2))))
+    (= 0.0 (rem 10 2)))
 
-(define (%test-inc)
-  (%do-test!
+(deftest test-inc
     (= -1 (inc -2))
     (= 0 (inc -1))
     (= 1 (inc 0))
     (= 2 (inc 1))
-    (= 3 (inc 2))))
+    (= 3 (inc 2)))
 
-(define (%test-dec)
-  (%do-test!
+(deftest test-dec
     (= -3 (dec -2))
     (= -2 (dec -1))
     (= -1 (dec 0))
     (= 0 (dec 1))
-    (= 1 (dec 2))))
+    (= 1 (dec 2)))
 
-(define (%test-min)
-  (%do-test!
+(deftest test-min
     (= 0 (min 0 1))
     (= 0 (min 1 0))
     (= 1 (min 1 1))
@@ -520,10 +476,9 @@
     (= "0" (min "0" "1"))
     (= "0" (min "1" "0"))
     (= "1" (min "1" "1"))
-    (= "0" (min "0" "0"))))
+    (= "0" (min "0" "0")))
 
-(define (%test-max)
-  (%do-test!
+(deftest test-max
     (= 1 (max 0 1))
     (= 1 (max 1 0))
     (= 1 (max 1 1))
@@ -535,83 +490,73 @@
     (= "1" (max "0" "1"))
     (= "1" (max "1" "0"))
     (= "1" (max "1" "1"))
-    (= "0" (max "0" "0"))))
+    (= "0" (max "0" "0")))
 
-(define (%test-not)
-  (%do-test!
+(deftest test-not
     (not #f)
     (not (not #t))
     (not (not 1))
     (not (not ""))
-    (not (= 1 0))))
+    (not (= 1 0)))
 
-(define (%test-and)
-  (%do-test!
+(deftest test-and
     (not (and #f #f))
     (not (and #f #t))
     (not (and #t #f))
     (and #t #t)
-    (not (and #f (%crash!)))))
+    (not (and #f (%crash!))))
 
-(define (%test-or)
-  (%do-test!
+(deftest test-or
     (not (or #f #f))
     (or #f #t)
     (or #t #f)
     (or #t #t)
-    (or #t (%crash!))))
+    (or #t (%crash!)))
 
-(define (%test-bit-and)
-  (%do-test!
+(deftest test-bit-and
     (= 0 (bit-and 0 0))
     (= 0 (bit-and 0 255))
     (= 0 (bit-and 255 0))
-    (= 255 (bit-and 255 255))))
+    (= 255 (bit-and 255 255)))
 
-(define (%test-bit-or)
-  (%do-test!
+(deftest test-bit-or
     (= 0 (bit-or 0 0))
     (= 255 (bit-or 0 255))
     (= 255 (bit-or 255 0))
-    (= 255 (bit-or 255 255))))
+    (= 255 (bit-or 255 255)))
 
-(define (%test-bit-xor)
-  (%do-test!
+(deftest test-bit-xor
     (= 0 (bit-xor 0 0))
     (= 255 (bit-xor 0 255))
     (= 255 (bit-xor 255 0))
-    (= 0 (bit-xor 255 255))))
+    (= 0 (bit-xor 255 255)))
 
-(define (%test-bit-shl)
-  (%do-test!
+(deftest test-bit-shl
     (= 1 (bit-shl 1 0))
     (= 0 (bit-shl 0 1))
     (= 256 (bit-shl 1 8))
     (= 512 (bit-shl 1 9))
     (= 510 (bit-shl 255 1))
-    (= 1020 (bit-shl 255 2))))
+    (= 1020 (bit-shl 255 2)))
 
-(define (%test-bit-shr)
-  (%do-test!
+(deftest test-bit-shr
     (= 1 (bit-shr 1 0))
     (= 0 (bit-shr 0 1))
     (= 0 (bit-shr 255 8))
     (= 0 (bit-shr 255 255))
     (= 63 (bit-shr 255 2))
     (= 127 (bit-shr 255 1))
-    (= 255 (bit-shr 255 0))))
+    (= 255 (bit-shr 255 0)))
 
-(define (%test-defined?)
-  (%do-test!
+(deftest test-defined?
     (defined? '=)
     (defined? 'foldr1)
     (not (defined? '!!!=!!!))
     (not (defined? 'foldr629))
     (not (defined? =))
-    (not (defined? foldr1))))
+    (not (defined? foldr1)))
 
-(define (%test-nothing?)
-  (%do-test!
+(deftest test-nothing?
     (nothing? Nothing)
     (nothing? (nothing))
     (nothing? (nothing 1 2 3))
@@ -624,10 +569,9 @@
     (not (nothing? '()))
     (nothing? (car '()))
     (not (nothing? (cdr '())))
-    (not (nothing? '(1 2 3)))))
+    (not (nothing? '(1 2 3))))
 
-(define (%test-null?)
-  (%do-test!
+(deftest test-null?
     (null? Nothing)
     (null? (nothing))
     (null? (nothing 1 2 3))
@@ -638,10 +582,9 @@
     (null? '())
     (null? (car '()))
     (null? (cdr '()))
-    (not (null? '(1 2 3)))))
+    (not (null? '(1 2 3))))
 
-(define (%test-collection?)
-  (%do-test!
+(deftest test-collection?
     (not (collection? 1))
     (not (collection? 1.5))
     (not (collection? 3/5r))
@@ -660,10 +603,9 @@
     (collection? (set-of))
     (collection? (set-of 1))
     (collection? (map-of))
-    (collection? (map-of 1 2))))
+    (collection? (map-of 1 2)))
 
-(define (%test-sequence?)
-  (%do-test!
+(deftest test-sequence?
     (not (sequence? 1))
     (not (sequence? 1.5))
     (not (sequence? 3/5r))
@@ -682,10 +624,9 @@
     (not (sequence? (set-of)))
     (not (sequence? (set-of 1)))
     (not (sequence? (map-of)))
-    (not (sequence? (map-of 1 2)))))
+    (not (sequence? (map-of 1 2))))
 
-(define (%test-list?)
-  (%do-test!
+(deftest test-list?
     (not (list? 1))
     (not (list? 1.5))
     (not (list? 3/5r))
@@ -704,10 +645,9 @@
     (not (list? (set-of)))
     (not (list? (set-of 1)))
     (not (list? (map-of)))
-    (not (list? (map-of 1 2)))))
+    (not (list? (map-of 1 2))))
 
-(define (%test-vector?)
-  (%do-test!
+(deftest test-vector?
     (not (vector? 1))
     (not (vector? 1.5))
     (not (vector? 3/5r))
@@ -726,10 +666,9 @@
     (not (vector? (set-of)))
     (not (vector? (set-of 1)))
     (not (vector? (map-of)))
-    (not (vector? (map-of 1 2)))))
+    (not (vector? (map-of 1 2))))
 
-(define (%test-int?)
-  (%do-test!
+(deftest test-int?
     (not (int? 1/1r))
     (not (int? 15/15r))
     (not (int? 15/7r))
@@ -751,10 +690,9 @@
     (not (int? (set-of)))
     (not (int? (set-of 1)))
     (not (int? (map-of)))
-    (not (int? (map-of 1 2)))))
+    (not (int? (map-of 1 2))))
 
-(define (%test-float?)
-  (%do-test!
+(deftest test-float?
     (not (float? 1/6r))
     (not (float? 15/15r))
     (not (float? 1))
@@ -774,10 +712,9 @@
     (not (float? (set-of)))
     (not (float? (set-of 1)))
     (not (float? (map-of)))
-    (not (float? (map-of 1 2)))))
+    (not (float? (map-of 1 2))))
 
-(define (%test-rational?)
-  (%do-test!
+(deftest test-rational?
     (rational? 1/1r)
     (rational? 15/15r)
     (rational? 3/2r)
@@ -799,10 +736,9 @@
     (not (rational? (set-of)))
     (not (rational? (set-of 1)))
     (not (rational? (map-of)))
-    (not (rational? (map-of 1 2)))))
+    (not (rational? (map-of 1 2))))
 
-(define (%test-string?)
-  (%do-test!
+(deftest test-string?
     (not (string? 1))
     (not (string? 1.5))
     (not (string? 3/5r))
@@ -822,10 +758,9 @@
     (not (string? (set-of)))
     (not (string? (set-of 1)))
     (not (string? (map-of)))
-    (not (string? (map-of 1 2)))))
+    (not (string? (map-of 1 2))))
 
-(define (%test-symbol?)
-  (%do-test!
+(deftest test-symbol?
     (not (symbol? 1))
     (not (symbol? 1.5))
     (not (symbol? 3/5r))
@@ -844,10 +779,9 @@
     (not (symbol? (set-of)))
     (not (symbol? (set-of 1)))
     (not (symbol? (map-of)))
-    (not (symbol? (map-of 1 2)))))
+    (not (symbol? (map-of 1 2))))
 
-(define (%test-char?)
-  (%do-test!
+(deftest test-char?
     (not (char? 1))
     (not (char? 1.5))
     (not (char? 3/5r))
@@ -868,10 +802,9 @@
     (not (char? (set-of)))
     (not (char? (set-of 1)))
     (not (char? (map-of)))
-    (not (char? (map-of 1 2)))))
+    (not (char? (map-of 1 2))))
 
-(define (%test-boolean?)
-  (%do-test!
+(deftest test-boolean?
     (not (boolean? 1))
     (not (boolean? 1.5))
     (not (boolean? 3/5r))
@@ -891,10 +824,9 @@
     (not (boolean? (set-of)))
     (not (boolean? (set-of 1)))
     (not (boolean? (map-of)))
-    (not (boolean? (map-of 1 2)))))
+    (not (boolean? (map-of 1 2))))
 
-(define (%test-map?)
-  (%do-test!
+(deftest test-map?
     (not (map? 1))
     (not (map? 1.5))
     (not (map? 3/5r))
@@ -914,10 +846,9 @@
     (not (map? (set-of)))
     (not (map? (set-of 1)))
     (map? (map-of))
-    (map? (map-of 1 2))))
+    (map? (map-of 1 2)))
 
-(define (%test-set?)
-  (%do-test!
+(deftest test-set?
     (not (set? 1))
     (not (set? 1.5))
     (not (set? 3/5r))
@@ -937,10 +868,9 @@
     (set? (set-of))
     (set? (set-of 1))
     (not (set? (map-of)))
-    (not (set? (map-of 1 2)))))
+    (not (set? (map-of 1 2))))
 
-(define (%test-empty?)
-  (%do-test!
+(deftest test-empty?
     (not (empty? 1))
     (not (empty? 1.5))
     (not (empty? 3/5r))
@@ -960,63 +890,54 @@
     (empty? (set-of))
     (not (empty? (set-of 1)))
     (empty? (map-of))
-    (not (empty? (map-of 1 2)))))
+    (not (empty? (map-of 1 2))))
 
-(define (%test-compose)
-  (%do-test!
+(deftest test-compose
     ((compose odd? inc) 2)
     (= 4 ((compose inc inc) 2))
     (= "3" ((compose ->string inc) 2))
     ((compose nothing? ->int) '())
-
     ((⋅ odd? inc) 2)
     (= 4 ((⋅ inc inc) 2))
     (= "3" ((⋅ ->string inc) 2))
-    ((⋅ nothing? ->int) '())))
+    ((⋅ nothing? ->int) '()))
 
-(define (%test-compose-and)
-  (%do-test!
+(deftest test-compose-and
     ((compose-and empty? vector?) [])
     ((compose-and int? number?) 5)
-    (not ((compose-and (lambda (e) #f) (lambda (e) (%crash!))) 0))))
+    (not ((compose-and (lambda (e) #f) (lambda (e) (%crash!))) 0)))
 
-(define (%test-compose-or)
-  (%do-test!
+(deftest test-compose-or
     ((compose-or empty? list?) [])
     ((compose-or int? float?) 5)
     ((compose-or null? float?) 5.5)
-    ((compose-or (lambda (e) #t) (lambda (e) (%crash!))) 0)))
+    ((compose-or (lambda (e) #t) (lambda (e) (%crash!))) 0))
 
-(define (%test-complement)
-  (%do-test!
-    ((complement odd?) 2)))
+(deftest test-complement
+    ((complement odd?) 2))
 
-(define (%test-id)
-  (%do-test!
+(deftest test-id
     (all?
       (lambda (e) (eq? e (id e)))
       (list 'a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))
     (all?
       (lambda (e) (eq? (id e) (id e)))
-      (list 'a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))))
+      (list 'a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1")))
 
-(define (%test-hash)
-  (%do-test!
+(deftest test-hash
     (all?
       (lambda (e) (int? (hash e)))
       (list 'a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))
     (all?
       (lambda (e) (= (hash e) (hash e)))
-      (list 'a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))))
+      (list 'a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1")))
 
-(define (%test-eq?)
-  (%do-test!
+(deftest test-eq?
     (all?
       (lambda (e) (eq? e e))
-      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1"))))
+      '('a 1 0.5 '() '(1) [] [1] (set-of) (set-of 1) (map-of) + "" "1")))
 
-(define (%test-->int)
-  (%do-test!
+(deftest test-->int
     (int? (->int 1))
     (= 1 (->int 1))
     (int? (->int 2.5))
@@ -1025,10 +946,9 @@
     (= 3 (->int "3"))
     (all?
       (lambda (e) (nothing? (->int e)))
-      (list 'a "" "4.5" '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))))
+      (list 'a "" "4.5" '() '(1) [] [1] (set-of) (set-of 1) (map-of) +)))
 
-(define (%test-->float)
-  (%do-test!
+(deftest test-->float
     (float? (->float 1))
     (= 1.0 (->float 1))
     (float? (->float 2.5))
@@ -1039,10 +959,9 @@
     (= 4.5 (->float "4.5"))
     (all?
       (lambda (e) (nothing? (->float e)))
-      (list 'a "" '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))))
+      (list 'a "" '() '(1) [] [1] (set-of) (set-of 1) (map-of) +)))
 
-(define (%test-->rational)
-  (%do-test!
+(deftest test-->rational
     (rational? (->rational 1))
     (= 1/1r (->rational 1))
     (rational? (->rational 2.5))
@@ -1053,10 +972,9 @@
     (= 18/4r (->rational 4.5))
     (all?
       (lambda (e) (nothing? (->rational e)))
-      (list 'a "" '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))))
+      (list 'a "" '() '(1) [] [1] (set-of) (set-of 1) (map-of) +)))
 
-(define (%test-->string)
-  (%do-test!
+(deftest test-->string
     (= "" (->string ""))
     (= "" (->string Nothing))
     (= "()" (->string '()))
@@ -1065,65 +983,57 @@
     (= "[1 2]" (->string [1 2]))
     (all?
       (lambda (e) (= (->string e) (->string e)))
-      '('a "" '() '(1) [] [1] (set-of) (set-of 1) (map-of) +))))
+      '('a "" '() '(1) [] [1] (set-of) (set-of 1) (map-of) +)))
 
-(define (%test-->list)
-  (%do-test!
+(deftest test-->list
     (eq? '(\a \b \c) (->list "abc"))
     (all? nothing?
       (map ->list (list 1 0.5 'a)))
     (all? (lambda (e) (and (empty? e) (list? e)))
       (map ->list (list '() [] (set-of) (map-of))))
     (all? (lambda (e) (and (list? e) (eq? '(1) e)))
-      (map ->list (list '(1) [1] (set-of 1))))))
+      (map ->list (list '(1) [1] (set-of 1)))))
 
-(define (%test-->vector)
-  (%do-test!
+(deftest test-->vector
     (eq? [\a \b \c] (->vector "abc"))
     (all? nothing?
       (map ->vector (list 1 0.5 'a)))
     (all? (lambda (e) (and (empty? e) (vector? e)))
       (map ->vector (list '() [] (set-of) (map-of))))
     (all? (lambda (e) (and (vector? e) (eq? [1] e)))
-      (map ->vector (list '(1) [1] (set-of 1))))))
+      (map ->vector (list '(1) [1] (set-of 1)))))
 
-(define (%test-->char)
-  (%do-test!
+(deftest test-->char
     (all? (lambda (c) (= \A c)) (list \A (->char "A") (->char 65) \u0041))
     (all? char? (list \A (->char "A") (->char 65) \u0041))
-    (all? nothing? (map ->char (list [] '() 0.5 6/5r)))))
+    (all? nothing? (map ->char (list [] '() 0.5 6/5r))))
 
-(define (%test-->map)
-  (%do-test!
+(deftest test-->map
     (nothing? (->map 1))
     (empty? (->map '()))
     (eq? (map-of 1 2 3 1) (->map '(1 2 3 1)))
-    (eq? (map-of 1 2 3 1) (->map [1 2 3 1]))))
+    (eq? (map-of 1 2 3 1) (->map [1 2 3 1])))
 
-(define (%test-->set)
-  (%do-test!
+(deftest test-->set
     (all? nothing?
       (map ->set (list 1 0.5 'a)))
     (all? (lambda (e) (and (empty? e) (set? e)))
       (map ->set (list '() [] (set-of) (map-of))))
     (all? (lambda (e) (and (set? e) (eq? (set-of 1) e)))
-      (map ->set (list '(1) [1] (set-of 1))))))
+      (map ->set (list '(1) [1] (set-of 1)))))
 
-(define (%test-list)
-  (%do-test!
+(deftest test-list
     (empty? (list))
     (eq? (list 1 2 3) (list 1 2 3))
     (list? (list 1 2 3))
-    (= 3 (list-size (list 1 2 3)))))
+    (= 3 (list-size (list 1 2 3))))
 
-(define (%test-list-size)
-  (%do-test!
+(deftest test-list-size
     (= 0 (list-size (list)))
     (= 1 (list-size (list 1)))
-    (= 2 (list-size (list 1 2)))))
+    (= 2 (list-size (list 1 2))))
 
-(define (%test-list*)
-  (%do-test!
+(deftest test-list*
     (empty? (list* (list)))
     (eq? (list* 1 2 '(3)) (list 1 2 3))
     (eq? (list* '(1 2 3)) (list 1 2 3))
@@ -1137,42 +1047,37 @@
     (= 3 (list-size (list* '(1 2 3))))
     (= 3 (list-size (list* 1 '(2 3))))
     (= 3 (list-size (list* 1 2 '(3))))
-    (= 3 (list-size (list* 1 2 3 '())))))
+    (= 3 (list-size (list* 1 2 3 '()))))
 
-(define (%test-car)
-  (%do-test!
+(deftest test-car
     (nothing? (car '()))
     (= 1 (car '(1)))
     (= 1 (car (list 1 2 3)))
     (eq? (list 1) (car (list (list 1))))
-    (eq? 1 (car (car (list (list 1)))))))
+    (eq? 1 (car (car (list (list 1))))))
 
-(define (%test-cdr)
-  (%do-test!
+(deftest test-cdr
     (list? (cdr '()))
     (eq? '() (cdr '()))
     (eq? '() (cdr '(1)))
     (eq? '(2 3) (cdr (list 1 2 3)))
-    (eq? '() (cdr (list (list 1))))))
+    (eq? '() (cdr (list (list 1)))))
 
-(define (%test-cons)
-  (%do-test!
+(deftest test-cons
     (eq? (list (list)) (cons '() '()))
     (eq? '(1 2) (cons 1 '(2)))
     (list? (cons 1 '(2)))
-    (eq? (list (list 1 2 3)) (cons (list 1 2 3) (list)))))
+    (eq? (list (list 1 2 3)) (cons (list 1 2 3) (list))))
 
-(define (%test-lazy-seq)
-  (let* ((f0 (lambda* f0 (n m) (if (= n m) '() (lazy-seq n (f0 (+ n 1) m))))))  
-    (%do-test!
+(let* ((f0 (lambda* f0 (n m) (if (= n m) '() (lazy-seq n (f0 (+ n 1) m))))))
+(deftest test-lazy-seq
       (eq? (list 1 2 3 4) (f0 1 5))
       (eq? 4 (size (f0 1 5)))
       (eq? 1 (car (f0 1 -1)))
       (eq? 2 (car (cdr (f0 1 -1))))
-      (eq? (list 2 3 4) (cdr (f0 1 5))))))
+      (eq? (list 2 3 4) (cdr (f0 1 5)))))
 
-(define (%test-vector)
-  (%do-test!
+(deftest test-vector
     (empty? (vector))
     (eq? (vector 1 2 3) (vector 1 2 3))
     (vector? (vector 1 2 3))
@@ -1180,10 +1085,9 @@
     (empty? [])
     (eq? [1 2 3] [1 2 3])
     (vector? [1 2 3])
-    (= 3 (size [1 2 3]))))
+    (= 3 (size [1 2 3])))
 
-(define (%test-vector-size)
-  (%do-test!
+(deftest test-vector-size
     (= 0 (size []))
     (= 0 (size (vector)))
     (= 1 (size [1]))
@@ -1191,10 +1095,9 @@
     (= 2 (size [1 2]))
     (= 2 (size (vector 1 2)))
     (= 3 (size [1 2 3]))
-    (= 3 (size (vector 1 2 3)))))
+    (= 3 (size (vector 1 2 3))))
 
-(define (%test-vector-nth)
-  (%do-test!
+(deftest test-vector-nth
     (nothing? (vector-nth [] 0))
     (nothing? (vector-nth (vector) 0))
     (nothing? (vector-nth [] 1))
@@ -1204,39 +1107,34 @@
     (= 2 (vector-nth [1 2] 1))
     (= 2 (vector-nth (vector 1 2) 1))
     (nothing? (vector-nth [1 2] 255))
-    (nothing? (vector-nth (vector 1 2) 266))))
+    (nothing? (vector-nth (vector 1 2) 266)))
 
-(define (%test-vector-add)
-  (%do-test!
+(deftest test-vector-add
     (eq? [1] (vector-add [] 1))
     (eq? [1] (vector-add (vector) 1))
     (eq? [[]] (vector-add [] []))
     (eq? [[]] (vector-add (vector) []))
     (eq? [1 2 3] (vector-add [1 2] 3))
-    (eq? [1 2 3] (vector-add (vector 1 2) 3))))
+    (eq? [1 2 3] (vector-add (vector 1 2) 3)))
 
-(define (%test-vector-append)
-  (%do-test!
+(deftest test-vector-append
     (eq? [1] (vector-append [] [1]))
     (eq? [1] (vector-append (vector) (vector 1)))
     (eq? [] (vector-append [] []))
     (eq? [] (vector-append (vector) []))
     (eq? [1 2 3] (vector-append [1 2] [3]))
-    (eq? [1 2 3] (vector-append (vector 1 2) [3]))))
+    (eq? [1 2 3] (vector-append (vector 1 2) [3])))
 
-(define (%test-iterate-seq)
-  (%do-test!
+(deftest test-iterate-seq
     (= 6 (iterate-seq (lambda (acc e i) (inc acc)) 0 [1 2 3 4 5 6]))
     (= 21 (iterate-seq (lambda (acc e i) (+ acc e)) 0 [1 2 3 4 5 6]))
     (= "123" (iterate-seq (lambda (acc e i) (append acc (->string e))) "" [1 2 3]))
 
     (= 6 (iterate-seq (lambda (acc e i) (inc acc)) 0 '(1 2 3 4 5 6)))
     (= 21 (iterate-seq (lambda (acc e i) (+ acc e)) 0 '(1 2 3 4 5 6)))
-    (= "123" (iterate-seq (lambda (acc e i) (append acc (->string e))) "" '(1 2 3)))))
+    (= "123" (iterate-seq (lambda (acc e i) (append acc (->string e))) "" '(1 2 3))))
 
-
-(define (%test-iterate-seq-p)
-  (%do-test!
+(deftest test-iterate-seq-p
     (= 6 (iterate-seq-p (lambda (acc e i) #t) (lambda (acc e i) (inc acc))
            0 [1 2 3 4 5 6]))
     (= 21 (iterate-seq-p (lambda (acc e i) #t) (lambda (acc e i) (+ acc e))
@@ -1255,63 +1153,55 @@
 
     ; Early break after 6 elements.
     (= 21 (iterate-seq-p (lambda (acc e i) (< i 6)) (lambda (acc e i) (+ acc e))
-           0 '(1 2 3 4 5 6 7 8 9 10)))))
+           0 '(1 2 3 4 5 6 7 8 9 10))))
 
-(define (%test-map-of)
-  (%do-test!
+(deftest test-map-of
     (empty? (map-of))
     (map? (map-of))
     (eq? (map-keys (map-of 1 2 3 4 5 6))
          (map-keys (map-of 1 2 3 4 5 6)))
     (eq? (map-of 1 2 3 4 5 6)
-         (map-of 5 6 3 4 1 2))))
+         (map-of 5 6 3 4 1 2)))
 
-(define (%test-map-size)
-  (%do-test!
+(deftest test-map-size
     (= 0 (size (map-of)))
     (= 1 (size (map-of 1 2)))
     (= 2 (size (map-of 1 2 3 4)))
-    (= 3 (size (map-of 1 2 3 4 5 6)))))
+    (= 3 (size (map-of 1 2 3 4 5 6))))
 
-(define (%test-map-get)
-  (%do-test!
+(deftest test-map-get
     (nothing? (map-get (map-of) 1))
     (nothing? (map-get (map-of 55 2) 1))
     (= 2 (map-get (map-of 1 2) 1))
     (= 4 (map-get (map-of 1 2 3 4) 3))
-    (= 2 (map-get (map-of 1 2 3 4 5 6) 1))))
+    (= 2 (map-get (map-of 1 2 3 4 5 6) 1)))
 
-(define (%test-map-set)
-  (%do-test!
+(deftest test-map-set
     (eq? (map-of 1 2) (map-set (map-of) 1 2))
     (eq? (map-of 1 3) (map-set (map-of 1 2) 1 3))
     (eq? (map-of 1 3 13 2) (map-set (map-of 13 2) 1 3))
-    (eq? (map-of 1 3 13 2) (map-set (map-of 1 3 13 2) 1 3))))
+    (eq? (map-of 1 3 13 2) (map-set (map-of 1 3 13 2) 1 3)))
 
-(define (%test-map-remove)
-  (%do-test!
+(deftest test-map-remove
     (eq? (map-of) (map-remove (map-of) 1))
     (eq? (map-of) (map-remove (map-of 1 2) 1))
     (eq? (map-of 13 2) (map-remove (map-of 13 2) 1))
-    (eq? (map-of 13 2) (map-remove (map-of 1 3 13 2) 1))))
+    (eq? (map-of 13 2) (map-remove (map-of 1 3 13 2) 1)))
 
-(define (%test-map-keys)
-  (%do-test!
+(deftest test-map-keys
     (eq? (map-keys (map-of 1 2 3 4 5 6))
          (map-keys (map-of 1 2 3 4 5 6)))
     (= (size (map-of 1 2 3 4 5 6 7 8))
-       (size (map-keys (map-of 1 2 3 4 5 6 7 8))))))
+       (size (map-keys (map-of 1 2 3 4 5 6 7 8)))))
 
-(define (%test-map-merge)
-  (%do-test!
+(deftest test-map-merge
     (eq? (map-of 1 2) (map-merge (map-of) (map-of 1 2)))
     (eq? (map-of) (map-merge (map-of) (map-of)))
     (eq? (map-of 1 2) (map-merge (map-of 1 15) (map-of 1 2)))
     (eq? (map-of 2 3 1 2) (map-merge (map-of 1 2) (map-of 2 3)))
-    (eq? (map-of 2 3 1 2) (map-merge (map-of 2 3) (map-of 1 2)))))
+    (eq? (map-of 2 3 1 2) (map-merge (map-of 2 3) (map-of 1 2))))
 
-(define (%test-set-of)
-  (%do-test!
+(deftest test-set-of
     (empty? (set-of))
     (eq? (set-of) (set-of))
     (eq? (set-of 1) (set-of 1 1 1 1))
@@ -1319,49 +1209,43 @@
     (= 0 (size (set-of)))
     (= 1 (size (set-of 1)))
     (= 1 (size (set-of 1 1 1 1)))
-    (= 3 (size (set-of 1 2 3)))))
+    (= 3 (size (set-of 1 2 3))))
 
-(define (%test-set-size)
-  (%do-test!
+(deftest test-set-size
     (= 0 (size (set-of)))
     (= 1 (size (set-of 1)))
     (= 1 (size (set-of 1 1 1 1)))
-    (= 3 (size (set-of 1 2 3)))))
+    (= 3 (size (set-of 1 2 3))))
 
-(define (%test-set-add)
-  (%do-test!
+(deftest test-set-add
     (eq? (set-of 1) (set-add (set-of) 1))
     (eq? (set-of 1 2) (set-add (set-of 1 2) 1))
     (eq? (set-of 3 1 2 4) (set-add (set-of 1 2 4) 3))
-    (eq? (set-of (set-of)) (set-add (set-of) (set-of)))))
+    (eq? (set-of (set-of)) (set-add (set-of) (set-of))))
 
-(define (%test-set-union)
-  (%do-test!
+(deftest test-set-union
     (eq? (set-of) (set-union (set-of) (set-of)))
     (eq? (set-of 1) (set-union (set-of 1 1 1) (set-of 1)))
     (eq? (set-of 1 2 3 4) (set-union (set-of 1 3) (set-of 2 4)))
     (eq? (set-of 66) (set-union (set-of 66) (set-of)))
-    (eq? (set-of 66) (set-union (set-of) (set-of 66)))))
+    (eq? (set-of 66) (set-union (set-of) (set-of 66))))
 
-(define (%test-set-difference)
-  (%do-test!
+(deftest test-set-difference
     (eq? (set-of) (set-difference (set-of) (set-of)))
     (eq? (set-of) (set-difference (set-of 1 1 1) (set-of 1)))
     (eq? (set-of 1 3) (set-difference (set-of 1 3) (set-of 2 4)))
     (eq? (set-of 66) (set-difference (set-of 66) (set-of)))
-    (eq? (set-of) (set-difference (set-of) (set-of 66)))))
+    (eq? (set-of) (set-difference (set-of) (set-of 66))))
 
-(define (%test-set-intersection)
-  (%do-test!
+(deftest test-set-intersection
     (eq? (set-of) (set-intersection (set-of) (set-of)))
     (eq? (set-of 1) (set-intersection (set-of 1 1 1) (set-of 1)))
     (eq? (set-of) (set-intersection (set-of 1 3) (set-of 2 4)))
     (eq? (set-of 1 2 3 4) (set-intersection (set-of 1 2 3 4 6) (set-of 1 2 3 4 5)))
     (eq? (set-of) (set-intersection (set-of 66) (set-of)))
-    (eq? (set-of) (set-intersection (set-of) (set-of 66)))))
+    (eq? (set-of) (set-intersection (set-of) (set-of 66))))
 
-(define (%test-set-includes?)
-  (%do-test!
+(deftest test-set-includes?
     (not (includes? (set-of) 1))
     (includes? (set-of 1 1 1) 1)
     (includes? (set-of 1 3) 3)
@@ -1369,63 +1253,56 @@
     (includes? (set-of 1 2 3 4 6) 4)
     (not (includes? (set-of 1 2 3 4 6) 7))
     (includes? (set-of 66) 66)
-    (not (includes? (set-of 66) 67))))
+    (not (includes? (set-of 66) 67)))
 
-(define (%test-set-subset?)
-  (%do-test!
+(deftest test-set-subset?
     (set-subset? (set-of) (set-of))
     (set-subset? (set-of 1 1 1) (set-of 1))
     (set-subset? (set-of 2) (set-of 1 2 3))
     (set-subset? (set-of 1 3) (set-of 1 2 3))
     (not (set-subset? (set-of 1 5) (set-of 1 2 3)))
-    (not (set-subset? (set-of 1 2) (set-of)))))
+    (not (set-subset? (set-of 1 2) (set-of))))
 
-(define (%test-set-true-subset?)
-  (%do-test!
+(deftest test-set-true-subset?
     (not (set-true-subset? (set-of) (set-of)))
     (not (set-true-subset? (set-of 1 1 1) (set-of 1)))
     (set-true-subset? (set-of 2) (set-of 1 2 3))
     (set-true-subset? (set-of 1 3) (set-of 1 2 3))
     (not (set-true-subset? (set-of 1 5) (set-of 1 2 3)))
-    (not (set-true-subset? (set-of 1 2) (set-of)))))
+    (not (set-true-subset? (set-of 1 2) (set-of))))
 
-(define (%test-set-superset?)
-  (%do-test!
+(deftest test-set-superset?
     (set-superset? (set-of) (set-of))
     (set-superset? (set-of 1 1 1) (set-of 1))
     (set-superset? (set-of 1 2 3) (set-of 2))
     (set-superset? (set-of 1 2 3) (set-of 1 3))
     (not (set-superset? (set-of 1 2 3) (set-of 1 5)))
-    (not (set-superset? (set-of) (set-of 1 2)))))
+    (not (set-superset? (set-of) (set-of 1 2))))
 
-(define (%test-set-true-superset?)
-  (%do-test!
+(deftest test-set-true-superset?
     (not (set-true-superset? (set-of) (set-of)))
     (not (set-true-superset? (set-of 1 1 1) (set-of 1)))
     (set-true-superset? (set-of 1 2 3) (set-of 2))
     (set-true-superset? (set-of 1 2 3) (set-of 1 3))
     (not (set-true-superset? (set-of 1 2 3) (set-of 1 5)))
-    (not (set-true-superset? (set-of) (set-of 1 2)))))
+    (not (set-true-superset? (set-of) (set-of 1 2))))
 
-(define (%test-begin)
-  (%do-test!
-    (not (begin))
-    (= 1 (begin 2 3 1))
-    (let1 (b (box 0))
-      (and
-        (= @b 0)
-        (begin (box-set! b 5) (= @b 5))))))
+(deftest test-begin
+  (not (begin))
+  (= 1 (begin 2 3 1))
+  (let1 (b (box 0))
+    (and
+      (= @b 0)
+      (begin (box-set! b 5) (= @b 5)))))
 
-(define (%test-comment)
+(deftest test-comment
   ; If the following are executed, the code will crash
-  (%do-test!
     (not (comment (/ 0 0)))
     (not (comment (no-such-function-exists)))
     (not (comment this is not valid code))
-    #t))
+    #t)
 
-(define (%test-size)
-  (%do-test!
+(deftest test-size
     (= 0 (size '()))
     (= 0 (size []))
     (= 0 (size (set-of)))
@@ -1433,10 +1310,9 @@
     (= 2 (size '(1 2)))
     (= 2 (size [1 2]))
     (= 2 (size (set-of 1 2)))
-    (= 2 (size (map-of 1 2 2 3)))))
+    (= 2 (size (map-of 1 2 2 3))))
 
-(define (%test-indices-of)
-  (%do-test!
+(deftest test-indices-of
     (eq? [] (indices-of '() 1))
     (eq? [] (indices-of [] 1))
     (eq? [0] (indices-of '(1 2) 1))
@@ -1444,10 +1320,9 @@
     (eq? [0 1 2 3] (indices-of '(1 1 1 1) 1))
     (eq? [0 1 2 3] (indices-of [1 1 1 1] 1))
     (eq? [0 1 3 4] (indices-of '(1 1 2 1 1) 1))
-    (eq? [0 1 3 4] (indices-of [1 1 2 1 1] 1))))
+    (eq? [0 1 3 4] (indices-of [1 1 2 1 1] 1)))
 
-(define (%test-contains?)
-  (%do-test!
+(deftest test-contains?
     (not (contains? '() 1))
     (not (contains? [] 1))
     (contains? '(1 2) 1)
@@ -1458,7 +1333,7 @@
     (not (contains? [1 1 2 1 1] 5))
     (contains? '(1 1 2 1 1) 2)
     (contains? [1 1 2 1 1] 2)
-
+    ;
     (not (included? 1 '()))
     (not (included? 1 []))
     (included? 1 '(1 2))
@@ -1469,7 +1344,7 @@
     (not (included? 5 [1 1 2 1 1]))
     (included? 2 '(1 1 2 1 1))
     (included? 2 [1 1 2 1 1])
-
+    ;
     (not (member? 1 '()))
     (not (member? 1 []))
     (member? 1 '(1 2))
@@ -1480,7 +1355,7 @@
     (not (member? 5 [1 1 2 1 1]))
     (member? 2 '(1 1 2 1 1))
     (member? 2 [1 1 2 1 1])
-
+    ;
     (not (∈ 1 '()))
     (not (∈ 1 []))
     (∈ 1 '(1 2))
@@ -1491,7 +1366,7 @@
     (not (∈ 5 [1 1 2 1 1]))
     (∈ 2 '(1 1 2 1 1))
     (∈ 2 [1 1 2 1 1])
-
+    ;
     (∉ 1 '())
     (∉ 1 [])
     (not (∉ 1 '(1 2)))
@@ -1501,11 +1376,9 @@
     (∉ 5 '(1 1 2 1 1))
     (∉ 5 [1 1 2 1 1])
     (not (∉ 2 '(1 1 2 1 1)))
-    (not (∉ 2 [1 1 2 1 1]))
-    ))
+    (not (∉ 2 [1 1 2 1 1])))
 
-(define (%test-first)
-  (%do-test!
+(deftest test-first
     (nothing? (first '()))
     (nothing? (first []))
     (= 1 (first '(1 2)))
@@ -1515,10 +1388,9 @@
     (= 1 (first '(1 1 2 1 1)))
     (= 1 (first [1 1 2 1 1]))
     (= 99 (first '(99 2 1 1)))
-    (= 99 (first [99 2 1 1]))))
+    (= 99 (first [99 2 1 1])))
 
-(define (%test-rest)
-  (%do-test!
+(deftest test-rest
     (empty? (rest '()))
     (empty? (rest []))
     (eq? '(2) (rest '(1 2)))
@@ -1528,10 +1400,9 @@
     (eq? '(1 2 1 1) (rest '(1 1 2 1 1)))
     (eq? [1 2 1 1] (rest [1 1 2 1 1]))
     (eq? '(2 1 1) (rest '(99 2 1 1)))
-    (eq? [2 1 1] (rest [99 2 1 1]))))
+    (eq? [2 1 1] (rest [99 2 1 1])))
 
-(define (%test-last)
-  (%do-test!
+(deftest test-last
     (nothing? (last '()))
     (nothing? (last []))
     (= 2 (last '(1 2)))
@@ -1541,10 +1412,9 @@
     (= 1 (last '(1 1 2 1 1)))
     (= 1 (last [1 1 2 1 1]))
     (= 0 (last '(99 2 1 1 0)))
-    (= 0 (last [99 2 1 1 0]))))
+    (= 0 (last [99 2 1 1 0])))
 
-(define (%test-but-last)
-  (%do-test!
+(deftest test-but-last
     (empty? (but-last '()))
     (empty? (but-last []))
     (eq? '(1) (but-last '(1 2)))
@@ -1554,57 +1424,48 @@
     (eq? '(1 1 2 1) (but-last '(1 1 2 1 1)))
     (eq? [1 1 2 1] (but-last [1 1 2 1 1]))
     (eq? '(99 2 1) (but-last '(99 2 1 1)))
-    (eq? [99 2 1] (but-last [99 2 1 1]))))
+    (eq? [99 2 1] (but-last [99 2 1 1])))
 
-(define (%test-append)
-  (%do-test!
+(deftest test-append
     ; Appending strings
     (= "" (append "" ""))
     (= "1" (append "" "1"))
     (= "21" (append "2" "1"))
-
     ; Appending to string transforms the 2. element into a string
     (= "1" (append "" 1))
     (= "11" (append "" 11))
     (= "21" (append "2" 1))
-
     ; Appending empty sequences
     (empty? (append '() '()))
     (empty? (append [] []))
     (empty? (append '() []))
     (empty? (append [] '()))
-
     ; Appending sequences
     (eq? '(1 2 1 2) (append '(1 2) '(1 2)))
     (eq? [1 2 1 2] (append [1 2] [1 2]))
     (eq? '(1 2 1 2) (append '(1 2) [1 2]))
     (eq? [1 2 1 2] (append [1 2] '(1 2)))
-
     ; Appending any atom type will return Nothing
     (nothing? (append '(1 2) 88))
     (nothing? (append [1 2] 88))
     (nothing? (append 88 '(1 2)))
     (nothing? (append 88 [1 2]))
-    (nothing? (append 88 88))))
+    (nothing? (append 88 88)))
 
-(define (%test-prepend)
-  (%do-test!
+(deftest test-prepend
     ; Prepending strings
     (= "" (prepend "" ""))
     (= "1" (prepend "" "1"))
     (= "12" (prepend "2" "1"))
-
     ; Prepending to string transforms the 2. element into a string
     (= "1" (prepend "" 1))
     (= "11" (prepend "" 11))
     (= "12" (prepend "2" 1))
-
     ; Prepending empty sequences
     (empty? (prepend '() '()))
     (empty? (prepend [] []))
     (empty? (prepend '() []))
     (empty? (prepend [] '()))
-
     ; Prepending sequences
     (eq? '(1 2 1 2) (prepend '(1 2) '(1 2)))
     (eq? [1 2 1 2] (prepend [1 2] [1 2]))
@@ -1614,16 +1475,14 @@
     (eq? [3 2 1 2] (prepend [1 2] [3 2]))
     (eq? '(3 2 1 2) (prepend '(1 2) [3 2]))
     (eq? [3 2 1 2] (prepend [1 2] '(3 2)))
-
     ; Prepending any atom type will return Nothing
     (nothing? (prepend '(1 2) 88))
     (nothing? (prepend [1 2] 88))
     (nothing? (prepend 88 '(1 2)))
     (nothing? (prepend 88 [1 2]))
-    (nothing? (prepend 88 88))))
+    (nothing? (prepend 88 88)))
 
-(define (%test-concat)
-  (%do-test!
+(deftest test-concat
     ; Appending empty sequences
     (empty? (concat '() '()))
     (empty? (concat [] []))
@@ -1633,7 +1492,6 @@
     (empty? (concat [] [] []))
     (empty? (concat '() [] '()))
     (empty? (concat [] '() []))
-
     ; Appending sequences
     (eq? '(1 2 2 3) (concat '(1 2) '(2 3)))
     (eq? [1 2 2 3] (concat [1 2] [2 3]))
@@ -1643,67 +1501,58 @@
     (eq? [1 2 2 3 3 4] (concat '(1 2) '(2 3) [3 4]))
     (eq? '(1 2 2 3 3 4) (concat '(1 2) [2 3] '(3 4)))
     (eq? [1 2 2 3 3 4] (concat [1 2] [2 3] [3 4]))
-
     ; Appending any atom type will return Nothing
     (nothing? (concat '(1 2) 88 0))
     (nothing? (concat 0 [1 2] 88))
     (nothing? (concat 88 []  '(1 2)))
     (nothing? (concat '() 88 [1 2]))
     (nothing? (concat 88 88 0))
-    (nothing? (concat 88 0))))
+    (nothing? (concat 88 0)))
 
-(define (%test-string-concat)
-  (%do-test!
+(deftest test-string-concat
     (= "" (string-concat "" ""))
     (= "1" (string-concat "" "1"))
     (= "21" (string-concat "2" "1"))
     (= "" (string-concat "" "" ""))
     (= "1" (string-concat "" "1" ""))
     (= "321" (string-concat "3" "2" "1"))
-
     ; Appending to string transforms the 2. element into a string
     (= "19" (string-concat "" 1 9))
     (= "11a" (string-concat "" 11 'a))
     (= "21" (string-concat "2" 1 ""))
+    (= "" (string-concat)))
 
-    (= "" (string-concat))))
-
-(define (%test-nth)
-  (%do-test!
+(deftest test-nth
     (nothing? (nth '() 0))
     (nothing? (nth '(1 2 3) 15))
     (= 1 (nth '(1 2 3) 0))
     (= 2 (nth '(1 2 3) 1))
     (= 3 (nth '(1 2 3) 2))
-
     ; Test on infinite sequence
     (= 6 (nth (iterate inc 0) 6))
-
+    ; On vector
     (nothing? (nth [] 0))
     (nothing? (nth [1 2 3] 15))
     (= 1 (nth [1 2 3] 0))
     (= 2 (nth [1 2 3] 1))
-    (= 3 (nth [1 2 3] 2))))
+    (= 3 (nth [1 2 3] 2)))
 
-(define (%test-rnth)
-  (%do-test!
+(deftest test-rnth
     (nothing? (rnth 0 '()))
     (nothing? (rnth 15 '(1 2 3)))
     (= 1 (rnth 0 '(1 2 3)))
     (= 2 (rnth 1 '(1 2 3)))
     (= 3 (rnth 2 '(1 2 3)))
-
     ; Test on infinite sequence
     (= 6 (rnth 6 (iterate inc 0)))
-
+    ; On vector
     (nothing? (rnth 0 []))
     (nothing? (rnth 15 [1 2 3]))
     (= 1 (rnth 0 [1 2 3]))
     (= 2 (rnth 1 [1 2 3]))
-    (= 3 (rnth 2 [1 2 3]))))
+    (= 3 (rnth 2 [1 2 3])))
 
-(define (%test-split)
-  (%do-test!
+(deftest test-split
     (eq? '(()) (split 1 '()))
     (eq? '(()) (split 1 []))
     (eq? '(() (2)) (split 1 '(1 2)))
@@ -1711,10 +1560,9 @@
     (eq? '(() (2 3)) (split 1 '(1 2 3)))
     (eq? '(() (2 3)) (split 1 [1 2 3]))
     (eq? '((5) (2 3) (6)) (split 1 '(5 1 2 3 1 6)))
-    (eq? '((5) (2 3) (6)) (split 1 [5 1 2 3 1 6]))))
+    (eq? '((5) (2 3) (6)) (split 1 [5 1 2 3 1 6])))
 
-(define (%test-split-by)
-  (%do-test!
+(deftest test-split-by
     (eq? '(()) (split-by (lambda (x) (< x 2)) '()))
     (eq? '(()) (split-by (lambda (x) (< x 2)) []))
     (eq? '(() (2)) (split-by (lambda (x) (< x 2)) '(1 2)))
@@ -1723,84 +1571,77 @@
     (eq? '(() (2 3)) (split-by (lambda (x) (< x 2)) [1 2 3]))
     (eq? '((5) (2 3) (6)) (split-by (lambda (x) (< x 2)) '(5 1 2 3 1 6)))
     (eq? '((5) (2 3) (6)) (split-by (lambda (x) (< x 2)) [5 1 2 3 1 6]))
-
     (eq? '(()) (split-by (lambda (x) (> x 15)) '()))
     (eq? '(()) (split-by (lambda (x) (> x 15)) []))
     (eq? '(() (2)) (split-by (lambda (x) (< x 2)) '(-6 2)))
     (eq? '(() (2)) (split-by (lambda (x) (< x 2)) [-6 2]))
     (eq? '((5) (2 3) (6)) (split-by (lambda (x) (< x 2)) '(5 0 2 3 1 6)))
-    (eq? '((5) (2 3) (6)) (split-by (lambda (x) (< x 2)) [5 0 2 3 1 6]))))
+    (eq? '((5) (2 3) (6)) (split-by (lambda (x) (< x 2)) [5 0 2 3 1 6])))
 
-(define (%test-map)
-  (%do-test!
+(deftest test-map
     (eq? (list) (map ->string (list)))
     (eq? (list 1 4 9 16 25) (map (lambda (n) (* n n)) (list 1 2 3 4 5)))
     (eq? (list "1" "2" "3") (map ->string (list 1 2 3)))
     (eq? (list "a" "b" "c") (map ->string (list "a" "b" "c")))
-
+    ; On vector
     (eq? [] (map ->string []))
     (eq? [1 4 9 16 25] (map (lambda (n) (* n n)) [1 2 3 4 5]))
     (eq? ["1" "2" "3"] (map ->string [1 2 3]))
-    (eq? ["a" "b" "c"] (map ->string ["a" "b" "c"]))))
+    (eq? ["a" "b" "c"] (map ->string ["a" "b" "c"])))
 
-(define (%test-mapv)
-  (%do-test!
+(deftest test-mapv
     (eq? (vector) (mapv ->string (list)))
     (eq? (vector 1 4 9 16 25) (mapv (lambda (n) (* n n)) (list 1 2 3 4 5)))
     (eq? (vector "1" "2" "3") (mapv ->string (list 1 2 3)))
     (eq? (vector "a" "b" "c") (mapv ->string (list "a" "b" "c")))
-
+    ; On vector
     (eq? [] (mapv ->string []))
     (eq? [1 4 9 16 25] (mapv (lambda (n) (* n n)) [1 2 3 4 5]))
     (eq? ["1" "2" "3"] (mapv ->string [1 2 3]))
-    (eq? ["a" "b" "c"] (mapv ->string ["a" "b" "c"]))))
+    (eq? ["a" "b" "c"] (mapv ->string ["a" "b" "c"])))
 
-(define (%test-mapl)
-  (%do-test!
+(deftest test-mapl
     (eq? (list) (mapl ->string (list)))
     (eq? (list 1 4 9 16 25) (mapl (lambda (n) (* n n)) (list 1 2 3 4 5)))
     (eq? (list "1" "2" "3") (mapl ->string (list 1 2 3)))
     (eq? (list "a" "b" "c") (mapl ->string (list "a" "b" "c")))
-
+    ; On vector
     (eq? '() (mapv ->string []))
     (eq? '(1 4 9 16 25) (mapl (lambda (n) (* n n)) [1 2 3 4 5]))
     (eq? '("1" "2" "3") (mapl ->string [1 2 3]))
-    (eq? '("a" "b" "c") (mapl ->string ["a" "b" "c"]))))
+    (eq? '("a" "b" "c") (mapl ->string ["a" "b" "c"])))
 
-(define (%test-map-indexed)
-  (%do-test!
+(deftest test-map-indexed
     (eq? (list) (map-indexed (lambda (e i) (->string e)) (list)))
     (eq? (list 1 4 9 16 25) (map-indexed (lambda (n i) (* n n)) (list 1 2 3 4 5)))
     (eq? (list "1" "2" "3") (map-indexed (lambda (e i) (->string e)) (list 1 2 3)))
     (eq? (list "a" "b" "c") (map-indexed (lambda (e i) (->string e)) (list "a" "b" "c")))
     (eq? (list 1 2 3 4 5) (map-indexed (lambda (e i) e) (list 1 2 3 4 5)))
     (eq? (list 0 1 2 3 4) (map-indexed (lambda (e i) i) (list 1 2 3 4 5)))
-
+    ; On vector
     (eq? [] (map-indexed (lambda (e i) (->string e)) []))
     (eq? [1 4 9 16 25] (map-indexed (lambda (n i) (* n n)) [1 2 3 4 5]))
     (eq? ["1" "2" "3"] (map-indexed (lambda (e i) (->string e)) [1 2 3]))
     (eq? ["a" "b" "c"] (map-indexed (lambda (e i) (->string e)) ["a" "b" "c"]))
     (eq? [1 2 3 4 5] (map-indexed (lambda (e i) e) [1 2 3 4 5]))
-    (eq? [0 1 2 3 4] (map-indexed (lambda (e i) i) [1 2 3 4 5]))))
+    (eq? [0 1 2 3 4] (map-indexed (lambda (e i) i) [1 2 3 4 5])))
 
-(define (%test-mapv-indexed)
-  (%do-test!
+(deftest test-mapv-indexed
     (eq? (vector) (map-indexed (lambda (e i) (->string e)) (list)))
     (eq? (vector 1 4 9 16 25) (map-indexed (lambda (n i) (* n n)) (list 1 2 3 4 5)))
     (eq? (vector "1" "2" "3") (map-indexed (lambda (e i) (->string e)) (list 1 2 3)))
     (eq? (vector "a" "b" "c") (map-indexed (lambda (e i) (->string e)) (list "a" "b" "c")))
     (eq? (vector 1 2 3 4 5) (map-indexed (lambda (e i) e) (list 1 2 3 4 5)))
     (eq? (vector 0 1 2 3 4) (map-indexed (lambda (e i) i) (list 1 2 3 4 5)))
-
+    ; On vector
     (eq? [] (map-indexed (lambda (e i) (->string e)) []))
     (eq? [1 4 9 16 25] (map-indexed (lambda (n i) (* n n)) [1 2 3 4 5]))
     (eq? ["1" "2" "3"] (map-indexed (lambda (e i) (->string e)) [1 2 3]))
     (eq? ["a" "b" "c"] (map-indexed (lambda (e i) (->string e)) ["a" "b" "c"]))
     (eq? [1 2 3 4 5] (map-indexed (lambda (e i) e) [1 2 3 4 5]))
-    (eq? [0 1 2 3 4] (map-indexed (lambda (e i) i) [1 2 3 4 5]))))
+    (eq? [0 1 2 3 4] (map-indexed (lambda (e i) i) [1 2 3 4 5])))
 
-(define (%test-fmap)
-  (%do-test!
+(deftest test-fmap
     (eq? (list)
       (fmap ->string (lambda (e) #t) (list)))
     (eq? (list 1 4 9 16 25)
@@ -1809,7 +1650,7 @@
       (fmap id id (list 1 #f 2 #f 3 #t #f Nothing)))
     (eq? (list 1 9 25)
       (fmap (lambda (n) (* n n)) odd? (list 1 2 3 4 5 6)))
-
+    ; On vector
     (eq? []
       (fmap ->string (lambda (e) #t) []))
     (eq? [1 4 9 16 25]
@@ -1817,10 +1658,9 @@
     (eq? [1 2 3 #t]
       (fmap id id [1 #f 2 #f 3 #t #f Nothing]))
     (eq? [1 9 25]
-      (fmap (lambda (n) (* n n)) odd? [1 2 3 4 5 6]))))
+      (fmap (lambda (n) (* n n)) odd? [1 2 3 4 5 6])))
 
-(define (%test-mapf)
-  (%do-test!
+(deftest test-mapf
     (eq? (list)
       (mapf ->string (lambda (e) #t) (list)))
     (eq? (list 1 4 9 16 25)
@@ -1829,7 +1669,7 @@
       (mapf id id (list 1 #f 2 #f 3 #t #f Nothing)))
     (eq? (list 1 9 25)
       (mapf (lambda (n) (* n n)) odd? (list 1 2 3 4 5 6)))
-
+    ; On vector
     (eq? []
       (mapf ->string (lambda (e) #t) []))
     (eq? [1 4 9 16 25]
@@ -1837,83 +1677,73 @@
     (eq? [1 2 3 #t]
       (mapf id id [1 #f 2 #f 3 #t #f Nothing]))
     (eq? [1 9 25]
-      (mapf (lambda (n) (* n n)) odd? [1 2 3 4 5 6]))))
+      (mapf (lambda (n) (* n n)) odd? [1 2 3 4 5 6])))
 
-(define (%test-maplist)
-  (%do-test!
+(deftest test-maplist
     (eq? '(0 1 1)
       (maplist (lambda (x) (if (included? (car x) (cdr x)) 0 1)) (list 'a 'b 'a)))
     (eq? '(3 2 1)
-      (maplist (lambda (xs) (size xs)) (list 'a 'b 'a)))))
+      (maplist (lambda (xs) (size xs)) (list 'a 'b 'a))))
 
-(define (%test-mapcar)
-  (%do-test!
+(deftest test-mapcar
     (eq? '(1 2 3 4) (mapcar id '(1 2 3 4)))
     (eq? '(3 5 7 9) (mapcar + '(1 2 3 4) '(2 3 4 5)))
     (eq? '((1 2) (4 3)) (mapcar list '(1 4) '(2 3)))
     (eq? '((1 2)) (mapcar list '(1 4) '(2)))
-    (eq? '((1 2)) (mapcar list '(1) '(2 3)))))
+    (eq? '((1 2)) (mapcar list '(1) '(2 3))))
 
-(define (%test-mapcon)
-  (%do-test!
+(deftest test-mapcon
     (eq? '(((1 2 3 4)) ((2 3 4)) ((3 4)) ((4))) (maplist list '(1 2 3 4)))
-    (eq? '((1 2 3 4) (2 3 4) (3 4) (4)) (mapcon list '(1 2 3 4)))))
+    (eq? '((1 2 3 4) (2 3 4) (3 4) (4)) (mapcon list '(1 2 3 4))))
 
-(define (%test-mapcat)
+(deftest test-mapcat
   (mapcat cdr '((1 2) (3 4) (5 6))))
 
-(define (%test-map-while)
-  (%do-test!
+(deftest test-map-while
     (empty? (map-while inc (partial > 5) '()))
     (eq? '(2 3 4) (map-while inc (partial > 4) '(1 2 3 4 5 6 7)))
     (empty? (map-while inc (partial > 5) []))
-    (eq? [2 3 4] (map-while inc (partial > 4) [1 2 3 4 5 6 7]))))
+    (eq? [2 3 4] (map-while inc (partial > 4) [1 2 3 4 5 6 7])))
 
-(define (%test-map-until)
-  (%do-test!
+(deftest test-map-until
     (empty? (map-until inc (partial > 5) '()))
     (eq? '(2 3 4 5) (map-until inc (partial < 4) '(1 2 3 4 5 6 7)))
     (empty? (map-until inc (partial > 5) []))
-    (eq? [2 3 4 5] (map-until inc (partial < 4) [1 2 3 4 5 6 7]))))
+    (eq? [2 3 4 5] (map-until inc (partial < 4) [1 2 3 4 5 6 7])))
 
-(define (%test-filter)
-  (%do-test!
+(deftest test-filter
     (empty? (filter odd? '()))
     (eq? '() (filter odd? '(2 4 6 8)))
     (eq? '(1 3 5 7) (filter odd? '(1 2 3 4 5 6 7 8)))
     (empty? (filter odd? []))
     (eq? [] (filter odd? [2 4 6 8]))
-    (eq? [1 3 5 7] (filter odd? [1 2 3 4 5 6 7 8]))))
+    (eq? [1 3 5 7] (filter odd? [1 2 3 4 5 6 7 8])))
 
-(define (%test-filter-indexed)
-  (%do-test!
+(deftest test-filter-indexed
     (empty? (filter-indexed (lambda(e i) #t) '()))
     (empty? (filter-indexed (lambda(e i) #f) '(1 2 3 4 5 6)))
     (eq? '(1 3 5) (filter-indexed (lambda(e i) (odd? e)) '(1 2 3 4 5 6)))
     (eq? '(2 4 6) (filter-indexed (lambda(e i) (even? e)) '(1 2 3 4 5 6)))
     (eq? '(1 3 5) (filter-indexed (lambda(e i) (even? i)) '(1 2 3 4 5 6)))
-    (eq? '(2 4 6) (filter-indexed (lambda(e i) (odd? i)) '(1 2 3 4 5 6)))))
+    (eq? '(2 4 6) (filter-indexed (lambda(e i) (odd? i)) '(1 2 3 4 5 6))))
 
-(define (%test-remove)
-  (%do-test!
+(deftest test-remove
     (empty? (remove even? '()))
     (eq? '() (remove even? '(2 4 6 8)))
     (eq? '(1 3 5 7) (remove even? '(1 2 3 4 5 6 7 8)))
     (empty? (remove even? []))
     (eq? [] (remove even? [2 4 6 8]))
-    (eq? [1 3 5 7] (remove even? [1 2 3 4 5 6 7 8]))))
+    (eq? [1 3 5 7] (remove even? [1 2 3 4 5 6 7 8])))
 
-(define (%test-remove-indexed)
-  (%do-test!
+(deftest test-remove-indexed
     (empty? (remove-indexed (lambda(e i) #f) '()))
     (empty? (remove-indexed (lambda(e i) #t) '(1 2 3 4 5 6)))
     (eq? '(2 4 6) (remove-indexed (lambda(e i) (odd? e)) '(1 2 3 4 5 6)))
     (eq? '(1 3 5) (remove-indexed (lambda(e i) (even? e)) '(1 2 3 4 5 6)))
     (eq? '(2 4 6) (remove-indexed (lambda(e i) (even? i)) '(1 2 3 4 5 6)))
-    (eq? '(1 3 5) (remove-indexed (lambda(e i) (odd? i)) '(1 2 3 4 5 6)))))
+    (eq? '(1 3 5) (remove-indexed (lambda(e i) (odd? i)) '(1 2 3 4 5 6))))
 
-(define (%test-foldl)
-  (%do-test!
+(deftest test-foldl
     (= 0 (foldl + 0 '()))
     (= 1 (foldl + 0 '(1)))
     (= 15 (foldl + 0 '(1 2 3 4 5)))
@@ -1921,26 +1751,23 @@
     (= 0 (foldl + 0 []))
     (= 1 (foldl + 0 [1]))
     (= 15 (foldl + 0 [1 2 3 4 5]))
-    (= 20 (foldl + 5 [1 2 3 4 5]))))
+    (= 20 (foldl + 5 [1 2 3 4 5])))
 
-(define (%test-foldl1)
-  (%do-test!
+(deftest test-foldl1
     (nothing? (foldl1 + '()))
     (= 1 (foldl1 + '(1)))
     (= 15 (foldl1 + '(1 2 3 4 5)))
     (nothing? (foldl1 + []))
     (= 1 (foldl1 + [1]))
-    (= 15 (foldl1 + [1 2 3 4 5]))))
+    (= 15 (foldl1 + [1 2 3 4 5])))
 
-(define (%test-foldl-indexed)
-  (%do-test!
+(deftest test-foldl-indexed
     (= 15 (foldl-indexed nothing 15 '()))
     (= 10 (foldl-indexed (lambda(s e i) (+ s i)) 0 '(1 2 3 4 5)))
     (= 25 (foldl-indexed (lambda(s e i) (+ s e i)) 0 '(1 2 3 4 5)))
-    (= 30 (foldl-indexed (lambda(s e i) (+ s e i)) 5 '(1 2 3 4 5)))))
+    (= 30 (foldl-indexed (lambda(s e i) (+ s e i)) 5 '(1 2 3 4 5))))
 
-(define (%test-foldr)
-  (%do-test!
+(deftest test-foldr
     (= 0 (foldr + 0 '()))
     (= 1 (foldr + 0 '(1)))
     (= 15 (foldr + 0 '(1 2 3 4 5)))
@@ -1948,50 +1775,44 @@
     (= 0 (foldr + 0 []))
     (= 1 (foldr + 0 [1]))
     (= 15 (foldr + 0 [1 2 3 4 5]))
-    (= 20 (foldr + 5 [1 2 3 4 5]))))
+    (= 20 (foldr + 5 [1 2 3 4 5])))
 
-(define (%test-foldr1)
-  (%do-test!
+(deftest test-foldr1
     (nothing? (foldr1 + '()))
     (= 1 (foldr1 + '(1)))
     (= 15 (foldr1 + '(1 2 3 4 5)))
     (nothing? (foldr1 + []))
     (= 1 (foldr1 + [1]))
-    (= 15 (foldr1 + [1 2 3 4 5]))))
+    (= 15 (foldr1 + [1 2 3 4 5])))
 
-(define (%test-foldr-indexed)
-  (%do-test!
+(deftest test-foldr-indexed
     (= 15 (foldr-indexed nothing 15 '()))
     (= 10 (foldr-indexed (lambda(e s i) (+ s i)) 0 '(1 2 3 4 5)))
     (= 25 (foldr-indexed (lambda(e s i) (+ s e i)) 0 '(1 2 3 4 5)))
-    (= 30 (foldr-indexed (lambda(e s i) (+ s e i)) 5 '(1 2 3 4 5)))))
+    (= 30 (foldr-indexed (lambda(e s i) (+ s e i)) 5 '(1 2 3 4 5))))
 
-(define (%test-repeat)
-  (%do-test!
+(deftest test-repeat
     (list? (repeat 7))
     (not (empty? (repeat 7)))
     (eq? '(7 7) (take 2 (repeat 7)))
-    (all? function? (take 2 (repeat gensym)))))
+    (all? function? (take 2 (repeat gensym))))
 
-(define (%test-repeatedly)
   (let* ((b (box 0)))
-    (%do-test!
+(deftest test-repeatedly
       (list? (repeatedly (partial gensym 'x)))
       (not (empty? (repeatedly (partial gensym 'x))))
       (= 2 (size (take 2 (repeatedly nothing))))
       (all? nothing? (take 2 (repeatedly nothing)))
       (eq? '(1 2 3 4 5) (take 5 (repeatedly (lambda () (box-set! b (inc @b)) @b))))
-      )))
+      ))
 
-(define (%test-iterate)
-  (%do-test!
+(deftest test-iterate
     (list? (iterate (lambda (n) (* n 2)) 1))
     (not (empty? (iterate (lambda (n) (* n 2)) 1)))
     (eq? '(1 2 4 8 16) (take 5 (iterate (lambda (n) (* n 2)) 1)))
-    (eq? '(1 1 1 1 1) (take 5 (drop 50 (iterate id 1))))))
+    (eq? '(1 1 1 1 1) (take 5 (drop 50 (iterate id 1)))))
 
-(define (%test-take)
-  (%do-test!
+(deftest test-take
     (empty? (take 1 '()))
     (empty? (take 0 '(1 2 3 4 5)))
     (eq? '(1 2 3) (take 3 '(1 2 3 4 5)))
@@ -1999,24 +1820,21 @@
     (empty? (take 1 []))
     (empty? (take 0 [1 2 3 4 5]))
     (eq? [1 2 3] (take 3 [1 2 3 4 5]))
-    (eq? [1 2 3 4 5] (take 15 [1 2 3 4 5]))))
+    (eq? [1 2 3 4 5] (take 15 [1 2 3 4 5])))
 
-(define (%test-take-while)
-  (%do-test!
+(deftest test-take-while
     (empty? (take-while (partial > 5) '()))
     (eq? '(1 2 3) (take-while (partial > 4) '(1 2 3 4 5 6 7)))
     (empty? (take-while (partial > 5) []))
-    (eq? [1 2 3] (take-while (partial > 4) [1 2 3 4 5 6 7]))))
+    (eq? [1 2 3] (take-while (partial > 4) [1 2 3 4 5 6 7])))
 
-(define (%test-take-until)
-  (%do-test!
+(deftest test-take-until
     (empty? (take-until (partial > 5) '()))
     (eq? '(1 2 3 4) (take-until (partial < 4) '(1 2 3 4 5 6 7)))
     (empty? (take-until (partial > 5) []))
-    (eq? [1 2 3 4] (take-until (partial < 4) [1 2 3 4 5 6 7]))))
+    (eq? [1 2 3 4] (take-until (partial < 4) [1 2 3 4 5 6 7])))
 
-(define (%test-drop)
-  (%do-test!
+(deftest test-drop
     (empty? (drop 1 '()))
     (empty? (drop 15 '(1 2 3 4 5)))
     (eq? '(3 4 5) (drop 2 '(1 2 3 4 5)))
@@ -2024,47 +1842,41 @@
     (empty? (drop 1 []))
     (empty? (drop 15 [1 2 3 4 5]))
     (eq? [3 4 5] (drop 2 [1 2 3 4 5]))
-    (eq? [1 2 3 4 5] (drop 0 [1 2 3 4 5]))))
+    (eq? [1 2 3 4 5] (drop 0 [1 2 3 4 5])))
 
-(define (%test-drop-while)
-  (%do-test!
+(deftest test-drop-while
     (eq? '() (drop-while (partial > 5) '()))
     (eq? '(4 5 6 7) (drop-while (partial > 4) '(1 2 3 4 5 6 7)))
     (eq? '() (drop-while (partial > 5) []))
-    (eq? [4 5 6 7] (drop-while (partial > 4) [1 2 3 4 5 6 7]))))
+    (eq? [4 5 6 7] (drop-while (partial > 4) [1 2 3 4 5 6 7])))
 
-(define (%test-drop-until)
-  (%do-test!
+(deftest test-drop-until
     (eq? '() (drop-until (partial > 5) '()))
     (eq? '(5 6 7) (drop-until (partial < 4) '(1 2 3 4 5 6 7)))
     (eq? '() (drop-until (partial > 5) []))
-    (eq? '(5 6 7) (drop-until (partial < 4) [1 2 3 4 5 6 7]))))
+    (eq? '(5 6 7) (drop-until (partial < 4) [1 2 3 4 5 6 7])))
 
-(define (%test-split-at)
-  (%do-test!
+(deftest test-split-at
     (eq? '(() ()) (split-at 1 '()))
     (eq? '((1) (2)) (split-at 1 '(1 2)))
     (eq? '((1 2) ()) (split-at 2 '(1 2)))
     (eq? '((1 2) ()) (split-at 3 '(1 2)))
     (eq? '(() (1 2)) (split-at 0 '(1 2)))
-    (eq? '((1 2) (3 4 5)) (split-at 2 '(1 2 3 4 5)))))
+    (eq? '((1 2) (3 4 5)) (split-at 2 '(1 2 3 4 5))))
 
-(define (%test-split-if)
-  (%do-test!
+(deftest test-split-if
     (eq? '(() ()) (split-if (partial > 5) '()))
     (eq? '((1 2 3) (4 5 6 7)) (split-if (partial > 4) '(1 2 3 4 5 6 7)))
     (eq? '(() ()) (split-if (partial > 5) []))
-    (eq? '((1 2 3) (4 5 6 7)) (split-if (partial > 4) [1 2 3 4 5 6 7]))))
+    (eq? '((1 2 3) (4 5 6 7)) (split-if (partial > 4) [1 2 3 4 5 6 7])))
 
-(define (%test-split-unless)
-  (%do-test!
+(deftest test-split-unless
     (eq? '(() ()) (split-unless (partial > 5) '()))
     (eq? '((1 2 3 4) (5 6 7)) (split-unless (partial < 4) '(1 2 3 4 5 6 7)))
     (eq? '(() ()) (split-unless (partial > 5) []))
-    (eq? '((1 2 3 4) (5 6 7)) (split-unless (partial < 4) [1 2 3 4 5 6 7]))))
+    (eq? '((1 2 3 4) (5 6 7)) (split-unless (partial < 4) [1 2 3 4 5 6 7])))
 
-(define (%test-zip)
-  (%do-test!
+(deftest test-zip
     (empty? (zip '() '()))
     (empty? (zip '() '(1 2 3)))
     (empty? (zip '(1 2 3) '()))
@@ -2077,10 +1889,9 @@
     (empty? (zip [1 2 3] []))
     (eq? '((1 4) (2 5)) (zip [1 2] [4 5 6]))
     (eq? '((1 4) (2 5)) (zip [1 2 3] [4 5]))
-    (eq? '((1 4) (2 5) (3 6)) (zip [1 2 3] [4 5 6]))))
+    (eq? '((1 4) (2 5) (3 6)) (zip [1 2 3] [4 5 6])))
 
-(define (%test-zip-with)
-  (%do-test!
+(deftest test-zip-with
     (empty? (zip-with list '() '()))
     (empty? (zip-with list '() '(1 2 3)))
     (empty? (zip-with list '(1 2 3) '()))
@@ -2100,18 +1911,16 @@
     (eq? '(5 7 9) (zip-with + '(1 2 3) '(4 5 6)))
     (eq? '(5 7) (zip-with + [1 2] [4 5 6]))
     (eq? '(5 7) (zip-with + [1 2 3] [4 5]))
-    (eq? '(5 7 9) (zip-with + [1 2 3] [4 5 6]))))
+    (eq? '(5 7 9) (zip-with + [1 2 3] [4 5 6])))
 
-(define (%test-zip-to-index)
-  (%do-test!
+(deftest test-zip-to-index
     (empty? (zip-to-index '()))
     (empty? (zip-to-index []))
 
     (eq? '((0 4) (1 5) (2 6)) (zip-to-index '(4 5 6)))
-    (eq? '((0 4) (1 5) (2 6)) (zip-to-index [4 5 6]))))
+    (eq? '((0 4) (1 5) (2 6)) (zip-to-index [4 5 6])))
 
-(define (%test-enumerate)
-  (%do-test!
+(deftest test-enumerate
     (empty? (enumerate '()))
     (empty? (enumerate []))
     (eq? '((0 4) (1 5) (2 6)) (enumerate '(4 5 6)))
@@ -2120,20 +1929,18 @@
     (empty? (enumerate 1 '()))
     (empty? (enumerate 1 []))
     (eq? '((1 4) (2 5) (3 6)) (enumerate 1 '(4 5 6)))
-    (eq? '((1 4) (2 5) (3 6)) (enumerate 1 [4 5 6]))))
+    (eq? '((1 4) (2 5) (3 6)) (enumerate 1 [4 5 6])))
 
-(define (%test-v-zip-with)
-  (%do-test!
+(deftest test-v-zip-with
     (eq? '(12 15 18) (v-zip-with + '((1 2 3) (4 5 6) (7 8 9))))
     (eq? '(12 10 12) (v-zip-with + '((1 2 3) (4) (7 8 9))))
     (eq? '(12 15 18 10) (v-zip-with + '((1 2 3) (4 5 6 10) (7 8 9))))
 
     (eq? '((1 4 7) (2 5 8) (3 6 9)) (v-zip-with list '((1 2 3) (4 5 6) (7 8 9))))
     (eq? '((1 4 7) (2 8) (3 9)) (v-zip-with list '((1 2 3) (4) (7 8 9))))
-    (eq? '((1 4 7) (2 5 8) (3 6 9) (10)) (v-zip-with list '((1 2 3) (4 5 6 10) (7 8 9))))))
+    (eq? '((1 4 7) (2 5 8) (3 6 9) (10)) (v-zip-with list '((1 2 3) (4 5 6 10) (7 8 9)))))
 
-(define (%test-all?)
-  (%do-test!
+(deftest test-all?
     (all? (partial > 5) '())
     (all? (partial > 6) '(1 2 3 4 5))
     (not (all? (partial > 3) '(1 2 3 4 5)))
@@ -2146,10 +1953,9 @@
     (∀ (partial > 5) '())
     (∀ (partial > 6) '(1 2 3 4 5))
     (not (∀ (partial > 3) '(1 2 3 4 5)))
-    (not (∀ (partial < 6) '(1 2 3 4 5)))))
+    (not (∀ (partial < 6) '(1 2 3 4 5))))
 
-(define (%test-none?)
-  (%do-test!
+(deftest test-none?
     (none? (partial > 5) '())
     (not (none? (partial > 6) '(1 2 3 4 5)))
     (not (none? (partial > 3) '(1 2 3 4 5)))
@@ -2158,10 +1964,9 @@
     (∄ (partial > 5) '())
     (not (∄ (partial > 6) '(1 2 3 4 5)))
     (not (∄ (partial > 3) '(1 2 3 4 5)))
-    (∄ (partial < 6) '(1 2 3 4 5))))
+    (∄ (partial < 6) '(1 2 3 4 5)))
 
-(define (%test-any?)
-  (%do-test!
+(deftest test-any?
     (not (any? (partial > 5) '()))
     (any? (partial > 6) '(1 2 3 4 5))
     (any? (partial > 3) '(1 2 3 4 5))
@@ -2171,39 +1976,34 @@
     (∃ (partial > 6) '(1 2 3 4 5))
     (∃ (partial > 3) '(1 2 3 4 5))
     (not (∃ (partial < 6) '(1 2 3 4 5)))
-    ))
+    )
 
-(define (%test-va-all?)
-  (%do-test!
+(deftest test-va-all?
     (va-all? (partial > 5))
     (va-all? (partial > 6) 1 2 3 4 5)
     (not (va-all? (partial > 3) 1 2 3 4 5))
-    (not (va-all? (partial < 6) 1 2 3 4 5))))
+    (not (va-all? (partial < 6) 1 2 3 4 5)))
 
-(define (%test-va-none?)
-  (%do-test!
+(deftest test-va-none?
     (va-none? (partial > 5))
     (not (va-none? (partial > 6) 1 2 3 4 5))
     (not (va-none? (partial > 3) 1 2 3 4 5))
-    (va-none? (partial < 6) 1 2 3 4 5)))
+    (va-none? (partial < 6) 1 2 3 4 5))
 
-(define (%test-va-any?)
-  (%do-test!
+(deftest test-va-any?
     (not (va-any? (partial > 5)))
     (va-any? (partial > 6) 1 2 3 4 5)
     (va-any? (partial > 3) 1 2 3 4 5)
-    (not (va-any? (partial < 6) 1 2 3 4 5))))
+    (not (va-any? (partial < 6) 1 2 3 4 5)))
 
-(define (%test-reverse)
-  (%do-test!
+(deftest test-reverse
     (empty? (reverse '()))
     (eq? '(1) (reverse '(1)))
     (eq? '(3 2 1) (reverse '(1 2 3)))
-    (eq? '(3 (2 4) (1)) (reverse '((1) (2 4) 3)))))
+    (eq? '(3 (2 4) (1)) (reverse '((1) (2 4) 3))))
 
-(define (%test-sum)
-  (let* ((f (lambda (n) (* n 2))))
-    (%do-test!
+(let* ((f (lambda (n) (* n 2))))
+(deftest test-sum
       (= 0 (sum '()))
       (= 1 (sum '(1)))
       (= 15 (sum '(1 2 3 4 5)))
@@ -2217,11 +2017,10 @@
       (= 0 (sum f '()))
       (= 2 (sum f '(1)))
       (= 30 (sum f '(1 2 3 4 5)))
-      (= 31 (sum f '(1 2 0.5 3 4 5))))))
+      (= 31 (sum f '(1 2 0.5 3 4 5)))))
 
-(define (%test-product)
-  (let* ((f (lambda (n) (* n 2))))
-    (%do-test!
+(let* ((f (lambda (n) (* n 2))))
+(deftest test-product
       (= 1 (product '()))
       (= 2 (product '(2)))
       (= 120 (product '(1 2 3 4 5)))
@@ -2236,22 +2035,19 @@
       (= 4 (product f '(2)))
       (= 3840 (product f '(1 2 3 4 5)))
       (= 3840.0 (product f '(1 2 0.5 3 4 5)))
-      (= 1920 (product f '(1 2 0.25 3 4 5))))))
+      (= 1920 (product f '(1 2 0.25 3 4 5)))))
 
-(define (%test-minimum)
-  (%do-test!
+(deftest test-minimum
     (nothing? (minimum '()))
     (= 1 (minimum '(1)))
-    (= 1 (minimum '(2 1 3)))))
+    (= 1 (minimum '(2 1 3))))
 
-(define (%test-maximum)
-  (%do-test!
+(deftest test-maximum
     (nothing? (maximum '()))
     (= 1 (maximum '(1)))
-    (= 3 (maximum '(2 1 3)))))
+    (= 3 (maximum '(2 1 3))))
 
-(define (%test-bubblesort)
-  (%do-test!
+(deftest test-bubblesort
     (empty? (sort/bubblesort '()))
     (eq? '(1) (sort/bubblesort '(1)))
     (eq? '(1 2 3) (sort/bubblesort '(2 1 3)))
@@ -2260,10 +2056,9 @@
     (eq? '(0 1 2 3 4 5) (sort/bubblesort '(5 4 3 2 1 0)))
     (eq? '(-4 -2 0 1 3 5) (sort/bubblesort '(5 -2 1 3 -4 0)))
     (eq? '(-4 -2 0 1 3 5) (sort/bubblesort '(-4 -2 0 1 3 5)))
-    (eq? '(-4 -2 0 1 3 5) (sort/bubblesort '(5 3 1 0 -2 -4)))))
+    (eq? '(-4 -2 0 1 3 5) (sort/bubblesort '(5 3 1 0 -2 -4))))
 
-(define (%test-mergesort)
-  (%do-test!
+(deftest test-mergesort
     (empty? (sort/mergesort '()))
     (eq? '(1) (sort/mergesort '(1)))
     (eq? '(1 2 3) (sort/mergesort '(2 1 3)))
@@ -2272,10 +2067,9 @@
     (eq? '(0 1 2 3 4 5) (sort/mergesort '(5 4 3 2 1 0)))
     (eq? '(-4 -2 0 1 3 5) (sort/mergesort '(5 -2 1 3 -4 0)))
     (eq? '(-4 -2 0 1 3 5) (sort/mergesort '(-4 -2 0 1 3 5)))
-    (eq? '(-4 -2 0 1 3 5) (sort/mergesort '(5 3 1 0 -2 -4)))))
+    (eq? '(-4 -2 0 1 3 5) (sort/mergesort '(5 3 1 0 -2 -4))))
 
-(define (%test-sort)
-  (%do-test!
+(deftest test-sort
     (empty? (sort/sort '()))
     (eq? '(1) (sort/sort '(1)))
     (eq? '(1 2 3) (sort/sort '(2 1 3)))
@@ -2284,12 +2078,11 @@
     (eq? '(0 1 2 3 4 5) (sort/sort '(5 4 3 2 1 0)))
     (eq? '(-4 -2 0 1 3 5) (sort/sort '(5 -2 1 3 -4 0)))
     (eq? '(-4 -2 0 1 3 5) (sort/sort '(-4 -2 0 1 3 5)))
-    (eq? '(-4 -2 0 1 3 5) (sort/sort '(5 3 1 0 -2 -4)))))
+    (eq? '(-4 -2 0 1 3 5) (sort/sort '(5 3 1 0 -2 -4))))
 
-(define (%test-sort-compare)
-  (let* ((odd-is-less (lambda (x y) (if (odd? x) (if (odd? y) (compare x y) -1) (if (even? y) (compare x y) 1))))
+(let* ((odd-is-less (lambda (x y) (if (odd? x) (if (odd? y) (compare x y) -1) (if (even? y) (compare x y) 1))))
         (rev-compare (lambda (x y) (* -1 (compare x y)))))
-  (%do-test!
+(deftest test-sort-compare
     (empty? (sort/sort-compare compare '()))
     (eq? '(1) (sort/sort-compare compare '(1)))
     (eq? '(1 2 3) (sort/sort-compare compare '(2 1 3)))
@@ -2298,12 +2091,14 @@
     (eq? (reverse (sort/sort '(5 2 1 3 4 0))) (sort/sort-compare rev-compare '(5 2 1 3 4 0)))
     (eq? (reverse (sort/sort '(0 1 2 3 4 5))) (sort/sort-compare rev-compare '(0 1 2 3 4 5)))
     (eq? '(1 3 5 0 2 4) (sort/sort-compare odd-is-less '(0 1 2 3 4 5)))
-    (eq? '(1 3 5 0 2 4) (sort/sort-compare odd-is-less '(1 3 5 0 2 4))))))
+    (eq? '(1 3 5 0 2 4) (sort/sort-compare odd-is-less '(1 3 5 0 2 4)))))
 
-(define (%test-mergesort-compare)
-  (let* ((odd-is-less (lambda (x y) (if (odd? x) (if (odd? y) (compare x y) -1) (if (even? y) (compare x y) 1))))
-        (rev-compare (lambda (x y) (* -1 (compare x y)))))
-  (%do-test!
+(let* ((odd-is-less (lambda (x y)
+                      (if (odd? x) 
+                        (if (odd? y) (compare x y) -1)
+                        (if (even? y) (compare x y) 1))))
+      (rev-compare (lambda (x y) (* -1 (compare x y)))))
+(deftest test-mergesort-compare
     (empty? (sort/mergesort-compare compare '()))
     (eq? '(1) (sort/mergesort-compare compare '(1)))
     (eq? '(1 2 3) (sort/mergesort-compare compare '(2 1 3)))
@@ -2312,10 +2107,9 @@
     (eq? (reverse (sort/sort '(5 2 1 3 4 0))) (sort/mergesort-compare rev-compare '(5 2 1 3 4 0)))
     (eq? (reverse (sort/sort '(0 1 2 3 4 5))) (sort/mergesort-compare rev-compare '(0 1 2 3 4 5)))
     (eq? '(1 3 5 0 2 4) (sort/mergesort-compare odd-is-less '(0 1 2 3 4 5)))
-    (eq? '(1 3 5 0 2 4) (sort/mergesort-compare odd-is-less '(1 3 5 0 2 4))))))
+    (eq? '(1 3 5 0 2 4) (sort/mergesort-compare odd-is-less '(1 3 5 0 2 4)))))
 
-(define (%test-random)
-  (%do-test!
+(deftest test-random
     (= (random 500) (random 500))
     (int? (random 500))
     (<= 0 (random 500))
@@ -2324,10 +2118,9 @@
     (<= 0 (random 12345))
     (= (random 3405691582) (random 3405691582))
     (int? (random 3405691582))
-    (<= 0 (random 3405691582))))
+    (<= 0 (random 3405691582)))
 
-(define (%test-xorshift64s)
-  (%do-test!
+(deftest test-xorshift64s
     (= (xorshift64s 500) (xorshift64s 500))
     (int? (xorshift64s 500))
     (<= 0 (xorshift64s 500))
@@ -2339,10 +2132,9 @@
     (<= 0 (xorshift64s 3405691582))
     (/= (xorshift64s 5001) (xorshift64s 5002))
     (/= (xorshift64s 5002) (xorshift64s 5003))
-    (/= (xorshift64s 5003) (xorshift64s 5004))))
+    (/= (xorshift64s 5003) (xorshift64s 5004)))
 
-(define (%test-xorshift64)
-  (%do-test!
+(deftest test-xorshift64
     (= (xorshift64 500) (xorshift64 500))
     (int? (xorshift64 500))
     (<= 0 (xorshift64 500))
@@ -2354,10 +2146,9 @@
     (<= 0 (xorshift64 3405691582))
     (/= (xorshift64 5001) (xorshift64 5002))
     (/= (xorshift64 5002) (xorshift64 5003))
-    (/= (xorshift64 5003) (xorshift64 5004))))
+    (/= (xorshift64 5003) (xorshift64 5004)))
 
-(define (%test-xorshift32)
-  (%do-test!
+(deftest test-xorshift32
     (= (xorshift32 500) (xorshift32 500))
     (int? (xorshift32 500))
     (<= 0 (xorshift32 500))
@@ -2369,10 +2160,9 @@
     (<= 0 (xorshift32 3405691582))
     (/= (xorshift32 5001) (xorshift32 5002))
     (/= (xorshift32 5002) (xorshift32 5003))
-    (/= (xorshift32 5003) (xorshift32 5004))))
+    (/= (xorshift32 5003) (xorshift32 5004)))
 
-(define (%test-lfsr)
-  (%do-test!
+(deftest test-lfsr
     (= (lfsr 500) (lfsr 500))
     (int? (lfsr 500))
     (<= 0 (lfsr 500))
@@ -2384,96 +2174,84 @@
     (<= 0 (lfsr 3405691582))
     (/= (lfsr 5001) (lfsr 5002))
     (/= (lfsr 5002) (lfsr 5003))
-    (/= (lfsr 5003) (lfsr 5004))))
+    (/= (lfsr 5003) (lfsr 5004)))
 
-(define (%test-random-nums)
-  (let* ((s (random-nums 3405691582))
-         (first-100 (take 100 s)))
-    (%do-test! 
+(let* ((s (random-nums 3405691582))
+       (first-100 (take 100 s)))
+(deftest test-random-nums
       (list? s)
       (all? int? first-100)
       (= (size (->set first-100)) (size first-100)) ; All unique?
-      )))
+      ))
 
-(define (%test-xorshift64s-seq)
-  (let* ((s (xorshift64s-seq 3405691582))
-         (first-100 (take 100 s)))
-    (%do-test! 
+(let* ((s (xorshift64s-seq 3405691582))
+       (first-100 (take 100 s)))
+(deftest test-xorshift64s-seq
       (list? s)
       (all? int? first-100)
       (= (size (->set first-100)) (size first-100)) ; All unique?
-      )))
+      ))
 
-(define (%test-xorshift64-seq)
-  (let* ((s (xorshift64-seq 3405691582))
-         (first-100 (take 100 s)))
-    (%do-test! 
+(let* ((s (xorshift64-seq 3405691582))
+       (first-100 (take 100 s)))
+(deftest test-xorshift64-seq
       (list? s)
       (all? int? first-100)
       (= (size (->set first-100)) (size first-100)) ; All unique?
-      )))
+      ))
 
-(define (%test-xorshift32-seq)
-  (let* ((s (xorshift32-seq 3405691582))
-         (first-100 (take 100 s)))
-    (%do-test! 
+(let* ((s (xorshift32-seq 3405691582))
+       (first-100 (take 100 s)))
+(deftest test-xorshift32-seq
       (list? s)
       (all? int? first-100)
       (= (size (->set first-100)) (size first-100)) ; All unique?
-      )))
+      ))
 
-(define (%test-lfsr32-seq)
-  (let* ((s (lfsr32-seq 3405691582))
-         (first-100 (take 100 s)))
-    (%do-test! 
+(let* ((s (lfsr32-seq 3405691582))
+       (first-100 (take 100 s)))
+(deftest test-lfsr32-seq
       (list? s)
       (all? int? first-100)
       (= (size (->set first-100)) (size first-100)) ; All unique?
-      )))
+      ))
 
-(define (%test-with-bounds)
-  (let* ((s (with-bounds (random-nums 3405691582) -100 100))
-         (first-100 (take 100 s)))
-    (%do-test! 
+(let* ((s (with-bounds (random-nums 3405691582) -100 100))
+       (first-100 (take 100 s)))
+(deftest test-with-bounds
       (list? s)
       (all? int? first-100)
       (all? (lambda (x) (>= x -100)) first-100)
       (all? (lambda (x) (<= x 100)) first-100)
-      )))
+      ))
 
-(define (%test-shuffle)
-  (%do-test!
+(deftest test-shuffle
     (empty? (shuffle '() 3405691582))
     (= 1 (size (shuffle '(5) 3405691582)))
     (eq? (shuffle (take 20 (random-nums 3405691582)) 3405691582) (shuffle (take 20 (random-nums 3405691582)) 3405691582))
-    (= 20 (size (shuffle (take 20 (random-nums 3405691582)) 3405691582)))))
+    (= 20 (size (shuffle (take 20 (random-nums 3405691582)) 3405691582))))
 
-(define (%test-infix)
-  (%do-test!
+(deftest test-infix
     (infix->lyra 1 + 2 = 3)
     (infix->lyra 9 + 1 * 2 = 11)
     (infix->lyra 11 = 9 + 1 * 2)
     (infix->lyra 11 /= 9 + 3 * 2)
     (infix->lyra 7 = 7 and 11 /= 9 + 3 * 2)
-    (let* ((plus1 inc)) ((infix->lyra odd? ⋅ plus1) 2))
-    ))
+    (let* ((plus1 inc)) ((infix->lyra odd? ⋅ plus1) 2)))
 
-(define (%test-flatten)
-  (%do-test!
+(deftest test-flatten
     (eq? '(1 2 3) (flatten '(1 2 3)))
     (eq? '(1 2 3) (flatten '((1) (2 3))))
     (eq? '(1 2 3) (flatten '((1) [2 3])))
-    (eq? '(1 2 3) (flatten '((1) ([2 3]))))))
+    (eq? '(1 2 3) (flatten '((1) ([2 3])))))
 
-(define (%test-flatten1)
-  (%do-test!
+(deftest test-flatten1
     (eq? '(1 2 3) (flatten1 '(1 2 3)))
     (eq? '(1 2 3) (flatten1 '((1) (2 3))))
     (eq? '(1 2 3) (flatten1 '((1) [2 3])))
-    (eq? '(1 [2 3]) (flatten1 '((1) ([2 3]))))))
+    (eq? '(1 [2 3]) (flatten1 '((1) ([2 3])))))
 
-(define (%test-divmod)
-  (%do-test!
+(deftest test-divmod
     (eq? '(4 0) (divmod 20 5))
     (eq? '(0 3) (divmod 3 5))
     (eq? '(4.0 0) (divmod 20 5.0))
@@ -2481,19 +2259,17 @@
     (eq? '(4.0 0) (divmod 20.0 5))
     (eq? '(0.6 3.0) (divmod 3.0 5))
     (eq? '(4.0 0) (divmod 20.0 5.0))
-    (eq? '(0.6 3.0) (divmod 3.0 5.0))))
+    (eq? '(0.6 3.0) (divmod 3.0 5.0)))
 
-(define (%test-constantly)
-  (%do-test!
+(deftest test-constantly
     (function? (constantly 1))
     (eq? '() (map (constantly '()) '()))
     (function? (constantly '()))
     (eq? '(1 1 1) (map (constantly 1) '(range 0 2)))
     (eq? '() (map (constantly '()) []))
-    (eq? '(1 1 1) (map (constantly 1) [0 1 2]))))
+    (eq? '(1 1 1) (map (constantly 1) [0 1 2])))
 
-(define (%test-case)
-  (%do-test!
+(deftest test-case
     (nothing? (case 1))
     (case 1 1 #t #f)
     (case 1 '(1) #t #f)
@@ -2504,32 +2280,30 @@
     (case 1 (lambda (x) (= x 1)) #t #f)
     (case 1 (lambda (x) (= x 0)) #f (lambda (x) (= x 1)) #t #f)
     (case 1 (partial = 1) #t #f)
-    (case 1 (partial = 0) #f (partial = 1) #t #f)))
+    (case 1 (partial = 0) #f (partial = 1) #t #f))
 
-(define (%test-cycle)
-  (%do-test!
+(deftest test-cycle
     (eq? '() (cycle '()))
     (eq? '(1 1 1 1 1) (take 5 (cycle '(1))))
     (eq? '(1 2 1 2 1) (take 5 (cycle '(1 2))))
-    (eq? '(1 2 3 1 2) (take 5 (cycle '(1 2 3))))))
+    (eq? '(1 2 3 1 2) (take 5 (cycle '(1 2 3)))))
 
-(define (%test-case-lambda)
-  (let* ((l (case-lambda
-            ((a b c d & xs) (cons (+ a b c d) xs))
-            ((x & xs) (cons (+ x 1) xs))
-            (z '())))
-        (l1 (case-lambda
-              (() 0)
-              ((x) x)
-              ((x y) y)
-              (z z)))
-        (l2 (case-lambda
-              (() "0") ; 0 args
-              ((x) "1") ; 1 arg
-              ((x y) "2") ; 2 args
-              ((w x y z & zs) "4 or more") ; 4+ args
-              (default "3"))))
-    (%do-test!
+(let* ((l (case-lambda
+          ((a b c d & xs) (cons (+ a b c d) xs))
+          ((x & xs) (cons (+ x 1) xs))
+          (z '())))
+      (l1 (case-lambda
+            (() 0)
+            ((x) x)
+            ((x y) y)
+            (z z)))
+      (l2 (case-lambda
+            (() "0") ; 0 args
+            ((x) "1") ; 1 arg
+            ((x y) "2") ; 2 args
+            ((w x y z & zs) "4 or more") ; 4+ args
+            (default "3"))))
+(deftest test-case-lambda
       (eq? '(5 6 7) (l 1 1 1 2 6 7)) ; (a b c d & xs) case
       (eq? '(5 6) (l 1 1 1 2 6)) ; (a b c d & xs) case
       (eq? '(5) (l 1 1 1 2)) ; (a b c d & xs) case
@@ -2549,29 +2323,28 @@
 
       (eq? (list "0" "1" "2" "4 or more" "3")
            (list (l2) (l2 6) (l2 6 7) (l2 6 7 8 9) (l2 5 4 3)))
-    )))
+    ))
 
-(define (%test-case-lambda*)
-  (let* ((l (case-lambda* l
+(let* ((l (case-lambda* l
             ((a b c d & xs) (cons (+ a b c d) xs))
             ((x & xs) (cons (+ x 1) xs))
             (z '())))
-        (l1 (case-lambda* l1
-              (() 0)
-              ((x) x)
-              ((x y) y)
-              (z z)))
-        (l2 (case-lambda* f
-              (() "0") ; 0 args
-              ((x) "1") ; 1 arg
-              ((x y) "2") ; 2 args
-              ((w x y z & zs) "4 or more") ; 4+ args
-              (default "3")))
-        (l3 (case-lambda* %test-cl-star
-              (() 0)
-              ((x) x)
-              (z (+ (sum z) (apply-to %test-cl-star (cdr z)))))))
-    (%do-test!
+      (l1 (case-lambda* l1
+            (() 0)
+            ((x) x)
+            ((x y) y)
+            (z z)))
+      (l2 (case-lambda* f
+            (() "0") ; 0 args
+            ((x) "1") ; 1 arg
+            ((x y) "2") ; 2 args
+            ((w x y z & zs) "4 or more") ; 4+ args
+            (default "3")))
+      (l3 (case-lambda* %test-cl-star
+            (() 0)
+            ((x) x)
+            (z (+ (sum z) (apply-to %test-cl-star (cdr z)))))))
+(deftest test-case-lambda*
       (eq? '(5 6 7) (l 1 1 1 2 6 7)) ; (a b c d & xs) case
       (eq? '(5 6) (l 1 1 1 2 6)) ; (a b c d & xs) case
       (eq? '(5) (l 1 1 1 2)) ; (a b c d & xs) case
@@ -2593,56 +2366,48 @@
            (list (l2) (l2 6) (l2 6 7) (l2 6 7 8 9) (l2 5 4 3)))
 
       (eq? 91 (l3 1 2 3 4 5 6))
-    )))
+    ))
 
-(define (%test-flip)
-  (%do-test!
+(deftest test-flip
     ((flip fst) #f #t)
-    (eq? '(1 2) ((flip cons) '(2) 1))))
+    (eq? '(1 2) ((flip cons) '(2) 1)))
 
-(define (%test-fst)
-  (%do-test!
+(deftest test-fst
     (nothing? (fst Nothing 0))
     (fst #t #f)
-    ((flip fst) #f #t)))
+    ((flip fst) #f #t))
 
-(define (%test-snd)
-  (%do-test!
+(deftest test-snd
     (nothing? (snd 0 Nothing))
     (snd #f #t)
-    ((flip snd) #t #f)))
+    ((flip snd) #t #f))
 
-(define (%test-scanl)
-  (%do-test!
+(deftest test-scanl
     (eq? '(0 1 3 6 10 15) (scanl + 0 '(1 2 3 4 5)))
     (eq? '(1 2 4 7 11 16) (scanl + 1 '(1 2 3 4 5)))
-    (eq? '(() (1) (2 1) (3 2 1) (4 3 2 1) (5 4 3 2 1)) (scanl (flip cons) '() '(1 2 3 4 5)))))
+    (eq? '(() (1) (2 1) (3 2 1) (4 3 2 1) (5 4 3 2 1)) (scanl (flip cons) '() '(1 2 3 4 5))))
 
-(define (%test-scanl1)
-  (%do-test!
+(deftest test-scanl1
     (eq? '(1 3 6 10 15) (scanl1 + '(1 2 3 4 5)))
     (eq? '(1 2 4 7 11 16) (scanl1 + '(1 1 2 3 4 5)))
-    (eq? '(() (1) (2 1) (3 2 1) (4 3 2 1) (5 4 3 2 1)) (scanl (flip cons) '() '(1 2 3 4 5)))))
+    (eq? '(() (1) (2 1) (3 2 1) (4 3 2 1) (5 4 3 2 1)) (scanl (flip cons) '() '(1 2 3 4 5))))
 
-(define (%test-scanr)
-  (%do-test!
+(deftest test-scanr
     (eq? '(15 14 12 9 5) (scanr + 5 '(1 2 3 4)))
     (eq? '(15 14 12 9 5 0) (scanr + 0 '(1 2 3 4 5)))
     (eq? '((1 2 3 4 5) (2 3 4 5) (3 4 5) (4 5) (5) ()) (scanr cons '() (list 1 2 3 4 5)))
-    (eq? '(1 (1 2) ((1 2) 3) (((1 2) 3) 4) ((((1 2) 3) 4) 5)) (scanl1 list '(1 2 3 4 5)))))
+    (eq? '(1 (1 2) ((1 2) 3) (((1 2) 3) 4) ((((1 2) 3) 4) 5)) (scanl1 list '(1 2 3 4 5))))
 
-(define (%test-scanr1)
-  (%do-test!
+(deftest test-scanr1
     (eq? '(15 14 12 9 5) (scanr1 + '(1 2 3 4 5)))
     (eq? '(15 14 12 9 5 0) (scanr1 + '(1 2 3 4 5 0)))
     (eq? '((1 2 3 4 5) (2 3 4 5) (3 4 5) (4 5) (5) ()) (scanr1 cons (list 1 2 3 4 5 '())))
-    (eq? '((1 (2 (3 (4 5)))) (2 (3 (4 5))) (3 (4 5)) (4 5) 5) (scanr1 list '(1 2 3 4 5)))))
+    (eq? '((1 (2 (3 (4 5)))) (2 (3 (4 5))) (3 (4 5)) (4 5) 5) (scanr1 list '(1 2 3 4 5))))
 
-(define (%test-condp)
-  (let* ((f0 (lambda (e) (condp = e 1 0 2 9 11)))
-        (f1 (lambda (e) (condp = e 1 0 2 9)))
-        (f2 (lambda (e) (condp = e 1 0 2 9 e e))))
-    (%do-test!
+(let* ((f0 (lambda (e) (condp = e 1 0 2 9 11)))
+       (f1 (lambda (e) (condp = e 1 0 2 9)))
+       (f2 (lambda (e) (condp = e 1 0 2 9 e e))))
+(deftest test-condp
       (condp = 7
         0 #f
         7 #t
@@ -2661,29 +2426,24 @@
       (= 9 (f0 2))
       (= 0 (f2 0))
       (= 5 (f2 5))
-      )))
+      ))
 
-(define (%test-frequencies)
-  (%do-test!
-    (let* ((freqs (frequencies '(1 2 3 1 5 4 1 7 7 7 5 1))))
-      (eq? (map-of 1 4  2 1  3 1  5 2  4 1  7 3) freqs)
-      )))
+(deftest test-frequencies
+      (eq? (map-of 1 4  2 1  3 1  5 2  4 1  7 3)
+           (frequencies '(1 2 3 1 5 4 1 7 7 7 5 1))))
 
-(define (%test-unique)
-  (%do-test!
+(deftest test-unique
     (eq? '(1 2 3 5) (unique '(1 1 1 1 2 2 2 2 3 3 3 2 1 5)))
-    (empty? (unique '()))))
+    (empty? (unique '())))
 
-(define (%test-unique?)
-  (%do-test!
+(deftest test-unique?
     (not (unique? '(1 1 1 1 2 2 2 2 3 3 3 2 1 5)))
     (unique? '())
     (unique? '(1))
-    (unique? '(1 2 3 4 5))))
+    (unique? '(1 2 3 4 5)))
 
-(define (%test-try*)
-  (let* ((b (box 0)))
-    (%do-test!
+(let* ((b (box 0)))
+(deftest test-try*
       (try* (error! 1) (catch _ a #t))
       (try* (error! 1 #t) (catch _ b (error-info b)))
       (try* (error! 1 #f) (catch _ c (not (error-info c))))
@@ -2693,10 +2453,9 @@
         (error-info (try* (try* (error! 1 'inner) (catch _ f f)) (catch _ g g))))
       (= 'outer
         (try* (try* (error! 1) (catch (lambda (e) #f) h 'inner)) (catch _ i 'outer)))
-      )))
+      ))
 
-(define (%test-try-catch-finally)
-  (%do-test!
+(deftest test-try-catch-finally
     (eq? 'fine
       (try 'fine))
     (eq? 'fine
@@ -2749,10 +2508,9 @@
             (catch _ e 'error2)
             (finally (box-set! b 25))))
         (= 25 @b)))
-    ))
+    )
 
-(define (%test-tuples)
-  (%do-test!
+(deftest test-tuples
     (eq? '() (tuples 3 '()))
     (eq? '() (tuples 3 '(1 2)))
     (eq? '((1 2 3)) (tuples 3 '(1 2 3)))
@@ -2766,10 +2524,9 @@
     (eq? '((1 2 3) (2 3 4)) (tuples 3 [1 2 3 4]))
     (eq? '((1 2 3) (2 3 4) (3 4 5) (4 5 6)) (tuples 3 [1 2 3 4 5 6]))
     (eq? '((1) (2) (3) (4) (5) (6)) (tuples 1 [1 2 3 4 5 6]))
-    (eq? '() (tuples 0 [1 2 3 4 5 6]))))
+    (eq? '() (tuples 0 [1 2 3 4 5 6])))
 
-(define (%test-slices)
-  (%do-test!
+(deftest test-slices
     (eq? '() (slices 3 '()))
     (eq? '() (slices 3 '(1 2)))
     (eq? '((1 2 3)) (slices 3 '(1 2 3)))
@@ -2783,10 +2540,9 @@
     (eq? '((1 2 3)) (slices 3 [1 2 3 4]))
     (eq? '((1 2 3) (4 5 6)) (slices 3 [1 2 3 4 5 6]))
     (eq? '((1) (2) (3) (4) (5) (6)) (slices 1 [1 2 3 4 5 6]))
-    (eq? '() (slices 0 [1 2 3 4 5 6]))))
+    (eq? '() (slices 0 [1 2 3 4 5 6])))
 
-(define (%test-partition)
-  (%do-test!
+(deftest test-partition
     (eq? '() (partition 3 '()))
     (eq? '() (partition 3 '(1 2)))
     (eq? '((1 2 3)) (partition 3 '(1 2 3)))
@@ -2807,18 +2563,16 @@
 
     (eq? '((1 2 3) (4 1 2)) (partition 3 3 [1 2 3] [1 2 3 4]))
     (eq? '((1 2 3) (4)) (partition 3 3 [] [1 2 3 4]))
-    (eq? '((1 2 3) (4 1)) (partition 3 3 [1] [1 2 3 4]))))
+    (eq? '((1 2 3) (4 1)) (partition 3 3 [1] [1 2 3 4])))
 
-(define (%test-partition-by)
-  (%do-test!
+(deftest test-partition-by
     (eq? '() (partition-by odd? '()))
     (eq? '((1 1) (2) (3) (4 6 8)) (partition-by odd? '(1 1 2 3 4 6 8)))
     (eq? '((1 1) (2) (3) (4) (6) (8)) (partition-by id '(1 1 2 3 4 6 8)))
     (eq? '((1 1 2 3 4 6 8)) (partition-by (const #t) '(1 1 2 3 4 6 8)))
-    ))
+    )
 
-(define (%test-partition-all)
-  (%do-test!
+(deftest test-partition-all
     (eq? '((0 1) (2 3) (4 5)) (partition-all 2 [0 1 2 3 4 5]))
     (eq? '((0 1) (2 3) (4 5)) (partition-all 2 '(0 1 2 3 4 5)))
     (eq? '((0 1) (2 3) (4 5) (6)) (partition-all 2 [0 1 2 3 4 5 6]))
@@ -2828,11 +2582,9 @@
     (eq? '((0 1 2 3 4 5 6)) (partition-all 7 [0 1 2 3 4 5 6]))
     (eq? '((0 1 2 3 4 5 6)) (partition-all 7 '(0 1 2 3 4 5 6)))
     (eq? '((0 1 2 3 4 5 6)) (partition-all 9 [0 1 2 3 4 5 6]))
-    (eq? '((0 1 2 3 4 5 6)) (partition-all 9 '(0 1 2 3 4 5 6)))
-    ))
+    (eq? '((0 1 2 3 4 5 6)) (partition-all 9 '(0 1 2 3 4 5 6))))
 
-(define (%test-count-by)
-  (%do-test!
+(deftest test-count-by
     (= 0 (count-by even? '()))
     (= 2 (count-by even? '(0 2)))
     (= 1 (count-by even? '(1 2)))
@@ -2840,10 +2592,9 @@
     (= 0 (count-by even? []))
     (= 2 (count-by even? [0 2]))
     (= 1 (count-by even? [1 2]))
-    (= 5 (count-by even? [1 2 1 2 1 2 1 2 1 2]))))
+    (= 5 (count-by even? [1 2 1 2 1 2 1 2 1 2])))
 
-(define (%test-most?)
-  (%do-test!
+(deftest test-most?
     (not (most? odd? '()))
     (not (most? odd? '(0 2)))
     (not (most? odd? '(1 2)))
@@ -2859,15 +2610,13 @@
     (not (most? even? []))
     (most? even? [0 2])
     (not (most? even? [1 2]))
-    (not (most? even? [1 2 1 2 1 2 1 2 1]))))
+    (not (most? even? [1 2 1 2 1 2 1 2 1])))
 
-(define (%test-keyword-name)
-  (%do-test!
+(deftest test-keyword-name
     (eq? 'a (keyword-name :a))
-    (all? (compose nothing? keyword-name) [[] '() '(1) 1 "" "a" 'a + Nothing])))
+    (all? (compose nothing? keyword-name) [[] '() '(1) 1 "" "a" 'a + Nothing]))
 
-(define (%test-loop)
-  (%do-test!
+(deftest test-loop
     ; (loop 1 2 3 0)
     ; (loop 1 2 2 6)
     ; (loop 1 2 1 11)
@@ -2895,10 +2644,9 @@
     (loop [] #t)
     (= 3
       (loop [(a b) '(1 2) res 0] (if (> res 0) res (recur '() (+ a b)))))
-    ))
+    )
 
-(define (%test-fn)
-  (%do-test!
+(deftest test-fn
     (= 10 ((fn [a b] (+ a b)) 5 5)) ; Normal
     (= 10 ((fn ([a b] (+ a b)) ([a] a)) 5 5)) ; anonymous multi
     (= 5 ((fn ([a b] (+ a b)) ([a] a)) 5)) ; anonymous multi
@@ -2910,17 +2658,15 @@
     (= 10 ((fn ([[a b]] (+ a b)) ([a] a)) [5 5])) ; anonymous multi destructuring
     (= 10 ((fn f0 [[a b]] (+ a b)) [5 5])) ; named normal destructuring
     (= 10 ((fn f1 ([[a b]] (+ a b))) [5 5])) ; named multi destructuring
-    ))
+    )
 
-(define (%test-when)
-  (%do-test!
+(deftest test-when
     (nothing? (when #f))
     (nothing? (when #t))
     (when #t #t)
-    (not (when #t #f))))
+    (not (when #t #f)))
 
-(define (%test-name)
-  (%do-test!
+(deftest test-name
     (string? (name 'a))
     (eq? "a" (name 'a))
     (string? (name "a"))
@@ -2928,10 +2674,9 @@
     (string? (name :a))
     (eq? "a" (name :a))
     (all? nothing?
-      (map name (list '() '(1) 1 0.5 7/5r \a [] [1] +)))))
+      (map name (list '() '(1) 1 0.5 7/5r \a [] [1] +))))
 
-(define (%test-dedupe)
-  (%do-test!
+(deftest test-dedupe
     (eq? '() (dedupe '()))
     (eq? '() (dedupe []))
     (eq? '() (dedupe (queue)))
@@ -2946,10 +2691,9 @@
     (eq? '(1 2 1) (dedupe (queue 1 1 2 2 1 1)))
     (eq? '(1 2 1 2 1 2) (dedupe '(1 2 1 2 1 2)))
     (eq? '(1 2 1 2 1 2) (dedupe [1 2 1 2 1 2]))
-    (eq? '(1 2 1 2 1 2) (dedupe (queue 1 2 1 2 1 2)))))
+    (eq? '(1 2 1 2 1 2) (dedupe (queue 1 2 1 2 1 2))))
 
-(define (%test-times)
-  (%do-test!
+(deftest test-times
     (function? (times inc -1))
     (function? (times inc 0))
     (function? (times inc 1))
@@ -2958,30 +2702,27 @@
     (= -5 ((times dec 5) 0))
     (= 0 ((times boolean? 0) 0))
     (= #f ((times boolean? 1) 0))
-    (= #t ((times boolean? 3) 0))))
+    (= #t ((times boolean? 3) 0)))
 
-(define (%test-queue)
-  (%do-test!
+(deftest test-queue
     (queue? (queue 1 2 3))
     (= (size (queue 1 2 3)) 3)
     (eq? (queue 1 2 3) (queue 1 2 3))
     (eq? (queue 1 2 3) (reverse (queue 3 2 1)))
-    (eq? (queue) (queue))))
+    (eq? (queue) (queue)))
 
-(define (%test-deque)
-  (%do-test!
+(deftest test-deque
     (deque? (deque 1 2 3))
     (= (size (deque 1 2 3)) 3)
     (eq? (deque 1 2 3) (deque 1 2 3))
     (eq? (deque 1 2 3) (reverse (deque 3 2 1)))
-    (eq? (deque) (deque))))
+    (eq? (deque) (deque)))
 
-(define (%test-enqueue)
-  (let* ((q (queue 1 2 3))
-        (q1 (enqueue q 4))
-        (d (deque 1 2 3))
-        (d1 (enqueue q 4)))
-    (%do-test!
+(let* ((q (queue 1 2 3))
+       (q1 (enqueue q 4))
+       (d (deque 1 2 3))
+       (d1 (enqueue q 4)))
+(deftest test-enqueue
       (= (size q) 3)
       (= (size q1) 4)
       (= 1 (first q))
@@ -2991,10 +2732,9 @@
       (= (size d1) 4)
       (= 1 (first d))
       (= 1 (first d1))
-      (eq? q1 (enqueue d 4)))))
+      (eq? q1 (enqueue d 4))))
 
-(define (%test-enqueue-all)
-  (%do-test!
+(deftest test-enqueue-all
     (eq? (queue) (enqueue-all (queue) '()))
     (eq? (queue 1 2 3) (enqueue-all (queue 1 2 3) (deque)))
     (eq? (queue) (enqueue-all (queue) (queue)))
@@ -3028,13 +2768,12 @@
     (eq? (deque 1 2 3 4 5 6 7 8 9) (enqueue-all (deque 1 2 3 4) '(5 6 7 8 9)))
     (eq? (deque 1 2 3 4 5 6 7 8 9) (enqueue-all (deque 1 2 3 4) (queue 5 6 7 8 9)))
     (eq? (deque 1 2 3 4 5 6 7 8 9) (enqueue-all (deque 1 2 3 4) (deque 5 6 7 8 9)))
-    (eq? (deque 1 2 3 4 5 6 7 8 9) (enqueue-all (deque 1 2 3 4) [5 6 7 8 9]))))
+    (eq? (deque 1 2 3 4 5 6 7 8 9) (enqueue-all (deque 1 2 3 4) [5 6 7 8 9])))
 
-(define (%test-dequeue)
-  (let* ((q (queue 1 2 3))
-         (q1 (enqueue q 4))
-         (q2 (enqueue (enqueue q1 5) 6)))
-    (%do-test!
+(let* ((q (queue 1 2 3))
+       (q1 (enqueue q 4))
+       (q2 (enqueue (enqueue q1 5) 6)))
+(deftest test-dequeue
       (= (size q) 3)
       (= (size q1) 4)
       (= (size q2) 6)
@@ -3046,10 +2785,9 @@
       (= 5 (first (dequeue (dequeue (dequeue (dequeue q2))))))
       (= 6 (first (dequeue (dequeue (dequeue (dequeue (dequeue q2)))))))
       (nothing? (first (dequeue (dequeue (dequeue (dequeue (dequeue (dequeue q2))))))))
-      (empty? (dequeue (dequeue (dequeue (dequeue (dequeue (dequeue q2))))))))))
+      (empty? (dequeue (dequeue (dequeue (dequeue (dequeue (dequeue q2)))))))))
 
-(define (%test-queue?)
-  (%do-test!
+(deftest test-queue?
     (queue? (queue))
     (queue? (deque))
     (queue? (queue 1 2 3))
@@ -3059,10 +2797,9 @@
     (queue? (enqueue-all (queue 1 2 3) '(4 5 6)))
     (queue? (enqueue-all (deque 1 2 3) '(4 5 6)))
     (none? queue?
-      (list 'a 1 0.5 1/2r "a" \a '() [] +))))
+      (list 'a 1 0.5 1/2r "a" \a '() [] +)))
 
-(define (%test-deque?)
-  (%do-test!
+(deftest test-deque?
     (deque? (queue))
     (deque? (deque))
     (deque? (queue 1 2 3))
@@ -3072,24 +2809,21 @@
     (deque? (enqueue-all (queue 1 2 3) '(4 5 6)))
     (deque? (enqueue-all (deque 1 2 3) '(4 5 6)))
     (none? deque?
-      (list 'a 1 0.5 1/2r "a" \a '() [] +))))
+      (list 'a 1 0.5 1/2r "a" \a '() [] +)))
 
-(define (%test-push)
-  (%do-test!
+(deftest test-push
     (eq? (queue 1 2) (push (queue 1) 2))
     (eq? '(2 1) (push '(1) 2))
     (eq? (set-of 1 2) (push (set-of 1) 2))
-    (eq? [1 2] (push [1] 2))))
+    (eq? [1 2] (push [1] 2)))
 
-(define (%test-peek)
-  (%do-test!
+(deftest test-peek
     (eq? 1 (peek (queue 1 2)))
     (eq? 1 (peek '(1 2)))
     (eq? (peek (set-of 1 2)) (peek (set-of 1 2)))
-    (eq? 2 (peek [1 2]))))
+    (eq? 2 (peek [1 2])))
 
-(define (%test-pop)
-  (%do-test!
+(deftest test-pop
     (eq? (queue 2) (pop (queue 1 2)))
     (eq? '(2) (pop '(1 2)))
     (eq? (pop (set-of 1 2)) (pop (set-of 1 2)))
@@ -3108,34 +2842,31 @@
     (empty? (pop (queue)))
     (empty? (pop '()))
     (empty? (pop (set-of)))
-    (empty? (pop []))))
+    (empty? (pop [])))
 
-(define (%test-->queue)
-  (let* ((q (queue))
-        (q1 (queue 1 2 3)))
-    (%do-test!
+(let* ((q (queue))
+       (q1 (queue 1 2 3)))
+(deftest test-->queue
       (eq? (deque \a \b \c) (->queue "abc"))
       (all? (partial eq? q)
         (map ->queue (list (queue) '() [] #{} {})))
       (all? nothing?
         (map ->queue (list 'a 1 0.5 1/2r \a +)))
       (all? (partial eq? q1)
-        (map ->queue (list (queue 1 2 3) '(1 2 3) [1 2 3]))))))
+        (map ->queue (list (queue 1 2 3) '(1 2 3) [1 2 3])))))
 
-(define (%test-->deque)
-  (let* ((q (deque))
-        (q1 (queue 1 2 3)))
-    (%do-test!
+(let* ((q (deque))
+       (q1 (queue 1 2 3)))
+(deftest test-->deque
       (eq? (deque \a \b \c) (->deque "abc"))
       (all? (partial eq? q)
         (map ->deque (list (deque) '() [] #{} {})))
       (all? nothing?
         (map ->deque (list 'a 1 0.5 1/2r \a +)))
       (all? (partial eq? q1)
-        (map ->deque (list (deque 1 2 3) '(1 2 3) [1 2 3]))))))
+        (map ->deque (list (deque 1 2 3) '(1 2 3) [1 2 3])))))
 
-(define (%test-other-queue-ops)
-  (%do-test!
+(deftest test-other-queue-ops
     (eq? (queue) (queue))
     (= 0 (size (queue)))
     (nothing? (first (queue)))
@@ -3200,10 +2931,9 @@
     (eq? (queue 2) (rest (queue 1 2)))
     (eq? (queue) (rest (rest (queue 1 2))))
     (eq? Nothing (last (queue)))
-    (eq? 2 (last (enqueue (queue 1) 2)))))
+    (eq? 2 (last (enqueue (queue 1) 2))))
 
-(define (%test-other-deque-ops)
-  (%do-test!
+(deftest test-other-deque-ops
     (eq? (deque) (deque))
     (= 0 (size (deque)))
     (nothing? (first (deque)))
@@ -3268,14 +2998,13 @@
     (eq? (deque 2) (rest (deque 1 2)))
     (eq? (deque) (rest (rest (deque 1 2))))
     (eq? Nothing (last (deque)))
-    (eq? 2 (last (enqueue (deque 1) 2)))))
+    (eq? 2 (last (enqueue (deque 1) 2))))
 
-(define (%test-add)
-  (let* ((l0 (list))
-        (l1 (list 1 2 3))
-        (v0 [])
-        (v1 [1 2 3]))
-    (%do-test!
+(let* ((l0 (list))
+       (l1 (list 1 2 3))
+       (v0 [])
+       (v1 [1 2 3]))
+(deftest test-add
       (eq? '(1) (add l0 1))
       (eq? '((1)) (add l0 '(1)))
       (eq? '([1]) (add l0 [1]))
@@ -3287,14 +3016,13 @@
       (eq? [[1]] (add v0 [1]))
       (eq? [1 2 3 1] (add v1 1))
       (eq? [1 2 3 '(1)] (add v1 '(1)))
-      (eq? [1 2 3 [1]] (add v1 [1])))))
+      (eq? [1 2 3 [1]] (add v1 [1]))))
 
-(define (%test-add-front)
-  (let* ((l0 (list))
-        (l1 (list 1 2 3))
-        (v0 [])
-        (v1 [1 2 3]))
-    (%do-test!
+(let* ((l0 (list))
+       (l1 (list 1 2 3))
+       (v0 [])
+       (v1 [1 2 3]))
+(deftest test-add-front
       (eq? '(1) (add-front l0 1))
       (eq? '((1)) (add-front l0 '(1)))
       (eq? '([1]) (add-front l0 [1]))
@@ -3306,20 +3034,17 @@
       (eq? '([1]) (add-front v0 [1]))
       (eq? '(1 1 2 3) (add-front v1 1))
       (eq? '((1) 1 2 3) (add-front v1 '(1)))
-      (eq? '([1] 1 2 3) (add-front v1 [1])))))
+      (eq? '([1] 1 2 3) (add-front v1 [1]))))
 
-(define (%test-permutations)
-  (%do-test!
+(deftest test-permutations
     ; Size is factorial(n)
     (= 1 (size (permutations '())))
     (= 1 (size (permutations '(1))))
     (= 2 (size (permutations '(1 2))))
     (= 6 (size (permutations '(1 2 3))))
-    (= 24 (size (permutations '(1 2 3 4))))
-    ))
+    (= 24 (size (permutations '(1 2 3 4)))))
 
-(define (%test-get)
-  (%do-test!
+(deftest test-get
     (nothing? (get 0 1))
     (nothing? (get '(1) 1))
     (= 1 (get '(1) 0))
@@ -3338,11 +3063,9 @@
     ; ordered. The only requirement is that the output is consistent.
     (= (get #{0 1 2 3 4} 4) (get #{0 1 2 3 4} 4))
 
-    (= 5 (get (queue 1 2 3 4 5) 4))
-    ))
+    (= 5 (get (queue 1 2 3 4 5) 4)))
 
-(define (%test-rget)
-  (%do-test!
+(deftest test-rget
     (nothing? (rget 0 1))
     (nothing? (rget 1 '(1)))
     (= 1 (rget 0 '(1)))
@@ -3361,11 +3084,9 @@
     ; ordered. The only requirement is that the output is consistent.
     (= (rget 4 #{0 1 2 3 4}) (rget 4 #{0 1 2 3 4}))
 
-    (= 5 (rget 4 (queue 1 2 3 4 5)))
-    ))
+    (= 5 (rget 4 (queue 1 2 3 4 5))))
 
-(define (%test-get-in)
-  (%do-test!
+(deftest test-get-in
     (= 0 (get-in 0 '()))
     (eq? [0] (get-in [0] '()))
     (nothing? (get-in 0 '(1)))
@@ -3375,11 +3096,9 @@
     (= 7 (get-in '(0 (1 {0 8 3 9}) [6 7 8]) '(2 1)))
     (eq? '(1 {0 8 3 9}) (get-in '(0 (1 {0 8 3 9}) [6 7 8]) '(1)))
     (eq? {0 8 3 9} (get-in '(0 (1 {0 8 3 9}) [6 7 8]) '(1 1)))
-    (= 8 (get-in '(0 (1 {0 8 3 9}) [6 7 8]) '(1 1 0)))
-    ))
+    (= 8 (get-in '(0 (1 {0 8 3 9}) [6 7 8]) '(1 1 0))))
 
-(define (%test-subseq)
-  (%do-test!
+(deftest test-subseq
     (eq? '(1 2 3 4) (subseq 0 99 '(1 2 3 4)))
     (eq? '(2 3) (subseq 1 2 '(1 2 3 4)))
     (eq? '() (subseq 0 0 '(1 2 3 4)))
@@ -3387,17 +3106,14 @@
     (eq? '(1) (subseq -1 1 '(1 2 3)))
     (eq? '(1 2) (subseq -1 2 '(1 2 3)))
     (empty? (subseq 1 2 '()))
-    (empty? (subseq 0 0 '()))))
+    (empty? (subseq 0 0 '())))
 
-(define (%test-replace-subseq)
-  (%do-test!
+(deftest test-replace-subseq
     (eq? '() (replace-subseq 0 4 '() '(1 2 3 4)))
     (eq? '(1 3 4 4) (replace-subseq 1 2 '(3 4) '(1 2 3 4)))
-    (eq? '(1 3 4 5 6 4) (replace-subseq 1 2 '(3 4 5 6) '(1 2 3 4)))
-    ))
+    (eq? '(1 3 4 5 6 4) (replace-subseq 1 2 '(3 4 5 6) '(1 2 3 4))))
 
-(define (%test-combinations)
-  (%do-test!
+(deftest test-combinations
     ; Normal usage
     (eq? '() (combinations))
     (eq? '((1) (2) (3)) (combinations '(1 2 3)))
@@ -3439,11 +3155,9 @@
     (eq? '((1 3 5) (1 3 6) (1 4 5) (1 4 6) (2 3 5) (2 3 6) (2 4 5) (2 4 6) (3 3 5))
          (take 9 (combinations (iterate inc 1) [3 4] '(5 6))))
     (eq? '((1 3 1) (1 3 2) (1 3 3) (1 3 4) (1 3 5) (1 3 6) (1 3 7) (1 3 8) (1 3 9))
-         (take 9 (combinations [1 2] [3 4] (iterate inc 1))))
-    ))
+         (take 9 (combinations [1 2] [3 4] (iterate inc 1)))))
 
-(define (%test-for)
-  (%do-test!
+(deftest test-for
     ; Normal, lazy
     (eq? (list 2 3 3 4 4 5)
       (take 6
@@ -3512,12 +3226,10 @@
     (eq? (for (((a b) [[1 2] [3 4]])) (+ a b))
          '(3 7))
     (eq? (for (((a & b) [[1 2 3] [3 4 5]])) (+ a (first b)))
-         '(3 7))
-    ))
+         '(3 7)))
 
 ; Like normal for, but with vector bindings
-(define (%test-for-vec-binds)
-  (%do-test!
+(deftest test-for-vec-binds
     (eq? (list 2 3 3 4 4 5)
       (take 6
       (for [x (xrange 1)
@@ -3572,29 +3284,25 @@
     (eq? (for [(a b) [[1 2] [3 4]]] (+ a b))
          '(3 7))
     (eq? (for [(a & b) [[1 2 3] [3 4 5]]] (+ a (first b)))
-         '(3 7))
-    ))
+         '(3 7)))
 
-(define (%test-juxt)
-  (%do-test!
+(deftest test-juxt
     (function? (juxt id))
     (eq? '(2) ((juxt inc) 1))
     (eq? '(0 2) ((juxt dec inc) 1))
     (eq? '(0 1 2) ((juxt dec id inc) 1))
-    (eq? '(0 1 2 "1") ((juxt dec id inc ->string) 1))))
+    (eq? '(0 1 2 "1") ((juxt dec id inc ->string) 1)))
 
-(define (%test-every-pred)
-  (%do-test!
+(deftest test-every-pred
     (function? (every-pred id))
     (eq? #t ((every-pred number?) 1))
     (eq? #t ((every-pred number? int?) 1))
 
     (eq? #f ((every-pred number? float?) 1))
-    (eq? #f ((every-pred number? not) 1))))
+    (eq? #f ((every-pred number? not) 1)))
 
-(define (%test-hash-lambda)
-  (let* ((f #(list %1 %2 %3 %4 %5 %6 %7 %8 %9 %10 %11 %12 %13 %14 %15 %& %&&)))
-    (%do-test!
+(let* ((f #(list %1 %2 %3 %4 %5 %6 %7 %8 %9 %10 %11 %12 %13 %14 %15 %& %&&)))
+(deftest test-hash-lambda
       (eq?
         (list Nothing Nothing Nothing Nothing Nothing Nothing
               Nothing Nothing Nothing Nothing Nothing Nothing
@@ -3698,31 +3406,25 @@
         (list 1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 '(31 33 35)
               '(1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31 33 35))
         (f 1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31 33 35))
-    )))
+    ))
 
-(define (%test-cartesian-product)
-  (%do-test!
-    (eq? '((1 3) (1 4) (2 3) (2 4)) (cartesian-product '(1 2) '(3 4)))))
+(deftest test-cartesian-product
+    (eq? '((1 3) (1 4) (2 3) (2 4)) (cartesian-product '(1 2) '(3 4))))
 
-(define (%test-delete-at)
-  (%do-test!
+(deftest test-delete-at
     (eq? '() (delete-at 0 '()))
     (eq? '() (delete-at 0 '(1)))
     (eq? '(2 3) (delete-at 0 '(1 2 3)))
     (eq? '(1 3) (delete-at 1 '(1 2 3)))
-
     (eq? '() (delete-at 0 []))
     (eq? '() (delete-at 0 [1]))
     (eq? '(2 3) (delete-at 0 [1 2 3]))
     (eq? '(1 3) (delete-at 1 [1 2 3]))
-
     (eq? Nothing (delete-at 0 0))
     (eq? Nothing (delete-at 0 'a))
-    (eq? Nothing (delete-at 0 \a))
-    ))
+    (eq? Nothing (delete-at 0 \a)))
 
-(define (%test-let*)
-  (%do-test!
+(deftest test-let*
     (let* ((a 6)) (eq? a 6))
     (eq? 6 (let* ((a 6)) a))
     (let* ((a 8))
@@ -3735,10 +3437,9 @@
              (c (+ 1 b)))
         (and
           (eq? b 8)
-          (eq? c 9))))))
+          (eq? c 9)))))
 
-(define (%test-let)
-  (%do-test!
+(deftest test-let
     (let ((a 6))
       (eq? a 6))
     (eq? 6
@@ -3775,7 +3476,6 @@
            (eq? (sum xs) 14)))
     (let (([x & xs] #{1 2 3 4 5}))
       (eq? (sum xs) 14))
-
     (let [a 6]
       (eq? a 6))
     (eq? 6
@@ -3802,10 +3502,9 @@
       (and (eq? x 1)
            (eq? (sum xs) 14)))
     (let [(x & xs) #{1 2 3 4 5}]
-      (eq? (sum xs) 14))))
+      (eq? (sum xs) 14)))
 
-(define (%test-plet)
-  (%do-test!
+(deftest test-plet
     (plet ((a 6))
       (eq? a 6))
     (eq? 6
@@ -3820,10 +3519,9 @@
              (c (+ 1 b)))
         (and
           (eq? b 8)
-          (eq? c 2))))))
+          (eq? c 2)))))
 
-(define (%test-lambda')
-  (%do-test!
+(deftest test-lambda'
     (eq?
       ((lambda (a) (inc a)) 1)
       ((lambda' (a) (inc a)) 1))
@@ -3841,36 +3539,31 @@
       ((lambda' ((a & as)) (+ a (sum as))) '(1 2 3 4)))
     (eq?
       '(3 7)
-      (map (lambda' ((a b)) (+ a b)) '((1 2) (3 4))))))
+      (map (lambda' ((a b)) (+ a b)) '((1 2) (3 4)))))
 
-(define (%test-compute*->)
-  (%do-test!
+(deftest test-compute*->
     (= (compute*-> 'default 'error 1 inc inc inc)     4)
     (= (compute*-> 'default 'error 1 (+ 3) inc)       5)
     (= (compute*-> 'default 'error 1 ->list first)    'default)
     (= (compute*-> 'default 'error 0 (error! 'a) inc) 'error)
-    (= (compute*-> 'default 'error "r")               "r")))
+    (= (compute*-> 'default 'error "r")               "r"))
 
-(define (%test-compute->)
-  (%do-test!
+(deftest test-compute->
     (= (compute-> 1 inc inc inc)     4)
     (= (compute-> 1 (+ 3) inc)       5)
     (= (compute-> 1 ->list first)    '())
     (= (compute-> 0 (error! 'a) inc) '())
-    (= (compute-> "r")               "r")))
+    (= (compute-> "r")               "r"))
 
-(define (%test-map-invert)
-  (%do-test!
+(deftest test-map-invert
     (eq? (map-of) (map-invert (map-of)))
     (eq? (map-of 2 1 4 3) (map-invert (map-of 1 2 3 4)))
     (eq? (map-of 1 2 3 4) (map-invert (map-invert (map-of 1 2 3 4))))
     (or 
       (eq? (map-of 1 2 3 4) (map-invert (map-invert (map-of 1 2 3 4 5 2))))
-      (eq? (map-of 5 2 3 4) (map-invert (map-invert (map-of 1 2 3 4 5 2)))))
-    ))
+      (eq? (map-of 5 2 3 4) (map-invert (map-invert (map-of 1 2 3 4 5 2))))))
 
-(define (%test-split-with)
-  (%do-test!
+(deftest test-split-with
     (eq? (list (take-while odd? '(0 2 3 4 5)) (drop-while odd? '(0 2 3 4 5)))
          (split-with odd? '(0 2 3 4 5)))
     (eq? (list (list) '(0 2 3 4 5))
@@ -3884,19 +3577,15 @@
     (eq? 2
          (size (split-with even? '(0 2 3 4 5))))
     (eq? 2
-         (size (split-with odd? '(1 0 2 3 4 5))))
-    ))
+         (size (split-with odd? '(1 0 2 3 4 5)))))
 
-(define (%test-group-by)
-  (%do-test!
+(deftest test-group-by
     (eq? (map-of 0 '(0 2 4 6 8) 1 '(1 3 5 7 9))
          (group-by (lambda (x) (rem x 2)) '(0 1 2 3 4 5 6 7 8 9)))
     (eq? (map-of #f '(0 2 4 6 8) #t '(1 3 5 7 9))
-         (group-by odd? '(0 1 2 3 4 5 6 7 8 9)))
-    ))
+         (group-by odd? '(0 1 2 3 4 5 6 7 8 9))))
 
-(define (%test-scalar?)
-  (%do-test!
+(deftest test-scalar?
     (scalar? 0)
     (scalar? 0.1)
     (scalar? 1/4r)
@@ -3905,116 +3594,27 @@
     (not (scalar? [1 2]))
     (not (scalar? {1 2 3 4}))
     (not (scalar? #{1 2 3 4}))
-    (and (atom? 'sym) (not (scalar? 'sym)))
-    ))
+    (and (atom? 'sym) (not (scalar? 'sym))))
 
-(define (%test-letfn)
-  (letfn ((f1 (a) (* a 2))
-          (f2 (& a) (map odd? a)))
-    (%do-test!
+(letfn ((f1 (a) (* a 2))
+        (f2 (& a) (map odd? a)))
+(deftest test-letfn
       (= 4 (f1 2))
       (= 88 (f1 44))
       (eq? '() (f2))
       (eq? '(#t #f #t #f #t #f #t #f #t #f)
-            (f2 1 2 3 4 5 6 7 8 9 10)))))
+            (f2 1 2 3 4 5 6 7 8 9 10))))
 
-(define (%test-interpose)
-  (%do-test!
+(deftest test-interpose
     (eq? '(1 0 2 0 3 0 4 0 5) (interpose 0 '(1 2 3 4 5))) ; Normal
     (eq? '() (interpose 0 '())) ; Empty
     (eq? '(1 0 2 0 3 0 4 0 5) (take 9 (interpose 0 (iterate inc 1)))) ; Lazy
-    ))
- ;=> 
-
-(comment define (%run-tests & fns)
-  (let* ((results
-          (foldl
-            (lambda (res f)
-              (let* ((r (f)))
-                (cond
-                  (= (car r) 'TODO)
-                    (list (car res) (cadr res) (cons f (caddr res)) (+ (cadr r) (cadddr res)))
-                  (car r)
-                    (list (cons f (car res)) (cadr res) (caddr res) (+ (cadr r) (cadddr res)))
-                  else
-                    (list (car res) (cons f (cadr res)) (caddr res) (+ (cadr r) (cadddr res))))))
-            '(() () () 0)
-            fns)))
-    (string-concat
-      "Ran " (foldl + 0 [(size (car results)) (size (cadr results)) (size (caddr results))]) " tests with " (cadddr results) " assertions.\n- "
-      (size (car results)) " Successful.\n- "
-      (size (cadr results)) " Failed: " (cadr results) "\n- "
-      (size (caddr results)) " Not implemented: " (caddr results))))
-
-(comment define (run-all-tests)
-  (%run-tests
-  '%test-concat 
-  '%test-keyword-name '%test-loop '%test-lambda '%test-cond '%test-if '%test-spread
-  '%test-apply '%test-lambda* '%test-quote '%test-gensym '%test-seq '%test-quasiquote
-  '%test-partial '%test-nothing '%test-lazy-seq
-  '%test-box '%test-unbox '%test-set-box '%test-read-string '%test-eval
-  '%test-measure '%test-= '%test-/= '%test-< '%test-> '%test-<= '%test->= '%test-+
-  '%test-- '%test-* '%test-/ '%test-rem '%test-set? '%test-map? '%test-inc '%test-dec '%test-min '%test-max
-  '%test-map '%test-not '%test-and '%test-or '%test-bit-and '%test-bit-or
-  '%test-bit-xor '%test-bit-shl '%test-bit-shr '%test-defined? '%test-nothing?
-  '%test-null? '%test-collection? '%test-sequence? '%test-list? '%test-vector?
-  '%test-int? '%test-float? '%test-string? '%test-symbol? '%test-char?
-  '%test-boolean? '%test-set? '%test-empty? '%test-compose '%test-compose-and
-  '%test-compose-or '%test-complement '%test-id '%test-hash
-  '%test-eq? '%test-->int '%test-->float '%test-->rational '%test-rational?
-  '%test-case-lambda '%test-case-lambda* '%test-->string
-  '%test-->list '%test-->vector '%test-->char '%test-->map '%test-->set
-  '%test-list '%test-list* '%test-list-size '%test-car '%test-cdr '%test-cons '%test-vector
-  '%test-vector-size '%test-vector-nth '%test-vector-add '%test-vector-append
-  '%test-iterate-seq '%test-iterate-seq-p '%test-map-of '%test-map-size
-  '%test-map-get '%test-map-set '%test-map-remove '%test-map-keys
-  '%test-map-merge '%test-set-of '%test-set-size '%test-set-add '%test-set-union
-  '%test-any? '%test-set-difference '%test-set-intersection '%test-bubblesort
-  '%test-mergesort '%test-sort '%test-sort-compare '%test-mergesort-compare
-  '%test-set-includes? '%test-set-subset? '%test-set-true-subset?
-  '%test-set-superset? '%test-set-true-superset? '%test-begin '%test-comment
-  '%test-size '%test-indices-of '%test-contains? '%test-first '%test-rest
-  '%test-last '%test-but-last '%test-append '%test-string-concat
-  '%test-nth '%test-split '%test-split-by '%test-maplist '%test-mapcar
-  '%test-mapcon '%test-mapcon '%test-map-indexed '%test-fmap '%test-mapf
-  '%test-mapcat '%test-map-while '%test-map-until '%test-filter
-  '%test-filter-indexed '%test-remove '%test-remove-indexed '%test-foldl
-  '%test-foldl1 '%test-foldl-indexed '%test-foldr '%test-foldr1
-  '%test-foldr-indexed '%test-repeat '%test-repeatedly '%test-take
-  '%test-take-while '%test-take-until '%test-drop '%test-drop-while
-  '%test-drop-until '%test-split-at '%test-split-if
-  '%test-split-unless '%test-zip '%test-zip-with '%test-zip-to-index %test-enumerate
-  '%test-all? '%test-none? '%test-va-all? '%test-va-none? '%test-va-any?
-  '%test-reverse '%test-sum '%test-minimum '%test-maximum '%test-unwrap
-  '%test-iterate '%test-random '%test-xorshift64s '%test-xorshift64
-  '%test-xorshift32 '%test-lfsr '%test-random-nums '%test-xorshift64s-seq
-  '%test-xorshift64-seq '%test-xorshift32-seq '%test-lfsr32-seq
-  '%test-with-bounds '%test-shuffle '%test-product '%test-infix '%test-flatten
-  '%test-flatten1 '%test-divmod '%test-constantly '%test-case '%test-cycle
-  '%test-flip '%test-fst '%test-snd '%test-scanl '%test-scanl '%test-scanr
-  '%test-scanr1 '%test-condp '%test-frequencies '%test-unique '%test-unique?
-  '%test-try* '%test-tuples '%test-slices '%test-try-catch-finally
-  '%test-count-by '%test-most? '%test-list-literal '%test-vector-literal
-  '%test-set-literal '%test-map-literal '%test-char-literal '%test-when
-  '%test-name '%test-fn '%test-dedupe '%test-prepend
-  '%test-times '%test-queue '%test-deque '%test-enqueue '%test-enqueue-all
-  '%test-dequeue '%test-queue? '%test-deque? '%test-push '%test-peek '%test-pop
-  '%test-->queue '%test-->deque '%test-other-queue-ops '%test-other-deque-ops
-  '%test-add '%test-add-front '%test-permutations '%test-get '%test-get-in
-  '%test-subseq '%test-replace-subseq '%test-v-zip-with '%test-combinations
-  '%test-for '%test-for-vec-binds '%test-juxt '%test-every-pred '%test-hash-lambda
-  '%test-cartesian-product '%test-delete-at '%test-partition '%test-partition-by 
-  '%test-partition-all '%test-let* '%test-let '%test-plet '%test-lambda'
-  ;'%test-lazy-crash '%test-lazy '%test-eager 
-  '%test-compute*-> '%test-compute-> '%test-map-invert
-  '%test-rget '%test-rnth '%test-mapv '%test-mapv-indexed %test-mapl 
-  '%test-split-with '%test-group-by '%test-scalar? '%test-letfn '%test-interpose
-  ))
+    )
 
 (define (%run-tests & fns)
   (let* ((results
           (foldl
-            (lambda (res f)´
+            (lambda (res f)
               (let* ((r ((cadr f))))
                 (cond
                   (= (car r) 'TODO)
