@@ -384,7 +384,7 @@
 ;# Simpler let for a single binding.
 ;# (let1 (a 1) a) is equivalent to (let*((a 1)) a)
 (defmacro (let1 bindings & body)
-  (xcons 'let*(list bindings) body))
+  (list* 'let*(list bindings) body))
 
 ;## Function: nth#map
 ;# nth#map : map -> int -> vector
@@ -757,13 +757,13 @@
 ;# begin : [expr]* -> expr
 ;# Perform operations sequencially.
 (defmacro (begin & exprs)
-  (xcons 'let* '() exprs))
+  (list* 'let* '() exprs))
 
 ;## Macro: def-memo
 ;# def-memo : list|vector -> [expr]* -> (any* -> any)
 ;# define memoized function.
 (defmacro (def-memo name-bindings & body)
-  (list 'define (car name-bindings) (list 'memoize (xcons 'lambda (cdr name-bindings) body))))
+  (list 'define (car name-bindings) (list 'memoize (list* 'lambda (cdr name-bindings) body))))
 
 ;## Function: spread
 ;# spread : sequence -> sequence
@@ -1348,12 +1348,12 @@
 (define (cdddar x) (cdr (cdr (cdr (car x)))))
 (define (cddddr x) (cdr (cdr (cdr (cdr x)))))
 
-;## Function: xcons
-;# xcons : [any]* -> list
+;## Function: list*
+;# list* : [any]* -> list
 ;# repeatedly apply cons to a list.
-;# (xcons 1 2 3 4 '(5 6)) ;=> (1 2 3 4 5 6)
-;# (xcons 1 2 '(3)) is equivalent to (cons 1 (cons 2 '(3)))
-(define (xcons & args) (foldr1 cons args))
+;# (list* 1 2 3 4 '(5 6)) ;=> (1 2 3 4 5 6)
+;# (list* 1 2 '(3)) is equivalent to (cons 1 (cons 2 '(3)))
+(define (list* & args) (foldr1 cons args))
 
 ;## Function: flatten
 ;# flatten : collection -> list
@@ -1556,7 +1556,7 @@
   (foldl
     (lambda (acc expr)
       (if (list? expr)
-        (xcons (car expr) acc (cdr expr))
+        (list* (car expr) acc (cdr expr))
         (list expr acc)))
     x exprs))
 
@@ -1599,7 +1599,7 @@
       expr `(try*
           (let* ((~current-name ~expr))
             (if ~current-name
-              ~(xcons 'compute*-> default error-default
+              ~(list* 'compute*-> default error-default
                 (if (list? (car funcs))
                   (list-concat (car funcs) (list current-name))
                   (list (car funcs) current-name))

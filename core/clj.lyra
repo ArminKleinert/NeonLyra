@@ -5,7 +5,7 @@
 ;# when : expr -> expr* -> expr
 ;# Works as an if without an else branch. If the predicate does not hold true, Nothing is returned.
 (defmacro (when p & body)
-  (list 'if p (xcons 'begin Nothing body) Nothing))
+  (list 'if p (list* 'begin Nothing body) Nothing))
 
 ;## Macro: def
 ;# def : symbol -> expr -> expr
@@ -16,7 +16,7 @@
 (define (%defn name bindings body)
   (if (or (string? bindings) (map? bindings))
     (%defn name (car body) (cdr body)) ; ignore docstring or attr-map
-    (list 'define name (xcons 'fn name bindings body))))
+    (list 'define name (list* 'fn name bindings body))))
 ;## Macro: defn
 ;# defn : symbol -> sequence|string|map -> sequence? -> expr* -> expr
 ;# Works as define for functions. Does not support inlined documentation and meta-data.
@@ -31,11 +31,11 @@
     (list? bindings) ; Probably multi-fn
       (%multifn name (cons bindings body))
     (vector? bindings)
-      (cons 'lambda' (xcons name (->list bindings) body))
+      (cons 'lambda' (list* name (->list bindings) body))
     else (error! "Syntax error: Invalid format for fn." 'syntax)))
 
 (define (%multifn name body)
-  (xcons 'case-lambda* name (map-eager (lambda (xs) (cons (->list (car xs)) (cdr xs))) body)))
+  (list* 'case-lambda* name (map-eager (lambda (xs) (cons (->list (car xs)) (cdr xs))) body)))
 
 ;## Macro: fn
 ;# fn : (symbol|sequence -> expr*)+ -> expr

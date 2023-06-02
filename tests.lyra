@@ -42,6 +42,15 @@
                 (size cases)
                 )))))
 
+(defmacro (deftest name & cases)
+  (let* ((test-name-sym (gensym 'test)))
+  `(let* ((~test-name-sym (lambda () ~@cases))) (box-set! all-test-cases (cons (list (quote ~name) ~test-name-sym) @all-test-cases)))))
+
+(define all-test-cases (box (list)))
+
+(deftest test-test (%do-test! (= 2 2)))
+;(println! all-test-cases)
+
 (define (%crash!)
   (/ 0 0))
 
@@ -1112,6 +1121,23 @@
     (= 0 (list-size (list)))
     (= 1 (list-size (list 1)))
     (= 2 (list-size (list 1 2)))))
+
+(define (%test-list*)
+  (%do-test!
+    (empty? (list* (list)))
+    (eq? (list* 1 2 '(3)) (list 1 2 3))
+    (eq? (list* '(1 2 3)) (list 1 2 3))
+    (eq? (list* 1 '(2 3)) (list 1 2 3))
+    (eq? (list* 1 2 '(3)) (list 1 2 3))
+    (eq? (list* 1 2 3 '()) (list 1 2 3))
+    (list? (list* '(1 2 3)))
+    (list? (list* 1 '(2 3)))
+    (list? (list* 1 2 '(3)))
+    (list? (list* 1 2 3 '()))
+    (= 3 (list-size (list* '(1 2 3))))
+    (= 3 (list-size (list* 1 '(2 3))))
+    (= 3 (list-size (list* 1 2 '(3))))
+    (= 3 (list-size (list* 1 2 3 '())))))
 
 (define (%test-car)
   (%do-test!
@@ -3900,7 +3926,7 @@
     ))
  ;=> 
 
-(define (%run-tests & fns)
+(comment define (%run-tests & fns)
   (let* ((results
           (foldl
             (lambda (res f)
@@ -3920,7 +3946,7 @@
       (size (cadr results)) " Failed: " (cadr results) "\n- "
       (size (caddr results)) " Not implemented: " (caddr results))))
 
-(define (run-all-tests)
+(comment define (run-all-tests)
   (%run-tests
   '%test-concat 
   '%test-keyword-name '%test-loop '%test-lambda '%test-cond '%test-if '%test-spread
@@ -3938,7 +3964,7 @@
   '%test-eq? '%test-->int '%test-->float '%test-->rational '%test-rational?
   '%test-case-lambda '%test-case-lambda* '%test-->string
   '%test-->list '%test-->vector '%test-->char '%test-->map '%test-->set
-  '%test-list '%test-list-size '%test-car '%test-cdr '%test-cons '%test-vector
+  '%test-list '%test-list* '%test-list-size '%test-car '%test-cdr '%test-cons '%test-vector
   '%test-vector-size '%test-vector-nth '%test-vector-add '%test-vector-append
   '%test-iterate-seq '%test-iterate-seq-p '%test-map-of '%test-map-size
   '%test-map-get '%test-map-set '%test-map-remove '%test-map-keys
@@ -3984,6 +4010,29 @@
   '%test-rget '%test-rnth '%test-mapv '%test-mapv-indexed %test-mapl 
   '%test-split-with '%test-group-by '%test-scalar? '%test-letfn '%test-interpose
   ))
+
+(define (%run-tests & fns)
+  (let* ((results
+          (foldl
+            (lambda (res f)
+              (let* ((r ((cadr f))))
+                (cond
+                  (= (car r) 'TODO)
+                    (list (car res) (cadr res) (cons f (caddr res)) (+ (cadr r) (cadddr res)))
+                  (car r)
+                    (list (cons f (car res)) (cadr res) (caddr res) (+ (cadr r) (cadddr res)))
+                  else
+                    (list (car res) (cons f´ (cadr res)) (caddr res) (+ (cadr r) (cadddr res))))))
+            '(() () () 0)
+            fns)))
+    (string-concat
+      "Ran " (foldl + 0 [(size (car results)) (size (cadr results)) (size (caddr results))]) " tests with " (cadddr results) " assertions.\n- "
+      (size (car results)) " Successful.\n- "
+      (size (cadr results)) " Failed: " (cadr results) "\n- "
+      (size (caddr results)) " Not implemented: " (caddr results))))
+
+(define (run-all-tests)
+  (apply-to %run-tests @all-test-cases))
 
 (println! "Starting tests...")
 (println! (run-all-tests))
