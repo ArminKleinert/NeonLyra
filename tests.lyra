@@ -4014,7 +4014,7 @@
 (define (%run-tests & fns)
   (let* ((results
           (foldl
-            (lambda (res f)
+            (lambda (res f)´
               (let* ((r ((cadr f))))
                 (cond
                   (= (car r) 'TODO)
