@@ -50,9 +50,6 @@
 
 (define all-test-cases (box (list)))
 
-(deftest test-test (= 2 2))
-;(println! all-test-cases)
-
 (define (%crash!)
   (/ 0 0))
 
@@ -3609,6 +3606,16 @@
     (eq? '(1 0 2 0 3 0 4 0 5) (interpose 0 '(1 2 3 4 5))) ; Normal
     (eq? '() (interpose 0 '())) ; Empty
     (eq? '(1 0 2 0 3 0 4 0 5) (take 9 (interpose 0 (iterate inc 1)))) ; Lazy
+    )
+
+(deftest test-conj
+    (eq? '(1) (conj '() 1))
+    (eq? '(1 2 3) (conj '() 1 2 3))
+    (eq? '(1 2 3 4 5 6) (conj '(4 5 6) 1 2 3))
+    
+    (eq? [1] (conj [] 1))
+    (eq? [1 2 3] (conj [] 1 2 3))
+    (eq? [4 5 6 1 2 3] (conj [4 5 6] 1 2 3))
     )
 
 (define (%run-tests & fns)

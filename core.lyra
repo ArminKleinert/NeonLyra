@@ -95,9 +95,12 @@
 
 ;## Function: conj
 ;# conj : collection -> any+ -> collection
-;# Add a number of elements to the end of a list.
+;# Add a number of elements to a collection.
+;# If the collection is a list, uses cons. Otherwise, uses add.
 (define (conj c x & xs)
-  (foldl add c (cons x xs)))
+  (if (list? c)
+    (foldr cons c (cons x xs))
+    (foldl add c (cons x xs))))
 
 ;## Function: add-front
 ;# add-front : collection -> any -> collection

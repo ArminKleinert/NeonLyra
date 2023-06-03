@@ -191,6 +191,14 @@
   Pure? Yes
   
   Supports destructuring.
+  
+  This lambda will take a list of at least 2 elements a and b and the rest of the list. It adds a to b and prepends the result to the list again.
+   ((lambda' ((a b & rest)) (cons (+ a b) rest))
+     '(1 2 3 4 5 6)) ; => (3 3 4 5 6)
+  Or more generalized:
+   (lambda' ((a b & rest)) (add-front rest (+ a b)))
+  The destructuring works for any type that supports 'first and 'rest.
+
 ```
 ### Macro: `lazy-seq` 
 ```
@@ -1294,6 +1302,16 @@
   Take any number of arguments and return a list of them.
   (list 1 2 3) ;=> (1 2 3)
 ```
+### Function: `list*` 
+```
+  list* : [any]* -> list
+  
+  Pure? Yes
+  
+  repeatedly apply cons to a list.
+  (list* 1 2 3 4 '(5 6)) ;=> (1 2 3 4 5 6)
+  (list* 1 2 '(3)) is equivalent to (cons 1 (cons 2 '(3)))
+```
 ### Function: `log!` 
 ```
   log! : any* -> list
@@ -2102,16 +2120,6 @@
   Pure? Yes
   
   Not even in testing yet!
-```
-### Function: `xcons` 
-```
-  xcons : [any]* -> list
-  
-  Pure? Yes
-  
-  repeatedly apply cons to a list.
-  (xcons 1 2 3 4 '(5 6)) ;=> (1 2 3 4 5 6)
-  (xcons 1 2 '(3)) is equivalent to (cons 1 (cons 2 '(3)))
 ```
 ### Function: `xrange` 
 ```
