@@ -858,14 +858,14 @@
 ;#   (mapcar list '(1 2 3) '(4 5 6) '(7 8 9)) ;=> ((1 4 7) (2 5 8) (3 6 9))
 ;#   (mapcar + '(1 2 3) '(4 5 6) '(7 8 9)) ;=> (12 15 18)
 ;#   (mapcar + '(1 2 3) '(4 5) '(7 8 9)) ;=> (12 15 12)
-;# Required: v-zip-with to work correctly with all inputs.
+;# Required: any?, empty?, first, rest to work correctly with all inputs.
 (define (mapcar f & ys)
   (%mapcar f ys))
 
 
 ;## Function: mapcon
 ;# mapcon : (any -> collection) -> collection -> collection
-;# maplist and append.
+;# maplist and append (eager).
 (define (mapcon f xs)
   (foldr append '() (maplist f xs)))
 
@@ -881,7 +881,7 @@
 ;## Function: juxt
 ;# juxt : [(any -> any)]+ -> (any -> any)
 ;# See https://clojuredocs.org/clojure.core/juxt
-;# (juxt identity name) is effectively equivalent to (lambda (x) (list (identity x) (name x)))
+;# (juxt identity name) is effectively equivalent to (lambda (x) (vector (identity x) (name x)))
 (define (juxt f & fs)
   (lambda (x) (mapv (lambda (g) (g x)) (cons f fs))))
 
@@ -2143,7 +2143,8 @@
 ;## Function: pmap
 ;# pmap : (any -> any) -> collection -> list
 ;# Parallel map. Like pmap', but returns values, not delays.
-;# Please do not use this yet. The current implementation is hopelessly broken
+;# Please do not use this yet.
+;# FIXME: The current implementation is hopelessly broken.
 (define (pmap f xs)
   (map eager (chunk-map 8 (lambda (x) (delay (lambda () (f x)))) xs)))
 
@@ -2160,6 +2161,8 @@
 ;## Macro: plet
 ;# plet : expr -> [expr]* -> expr
 ;# Parallel let. Supports destructuring.
+;# The assignments are done in parallel, if possible.
+;# The body is still executed in order.
 (defmacro (plet binds & body)
   (let* ((names (map first binds))
          (vals (map second binds))
@@ -2241,4 +2244,3 @@
 (load! "set.lyra")
 
 (cons 'core (list (import! "lyra.core.string", "") (import! "lyra.core.vector" "") (import! "lyra.core.set" "")))
-

@@ -481,21 +481,21 @@
   
   Pure? Yes
   
-  Removes the first element from a queue.
-```
-### Function: `dequeue` 
-```
-  dequeue : queue -> collection -> queue
-  
-  Pure? Yes
-  
-  Enqueues all elements of a collection.
+  Returns the queue with the first element removed.
 ```
 ### Function: `enqueue` 
 ```
   enqueue : queue -> any -> queue
   
   Pure? Yes
+```
+### Function: `enqueue-all` 
+```
+  dequeue : queue -> collection -> queue
+  
+  Pure? Yes
+  
+  Enqueues all elements of a collection.
 ```
 ### Function: `eq?#deque` 
 ```
@@ -646,6 +646,12 @@
   Pure? Yes
   
   Shuffles a sequence using the sort/sort-compare and random-nums algorithms.
+```
+### Function: `splitmix64` 
+```
+  splitmix64 : int -> int
+  
+  Pure? Yes
 ```
 ### Function: `with-bounds` 
 ```

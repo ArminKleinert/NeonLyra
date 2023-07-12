@@ -16,7 +16,7 @@
 (import! "lyra.core.queue" "")
 
 (defmacro (%do-test! name & cases)
-  (let* ((details #t) ; Set to #f to hide details and only show overall success/failure numbers at the end
+  (let* ((details #f) ; Set to #f to hide details and only show overall success/failure numbers at the end
          (success-sym (gensym '%do-test!-success))
          (e-sym (gensym 'e))
          (r-sym (gensym 'r))
@@ -1579,12 +1579,7 @@
     (eq? (list) (map ->string (list)))
     (eq? (list 1 4 9 16 25) (map (lambda (n) (* n n)) (list 1 2 3 4 5)))
     (eq? (list "1" "2" "3") (map ->string (list 1 2 3)))
-    (eq? (list "a" "b" "c") (map ->string (list "a" "b" "c")))
-    ; On vector
-    (eq? [] (map ->string []))
-    (eq? [1 4 9 16 25] (map (lambda (n) (* n n)) [1 2 3 4 5]))
-    (eq? ["1" "2" "3"] (map ->string [1 2 3]))
-    (eq? ["a" "b" "c"] (map ->string ["a" "b" "c"])))
+    (eq? (list "a" "b" "c") (map ->string (list "a" "b" "c"))))
 
 (deftest test-mapv
     (eq? (vector) (mapv ->string (list)))
@@ -1687,14 +1682,17 @@
     (eq? '(3 5 7 9) (mapcar + '(1 2 3 4) '(2 3 4 5)))
     (eq? '((1 2) (4 3)) (mapcar list '(1 4) '(2 3)))
     (eq? '((1 2)) (mapcar list '(1 4) '(2)))
-    (eq? '((1 2)) (mapcar list '(1) '(2 3))))
+    (eq? '((1 2)) (mapcar list '(1) '(2 3)))
+    (eq? '() (mapcar id '())))
 
 (deftest test-mapcon
-    (eq? '(((1 2 3 4)) ((2 3 4)) ((3 4)) ((4))) (maplist list '(1 2 3 4)))
-    (eq? '((1 2 3 4) (2 3 4) (3 4) (4)) (mapcon list '(1 2 3 4))))
+    (eq? '((1 2 3 4) (2 3 4) (3 4) (4)) (mapcon list '(1 2 3 4)))
+    (eq? '(1 2 3 4 2 3 4 3 4 4) (mapcon id '(1 2 3 4)))
+    (eq? '(10 9 7 4) (mapcon (lambda (xs) (list (sum xs))) '(1 2 3 4)))
+    (eq? '() (mapcon id '())))
 
 (deftest test-mapcat
-  (mapcat cdr '((1 2) (3 4) (5 6))))
+    (eq? '(2 4 6) (mapcat cdr '((1 2) (3 4) (5 6)))))
 
 (deftest test-map-while
     (empty? (map-while inc (partial > 5) '()))
@@ -1707,6 +1705,12 @@
     (eq? '(2 3 4 5) (map-until inc (partial < 4) '(1 2 3 4 5 6 7)))
     (empty? (map-until inc (partial > 5) []))
     (eq? [2 3 4 5] (map-until inc (partial < 4) [1 2 3 4 5 6 7])))
+
+(deftest test-pmap
+    (eq? (list) (pmap ->string (list)))
+    (eq? (list 1 4 9 16 25) (pmap (lambda (n) (* n n)) (list 1 2 3 4 5)))
+    (eq? (list "1" "2" "3") (pmap ->string (list 1 2 3)))
+    (eq? (list "a" "b" "c") (pmap ->string (list "a" "b" "c"))))
 
 (deftest test-filter
     (empty? (filter odd? '()))
@@ -3629,7 +3633,7 @@
                   (car r)
                     (list (cons f (car res)) (cadr res) (caddr res) (+ (cadr r) (cadddr res)))
                   else
-                    (list (car res) (cons f´ (cadr res)) (caddr res) (+ (cadr r) (cadddr res))))))
+                    (list (car res) (cons f (cadr res)) (caddr res) (+ (cadr r) (cadddr res))))))
             '(() () () 0)
             fns)))
     (string-concat

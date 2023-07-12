@@ -41,13 +41,13 @@
 
   ;## Function: dequeue
   ;# dequeue : queue -> queue
-  ;# Removes the first element from a queue.
+  ;# Returns the queue with the first element removed.
   (define (dequeue q)
     (if (= (size (deque-front q)) 1)
       (make-deque (reverse (deque-back q)) '())
       (make-deque (cdr (deque-front q)) (deque-back q))))
 
-  ;## Function: dequeue
+  ;## Function: enqueue-all
   ;# dequeue : queue -> collection -> queue
   ;# Enqueues all elements of a collection.
   (define (enqueue-all q xs)

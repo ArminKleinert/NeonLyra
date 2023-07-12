@@ -271,6 +271,8 @@
   Pure? Yes
   
   Parallel let. Supports destructuring.
+  The assignments are done in parallel, if possible.
+  The body is still executed in order.
 ```
 ### Macro: `quasiquote` 
 ```
@@ -744,7 +746,8 @@
   
   Pure? Yes
   
-  Add a number of elements to the end of a list.
+  Add a number of elements to a collection.
+  If the collection is a list, uses cons. Otherwise, uses add.
 ```
 ### Function: `const` 
 ```
@@ -1282,7 +1285,7 @@
   Pure? Yes
   
   See https://clojuredocs.org/clojure.core/juxt
-  (juxt identity name) is effectively equivalent to (lambda (x) (list (identity x) (name x)))
+  (juxt identity name) is effectively equivalent to (lambda (x) (vector (identity x) (name x)))
 ```
 ### Function: `last` 
 ```
@@ -1399,7 +1402,7 @@
     (mapcar list '(1 2 3) '(4 5 6) '(7 8 9)) ;=> ((1 4 7) (2 5 8) (3 6 9))
     (mapcar + '(1 2 3) '(4 5 6) '(7 8 9)) ;=> (12 15 18)
     (mapcar + '(1 2 3) '(4 5) '(7 8 9)) ;=> (12 15 12)
-  Required: v-zip-with to work correctly with all inputs.
+  Required: any?, empty?, first, rest to work correctly with all inputs.
 ```
 ### Function: `mapcat` 
 ```
@@ -1415,7 +1418,7 @@
   
   Pure? Yes
   
-  maplist and append.
+  maplist and append (eager).
 ```
 ### Function: `mapf` 
 ```
@@ -1606,7 +1609,8 @@
   Pure? Yes
   
   Parallel map. Like pmap', but returns values, not delays.
-  Please do not use this yet. The current implementation is hopelessly broken
+  Please do not use this yet.
+  FIXME: The current implementation is hopelessly broken.
 ```
 ### Function: `pmap'` 
 ```
@@ -2182,61 +2186,61 @@ Attention! It is not adviced to use any function with the prefix "buildin" direc
 
 ### Function: `*` 
 ```
-  * : any -> any -> any
+  * : any* -> any
   
   Pure? Yes
 ```
 ### Function: `+` 
 ```
-  + : any -> any -> any
+  + : any* -> any
   
   Pure? Yes
 ```
 ### Function: `-` 
 ```
-  - : any -> any -> any
+  - : any* -> any
   
   Pure? Yes
 ```
 ### Function: `/` 
 ```
-  / : any -> any -> any
+  / : any* -> any
   
   Pure? Yes
 ```
 ### Function: `/=` 
 ```
-  /= : any -> any -> bool
+  /= : any* -> bool
   
   Pure? Yes
 ```
 ### Function: `<` 
 ```
-  < : any -> any -> bool
+  < : any* -> bool
   
   Pure? Yes
 ```
 ### Function: `<=` 
 ```
-  <= : any -> any -> bool
+  <= : any* -> bool
   
   Pure? Yes
 ```
 ### Function: `=` 
 ```
-  = : any -> any -> bool
+  = : any* -> bool
   
   Pure? Yes
 ```
 ### Function: `>` 
 ```
-  > : any -> any -> bool
+  > : any* -> bool
   
   Pure? Yes
 ```
 ### Function: `>=` 
 ```
-  >= : any -> any -> bool
+  >= : any* -> bool
   
   Pure? Yes
 ```
@@ -2692,6 +2696,8 @@ Attention! It is not adviced to use any function with the prefix "buildin" direc
   buildin-vector-range : vector -> int -> int -> vector
   
   Pure? Yes
+  
+  Return sub-vector of a vector from the start-index to the end-index (exclusive).
 ```
 ### Function: `buildin-vector-size` 
 ```
@@ -3165,13 +3171,13 @@ Attention! It is not adviced to use any function with the prefix "buildin" direc
 ```
 ### Function: `ref=` 
 ```
-  ref= : any -> any -> bool
+  ref= : any* -> bool
   
   Pure? Yes
 ```
 ### Function: `rem` 
 ```
-  rem : any -> any -> any
+  rem : any* -> any
   
   Pure? Yes
 ```

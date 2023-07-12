@@ -769,20 +769,14 @@ class GenericFn < LyraFn
     type = type_id_of(args[@anchor_idx])
     fn = @implementations[type]
 
-    begin
-      if fn
-        LYRA_CALL_STACK.push fn
-        res = fn.call args, env
-        LYRA_CALL_STACK.pop
-      else
-        LYRA_CALL_STACK.push @fallback
-        res = @fallback.call args, env
-        LYRA_CALL_STACK.pop
-      end
-    rescue
-      #$stderr.puts "#{@name} failed with error: #{$!}"
-      #$stderr.puts "Arguments: #{args}"
-      raise
+    if fn
+      LYRA_CALL_STACK.push fn
+      res = fn.call args, env
+      LYRA_CALL_STACK.pop
+    else
+      LYRA_CALL_STACK.push @fallback
+      res = @fallback.call args, env
+      LYRA_CALL_STACK.pop
     end
     res
   end

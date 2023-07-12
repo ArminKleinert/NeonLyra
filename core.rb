@@ -254,6 +254,9 @@ def setup_core_functions
 
   add_fn_with_env(:delay, 1, 1) do |f, env|
     if f.car.is_a? LyraFn
+      #puts f.nil?
+      #puts env.nil?
+      #puts eval_ly(f, env).nil?
       LyraDelay.new(Thread.new{eval_ly(f, env)})
     else
       raise LyraError.new("Invalid call to delay. Expected a function, but got #{elem_to_pretty(f)}", :"invalid-call")

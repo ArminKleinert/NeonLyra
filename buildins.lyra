@@ -25,40 +25,40 @@
 ;# Returns #f for a truthy value and #t for a falsey value.
 
 ;## Function: =
-;# = : any -> any -> bool
+;# = : any* -> bool
 
 ;## Function: /=
-;# /= : any -> any -> bool
+;# /= : any* -> bool
 
 ;## Function: ref=
-;# ref= : any -> any -> bool
+;# ref= : any* -> bool
 
 ;## Function: <
-;# < : any -> any -> bool
+;# < : any* -> bool
 
 ;## Function: >
-;# > : any -> any -> bool
+;# > : any* -> bool
 
 ;## Function: <=
-;# <= : any -> any -> bool
+;# <= : any* -> bool
 
 ;## Function: >=
-;# >= : any -> any -> bool
+;# >= : any* -> bool
 
 ;## Function: +
-;# + : any -> any -> any
+;# + : any* -> any
 
 ;## Function: -
-;# - : any -> any -> any
+;# - : any* -> any
 
 ;## Function: *
-;# * : any -> any -> any
+;# * : any* -> any
 
 ;## Function: /
-;# / : any -> any -> any
+;# / : any* -> any
 
 ;## Function: rem
-;# rem : any -> any -> any
+;# rem : any* -> any
 
 ;## Function: bit-and
 ;# bit-and : int -> int -> int
@@ -291,6 +291,7 @@
 
 ;## Function: buildin-vector-range
 ;# buildin-vector-range : vector -> int -> int -> vector
+;# Return sub-vector of a vector from the start-index to the end-index (exclusive).
 
 ;## Function: buildin-vector-nth
 ;# buildin-vector-nth : vector -> int -> any
