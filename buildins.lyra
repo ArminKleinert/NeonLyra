@@ -257,7 +257,7 @@
 
 ;## Function: buildin->keyword
 ;# buildin->keyword : any -> keyword
-;# Turns a variable into a keyword Returns Nothing if this is not possible.
+;# Turns a variable into a keyword. Returns Nothing if this is not possible.
 
 ;## Function: buildin->bool
 ;# buildin->bool : any -> bool

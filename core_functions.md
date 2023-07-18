@@ -2389,7 +2389,7 @@ Attention! It is not adviced to use any function with the prefix "buildin" direc
   
   Pure? Yes
   
-  Turns a variable into a keyword Returns Nothing if this is not possible.
+  Turns a variable into a keyword. Returns Nothing if this is not possible.
 ```
 ### Function: `buildin->list` 
 ```
