@@ -247,6 +247,24 @@ The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`.
 ; As for any type you define, it is advisable to also implement eq?.
 ```
 
+## Info about the files:
+`core.rb` Contains the buildin functions.  
+`docs.rb` Utility file which generates the documentation for all `.lyra` files.  
+`env.rb` Contains the Environment class, which holds all variables for the current and global scope.  
+`evaluate.rb` The actual Lisp interpreter.  
+`lyra.rb` The main file that needs to be fed to the ruby interpreter.  
+`reader.rb` Reads text and turns it into lisp datastructures. (EDN style)  
+`types.rb` Contains the basic types for Lyra. (Lists, Vectors, ...)  
+`core.lyra` The standard library included in every Lyra file.  
+`benchmark.lyra` Benchmarking functions for testing the performance of the newest version.  
+`buildins.lyra` Documentation for the buildin functions from `core.rb`.  
+`set.lyra`, `string.lyra`, `vector.lyra` contain overrides for the generic functions provided in `core.lyra`  
+`tests.lyra` Test cases for most functions, implemented in Lyra.  
+`core/aliases.lyra` and `core/clj.lyra` contain aliases for other functions.  
+`core/random.lyra` contains implementations for some RNG algorithms.  
+`core/sort.lyra` Sorting algorithms.  
+
+
 ## Changelog
 
 - 0.0.1  
