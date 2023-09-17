@@ -323,6 +323,8 @@ def setup_core_functions
   add_fn(:"buildin-take", 2) do |n, xs|
     if xs.empty? || n == 0
       list
+    elsif random_access? xs
+      xs[0..n]
     elsif xs.is_a?(ConsList)
       ys = []
       until xs.empty? || n == 0

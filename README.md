@@ -366,6 +366,7 @@ The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`.
   - Now using `splitmix64` as the default RNG algorithm.
 - 0.2.1
   - Removed `LazyObj` because it was not used anymore.
+  - `cdr coded list`s (lists backed by arrays). (WIP)
 
 ## Known bugs
 

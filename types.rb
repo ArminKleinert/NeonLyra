@@ -230,6 +230,86 @@ class List
     false
   end
 end
+  
+# CDR-coded list
+# This is basically a list backed by an array. It has to override some operations
+# that every list must support.
+#   car, cdr
+# For performance-gain, it must also override the following:
+#   each, each_with_index, [](i), size, to_a, nth_rest
+# As it will be used by the interpreter internally, set_car! and set_cdr! must also 
+# be overridden (sadly),
+# A CdrCodedList is never empty. CdrCodedList.create ensures that it becomes an 
+# instance of EmptyList.
+class CdrCodedList < List
+  include Enumerable, ConsList
+  
+  def initialize(content_arr)
+    @content_arr = content_arr
+  end
+  
+  def car
+    @content_arr[0]
+  end
+  
+  # TODO If there is a way to make this faster, please find it.
+  def cdr
+    CdrCodedList.create(@content_arr[1..-1])
+  end
+  
+  def set_car!(new_car)
+    @content_arr[0] = new_car
+  end
+  
+  # TODO Find a way to improve this.
+  def set_cdr!(new_cdr)
+    cons(@content_arr, new_cdr)
+  end
+  
+  ## Overrides
+  
+  def empty?
+    false
+  end
+
+  def each(&block)
+    @content_arr.each(&block)
+    self
+  end
+
+  def each_with_index(&block)
+    @content_arr.each_with_index(&block)
+    self
+  end
+  
+  def to_a
+    @content_arr.clone
+  end
+  
+  def [](i)
+    @content_arr[i]
+  end
+  
+  def size
+    @content_arr.size
+  end
+  
+  def nth_rest(n)
+    CdrCodedList.create(@content_arr[n..-1])
+  end
+  
+  ## Static creator method
+  
+  def self.create(content_arr)
+    if !(content_arr.is_a? Array)
+      raise raise LyraError.new("Illegal input. Expected vector/array.", :"illegal-argument")
+    elsif content_arr.empty?
+      EmptyList.instance
+    else
+      CdrCodedList.send :new, content_arr
+    end
+  end
+end
 
 def list_append(*lists)
   list_append1(lists)
@@ -310,60 +390,6 @@ class ListPair
   end
 end
 
-
-=begin
-# TODO
-class ChunkedSeq
-  include Enumerable, ConsList
-  
-  def self.create(chunks)
-    chunks.reject!(&:nil?)
-    chunks.reject!(&:empty?)
-    if chunks.empty?
-      EmptyList.instance
-    else
-      ChunkedSeq.new(chunks)
-    end
-  end
-  
-  def initialize(chunks)
-    @chunks = chunks
-    @size = -1
-  end
-
-  def car
-    @chunks[0].car
-  end
-
-  def cdr
-    if !@chunks[0][1..-1].empty?
-      ChunkedSeq.new([@chunks[0].cdr] + @chunks[1..-1])
-    elsif @chunks.size == 1
-      EmptyList.instance
-    else
-      ChunkedSeq.new(@chunks[1..-1])
-    end
-  end
-  
-  def size
-    if @size == -1
-      @size = @chunks.map(&:size).sum
-    end
-    @size
-  end
-  
-  def each(&block)
-    @chunks.each do |c|
-      c.each{|x|block.call(x)}
-    end
-  end
-  
-  def empty?
-    false
-  end
-end
-=end
-
 class LazyList
   include Enumerable, ConsList, Lazy
 
@@ -427,6 +453,17 @@ def cons?(l)
   l.respond_to?(:car) && l.respond_to?(:cdr)
 end
 
+def random_access?(e)
+  if e.is_a? CdrCodedList
+    true
+  elsif e.is_a? Array
+    true
+  else
+    false
+  end
+end
+
+=begin
 def list(*args)
   if args.empty?
     EmptyList.instance
@@ -436,6 +473,15 @@ def list(*args)
       lst = cons e, lst
     end
     lst
+  end
+end
+=end
+
+def list(*args)
+  if args.empty?
+    EmptyList.instance
+  else
+    CdrCodedList.create(args)
   end
 end
 
@@ -509,60 +555,6 @@ class LyraFn
   end
 end
 
-=begin
-class LazyObj < LyraFn
-  include Lazy
-
-  attr_reader :expr, :executed
-
-  def initialize(expr, env)
-    @expr, @env = expr, env
-    @executed = false
-  end
-
-  def evaluate
-    if @executed
-      @expr
-    else
-      @expr = eval_ly(@expr, @env, true)
-      @executed = true
-      @expr
-    end
-  end
-
-  def to_s
-    "(lazy #{elem_to_s(expr)})"
-  end
-
-  def inspect
-    to_s
-  end
-
-  def native?
-    true
-  end
-
-  def pure?
-    true
-  end
-
-  def is_macro
-    false  # FIXME Should this be true or false?!
-  end
-
-  def name
-    to_s
-  end
-
-  def call(_, _)
-    evaluate
-  end
-
-  def arg_counts
-    0..0
-  end
-end
-=end
 class LazyLyraFn < Proc
   def self.create(f, env)
     LazyLyraFn.new { |args|

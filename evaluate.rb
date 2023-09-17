@@ -213,7 +213,7 @@ def ev_define_generic(expr, env)
   end
 
   args_expr = second(expr)
-  unless args_expr.is_a?(List)
+  unless args_expr.is_a?(ConsList)
     raise LyraError.new("Syntax error: Signature of generic function must be a list.", :syntax)
   end
 
@@ -267,19 +267,20 @@ def ev_define(expr, env, is_macro)
   unless expr.size >= 2
     raise LyraError.new("Syntax error: No name and no body for define or defmacro.", :syntax)
   end
-  unless first(expr).is_a?(List) || first(expr).is_a?(Symbol) || first(expr).is_a?(TypeName)
-    raise LyraError.new("Syntax error: First element in define or defmacro must be a list or symbol.", :syntax)
+  first_expr = first(expr)
+  unless first_expr.is_a?(ConsList) || first_expr.is_a?(Symbol) || first_expr.is_a?(TypeName)
+    raise LyraError.new("Syntax error: First element in define or defmacro must be a list or symbol, but is #{first_expr.class}.", :syntax)
   end
 
-  if first(expr).is_a?(List)
+  if first_expr.is_a?(ConsList)
     # Form is `(define (...) ...)` (Function definition)
     ev_define_fn(expr, env, is_macro)
-    #elsif first(expr).is_a?(Symbol) && expr.size == 3
+  #elsif first_expr.is_a?(Symbol) && expr.size == 3
     # Form is `(define .. (...) ...)` (Generic function definition)
     #  ev_define_with_type(expr, env, is_macro)
   else
     # Form is `(define .. ...)` (Variable definition)
-    name = first(expr) # Get the name
+    name = first_expr # Get the name
     val = second(expr)
     res = eval_ly(val, env) # Get and evaluate the value.
 
@@ -292,7 +293,8 @@ end
 # args_expr has the format `(args...)`
 # body_expr has the format `expr...`
 def ev_lambda(name, args_expr, body_expr, definition_env, is_macro = false)
-  arg_arr = args_expr.to_a
+  arg_arr = args_expr.to_a # This function will call the array indexing mothods a lot, so converting to an array first helps out. TODO might first checking whether the list is already a random_access type be faster? (e.g. for CdrCodedLists)
+  
   arg_count = arg_arr.size
   max_args = arg_count
   is_hash_lambda = false # Enable % arguments.
@@ -449,7 +451,7 @@ def eval_list_expr(expr, env, is_in_call_params = false)
     unless bindings.empty?
       env1 = Env.new(nil, env)
       bindings.each do |b|
-        raise LyraError.new("Syntax error: Binding in let* must have 2 parts.", :syntax) unless b.is_a?(List) && b.size == 2
+        raise LyraError.new("Syntax error: Binding in let* must have 2 parts.", :syntax) unless b.is_a?(ConsList) && b.size == 2
         raise LyraError.new("Syntax error: Name of binding in let* must be a symbol.", :syntax) unless b.car.is_a?(Symbol)
         env1.set!(b.car, eval_ly(b.cdr.car, env1, true))
       end
