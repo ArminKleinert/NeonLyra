@@ -60,7 +60,7 @@ def _readline(prompt)
   end
 end
 
-LYRA_VERSION = "0_2_0"
+LYRA_VERSION = "0_2_1"
 
 if ARGV[0] == "--show_expand_macros"
   $show_expand_macros = true
