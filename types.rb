@@ -509,6 +509,7 @@ class LyraFn
   end
 end
 
+=begin
 class LazyObj < LyraFn
   include Lazy
 
@@ -546,7 +547,7 @@ class LazyObj < LyraFn
   end
 
   def is_macro
-    true
+    false  # FIXME Should this be true or false?!
   end
 
   def name
@@ -561,7 +562,7 @@ class LazyObj < LyraFn
     0..0
   end
 end
-
+=end
 class LazyLyraFn < Proc
   def self.create(f, env)
     LazyLyraFn.new { |args|
@@ -835,7 +836,7 @@ class TypeName
 end
 
 def atom?(x)
-  x.is_a?(Numeric) || x.is_a?(String) || x.is_a?(Symbol) || !!x == x || x.is_a?(LazyObj) || x.is_a?(LyraChar) || x.is_a?(Keyword) || x.is_a?(LyraFn)
+  x.is_a?(Numeric) || x.is_a?(String) || x.is_a?(Symbol) || !!x == x || x.is_a?(LyraChar) || x.is_a?(Keyword) || x.is_a?(LyraFn)
 end
 
 class LyraDelay

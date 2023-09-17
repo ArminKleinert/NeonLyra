@@ -364,6 +364,8 @@ The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`.
   - Better list concatenation algorithm.
   - Threaded `map` function `pmap` (which is currently broken on truffleruby).
   - Now using `splitmix64` as the default RNG algorithm.
+- 0.2.1
+  - Removed `LazyObj` because it was not used anymore.
 
 ## Known bugs
 

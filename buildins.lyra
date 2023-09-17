@@ -126,9 +126,6 @@
 ;# evaluated : any -> bool
 ;# Checks whether a variable has been evaluated.
 
-;## Function: lazy
-;# lazy : any -> lazy
-
 ;## Function: partial
 ;# partial : function -> any* -> function
 ;# Creates a partial function.
@@ -202,9 +199,6 @@
 
 ;## Function: lazy?
 ;# lazy? : any -> bool
-
-;## Function: lazy-obj?
-;# lazy-obj? : any -> bool
 
 ;## Function: keyword?
 ;# keyword? : any -> bool

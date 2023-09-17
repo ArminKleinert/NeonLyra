@@ -355,8 +355,9 @@ def setup_core_functions
   add_fn(:"map?", 1) { |x| x.is_a? Hash }
   add_fn(:"buildin-set?", 1) { |x| x.is_a? Set }
   add_fn(:"function?", 1) { |x| x.is_a?(LyraFn) }
+  add_fn(:"macro?", 1) { |x| x.is_a?(LyraFn) && x.is_macro }
   add_fn(:"lazy?", 1) { |x| x.is_a?(Lazy) }
-  add_fn(:"lazy-obj?", 1) { |x| x.is_a?(LazyObj) }
+  #add_fn(:"lazy-obj?", 1) { |x| x.is_a?(LazyObj) }
   add_fn(:"keyword?", 1) { |x| x.is_a?(Keyword) }
 
   add_fn(:"keyword-name", 1) { |x| x.is_a?(Keyword) ? x.to_sym : nil }

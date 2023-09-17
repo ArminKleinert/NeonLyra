@@ -2951,18 +2951,6 @@ Attention! It is not adviced to use any function with the prefix "buildin" direc
   
   Pure? Yes
 ```
-### Function: `lazy` 
-```
-  lazy : any -> lazy
-  
-  Pure? Yes
-```
-### Function: `lazy-obj?` 
-```
-  lazy-obj? : any -> bool
-  
-  Pure? Yes
-```
 ### Function: `lazy?` 
 ```
   lazy? : any -> bool

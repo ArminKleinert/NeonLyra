@@ -1449,23 +1449,28 @@
         (map-set acc x (inc v))))
     {} xs))
 
-(define (%unique xs acc vals)
-  (cond (empty? xs) acc
-        (contains? vals (first xs)) (%unique (rest xs) acc vals)
-        else (%unique (rest xs) (lazy-seq (first xs) acc) (set-add vals (first xs)))))
+(define (%unique seen xs)
+  (if (empty? xs)
+    '()
+    (let ((f (first xs))
+          (r (rest xs)))
+      (if (contains? seen (first xs))
+        (%unique seen (rest xs))
+        (lazy-seq (first xs) (%unique (set-add seen (first xs)) (rest xs)))))))
 ;## Function: unique
 ;# unique : collection -> list
 ;# Get a sequence with its duplicates removed.
 ;# Required: empty?, first, rest
 (define (unique xs)
-  (reverse (%unique xs '() (set-of))))
+  (let ((seen (set-of)))
+    (%unique seen xs)))
 
 ; Check whether (eq? xs (unique xs))
 ; Required: eq? 
 ;## Function: unique?
 ;# unique? : collection -> bool
 (define (unique? xs)
-  (eq? xs (unique xs)))
+  (= (size xs) (size (->set xs))))
 
 ;## Function: tuples
 ;# tuples : int -> collection -> list

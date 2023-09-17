@@ -16,7 +16,7 @@
 (import! "lyra.core.queue" "")
 
 (defmacro (%do-test! name & cases)
-  (let* ((details #f) ; Set to #f to hide details and only show overall success/failure numbers at the end
+  (let* ((details #t) ; Set to #f to hide details and only show overall success/failure numbers at the end
          (success-sym (gensym '%do-test!-success))
          (e-sym (gensym 'e))
          (r-sym (gensym 'r))
