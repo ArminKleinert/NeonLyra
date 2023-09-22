@@ -2061,7 +2061,6 @@
 ;# Or more generalized:
 ;#  (lambda' ((a b & rest)) (add-front rest (+ a b)))
 ;# The destructuring works for any type that supports 'first and 'rest.
-;#
 (defmacro (lambda' binds body1 & body)
   (let* ((named (symbol? binds))
         (name (if named binds (gensym 'lambda)))

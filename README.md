@@ -370,9 +370,10 @@ The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`.
 
 ## Next goals
 
-- Provide `buildin-nthrest`
-- Improve performance of `cadr`, `cddr`, ... by using `nth` and `nthrest`
-- Re-write all `(car (cdr ...))`, `(cdr (cdr ...))` to use their shortened counterparts instead.
+- Support `:as` in destructuring.
+- Support keyword-arguments in `define*` (if that is easy to do).
+- Find and fix the worst performance bottlenecks.
+- Get NeonLyra working on Truffleruby again.
 
 ## Known bugs
 
