@@ -421,8 +421,8 @@ def eval_list_expr(expr, env, is_in_call_params = false)
     eval_ly(second(expr), env)
   when :"lambda*"
     raise LyraError.new("lambda* without name.", :syntax) if expr.cdr.empty?
-    raise LyraError.new("lambda* without bindings.", :syntax) if expr.cdr.cdr.empty?
-    raise LyraError.new("lambda* name must be a symbol.", :syntax) unless second(expr).is_a?(Symbol)
+    raise LyraError.new("lambda* #{second(expr)}: no bindings.", :syntax) if expr.cdr.cdr.empty?
+    raise LyraError.new("lambda* #{second(expr)}: name must be a symbol.", :syntax) unless second(expr).is_a?(Symbol)
 
     # Defines an anonymous function.
     # Form: `(lambda* name (arg0 arg1 ...) body...)`

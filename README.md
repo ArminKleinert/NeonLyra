@@ -368,6 +368,12 @@ The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`.
   - Removed `LazyObj` because it was not used anymore.
   - `cdr coded list`s (lists backed by arrays). (WIP)
 
+## Next goals
+
+- Provide `buildin-nthrest`
+- Improve performance of `cadr`, `cddr`, ... by using `nth` and `nthrest`
+- Re-write all `(car (cdr ...))`, `(cdr (cdr ...))` to use their shortened counterparts instead.
+
 ## Known bugs
 
 - Sets and maps only work for atomic types.

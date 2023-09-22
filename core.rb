@@ -266,6 +266,9 @@ def setup_core_functions
   add_fn(:"delay-timeout", 2) do |timeout, d|
     d.with_timeout timeout
   end
+      
+  #add_fn(:"GENERATED", 0) { GENERATED }
+  #add_fn(:"CCL_METHOD_CALLS", 0){CCL_METHOD_CALLS}
 
   add_fn(:"list-size", 1) { |x| cons?(x) ? x.size : (raise LyraError.new("Invalid call to list-size.", :"invalid-call")) }
   add_fn(:cons, 2) { |x, xs| cons(x, xs) }
@@ -319,24 +322,6 @@ def setup_core_functions
   add_fn(:partial, 1, -1) { |x, *params| params.empty? ? x : PartialLyraFn.new(x, params.to_cons_list) }
 
   add_fn(:nothing, 0, -1) { |*_| nil }
-
-  add_fn(:"buildin-take", 2) do |n, xs|
-    if xs.empty? || n == 0
-      list
-    elsif random_access? xs
-      xs[0..n]
-    elsif xs.is_a?(ConsList)
-      ys = []
-      until xs.empty? || n == 0
-        ys << xs.car
-        xs = xs.cdr
-        n -= 1
-      end
-      ys.to_cons_list
-    else
-      xs.to_a[0...n].to_cons_list
-    end
-  end
 
   add_fn(:"atom?", 1) { |x| atom?(x) }
 
@@ -539,9 +524,9 @@ def setup_core_functions
     mod = IMPORTED_MODULES.lazy
 
     if mod.respond_to?(:filter)
-      mod = mod.filter{|e|e.name == mod_name}.to_a.first
+      mod = mod.filter{|e|e.name == mod_name}.first
     else
-      # select is an older version of filter. It forces the creation of an array and does not preserve  the lazyness of the Enumerable.
+      # select is an older version of filter. It forces the creation of an array and does not preserve the lazyness of the Enumerable.
       mod = mod.select{|e|e.name == mod_name}.first
     end
 

@@ -732,7 +732,7 @@
 
 ;## Function: compose-n
 ;# compose-n : (any -> any) -> ([any]+ -> any) -> ([any]+ -> any)
-;# Function composition, but the function g (which is applied first) takes 2 arguments.
+;# Function composition, but the function g (which is applied first) takes any number of arguments.
 (define (compose-n f g)
   (lambda (x & xs) (f (apply-to g (cons x xs)))))
 
@@ -1852,12 +1852,12 @@
                 (cons f0 fs)))
          (body (car forms))
          (_ (if (all?
-                (lambda (f)
-                  (and
-                    (list? f)
-                    (or (eq? (car f) 'catch)
-                      (eq? (car f) 'finally))))
-                (cadr forms))
+                  (lambda (f)
+                    (and
+                      (list? f)
+                      (or (eq? (car f) 'catch)
+                        (eq? (car f) 'finally))))
+                  (cadr forms))
               #t
               (error! "Syntax error: Invalid format for try-catch-finally" 'syntax)))
          (catch-finally (split-unless
@@ -2249,3 +2249,11 @@
 (load! "set.lyra")
 
 (cons 'core (list (import! "lyra.core.string", "") (import! "lyra.core.vector" "") (import! "lyra.core.set" "")))
+
+;push rsi
+;db 97
+;insb ; Input byte from I/O port specified in DX into memory location specified with ES:(E)DI.
+;gs ; Register name without operation? insb doesn't take any input.
+;outsb
+;jz 112
+;outsb

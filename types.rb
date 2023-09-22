@@ -248,7 +248,7 @@ class CdrCodedList < List
     @content_arr = content_arr
   end
   
-  def car
+  def car 
     @content_arr[0]
   end
   
@@ -263,7 +263,7 @@ class CdrCodedList < List
   
   # TODO Find a way to improve this.
   def set_cdr!(new_cdr)
-    cons(@content_arr, new_cdr)
+    @content_arr[1..] = new_cdr.to_a
   end
   
   ## Overrides
@@ -283,7 +283,7 @@ class CdrCodedList < List
   end
   
   def to_a
-    @content_arr.clone
+    @content_arr
   end
   
   def [](i)
@@ -301,7 +301,9 @@ class CdrCodedList < List
   ## Static creator method
   
   def self.create(content_arr)
-    if !(content_arr.is_a? Array)
+    if content_arr.nil?
+      EmptyList.instance
+    elsif !(content_arr.is_a? Array)
       raise raise LyraError.new("Illegal input. Expected vector/array.", :"illegal-argument")
     elsif content_arr.empty?
       EmptyList.instance
@@ -362,7 +364,7 @@ class ListPair
   # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
   def set_cdr!(tail)
     @list1 = EmptyList.instance
-    @list0.set_cdr! tail
+    @list0.set_cdr! tail # FIXME This might give the wrong behaviour if list0 is empty. Fix it when needed.
   end
 
   def size
@@ -524,15 +526,15 @@ def first(c)
 end
 
 def second(c)
-  c.cdr.car
+  c[1]
 end
 
 def third(c)
-  c.cdr.cdr.car
+  c[2]
 end
 
 def fourth(c)
-  c.cdr.cdr.cdr.car
+  c[3]
 end
 
 def rest(c)
