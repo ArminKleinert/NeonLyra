@@ -23,9 +23,10 @@
 ;# `(cond a b c d e)` if equivalent to `(if a b (if c d e))`.
 (defmacro (cond & cases)
   (if cases
-    (if (cdr cases)
-      (list 'if (car cases) (car (cdr cases)) (cons 'cond (cdr (cdr cases))))
-      (car cases))
+    (let* ((cc (cdr cases)))
+      (if cc
+        (list 'if (car cases) (car cc) (cons 'cond (cdr cc)))
+        (car cases)))
     Nothing))
 
 ;## Macro: lazy-seq
@@ -1317,9 +1318,6 @@
          (e-name (gensym 'case-elem)))
     (list 'let* (list (list e-name e)) (%case e-name n cases))))
 
-
-
-
 ;;; SECTION: List and Vector stuff
 
 (define (caar x) (car (car x)))
@@ -1881,7 +1879,7 @@
 
 ;## Macro: loop
 ;# loop : list|vector -> [expr]* -> expr
-;# loop macro similar to clojure. Supports destructuring.
+;# loop macro similar to clojure. Supports destructuring and reacts to recur.
 ;# (loop [(a b) '(1 2) res 0]
 ;#   (if (> res 0) res (recur '() (+ a b))))
 ;# ;=> 3
@@ -1913,49 +1911,6 @@
 ;#   ((times inc 0) 9)) ;=> 9
 (define (times f n)
   (lambda (x) (loop ((n1 n) (y x)) (if (<= n1 0) y (recur (dec n1) (f y))))))
-
-
-(define (%walk-with-path f coll _path)
-  (cond
-    (vector? coll)
-    (->vector
-      (map-indexed
-        (lambda (v i)
-          (let* ((path (cons i _path)))
-            (%walk-with-path f (f v path) path)))
-        coll))
-
-    (sequence? coll)
-    (map-indexed
-      (lambda (v i)
-        (let* ((path (cons i _path)))
-          (%walk-with-path f (f v path) path)))
-      coll)
-
-    (set? coll)
-    (->set
-    (map-indexed
-      (lambda (v i)
-        (let* ((path (cons i _path)))
-          (%walk-with-path f (f v path) path)))
-      coll))
-
-    (map? coll)
-    (->map (flatten1
-      (map-indexed
-        (lambda (v i)
-          (let* ((path (cons i _path)))
-            (%walk-with-path f (f v path) path)))
-        coll)))
-
-    ; coll is not a collection
-    else (f coll _path)
-    ))
-;## Function: walk-with-path
-;# walk-with-path : (any -> list) -> collection -> collection
-;# Not even in testing yet!
-(define (walk-with-path f xs)
-  (%walk-with-path f xs '()))
 
 
 ;;; SECTION: for macro
