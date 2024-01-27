@@ -54,9 +54,9 @@
   (/ 0 0))
 
 (let* ((f (lambda (n) n))
-        (fr (f 6))
-        (f2 (λ (n) n))
-        (fr2 (f 6)))
+       (fr (f 6))
+       (f2 (λ (n) n))
+       (fr2 (f 6)))
 (deftest test-lambda
       (= 2 ((lambda (n) (+ n n)) 1))
       (< 2 ((lambda (n) (+ n n)) 2))
@@ -79,7 +79,13 @@
 
 (deftest test-lambda*
     (let* ((f (lambda* fnname1 (n) (if (= 0 n) 1 (+ n (fnname1 (- n 1)))))))
-      (= 29 (f 7))))
+      (= 29 (f 7)))
+    (= 2 ((lambda* _ (a) (inc a)) 1))
+    (= 5 ((lambda* _ (a b) (+ a b)) 2 3))
+    (= 3 ((lambda* _ (as) (+ (car as) (cadr as))) '(1 2)))
+    (= 6 ((lambda* _ (& as) (+ (car as) (cadr as) (caddr as))) 1 2 3)) ; Variadic arguments
+    (= 9 ((lambda* _ (acc xs) (if (empty? xs) acc (recur (+ acc (car xs)) (rest xs)))) 1 '(2 3 3))) ; Test recur
+    )
 
 (deftest test-cond
     (= 3 (cond #f 0 #f 1 #f 2 #t 3))
@@ -3581,9 +3587,9 @@
          (size (split-with odd? '(1 0 2 3 4 5)))))
 
 (deftest test-group-by
-    (eq? (map-of 0 '(0 2 4 6 8) 1 '(1 3 5 7 9))
+    (eq? (map-of 0 [0 2 4 6 8] 1 [1 3 5 7 9])
          (group-by (lambda (x) (rem x 2)) '(0 1 2 3 4 5 6 7 8 9)))
-    (eq? (map-of #f '(0 2 4 6 8) #t '(1 3 5 7 9))
+    (eq? (map-of #f [0 2 4 6 8] #t [1 3 5 7 9])
          (group-by odd? '(0 1 2 3 4 5 6 7 8 9))))
 
 (deftest test-scalar?

@@ -672,5 +672,30 @@ ruby
 jruby
   ; Did not work due to low internal stack-capacity
 truffleruby
+  ; Exited with error when multithreading.
+
+0.2.1
+ruby
+  Generic utility (Do not change):                  62.0972845
+  Many math ops:                                    0.1456015
+  Without -> :                                      0.160309
+  Many math ops (lambda):                           0.17611
+  Many math ops (hash-lambda):                      0.1797745
+  Same as partials with composition:                0.7831405
+  set operations                                    1082.5351185
+  map operations                                    154.685288
+  (ack 3 4)                                         1661.6871135
+  (ack-destructure-lambda 3 4)                      1456.0210585
+  (ack-destructure-let 3 4)                         1441.9385045
+  lazy sequences                                    66.5318375
+  Sort 5000 elements:                               3206.858072
+  Shuffle 5000 elements:                            4644.126308
+  9-billion-names (25):                             2492.0066705
+  Lots of recur:                                    426.752249
+  Lots of tail recursion:                           424.127627
+  queens 6:                                         1180.508983
+jruby
+  ; Did not work due to low internal stack-capacity
+truffleruby
   ; TODO
 )

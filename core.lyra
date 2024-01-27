@@ -1987,29 +1987,29 @@
 (define (%can-destructure? left)
   (cond (not (vector? left)) #t
         (not (map? left))    #t
-        (not (list? left))   #t
+        (not (seq? left))    #t
         else                 #f))
 (define (%let-destructure-list seq1 seq2 namestack)
   (let ((sym (gensym 'des)))
   (cond
     (not seq1) '()
-    (= (car seq1) '&) (list (list (cadr seq1) seq2))
+    (= (car seq1) '&) `((~(cadr seq1) ~seq2))
     (%can-destructure? (car seq1))
       (cons
         (list sym seq2)
         (concat
-          (%let-destructure (car seq1) (list 'first sym)) ; Recursive inner destructure
-          (%let-destructure-list (cdr seq1) (list 'rest sym) (cons sym namestack))))
+          (%let-destructure (car seq1) `(first ~sym)) ; Recursive inner destructure
+          (%let-destructure-list (cdr seq1) `(rest ~sym) (cons sym namestack))))
     else
       (cons
         (list sym seq2)
-        (cons (list (first seq1) (list 'first sym))
-          (%let-destructure-list (cdr seq1) (list 'rest sym) (cons sym namestack)))))))
+        (cons `(~(first seq1) ~(first sym))
+              (%let-destructure-list (cdr seq1) `(rest ~sym) (cons sym namestack)))))))
 
 (define (%let-destructure-map m1 m2)
   (if (empty? m1)
     res
-    (mapcat (lambda (e) (%let-destructure (second e) (list 'map-get m2 (first e)))) (->list m1))))
+    (mapcat (lambda (e) (%let-destructure (second e) `(map-get ~m2 ~(first e)))) (->list m1))))
 
 (define (%let-destructure left right)
   (cond
@@ -2153,8 +2153,8 @@
       (let ((y (f x)))
         (map-set acc y
           (if (map-has-key? acc y)
-            (add (map-get acc y) x)
-            (list x)))))
+            (buildin-vector-add (map-get acc y) x)
+            (vector x)))))
     (map-of)
     xs))
 
