@@ -202,6 +202,15 @@ def ev_define_fn(expr, env, is_macro)
   name
 end
 
+# Generic functions in Lyra have their implementation chosen at runtime by the so called "anchor argument".
+# See the following implementation:
+#   (def-generic xs (on-each f xs) (lambda (f xs) (error! "Invalid call to on-each." 'argument)))
+# This function is called "on-each", its arguments are "f" and "xs".
+# "xs" is the so called "anchor". When Lyra calls a generic function, it looks at the type of xs to find
+# the correct implementation. If none is found, it uses the fallback-function (the lambda).
+# To add implementations:
+#   (def-impl ::list on-each (lambda (f xs) (foldl (lambda (_ x) (f x)) 0 xs) xs))
+# This adds an implementation for "on-each" to the "list" type.
 def ev_define_generic(expr, env)
   if expr.size != 3
     raise LyraError.new("Syntax error: Invalid format of def-generic.", :syntax)

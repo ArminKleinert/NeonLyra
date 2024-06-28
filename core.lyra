@@ -1313,6 +1313,20 @@
 
 ;## Macro: case
 ;# case : expr -> [any, expr]* -> expr
+;# 
+;# The example below takes the value 1 and then compares 1 to 2 first. If they 
+;# were equal, 4 would be "returned". Otherwise, 1 is compared to 1. they are 
+;# equal, so #t is returned.
+;#   (case 1
+;#     2 4  ; Case 1
+;#     1 #t ; Case 2
+;#     #f)  ; Default case
+;# The next example has a function as one of its predicates. In this case, the
+;# function is run on the provided value:
+;#   (case 1  (partial = 1) #t  #f)
+;# If a collection is provided as a predicate, the value is searched for in the
+;# collection:
+;#   (case 1  (set-of 9 8 7 6) #f  #t)
 (defmacro (case e & cases)
   (let* ((n (gensym 'case))
          (e-name (gensym 'case-elem)))
@@ -2196,6 +2210,9 @@
     ((xs) (map-indexed (lambda (x i) (list i x)) xs))
     ((start xs) (map-indexed (lambda (x i) (list (+ start i) x)) xs))
     ))
+
+(define (to-pair xs)
+  (list (car xs) (cdr xs)))
 )
 
 (load! "string.lyra")

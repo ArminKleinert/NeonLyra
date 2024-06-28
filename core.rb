@@ -172,7 +172,14 @@ def elem_to_pretty(e)
 end
 
 def eager(x)
-  x.is_a?(Lazy) ? x.evaluate : x
+ # x.is_a?(Lazy) ? x.evaluate : x
+  if x.is_a?(Lazy) 
+    x.evaluate
+  elsif x.respond_to?(:force)
+    x.force
+  else
+    x
+  end
 end
 
 def lyra_buildin_eq?(x, y)
@@ -357,6 +364,8 @@ def setup_core_functions
   #add_fn_with_env(:"all?", 2) { |x, env| x.cdr.car.to_a.all?{|e|truthy?(eval_ly(x.car,env,true)) } }
   #add_fn_with_env(:"none?", 2) { |x, env| !x.cdr.car.to_a.any?{|e|!truthy?(eval_ly(x.car,env,true)) } }
   #add_fn_with_env(:"any?", 2) { |x, env| x.cdr.car.to_a.any?{|e|truthy?(eval_ly(x.car,env,true)) } }
+
+  add_fn(:"cdr-list", 1) { |xs| cdr_list(xs.to_a) }
 
   add_fn(:"buildin->symbol", 1) { |x| x.respond_to?(:to_sym) ? x.to_sym : nil }
   add_fn(:"buildin->int", 1) { |x|

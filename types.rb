@@ -108,11 +108,15 @@ module ConsList
       list(*to_a[i])
     end
   end
-
-  def nth_rest(i)
+  
+  def first
+    car
+  end
+  
+  def drop(n)
     c = self
-    while !c.empty? && i > 0
-      i -= 1
+    while !c.empty? && n > 0
+      n -= 1
       c = c.cdr
     end
     if c.empty?
@@ -142,7 +146,8 @@ module ConsList
   end
 
   def force
-    each do
+    each do |x|
+      x
     end
   end
 end
@@ -229,6 +234,12 @@ class List
   def empty?
     false
   end
+
+  def evaluate
+    each do
+    end
+    self
+  end
 end
   
 # CDR-coded list
@@ -304,7 +315,7 @@ class CdrCodedList < List
     if content_arr.nil?
       EmptyList.instance
     elsif !(content_arr.is_a? Array)
-      raise raise LyraError.new("Illegal input. Expected vector/array.", :"illegal-argument")
+      raise raise LyraError.new("Illegal input. Expected vector/array, got #{content_arr}.", :"illegal-argument")
     elsif content_arr.empty?
       EmptyList.instance
     else
@@ -394,8 +405,12 @@ end
 
 class LazyList
   include Enumerable, ConsList, Lazy
+  @@inst_count = 0
 
   def initialize(head, tail_fn)
+    puts "created lazy list number #{@@inst_count}"
+    @@inst_count += 1
+    
     @car = head
     @cdr_or_tail_fn = tail_fn
     @tail_evaluated = false
@@ -424,7 +439,8 @@ class LazyList
   end
 
   def evaluate
-    each do
+    each do |x|
+      x
     end
     self
   end
@@ -441,12 +457,9 @@ class LazyList
 end
 
 def cons(e, l)
-  if l.is_a?(ConsList)
-    List.create(e, l)
-  elsif l.is_a?(LyraFn)
+  if l.is_a?(ConsList) || l.is_a?(LyraFn)
     List.create(e, l)
   else
-    puts l.class
     raise LyraError.new("Tail must be a list but is #{l}.", :"illegal-argument")
   end
 end
@@ -467,19 +480,23 @@ end
 
 =begin
 def list(*args)
-  if args.empty?
-    EmptyList.instance
-  else
-    lst = EmptyList.instance
-    args.reverse_each do |e|
-      lst = cons e, lst
-    end
-    lst
+  res = EmptyList.instance
+  args.reverse_each do |e|
+    res = cons(e, res)
   end
+  res
 end
 =end
 
 def list(*args)
+  if args.empty?
+    EmptyList.instance
+  else
+    CdrCodedList.create(args)
+  end
+end
+
+def cdr_list(args)
   if args.empty?
     EmptyList.instance
   else
@@ -754,14 +771,15 @@ class GenericFn < LyraFn
   attr_reader :name
 
   def initialize(name, _, anchor_idx, fallback)
-    @implementations = []
+    @implementations = Hash.new
     @fallback = fallback
-    @name, @anchor_idx = name.to_s.freeze, anchor_idx
+    @name = name.to_s.freeze
+    @anchor_idx = anchor_idx # Index of the generic argument in the argument list.
   end
 
   def call(args, env)
     # Potential for speedup?
-    type = type_id_of(args[@anchor_idx])
+    type = type_id_of(args[@anchor_idx]) # type = args[@anchor_idx].class
     fn = @implementations[type]
 
     if fn
