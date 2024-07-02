@@ -169,11 +169,6 @@
 ;# Alias for Nothing.
 (define nil Nothing)
 
-;## Function: distinct
-;# distinct : collection -> collection
-;# Alias for unique.
-(define distinct unique)
-
 ;## Function: str
 ;# str : string -> string* -> string 
 ;# Alias for string-concat.

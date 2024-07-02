@@ -74,11 +74,6 @@
 (define (%add xs y)
   (append xs (list y)))
 
-(define (%contains? xs e)
-  (cond (empty? xs) #f
-        (eq? (first xs) e) #t
-        else (%contains? (rest xs) e)))
-
 ;## Function: append
 ;# append : collection -> collection -> collection
 ;# Append all elements from a sequence ys to collection xs. Requires: ->list.
@@ -109,6 +104,11 @@
 ;# Default implementation requires ->list and returns a list.
 (def-generic xs (add-front xs y) (lambda (xs y) (cons y (->list xs))))
 
+
+(define (%contains? xs e)
+  (cond (empty? xs) #f
+        (eq? (first xs) e) #t
+        else (%contains? (rest xs) e)))
 ;## Function: contains?
 ;# contains? : collection -> any -> bool
 ;# Check whether the collection xs contains the element e.
@@ -332,6 +332,7 @@
 ;# (print! 1 2 3) ;=> prints "123"
 (define (print! & xs)
   (%print! xs))
+
 ;## Function: println!
 ;# println! : any* -> Nothing
 ;# Like print! but appends a linebreak.
@@ -339,6 +340,7 @@
 (define (println! & xs)
   (%print! xs)
   (buildin-print! "\n"))
+
 ;## Function: printall!
 ;# printall! : any* -> Nothing
 ;# Like println!, but separates the arguments with a space.
@@ -353,6 +355,7 @@
 (define (log! & xs)
   (%println! xs)
   xs)
+
 ;## Function: log1!
 ;# log1! : any -> any
 ;# As println!, but takes only one argument and returns it after printing.
@@ -367,10 +370,12 @@
 ;# Take a function f, which takes two arguments and returns a new function which takes the arguments reversed.
 (define (flip f)
   (lambda (x y) (f y x)))
+
 ;## Function: fst
 ;# fst : any -> any -> any
 ;# Take 2 arguments, return the first.
 (define (fst x y) x)
+
 ;## Function: snd
 ;# snd : any -> any -> any
 ;# Take 2 arguments, return the second.
@@ -617,7 +622,7 @@
 
 ;## Function: else
 ;# else : bool
-;# Nicer-to-read alias for #t.
+;# Nicer-to-read alias for #t. Intended for the cond-macro.
 (define else #t)
 
 ;## Macro: and
@@ -625,6 +630,7 @@
 ;# Macro for lazy `and`.
 ;#  (and x y) returns y if x is #t or returns #f if x is not true.
 (defmacro (and x y) (list 'if x y #f))
+
 ;## Macro: or
 ;# or : expr -> expr -> expr
 ;# Macro for lazy `or`.
@@ -720,6 +726,7 @@
 ;# Function composition
 (define (compose f g)
   (lambda (x & xs) (f (apply-to g (cons x xs)))))
+
 ;## Function: comp
 ;# comp : (any -> any) -> (any -> any) -> (any -> any)
 ;# Alias for compose.
@@ -817,7 +824,7 @@
 ;# mapl : (any -> any) -> collection -> list
 ;# Alias for map-eager. The name is supposed to show a similarity to mapv, but the output is a list, not a vector.
 (define (mapl f xs)
-  (eager (map f xs)))
+  (map-eager f xs))
 
 (define (%map-indexed f xs i)
   (if (empty? xs)
@@ -840,7 +847,7 @@
 
 ;## Function: maplist
 ;# maplist : (collection -> any) -> collection -> list
-;# map but use the rest of the list.
+;# map but use the rest of the list instead of the next element.
 ;# (maplist size '(1 2 3)) ;=> (3 2 1)
 ;#   Like (list (size '(1 2 3)) (size '(2 3)) (size '(3)))
 ;# Requires: empty?, rest
@@ -924,7 +931,7 @@
 ;## Function: fmap
 ;# fmap : (any -> any) -> (any -> bool) -> collection -> list
 ;# Filter, then map.
-;# (fmap f p xs) is equivalent to (filter p (map f xs))
+;# (fmap f p xs) is equivalent to (map p (filter f xs))
 ;# Required: empty?, first, rest
 (define (fmap f p xs)
   (cond (empty? xs) '()
@@ -933,7 +940,7 @@
 ;## Function: mapf
 ;# mapf : (any -> any) -> (any -> bool) -> collection -> list
 ;# map, then filter
-;# (mapf f p xs) is equivalent to (map f (filter p xs))
+;# (mapf f p xs) is equivalent to (filter f (map p xs))
 ;# Required: empty?, first, rest
 (define (mapf f p xs)
   (if (empty? xs)
@@ -943,15 +950,15 @@
         (lazy-seq y (mapf f p (rest xs)))
         (mapf f p (rest xs))))))
 
+(define (%split-at n st en)
+  (if (or (= n 0) (empty? en))
+    (list (reverse (->list st)) (->list en))
+    (%split-at (dec n) (cons (first en) st) (rest en))))
 ;## Function: split
 ;# split : int -> collection -> list
 ;# Split a sequence into 2 parts: From index 0 to n and the rest.
 ;# (split n xs) is equivalent to (list (take n xs) (drop n xs))
 ;# Required: empty?, ->list (for the rest), first, rest
-(define (%split-at n st en)
-  (if (or (= n 0) (empty? en))
-    (list (reverse (->list st)) (->list en))
-    (%split-at (dec n) (cons (first en) st) (rest en))))
 (define (split-at n xs)
   (%split-at n '() xs))
 
@@ -1192,13 +1199,13 @@
 ; Variadic variant for all?
 ;## Function: va-all?
 ;# va-all? : (any -> bool) -> [any]* -> bool
-
 (define (va-all? p & xs) (all? p xs))
+
 ; Variadic variant for none?
 ;## Function: va-none?
 ;# va-none? : (any -> bool) -> [any]* -> bool
-
 (define (va-none? p & xs) (none? p xs))
+
 ; Variadic variant for any?
 ;## Function: va-any?
 ;# va-any? : (any -> bool) -> [any]* -> bool
@@ -1230,12 +1237,12 @@
 
 ;## Function: T
 ;# T : ([any]* -> bool)
-;# Always true
+;# Takes any number of arguments and returns true.
 (define T (constantly #t))
 
 ;## Function: F
 ;# F : ([any]* -> bool)
-;# Always false
+;# Takes any number of arguments and returns false.
 (define F (constantly #f))
 
 
@@ -1273,6 +1280,7 @@
 
 ;## Function: cartesian-product
 ;# cartesian-product : sequence -> sequence -> list
+;# (cartesian-product '(1 2 3) '(4 5)) ;-> ((1 4) (1 5) (2 4) (2 5) (3 4) (3 5))
 (define (cartesian-product lst0 lst1)
   (mapcat (lambda (x) (zip (repeat x) lst1)) lst0))
 
@@ -1374,7 +1382,7 @@
 ;# flatten : collection -> list
 ;# Flatten a collection.
 ;# Required: collection?, foldr, append
-;# Could use some optimization
+;# Could use some optimization.
 (define (flatten xs)
   (if (collection? xs)
     (foldr append '() (map flatten xs))
@@ -1384,7 +1392,7 @@
 ;# flatten1 : collection -> list
 ;# Flatten by one level.
 ;# Required: map
-;# Could use some optimization
+;# Could use some optimization.
 (define (flatten1 xs)
   (apply-to list-concat (map (lambda (x) (if (collection? x) (->list x) (list x))) xs)))
 
@@ -1427,7 +1435,6 @@
         (list (inc (car p)) (* (car p) (cadr p))))
       '(1 1))))
 
-
 ;## Function: scanr
 ;# scanr : (any -> any -> any) -> any -> collection -> list
 ;# Intermediate results of foldr as a lazy sequence
@@ -1464,11 +1471,11 @@
 (define (%unique seen xs)
   (if (empty? xs)
     '()
-    (let ((f (first xs))
-          (r (rest xs)))
-      (if (contains? seen (first xs))
-        (%unique seen (rest xs))
-        (lazy-seq (first xs) (%unique (set-add seen (first xs)) (rest xs)))))))
+    (let ((fst (first xs))
+          (rst (rest xs)))
+      (if (contains? seen fst)
+        (%unique seen rst)
+        (lazy-seq fst (%unique (set-add seen fst) rst))))))
 ;## Function: unique
 ;# unique : collection -> list
 ;# Get a sequence with its duplicates removed.
@@ -1476,6 +1483,33 @@
 (define (unique xs)
   (let ((seen (set-of)))
     (%unique seen xs)))
+
+;## Function: distinct
+;# distinct : collection -> collection
+;# Alias for unique.
+(define distinct unique)
+
+(define (%unique-by seen f xs)
+  (if (empty? xs)
+    '()
+    (let ((fst (first xs))
+          (rst (rest xs)))
+      (if (contains? seen (f fst))
+        (%unique-by seen f rst)
+        (lazy-seq fst (%unique-by (set-add seen fst) f rst))))))
+;## Function: unique-by
+;# unique-by : (any -> any) -> collection -> collection
+;# Get a sequence with its duplicates removed by predicate.
+;# (unique-by #(rem %1 4) '(1 3 5 7 8 9)) ;=> (1 3 8)
+;# Required: empty?, first, rest
+(define (unique-by f xs)
+  (let ((seen (set-of)))
+    (%unique-by seen f xs)))
+
+;## Function: distinct-by
+;# distinct-by : (any -> any) -> collection -> collection
+;# Alias for unique-by.
+(define distinct-by unique-by)
 
 ; Check whether (eq? xs (unique xs))
 ; Required: eq? 
@@ -1497,6 +1531,7 @@
 ;## Function: slices
 ;# slices : int -> collection -> list
 ;# (slices 3 '(1 2 3 4 5 6)) ;=> ((1 2 3) (4 5 6))
+;# (slices 3 '(1 2 3 4 5 6 7)) ;=> ((1 2 3) (4 5 6))
 ;# Required: size, take, drop
 (define (slices n xs)
   (cond
@@ -1617,15 +1652,15 @@
     (cond
       (not funcs) expr
       expr `(try*
-          (let* ((~current-name ~expr))
-            (if ~current-name
-              ~(list* 'compute*-> default error-default
-                (if (list? (car funcs))
-                  (list-concat (car funcs) (list current-name))
-                  (list (car funcs) current-name))
-                (cdr funcs))
-              ~default))
-          (catch id e ~error-default))
+              (let* ((~current-name ~expr))
+                (if ~current-name
+                  ~(list* 'compute*-> default error-default
+                    (if (list? (car funcs))
+                      (list-concat (car funcs) (list current-name))
+                      (list (car funcs) current-name))
+                    (cdr funcs))
+                  ~default))
+              (catch id e ~error-default))
       else default)))
 
 ;## Macro: compute->
@@ -1643,7 +1678,15 @@
 
 ;## Macro: quasiquote
 ;# quasiquote : expr -> expr
-;# Quotes an expression. Sub-sxpressions can be unquoted using unquote and unquote-splicing.
+;# Quotes an expression. Sub-expressions can be unquoted using unquote and unquote-splicing.
+;# The interpreter uses backtick ('`') as a short prefix for this macro.
+;# unquote has the short prefix '~' (tilde) and unquote-splicing is '~@'.
+;# `(1 ~@(list 2 3) 4) ;-> (1 2 3 4)
+;# (let ((a 1) (b '(3 4)) (c 'a)) `(~a 2 (unquote (quasiquote (unquote c))))) ;-> (1 2 3 4)
+;# 
+;# Be careful: Double unquoting does not work.
+;#  (let ((a 1) (c 'a)) `(unquote (quasiquote (unquote c)))) ;-> a
+;#  (let ((a 1) (c 'a)) `(unquote (unquote c))) ;-> Error
 (defmacro (quasiquote expr)
   (cond
     (not expr)
@@ -1739,9 +1782,10 @@
   (case-lambda* minimum
     ((coll) (foldl1 min coll))
     ((f coll) (min (map f coll)))))
-;## Function: minimum
-;# minimum : collection -> any
-;# minimum : (any -> any) -> collection -> any
+    
+;## Function: maximum
+;# maximum : collection -> any
+;# maximum : (any -> any) -> collection -> any
 ;# Get maximum of the elements in a sequence using min/max.
 ;# Required: foldl1, map
 (define maximum
@@ -1758,10 +1802,10 @@
 ;# Takes 0 to 3 input numbers.
 ;# Arity | Output
 ;# 0     | Infinite sequence starting at 0 and counting up.
-;# 1     | Infinite sequence starting at from.
+;# 1     | Infinite sequence starting at 'from'.
 ;# 2     | Lazy sequence counting from 'from' to 'to'.
-;# 3     | Lazy sequence counting from 'from' to 'to'
-;#       | If stop is a function, it is repeatedly applied to the current value of from until (>= from to).
+;# 3     | Lazy sequence counting from 'from' to 'to' while skipping ahead 'step' numbers each time.
+;#       | If step is a function, it is repeatedly applied to the current value of from until (>= from to).
 ;#       | Otherwise, step is repeatedly added to from using +.
 (define xrange
   (case-lambda* xrange
@@ -2152,12 +2196,6 @@
   (foldl
     (lambda (res kv) (map-set res (second kv) (first kv)))
     (map-of) m))
-
-;## Function: split-with
-;# split-with : (any -> bool) -> sequence -> sequence
-;# (split-with p xs) is the same as (list (take-while p xs) (drop-while p xs)).
-(define (split-with p xs)
-  (list (take-while p xs) (drop-while p xs)))
 
 ;## Function: group-by
 ;# group-by : (any -> any) -> collection -> map

@@ -66,6 +66,21 @@
   case : expr -> [any, expr]* -> expr
   
   Pure? Yes
+  
+  
+  The example below takes the value 1 and then compares 1 to 2 first. If they
+  were equal, 4 would be "returned". Otherwise, 1 is compared to 1. they are
+  equal, so #t is returned.
+    (case 1
+      2 4  ; Case 1
+      1 #t ; Case 2
+      #f)  ; Default case
+  The next example has a function as one of its predicates. In this case, the
+  function is run on the provided value:
+    (case 1  (partial = 1) #t  #f)
+  If a collection is provided as a predicate, the value is searched for in the
+  collection:
+    (case 1  (set-of 9 8 7 6) #f  #t)
 ```
 ### Macro: `case-lambda` 
 ```
@@ -198,7 +213,6 @@
   Or more generalized:
    (lambda' ((a b & rest)) (add-front rest (+ a b)))
   The destructuring works for any type that supports 'first and 'rest.
-
 ```
 ### Macro: `lazy-seq` 
 ```
@@ -242,7 +256,7 @@
   
   Pure? Yes
   
-  loop macro similar to clojure. Supports destructuring.
+  loop macro similar to clojure. Supports destructuring and reacts to recur.
   (loop [(a b) '(1 2) res 0]
     (if (> res 0) res (recur '() (+ a b))))
   ;=> 3
@@ -280,7 +294,15 @@
   
   Pure? Yes
   
-  Quotes an expression. Sub-sxpressions can be unquoted using unquote and unquote-splicing.
+  Quotes an expression. Sub-expressions can be unquoted using unquote and unquote-splicing.
+  The interpreter uses backtick ('`') as a short prefix for this macro.
+  unquote has the short prefix '~' (tilde) and unquote-splicing is '~@'.
+  `(1 ~@(list 2 3) 4) ;-> (1 2 3 4)
+  (let ((a 1) (b '(3 4)) (c 'a)) `(~a 2 (unquote (quasiquote (unquote c))))) ;-> (1 2 3 4)
+  
+  Be careful: Double unquoting does not work.
+   (let ((a 1) (c 'a)) `(unquote (quasiquote (unquote c)))) ;-> a
+   (let ((a 1) (c 'a)) `(unquote (unquote c))) ;-> Error
 ```
 ### Macro: `try` 
 ```
@@ -530,7 +552,7 @@
   
   Pure? Yes
   
-  Always false
+  Takes any number of arguments and returns false.
 ```
 ### Function: `T` 
 ```
@@ -538,7 +560,7 @@
   
   Pure? Yes
   
-  Always true
+  Takes any number of arguments and returns true.
 ```
 ### Function: `add` 
 ```
@@ -636,6 +658,8 @@
   cartesian-product : sequence -> sequence -> list
   
   Pure? Yes
+  
+  (cartesian-product '(1 2 3) '(4 5)) ;-> ((1 4) (1 5) (2 4) (2 5) (3 4) (3 5))
 ```
 ### Function: `chunk-map` 
 ```
@@ -712,7 +736,7 @@
   
   Pure? Yes
   
-  Function composition, but the function g (which is applied first) takes 2 arguments.
+  Function composition, but the function g (which is applied first) takes any number of arguments.
 ```
 ### Function: `compose-or` 
 ```
@@ -834,6 +858,22 @@
   
   (destructure (('(a b) '(1 2)))) ;=> ((sym0 '(1 2)) (a (first sym0)) (sym1 (rest sym0)) (b (first sym1)))
 ```
+### Function: `distinct` 
+```
+  distinct : collection -> collection
+  
+  Pure? Yes
+  
+  Alias for unique.
+```
+### Function: `distinct-by` 
+```
+  distinct-by : (any -> any) -> collection -> collection
+  
+  Pure? Yes
+  
+  Alias for unique-by.
+```
 ### Function: `divmod` 
 ```
   divmod : any -> any -> list
@@ -887,7 +927,7 @@
   Pure? Yes
   
   else : bool
-  Nicer-to-read alias for #t.
+  Nicer-to-read alias for #t. Intended for the cond-macro.
 ```
 ### Function: `empty?` 
 ```
@@ -1031,7 +1071,7 @@
   
   Flatten a collection.
   Required: collection?, foldr, append
-  Could use some optimization
+  Could use some optimization.
 ```
 ### Function: `flatten1` 
 ```
@@ -1041,7 +1081,7 @@
   
   Flatten by one level.
   Required: map
-  Could use some optimization
+  Could use some optimization.
 ```
 ### Function: `flip` 
 ```
@@ -1058,7 +1098,7 @@
   Pure? Yes
   
   Filter, then map.
-  (fmap f p xs) is equivalent to (filter p (map f xs))
+  (fmap f p xs) is equivalent to (map p (filter f xs))
   Required: empty?, first, rest
 ```
 ### Function: `foldl` 
@@ -1427,7 +1467,7 @@
   Pure? Yes
   
   map, then filter
-  (mapf f p xs) is equivalent to (map f (filter p xs))
+  (mapf f p xs) is equivalent to (filter f (map p xs))
   Required: empty?, first, rest
 ```
 ### Function: `mapl` 
@@ -1444,7 +1484,7 @@
   
   Pure? Yes
   
-  map but use the rest of the list.
+  map but use the rest of the list instead of the next element.
   (maplist size '(1 2 3)) ;=> (3 2 1)
     Like (list (size '(1 2 3)) (size '(2 3)) (size '(3)))
   Requires: empty?, rest
@@ -1456,6 +1496,16 @@
   Pure? Yes
   
   Get maximum of n m (using < or >)
+```
+### Function: `maximum` 
+```
+  maximum : collection -> any
+  maximum : (any -> any) -> collection -> any
+  
+  Pure? Yes
+  
+  Get maximum of the elements in a sequence using min/max.
+  Required: foldl1, map
 ```
 ### Function: `min` 
 ```
@@ -1473,16 +1523,6 @@
   Pure? Yes
   
   Get minimum of the elements in a sequence using min/max.
-  Required: foldl1, map
-```
-### Function: `minimum` 
-```
-  minimum : collection -> any
-  minimum : (any -> any) -> collection -> any
-  
-  Pure? Yes
-  
-  Get maximum of the elements in a sequence using min/max.
   Required: foldl1, map
 ```
 ### Function: `most?` 
@@ -1890,6 +1930,7 @@
   Pure? Yes
   
   (slices 3 '(1 2 3 4 5 6)) ;=> ((1 2 3) (4 5 6))
+  (slices 3 '(1 2 3 4 5 6 7)) ;=> ((1 2 3) (4 5 6))
   Required: size, take, drop
 ```
 ### Function: `snd` 
@@ -1948,14 +1989,6 @@
   
   (split-unless p xs) is equivalent to (list (take-until p xs) (drop-until p xs))
   Required: empty?, first, rest
-```
-### Function: `split-with` 
-```
-  split-with : (any -> bool) -> sequence -> sequence
-  
-  Pure? Yes
-  
-  (split-with p xs) is the same as (list (take-while p xs) (drop-while p xs)).
 ```
 ### Function: `spread` 
 ```
@@ -2070,6 +2103,16 @@
   Get a sequence with its duplicates removed.
   Required: empty?, first, rest
 ```
+### Function: `unique-by` 
+```
+  unique-by : (any -> any) -> collection -> collection
+  
+  Pure? Yes
+  
+  Get a sequence with its duplicates removed by predicate.
+  (unique-by #(rem %1 4) '(1 3 5 7 8 9)) ;=> (1 3 8)
+  Required: empty?, first, rest
+```
 ### Function: `unique?` 
 ```
   unique? : collection -> bool
@@ -2117,14 +2160,6 @@
   
   Pure? Yes
 ```
-### Function: `walk-with-path` 
-```
-  walk-with-path : (any -> list) -> collection -> collection
-  
-  Pure? Yes
-  
-  Not even in testing yet!
-```
 ### Function: `xrange` 
 ```
   xrange : () -> list
@@ -2138,10 +2173,10 @@
   Takes 0 to 3 input numbers.
   Arity | Output
   0     | Infinite sequence starting at 0 and counting up.
-  1     | Infinite sequence starting at from.
+  1     | Infinite sequence starting at 'from'.
   2     | Lazy sequence counting from 'from' to 'to'.
-  3     | Lazy sequence counting from 'from' to 'to'
-        | If stop is a function, it is repeatedly applied to the current value of from until (>= from to).
+  3     | Lazy sequence counting from 'from' to 'to' while skipping ahead 'step' numbers each time.
+        | If step is a function, it is repeatedly applied to the current value of from until (>= from to).
         | Otherwise, step is repeatedly added to from using +.
 ```
 ### Function: `zip` 

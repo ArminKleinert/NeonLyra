@@ -200,14 +200,6 @@
   
   Alias for size.
 ```
-### Function: `distinct` 
-```
-  distinct : collection -> collection
-  
-  Pure? Yes
-  
-  Alias for unique.
-```
 ### Function: `do` 
 ```
   do : [expr]* -> expr
