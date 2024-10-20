@@ -63,7 +63,7 @@
 ;# lfsr32 algorithm.
 (define lfsr lfsr32)
 
-(let ((state (box 0xCAFEBABE)))
+(let ((state (box 0xDEADBEEF)))
   (define (random!)
     (let ((res (splitmix64 (unbox state))))
       (box-set! state res)

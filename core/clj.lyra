@@ -164,7 +164,7 @@
 ;# Alias for size.
 (define count size)
 
-;## Variable: nil
+;## Constant: nil
 ;# nil : Nothing
 ;# Alias for Nothing.
 (define nil Nothing)

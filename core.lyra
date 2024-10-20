@@ -620,7 +620,7 @@
 ;# Alias for ->symbol.
 (define symbol ->symbol)
 
-;## Function: else
+;## Constant: else
 ;# else : bool
 ;# Nicer-to-read alias for #t. Intended for the cond-macro.
 (define else #t)
@@ -722,7 +722,7 @@
         else (scanl f (first xs) (rest xs))))
 
 ;## Function: compose
-;# compose : (any -> any) -> (any -> any) -> (any -> any)
+;# compose : (any -> any) -> (any+ -> any) -> (any+ -> any)
 ;# Function composition
 (define (compose f g)
   (lambda (x & xs) (f (apply-to g (cons x xs)))))
@@ -2137,13 +2137,13 @@
 (define (par f0 & fs)
   (map delay (cons f0 fs)))
 
-;## Macro par'
+;## Macro: par'
 ;# par' : [expr]* -> expr
 ;# Takes a list of expressions and wraps each in a lambda. These functions are then evaluated by the par function.
 (defmacro (par' expr1 & exprs)
   `(par (lambda () ~expr1) ~@(map (lambda (e) `(lambda () ~e)) exprs)))
 
-;## Macro par-with-timeout'
+;## Macro: par-with-timeout'
 ;# par-with-timeout' : expr -> [expr]* -> expr
 ;# Takes a number (timeout) and a list of expressions and wraps each in a lambda. These functions are then evaluated by the par-with-timeout function. Timeouts <= 0 mean an infinite timeout. (Might as well use par')
 (defmacro (par-with-timeout' timeout expr1 & exprs)
