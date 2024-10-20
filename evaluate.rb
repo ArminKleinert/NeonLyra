@@ -20,6 +20,8 @@ unless Object.const_defined?(:LYRA_ENV)
   setup_core_functions
 end
 
+# The code below reserves some names that have special handlers.
+# They must not be called by the code directly.
 begin
   f = lambda do |name|
     r = CompoundFunc.new(
@@ -29,7 +31,10 @@ begin
   end
 
   f.call :recur
-  RECUR_FUNC = Env.global_env.find :recur
+  temp = Env.global_env.find :recur
+  raise unless temp.is_a?(LyraFn) # Make the type checker shut up
+  RECUR_FUNC = temp
+
   f.call :"lambda*"
   #f.call :"let"
   f.call :"let*"
@@ -51,7 +56,8 @@ begin
 
 #  f.call :"lambda"
 #  f.call :"cond"
-  
+
+  # A placeholder which does nothing. Used to fill space in a list when a cell's entry is not needed.
   DO_NOTHING_AND_RETURN = gensym(:id)
   f.call DO_NOTHING_AND_RETURN
 end
@@ -319,8 +325,10 @@ end
 # args_expr has the format `(args...)`
 # body_expr has the format `expr...`
 def ev_lambda(name, args_expr, body_expr, definition_env, is_macro = false)
-  arg_arr = args_expr.to_a # This function will call the array indexing methods a lot, so converting to an array first helps out. TODO might first checking whether the list is already a random_access type be faster? (e.g. for CdrCodedLists)
-  
+  # This function will call the array indexing methods a lot, so converting to an array first helps out.
+  # TODO Maybe first checking whether the list is already a random_access type be faster? (e.g. for CdrCodedLists)
+  arg_arr = args_expr.to_a
+
   arg_count = arg_arr.size
   max_args = arg_count
   is_hash_lambda = false # Enable % arguments.
@@ -458,6 +466,7 @@ def eval_list_expr(expr, env, is_in_call_params = false)
     body_expr = rest(rest(rest(expr)))
 
     raise LyraError.new("Syntax error: lambda* name must be a symbol.", :syntax) unless name.is_a?(Symbol)
+    raise LyraError.new("Syntax error: lambda* arguments must be a list.", :syntax) unless args_expr.is_a?(ConsList)
     ev_lambda(name, args_expr, body_expr, env)
   when :define
     # Creates a new function and adds it to the global environment.

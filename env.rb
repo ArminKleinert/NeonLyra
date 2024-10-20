@@ -7,7 +7,6 @@ Boxed = Struct.new :val
 GLOBAL_ENV = Boxed.new nil
 
 class Env
-
   attr_reader :module_name, :next_module_env, :inner, :exportables, :is_module_env
 
   def initialize(module_name, parent0 = nil, parent1 = nil, module_env = nil, is_module_env = false)
@@ -15,11 +14,14 @@ class Env
     @parent0, @parent1 = parent0, parent1
     @inner = Hash.new(NOT_FOUND_IN_LYRA_ENV)
     if module_env.nil?
-      if @parent0.nil? || is_module_env
+      if @parent0.nil?
+        @next_module_env = self
+      elsif is_module_env
         @next_module_env = self
       else
-        # &. gets rid of the "Method invocation 'next_module_env' may produce 'NoMethodError" warning
-        @next_module_env = @parent0&.next_module_env
+        temp = @parent0
+        raise unless temp.is_a? Env# Make the type checker shut up.
+        @next_module_env = temp.next_module_env
       end
     else
       @next_module_env = module_env

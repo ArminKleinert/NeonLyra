@@ -1,6 +1,4 @@
-FUNC_MAP: ::Hash[Symbol, untyped]
-
-FuncMapEntry: untyped
+type lyra_expr = untyped
 
 NOTHING_TYPE: TypeName
 
@@ -42,41 +40,36 @@ DELAY_TYPE: TypeName
 GENSYM_CNT: ::Array[Integer]
 
 class Object
-  def find_fn: (untyped func_name, untyped type_name) -> untyped
+  def type_of: (lyra_expr x) -> TypeName
 
-  def def_generic_fn: (Symbol func_name, untyped fallback) -> untyped
+  def type_id_of: (lyra_expr x) -> Integer
 
-  def type_of: (untyped x) -> untyped
+  def elem_to_s: (lyra_expr e) -> String
 
-  def type_id_of: (untyped x) -> untyped
+  def elem_to_pretty: (lyra_expr e) -> String
 
-  def lyra_eq?: (untyped x, untyped y) -> untyped
+  def eager: (lyra_expr x) -> lyra_expr
 
-  def elem_to_s: (untyped e) -> untyped
-
-  def elem_to_pretty: (untyped e) -> untyped
-
-  def eager: (untyped x) -> untyped
-
-  def lyra_buildin_eq?: (untyped x, untyped y) -> untyped
+  def lyra_buildin_eq?: (lyra_expr x, lyra_expr y) -> bool
 
   def gensym: (Symbol|String x) -> Symbol
 
-  def div: (untyped x, untyped y) -> untyped
+  def div: (Numeric x, Numeric y) -> Numeric?
 
-  def rem: (untyped x, untyped y) -> untyped
+  def rem: (Numeric x, Numeric y) -> Numeric?
 
-  def truthy?: (untyped x) -> untyped
+  def truthy?: (lyra_expr x) -> bool
 
-  def string_to_chars: (untyped s) -> untyped
+  def string_to_chars: (String s) -> Array[LyraChar]
+                     | (lyra_expr s) -> nil
 
-  def apply_op_to_list: (untyped xs) { (untyped, untyped) -> untyped } -> bool
+  def apply_op_to_list: (Enumerable[lyra_expr] xs) { (lyra_expr, lyra_expr) -> lyra_expr } -> bool
 
   def setup_add_fn: (Symbol name, Integer min_args, ?Integer max_args) { () -> untyped } -> Env
 
   def setup_add_fn_with_env: (Symbol name, Integer min_args, ?Integer max_args) { () -> untyped } -> Env
 
-  def setup_add_var: (Symbol name, untyped value) -> Env
+  def setup_add_var: (Symbol name, lyra_expr value) -> Env
 
   # Sets up the core functions and variables. The functions defined here are
   # of the type NativeLyraFn instead of LyraFn. They can not make use of tail-

@@ -26,14 +26,15 @@ class LyraError < StandardError
   end
 end
 
-module Unwrapable
+module Unwrappable
 end
 
 module Lazy
 end
 
 module Enumerable
-  def to_cons_list
+  # @return [ConsList[Elem]]
+  def to_cons_list # TODO: Figure out how to extend Enumerable with rbs.
     if is_a?(ConsList)
       self
     else
@@ -477,7 +478,7 @@ def cdr(e)
 end
 
 class Box
-  include Unwrapable
+  include Unwrappable
   attr_accessor :value
 
   def initialize(value)
@@ -528,6 +529,10 @@ class LyraFn
   def apply_to(args, env)
     call(args, env)
   end
+
+  def call(args, env)
+    raise "Can not call LyraFn directly. Use a child-class."
+  end
 end
 
 class LazyLyraFn < Proc
@@ -569,7 +574,7 @@ class CompoundFunc < LyraFn
       if @is_hash_lambda
         env1.set_multi_anonymous! args
       else
-        env1.set_multi!(@args_expr, args, @arg_counts.last < 0)
+        env1.set_multi!(@args_expr.to_cons_list, args, @arg_counts.last < 0)
       end
 
       # Execute the body and return
@@ -613,7 +618,7 @@ class NativeLyraFn < LyraFn
   def initialize(name, min_args, max_args = min_args, &body)
     @arg_counts = (min_args..max_args)
     @body = body
-    @name = name.to_s.freeze
+    @name = name.to_sym
   end
 
   def call(args, env)
@@ -772,6 +777,7 @@ class GenericFn < LyraFn
     else
       @implementations[type.type_id] = impl
     end
+    self
   end
 end
 
@@ -791,7 +797,6 @@ class TypeName
 
   def initialize(name, type_id)
     @name, @type_id = name.to_sym, type_id
-    @name.freeze
   end
 
   def to_s
@@ -808,7 +813,7 @@ def atom?(x)
 end
 
 class LyraDelay
-  include Lazy, Unwrapable
+  include Lazy, Unwrappable
 
   def initialize(thread)
     @thread = thread
@@ -869,7 +874,7 @@ class LyraChar
 
   def initialize(s)
     if s.is_a?(String)
-      @chr = s.size == 0 ? 0.chr : s[0]
+      @chr = s.size == 0 ? 0.chr : s[0] # The type checker keeps complaining that s[0] could be nil. Make it stop.
     elsif s.is_a?(Integer)
       @chr = s.chr
     else
@@ -878,7 +883,7 @@ class LyraChar
   end
 
   def to_i
-    ord
+    @chr.to_i
   end
 
   def to_s
@@ -963,10 +968,13 @@ class Keyword < LyraFn
   end
 
   def call(args, env)
+    unless env.is_a?(Env)
+      raise LyraError.new("#{@name}: Tried to use keyword as function without providing an environment.", :internal)
+    end
     if args.size != 1
       raise LyraError.new("#{@name}: Keyword can only be called on 1 argument.", :arity)
     end
-    env.safe_find("get").call(list(args[0], self), env)
+    env.safe_find(:get).call(list(args[0], self), env)
   end
 
   def native?
@@ -983,7 +991,7 @@ class Keyword < LyraFn
 end
 
 class LyraType
-  include Unwrapable
+  include Unwrappable
 
   attr_reader :name, :type_id, :attrs
 
@@ -1010,8 +1018,8 @@ LYRA_TYPE_COUNTER = Box.new 20
 def new_lyra_type(name, attrs, env)
   attrs = attrs.to_a
   counter = LYRA_TYPE_COUNTER.value
-  t = TypeName.new(:"::#{name}", counter)
-  env.set! :"make-#{name}", NativeLyraFn.new(:"make-#{name}", attrs.size) { |params, _| LyraType.new(counter, t, params.to_a) }
+  typename = TypeName.new(:"::#{name}", counter)
+  env.set! :"make-#{name}", NativeLyraFn.new(:"make-#{name}", attrs.size) { |params, _| LyraType.new(counter, typename, params.to_a) }
   env.set! :"#{name}?", NativeLyraFn.new(:"#{name}?", 1) { |o, _| o.car.is_a?(LyraType) && o.car.type_id == counter }
   env.set! :"unwrap-#{name}", NativeLyraFn.new(:"unwrap-#{name}", 1) { |o, _| o.attrs }
 
@@ -1019,7 +1027,7 @@ def new_lyra_type(name, attrs, env)
     fn_name = :"#{name}-#{attr}"
     env.set! fn_name, NativeLyraFn.new(fn_name, 1) { |e, _| e.car.attrs[i] }
   end
-  env.set! t.to_sym, t
+  env.set! typename.to_sym, typename
 
   LYRA_TYPE_COUNTER.value = LYRA_TYPE_COUNTER.value + 1
 

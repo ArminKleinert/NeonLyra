@@ -1,11 +1,11 @@
 class LyraModule
   attr_reader name: Symbol
 
-  attr_reader abstract_name: untyped
+  attr_reader abstract_name: Symbol
 
-  attr_reader bindings: untyped
+  attr_reader bindings: Array[Symbol]
 
-  def initialize: (untyped name, untyped abstract_name, untyped bindings) -> untyped
+  def initialize: (Symbol name, Symbol abstract_name, Array[Symbol] bindings) -> void
 end
 
 class LyraError < StandardError
@@ -13,7 +13,7 @@ class LyraError < StandardError
 
   attr_reader internal_trace: untyped
 
-  def initialize: (String msg, ?::Symbol info, ?untyped? trace) -> untyped
+  def initialize: (String msg, ?::Symbol info, ?untyped? trace) -> void
 end
 
 module Unwrapable
@@ -38,6 +38,7 @@ module ConsList[T]
   def nth: (Integer i) -> T
 
   def []: (Integer i) -> T
+        | (Range[Integer] i) -> ConsList[T]
 
   def first: () -> T
 
@@ -75,7 +76,7 @@ class List[T]
   @cdr: ConsList[T] | LyraFn
   @size: Integer
 
-  def initialize: (untyped head, ConsList[T] | LyraFn tail, Integer size) -> ConsList[T]
+  def initialize: (T head, ConsList[T] | LyraFn tail, Integer size) -> void
 
   def car: () -> T
 
@@ -84,12 +85,12 @@ class List[T]
   def size: () -> Integer
 
   # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
-  def set_car!: (untyped c) -> ConsList[T]
+  def set_car!: (T c) -> ConsList[T]
 
   # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
   def set_cdr!: (ConsList[T] tail) -> ConsList[T]
 
-  def self.create: [T] (untyped head, ConsList[T] | LyraFn tail) -> ConsList[T]
+  def self.create: [T] (T head, ConsList[T] | LyraFn tail) -> ConsList[T]
 
   def empty?: () -> false
 
@@ -107,13 +108,13 @@ end
 # A CdrCodedList is never empty. CdrCodedList.create ensures that it becomes an 
 # instance of EmptyList.
 class CdrCodedList[T] < List[T]
-  include Enumerable[untyped]
+  include Enumerable[T]
 
   include ConsList[T]
 
-  @content_arr: Array[untyped]
+  @content_arr: Array[T]
 
-  def initialize: (untyped content_arr) -> untyped
+  def initialize: (Array[T] content_arr) -> void
 
   def car: () -> T
 
@@ -149,7 +150,7 @@ class ListPair[T]
 
   attr_reader list1: ConsList[T]
 
-  def initialize: (ConsList[T] list0, ConsList[T] list1) -> ListPair[T]
+  def initialize: (ConsList[T] list0, ConsList[T] list1) -> void
 
   def car: () -> T?
 
@@ -175,7 +176,7 @@ class Box[T]
 
   attr_accessor value: T
 
-  def initialize: (T value) -> Box[T]
+  def initialize: (T value) -> void
 
   def to_s: () -> ::String
 
@@ -186,22 +187,31 @@ end
 class TailCall[T] < StandardError
   attr_reader args: Enumerable[T]
 
-  def initialize: (untyped args) -> untyped
+  def initialize: (Enumerable[lyra_expr] args) -> void
 end
 
 # Parent for both native and user-defined functions.
 class LyraFn
-  def apply_to: (untyped args, untyped env) -> untyped
+  def apply_to: (Enumerable[lyra_expr] args, Env? env) -> lyra_expr
+
+  # Provided by child classes
+  def call: (Enumerable[lyra_expr] args, Env? env) -> lyra_expr
 end
 
 class LazyLyraFn < Proc
-  def self.create: (untyped f, untyped env) -> untyped
+  def self.create: (LyraFn f, Env env) -> LazyLyraFn
 end
 
 # A Lyra-function. It knows its argument-count (minimum and maximum),
 # body (the executable function), name and whether it is a macro or not.
 class CompoundFunc < LyraFn
-  attr_reader args_expr: untyped
+  @body_expr: ConsList[lyra_expr]
+
+  @definition_env: Env?
+
+  @is_hash_lambda: bool
+
+  attr_reader args_expr: Enumerable[lyra_expr]
 
   attr_reader arg_counts: Range[Integer]
 
@@ -209,9 +219,9 @@ class CompoundFunc < LyraFn
 
   attr_reader is_macro: bool
 
-  def initialize: (untyped name, untyped args_expr, untyped body_expr, untyped definition_env, untyped is_macro, untyped min_args, ?untyped max_args, ?bool is_hash_lambda) -> untyped
+  def initialize: (Symbol name, Enumerable[lyra_expr] args_expr, ConsList[lyra_expr] body_expr, Env? definition_env, bool is_macro, Integer min_args, ?Integer max_args, ?bool is_hash_lambda) -> void
 
-  def call: (untyped args, untyped env) -> untyped
+  def call: (Enumerable[lyra_expr] args, Env? env) -> lyra_expr
 
   def to_s: () -> ::String
 
@@ -223,15 +233,15 @@ class CompoundFunc < LyraFn
 end
 
 class NativeLyraFn < LyraFn
-  attr_reader arg_counts: untyped
+  attr_reader arg_counts: Range[Integer]
 
   attr_reader name: Symbol
 
-  attr_reader body: untyped
+  attr_reader body: Proc
 
-  def initialize: (untyped name, untyped min_args, ?untyped max_args) { () -> untyped } -> untyped
+  def initialize: (Symbol name, Integer min_args, ?Integer max_args) { () -> untyped } -> void
 
-  def call: (untyped args, untyped env) -> untyped
+  def call: (Enumerable[lyra_expr] args, Env? env) -> lyra_expr
 
   def to_s: () -> ::String
 
@@ -245,14 +255,14 @@ class NativeLyraFn < LyraFn
 end
 
 class PartialLyraFn < LyraFn
-  @args: ConsList[untyped]
+  @args: ConsList[lyra_expr]
   @func: LyraFn
 
   @name: Symbol
 
-  def initialize: [T] (LyraFn func, ConsList[T] args) -> PartialLyraFn
+  def initialize: [T] (LyraFn func, ConsList[T] args) -> void
 
-  def call: (untyped args, Env env) -> untyped
+  def call: (Enumerable[lyra_expr] args, Env? env) -> lyra_expr
 
   def to_s: () -> String
 
@@ -266,9 +276,9 @@ class PartialLyraFn < LyraFn
 end
 
 class MemoizedLyraFn < LyraFn
-  def initialize: (LyraFn func) -> MemoizedLyraFn
+  def initialize: (LyraFn func) -> void
 
-  def call: [T] (ConsList[T] args, Env env) -> untyped
+  def call: (Enumerable[lyra_expr] args, Env? env) -> lyra_expr
 
   def to_s: () -> String
 
@@ -285,13 +295,13 @@ class GenericFn < LyraFn
   @anchor_idx: Integer
   @fallback: LyraFn
 
-  @implementations: Hash[untyped, untyped]
+  @implementations: Hash[Integer, LyraFn]
 
   attr_reader name: Symbol
 
-  def initialize: (Symbol name, untyped _, Integer anchor_idx, LyraFn fallback) -> untyped
+  def initialize: (Symbol name, Integer num_args, Integer anchor_idx, LyraFn fallback) -> void
 
-  def call: [T] (ConsList[T] args, Env env) -> untyped
+  def call: (Enumerable[lyra_expr] args, Env? env) -> lyra_expr
 
   def to_s: () -> ::String
 
@@ -301,29 +311,29 @@ class GenericFn < LyraFn
 
   def is_macro: () -> false
 
-  def add_implementation!: (TypeName `type`, untyped impl) -> untyped
+  def add_implementation!: (TypeName `type`, LyraFn impl) -> GenericFn
 end
 
 class WrappedLyraError
   attr_reader msg: String
 
-  attr_reader info: untyped
+  attr_reader info: Symbol
 
   attr_reader trace: untyped
 
-  def initialize: (String msg, untyped info, ?untyped? trace) -> untyped
+  def initialize: (String msg, Symbol info, ?untyped? trace) -> void
 end
 
 class TypeName
   attr_reader name: Symbol
 
-  attr_reader type_id: untyped
+  attr_reader type_id: Integer
 
-  def initialize: (Symbol | String name, untyped type_id) -> untyped
+  def initialize: (Symbol | String name, Integer type_id) -> void
 
-  def to_s: () -> untyped
+  def to_s: () -> String
 
-  def to_sym: () -> untyped
+  def to_sym: () -> Symbol
 end
 
 class LyraDelay
@@ -331,95 +341,95 @@ class LyraDelay
 
   include Unwrapable
 
-  def initialize: (untyped thread) -> untyped
+  def initialize: (Thread thread) -> void
 
   # if the thread is alive, return nil
   # otherwise, return its value
-  def unbox: () -> untyped
+  def unbox: () -> lyra_expr
 
-  def value: () -> untyped
+  def value: () -> lyra_expr
 
   # Eagerly run the thread with no timeout
   # if the thread fails (with an error), return the error
   # otherwise, return the value
-  def evaluate: () -> untyped
+  def evaluate: () -> lyra_expr
 
   # Wait `seconds` seconds before killing the thread
   # (if necessary) and getting its value
-  def with_timeout: (untyped seconds) -> untyped
+  def with_timeout: (Float seconds) -> lyra_expr
 end
 
 class LyraChar
-  attr_reader chr: untyped
+  attr_reader chr: String
 
-  def self.conv: (untyped s) -> untyped
+  def self.conv: (String s) -> LyraChar?
 
-  def initialize: (untyped s) -> untyped
+  def initialize: (String|Integer s) -> void
 
-  def to_i: () -> untyped
+  def to_i: () -> Integer
 
-  def to_s: () -> untyped
+  def to_s: () -> String
 
-  def inspect: () -> untyped
+  def inspect: () -> String
 
-  def ord: () -> untyped
+  def ord: () -> Integer
 
-  def ==: (untyped other) -> untyped
+  def ==: (untyped other) -> bool
 
-  def eql?: (untyped other) -> untyped
+  def eql?: (untyped other) -> bool
 
-  def hash: () -> untyped
+  def hash: () -> Integer
 end
 
-KEYWORDS: untyped
+KEYWORDS: Hash[Symbol, Keyword]
 
 class Keyword < LyraFn
-  attr_reader name: untyped
+  attr_reader name: Symbol
 
-  def initialize: (untyped name) -> untyped
+  def initialize: (Symbol name) -> void
 
-  def self.create: (untyped name) -> untyped
+  def self.create: (Symbol name) -> Keyword
 
-  def ==: (untyped other) -> untyped
+  def ==: (untyped other) -> bool
 
-  def eql?: (untyped other) -> untyped
+  def eql?: (untyped other) -> bool
 
-  def to_s: () -> untyped
+  def to_s: () -> String
 
-  def inspect: () -> untyped
+  def inspect: () -> String
 
-  def to_sym: () -> untyped
+  def to_sym: () -> Symbol
 
-  def hash: () -> untyped
+  def hash: () -> Integer
 
-  def call: (untyped args, untyped env) -> untyped
+  def call: (Enumerable[lyra_expr] args, Env? env) -> lyra_expr
 
-  def native?: () -> ::TrueClass
+  def native?: () -> true
 
-  def pure?: () -> ::TrueClass
+  def pure?: () -> true
 
-  def is_macro: () -> ::FalseClass
+  def is_macro: () -> false
 end
 
 class LyraType
   include Unwrapable
 
-  attr_reader name: untyped
+  attr_reader name: TypeName
 
-  attr_reader type_id: untyped
+  attr_reader type_id: Integer
 
-  attr_reader attrs: untyped
+  attr_reader attrs: Array[lyra_expr]
 
-  def initialize: (untyped type_id, untyped name, untyped attrs) -> untyped
+  def initialize: (Integer type_id, TypeName name, Array[lyra_expr] attrs) -> void
 
   def to_s: () -> ::String
 
-  def inspect: () -> untyped
+  def inspect: () -> String
 
-  def unwrap: () -> untyped
+  def unwrap: () -> Array[lyra_expr]
 end
 
-LYRA_TYPE_COUNTER: untyped
+LYRA_TYPE_COUNTER: Box[Integer]
 
 class Object
   def list_append: [T] (*(Enumerable[T]) lists) -> ConsList[T]
@@ -429,9 +439,10 @@ class Object
 
   def cons: [T] (T e, ConsList[T] | LyraFn l) -> ConsList[T]
 
-  def cons?: (untyped l) -> untyped
+  def cons?: (lyra_expr l) -> bool
+           | [T] (ConsList[T] l) -> true
 
-  def random_access?: (untyped e) -> bool
+  def random_access?: [T] (Enumerable[T] e) -> bool
 
   def list: [T] (*T args) -> ConsList[T]
 
@@ -452,7 +463,7 @@ class Object
 
   def rest: [T] (ConsList[T] c) -> ConsList[T]
 
-  def atom?: (untyped x) -> bool
+  def atom?: (lyra_expr x) -> bool
 
-  def new_lyra_type: (untyped name, untyped attrs, Env env) -> untyped
+  def new_lyra_type: (Symbol name, Enumerable[lyra_expr] attrs, Env env) -> Symbol
 end

@@ -10,23 +10,23 @@ DO_NOTHING_AND_RETURN: Symbol
 
 class Object
   # Parses and evaluates a string as Lyra-source code.
-  def eval_str: (String s, ?Env env) -> untyped
+  def eval_str: (String s, ?Env env) -> lyra_expr
 
-  def top_env: (Env env) -> untyped
+  def top_env: (Env env) -> Env
 
-  def ev_module: (untyped expr) -> untyped
+  def ev_module: (ConsList[lyra_expr] expr) -> ConsList[Symbol]
 
   # Takes a List (list of expressions), calls eval_ly on each element
   # and return a new list.
-  def eval_list: (ConsList expr_list, Env env) -> untyped
+  def eval_list: (ConsList[lyra_expr] expr_list, Env env) -> ConsList[lyra_expr]
 
   # Completely removes atoms and nil from the ast if they are not needed.
-  def optimize_cdr: (ConsList expr_list, Env env) -> bool
+  def optimize_cdr: (ConsList[lyra_expr] expr_list, Env env) -> bool
 
   # Similar to eval_list, but only returns the last evaluated value.
-  def eval_keep_last: (untyped expr_list, untyped env) -> untyped
+  def eval_keep_last: (ConsList[lyra_expr] expr_list, Env env) -> lyra_expr
 
-  def ev_define_fn: (untyped expr, untyped env, untyped is_macro) -> untyped
+  def ev_define_fn: (ConsList[lyra_expr] expr, Env env, bool is_macro) -> Symbol
 
   # Generic functions in Lyra have their implementation chosen at runtime by the so called "anchor argument".
   # See the following implementation:
@@ -37,21 +37,21 @@ class Object
   # To add implementations:
   #   (def-impl ::list on-each (lambda (f xs) (foldl (lambda (_ x) (f x)) 0 xs) xs))
   # This adds an implementation for "on-each" to the "list" type.
-  def ev_define_generic: (untyped expr, Env env) -> untyped
+  def ev_define_generic: (ConsList[lyra_expr] expr, Env env) -> lyra_expr
 
-  def ev_define_with_type: (untyped expr, Env env, bool is_macro) -> untyped
+  def ev_define_with_type: (ConsList[lyra_expr] expr, Env env, bool is_macro) -> lyra_expr
 
   # Defines a new function or variable and puts it into the global LYRA_ENV.
   # If `is_macro` is true, the function will not evaluate its arguments right away.
-  def ev_define: (ConsList expr, Env env, bool is_macro) -> untyped
+  def ev_define: (ConsList[lyra_expr] expr, Env env, bool is_macro) -> lyra_expr
 
   # args_expr has the format `(args...)`
   # body_expr has the format `expr...`
-  def ev_lambda: (Symbol name, untyped args_expr, untyped body_expr, Env definition_env, ?bool is_macro) -> untyped
+  def ev_lambda: (Symbol name, ConsList[Symbol] args_expr, ConsList[lyra_expr] body_expr, Env definition_env, ?bool is_macro) -> LyraFn
 
   # Form: (try* <expr> (catch <ex-name> <validator> <body>)
   #       (try* <expr> (catch <ex-name> <body>)
-  def eval_try_star: (untyped expr, Env env) -> untyped
+  def eval_try_star: (ConsList[lyra_expr] expr, Env env) -> lyra_expr
 
   # The expression is a cons and probably starts with a symbol.
   # The evaluate function will try to treat the symbol as a function
@@ -61,8 +61,8 @@ class Object
   #   Example: ((lambda (n) (+ n 1)) 15)
   # If the cons is empty or does not start with a symbol or another
   # cons, an error is thrown.
-  def eval_list_expr: (ConsList expr, Env env, ?bool is_in_call_params) -> untyped
+  def eval_list_expr: (ConsList[lyra_expr] expr, Env env, ?bool is_in_call_params) -> lyra_expr
 
   # Evaluation function
-  def eval_ly: (untyped expr, Env env, ?bool is_in_call_params) -> untyped
+  def eval_ly: (lyra_expr expr, Env env, ?bool is_in_call_params) -> lyra_expr
 end

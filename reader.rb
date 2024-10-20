@@ -31,9 +31,11 @@ end
 
 def parse_char(token)
   c = case token
-      when /^\\u\d{4}$/
+      when /^\\u\d{4}$/ # Unicode
         LyraChar.conv(eval('"' + token + '"').encode('utf-8'))
-      when /^\\[A-Za-z\d+-\/!?$%&()|\[\]{}]$/
+      when /^\\[A-Za-z\d+-\/!?$%&()|\[\]{}]$/ # Normal string
+        # The type checker complains that token[1] could be nil, which it can't.
+        # Even an explicit `raise if token.size < 2` or `raise if token[1].nil?` does nothing.
         LyraChar.conv token[1]
       when "\\*"
         LyraChar.conv "*"
@@ -88,6 +90,11 @@ def read_number(t)
   t.to_i(base) * mult
 end
 
+# Usually returns a symbol, except for the following cases:
+# - The token is "Nothing" -> returns nil
+# - The token ends with ".?" -> returns a list with the symbol "unwrap" as it's car (a function call)
+# - The token ends with ".!" -> As ".?", but the function is "eager"
+# The input can not be ".?" or ".!". Those are handled elsewhere.
 def read_symbol(t)
   applications = []
   while t.end_with?(".?") || t.end_with?(".!")

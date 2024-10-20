@@ -5,30 +5,6 @@ require_relative 'types.rb'
 require_relative 'env.rb'
 require 'set'
 
-FUNC_MAP = {}
-FuncMapEntry = Struct.new :fallback, :inner
-
-def find_fn(func_name, type_name)
-  f = FUNC_MAP[func_name]
-  if f.nil?
-    raise LyraError.new("Function not found: #{f}")
-  else
-    specific = f.inner[type_name]
-    if specific.nil?
-      raise LyraError.new("No candidate on function #{f} with type #{type_name}.") unless f.fallback
-      f.fallback
-    else
-      specific
-    end
-  end
-end
-
-def def_generic_fn(func_name, fallback)
-  entry = FuncMapEntry.new fallback, {}
-  raise LyraError.new("Function #{func_name} is already defined.") if FUNC_MAP.include? func_name
-  FUNC_MAP[func_name] = entry
-end
-
 NOTHING_TYPE = TypeName.new "::nothing", 0
 BOOL_TYPE = TypeName.new "::bool", 1
 VECTOR_TYPE = TypeName.new "::vector", 2
@@ -97,28 +73,6 @@ end
 
 def type_id_of(x)
   type_of(x).type_id
-end
-
-def lyra_eq?(x, y)
-  if atom?(x) && atom?(y)
-    x == y
-  elsif x.is_a?(Enumerable)
-    if y.is_a?(Enumerable)
-      if x.class == y.class
-        x == y
-      else
-        x.to_a == y.to_a
-      end
-    elsif y.is_a?(LyraType)
-      x.to_a == y.attrs
-    else
-      false
-    end
-  elsif y.is_a?(Enumerable)
-    lyra_eq?(y, x)
-  else
-    x == y
-  end
 end
 
 def elem_to_s(e)
@@ -214,7 +168,7 @@ def string_to_chars(s)
   s.is_a?(String) ? s.chars.map { |c| LyraChar.conv(c) || "\0" } : nil
 end
 
-def apply_op_to_list(xs, &op)
+def apply_op_to_list(xs, &_)
   unless xs.empty?
     until xs.size <= 1
       x = xs[0]
@@ -309,14 +263,12 @@ def setup_core_functions
   setup_add_fn(:"always-false", 0, -1) { |*_| false }
 
   setup_add_fn(:box, 1) { |x| Box.new(x) }
-  setup_add_fn(:unbox, 1) { |b| b.is_a?(Unwrapable) ? b.value : nil }
+  setup_add_fn(:unbox, 1) { |b| b.is_a?(Unwrappable) ? b.value : nil }
   setup_add_fn(:"buildin-unwrap", 1) { |b|
-    b.is_a?(Unwrapable) ? b.unwrap : b } # Intended for use with any boxing type
+    b.is_a?(Unwrappable) ? b.unwrap : b } # Intended for use with any boxing type
   setup_add_fn(:"box-set!", 2) { |b, x| b.value = x; b }
 
   setup_add_fn(:eager, 1) { |x| eager x }
-  setup_add_fn(:evaluated?, 1) { |x| x.executed }
-  #setup_add_fn_with_env(:lazy, 1) { |xs, env| LazyObj.new xs.car, env }
   setup_add_fn(:partial, 1, -1) { |x, *params| params.empty? ? x : PartialLyraFn.new(x, params.to_cons_list) }
 
   setup_add_fn(:nothing, 0, -1) { |*_| nil }
@@ -342,14 +294,12 @@ def setup_core_functions
   setup_add_fn(:"function?", 1) { |x| x.is_a?(LyraFn) }
   setup_add_fn(:"macro?", 1) { |x| x.is_a?(LyraFn) && x.is_macro }
   setup_add_fn(:"lazy?", 1) { |x| x.is_a?(Lazy) }
-  #setup_add_fn(:"lazy-obj?", 1) { |x| x.is_a?(LazyObj) }
   setup_add_fn(:"keyword?", 1) { |x| x.is_a?(Keyword) }
 
   setup_add_fn(:"keyword-name", 1) { |x| x.is_a?(Keyword) ? x.to_sym : nil }
 
   setup_add_fn(:id, 1) { |x| x }
   setup_add_fn(:hash, 1) { |x| x.hash }
-  #setup_add_fn(:"eq?", 2) { |x, y| lyra_eq?(x, y) }
 
   # Can be bootstrapped.
   #setup_add_fn_with_env(:"all?", 2) { |x, env| x.cdr.car.to_a.all?{|e|truthy?(eval_ly(x.car,env,true)) } }
@@ -511,9 +461,9 @@ def setup_core_functions
 
   setup_add_var(:Nothing, nil)
 
-  setup_add_fn_with_env(:"load!", 1) do |xs, env|
+  setup_add_fn_with_env(:"load!", 1) do |xs, _|
     file = xs.car
-    prefix = xs.cdr.car
+    #prefix = xs.cdr.car
     eval_str(IO.read(file), Env.global_env)
   end
 
@@ -584,7 +534,17 @@ def setup_core_functions
 
   setup_add_fn(:ljust, 2) { |x, n| elem_to_s(x).ljust(n) }
 
-  setup_add_fn_with_env(:"apply-to", 2) { |xs, env| first(xs).call(second(xs).force, env) }
+  setup_add_fn_with_env(:"apply-to", 2) do |xs, env|
+    fst = first(xs)
+    snd = second(xs)
+    unless fst.is_a?(LyraFn)
+      raise LyraError.new("apply-to: head must be a function.", :internal)
+    end
+    unless snd.is_a?(ConsList)
+      raise LyraError.new("apply-to: second element must be a list.", :internal)
+    end
+    fst.call(snd.force, env)
+  end
 
   [NOTHING_TYPE, BOOL_TYPE, VECTOR_TYPE, MAP_TYPE, LIST_TYPE, FUNCTION_TYPE,
    INTEGER_TYPE, FLOAT_TYPE, RATIO_TYPE, SET_TYPE, TYPE_NAME_TYPE, STRING_TYPE,

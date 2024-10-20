@@ -1,12 +1,11 @@
 REG = /;#\s.+:.+->.+/
-Block = Struct.new :name, :line, :sig, :pure, :description
+Block = Struct.new :name, :line, :sigs, :pure, :description
 
 def format_block(b)
-  sig = b.sig.map { |s| s[3..-1] }
+  sig = b.sigs.map { |s| s[3..-1] }
   desc = b.description.map { |d| d[3..-1] }
   res = "#{sig.join("\n")}\n\nPure? #{b.pure ? "Yes" : "No"}#{desc.empty? ? "" : "\n\n"}#{desc.join("\n")}".lines.map { |l| "  #{l}" }.join
-  res = "### #{b.name.split(" ").join(" `")}` \n```\n" + res + "\n```\n"
-  res
+  "### #{b.name.split(" ").join(" `")}` \n```\n" + res + "\n```\n"
 end
 
 def dostuff(filename, target_file)

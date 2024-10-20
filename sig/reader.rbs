@@ -20,15 +20,15 @@ class Object
   # Un-escapes a string and removed the '"' from beginning and end.
   def parse_str: (String token) -> String
 
-  def parse_char: (String token) -> String
+  def parse_char: (String token) -> LyraChar?
 
-  def prefixed_ast: (Symbol sym, Enumerable[String] tokens, Integer level) -> untyped
+  def prefixed_ast: (Symbol sym, Enumerable[String] tokens, Integer level) -> lyra_expr
 
-  def raise_if_unexpected: (String expected, String t, Integer level) -> untyped
+  def raise_if_unexpected: (String expected, String t, Integer level) -> void
 
   def read_number: (String t) -> Numeric
 
-  def read_symbol: (String t) -> (Symbol?|ConsList[untyped])
+  def read_symbol: (String t) -> (Symbol?|ConsList[lyra_expr])
 
   # Builds the abstract syntax tree and converts all expressions into their
   # types.
@@ -36,5 +36,5 @@ class Object
   # a bool, a string becomes a string, etc.
   # If an `(` is found, a cons is opened. It is closed when a `)` is 
   # encountered.
-  def make_ast: (Enumerable[String] tokens, ?::Integer level, ?::String expected, ?bool stop_after_1) -> untyped
+  def make_ast: (Enumerable[String] tokens, ?::Integer level, ?::String expected, ?bool stop_after_1) -> lyra_expr
 end

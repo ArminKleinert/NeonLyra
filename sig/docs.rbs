@@ -1,9 +1,15 @@
-REG: untyped
+REG: Regexp
 
-Block: untyped
+class Block
+  @name: String
+  @line: Integer
+  @sigs: Array[String]
+  @pure: bool
+  @description: Array[String]
+end
 
 class Object
-  def format_block: (untyped b) -> untyped
+  def format_block: (Block b) -> String
 
-  def dostuff: (untyped filename, untyped target_file) -> untyped
+  def dostuff: (String filename, String target_file) -> void
 end
