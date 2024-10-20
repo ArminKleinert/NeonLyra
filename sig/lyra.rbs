@@ -1,0 +1,14 @@
+HISTORY_LOADED: Box[bool]
+
+HISTORY_FILE: ::String
+
+HISTORY: Array[String]
+
+LYRA_VERSION: ::String
+
+class Object
+  # Read a line using Reline::readline
+  # If the history file doesn't exist yet, create it.
+  # Otherwise, load it lazily.
+  def _readline: (String prompt) -> String
+end

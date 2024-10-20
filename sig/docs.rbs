@@ -1,0 +1,9 @@
+REG: untyped
+
+Block: untyped
+
+class Object
+  def format_block: (untyped b) -> untyped
+
+  def dostuff: (untyped filename, untyped target_file) -> untyped
+end

@@ -6,6 +6,7 @@ require 'set'
 
 class LyraModule
   attr_reader :name, :abstract_name, :bindings
+
   def initialize(name, abstract_name, bindings)
     @name, @abstract_name, @bindings = name, abstract_name, bindings
   end
@@ -52,7 +53,7 @@ module ConsList
     end
     self
   end
-  
+
   def index(o)
     lst = self
     idx = 0
@@ -108,11 +109,11 @@ module ConsList
       list(*to_a[i])
     end
   end
-  
+
   def first
     car
   end
-  
+
   def drop(n)
     c = self
     while !c.empty? && n > 0
@@ -120,7 +121,7 @@ module ConsList
       c = c.cdr
     end
     if c.empty?
-      nil
+      EmptyList.instance
     else
       c
     end
@@ -186,11 +187,17 @@ class List
   end
 
   def cdr
-    if @cdr.is_a?(LyraFn)
-      temp = @cdr.call(list, nil)
-      unless temp.is_a?(ConsList) || temp.is_a?(Proc)
+    temp = @cdr
+    if temp.is_a?(LyraFn)
+      temp = temp.call(list, nil)
+      unless temp.is_a?(ConsList)
         raise LyraError.new("Tail must be a list but is #{temp}.", :"illegal-argument")
       end
+    end
+    if temp.nil?
+      # Obviously, this case never happens, but the type checker will not shut up without this check.
+      @cdr = EmptyList.instance
+    else
       @cdr = temp
     end
     @cdr
@@ -208,6 +215,7 @@ class List
   # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
   def set_car!(c)
     @car = c
+    self
   end
 
   # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
@@ -215,12 +223,11 @@ class List
     @cdr = tail
     force
     @size = tail.size + 1
+    self
   end
 
   def self.create(head, tail)
-    if tail.is_a? LazyList
-      List.send :new, head, tail, -1
-    elsif tail.is_a? ConsList
+    if tail.is_a? ConsList
       List.send :new, head, tail, tail.size + 1
     elsif tail.is_a? LyraFn
       List.send :new, head, tail, -1
@@ -241,7 +248,7 @@ class List
     self
   end
 end
-  
+
 # CDR-coded list
 # This is basically a list backed by an array. It has to override some operations
 # that every list must support.
@@ -254,31 +261,33 @@ end
 # instance of EmptyList.
 class CdrCodedList < List
   include Enumerable, ConsList
-  
+
   def initialize(content_arr)
     @content_arr = content_arr
   end
-  
-  def car 
+
+  def car
     @content_arr[0]
   end
-  
+
   # TODO If there is a way to make this faster, please find it.
   def cdr
     CdrCodedList.create(@content_arr[1..-1])
   end
-  
+
   def set_car!(new_car)
     @content_arr[0] = new_car
+    self
   end
-  
+
   # TODO Find a way to improve this.
   def set_cdr!(new_cdr)
     @content_arr[1..] = new_cdr.to_a
+    self
   end
-  
+
   ## Overrides
-  
+
   def empty?
     false
   end
@@ -292,30 +301,30 @@ class CdrCodedList < List
     @content_arr.each_with_index(&block)
     self
   end
-  
+
   def to_a
     @content_arr
   end
-  
+
   def [](i)
     @content_arr[i]
   end
-  
+
   def size
     @content_arr.size
   end
-  
+
   def nth_rest(n)
     CdrCodedList.create(@content_arr[n..-1])
   end
-  
+
   ## Static creator method
-  
+
   def self.create(content_arr)
     if content_arr.nil?
       EmptyList.instance
     elsif !(content_arr.is_a? Array)
-      raise raise LyraError.new("Illegal input. Expected vector/array, got #{content_arr}.", :"illegal-argument")
+      raise LyraError.new("Illegal input. Expected vector/array, got #{content_arr}.", :"illegal-argument")
     elsif content_arr.empty?
       EmptyList.instance
     else
@@ -403,59 +412,6 @@ class ListPair
   end
 end
 
-class LazyList
-  include Enumerable, ConsList, Lazy
-  @@inst_count = 0
-
-  def initialize(head, tail_fn)
-    puts "created lazy list number #{@@inst_count}"
-    @@inst_count += 1
-    
-    @car = head
-    @cdr_or_tail_fn = tail_fn
-    @tail_evaluated = false
-  end
-
-  def car
-    @car
-  end
-
-  def cdr
-    if @tail_evaluated
-      @cdr_or_tail_fn
-    else
-      temp = @cdr_or_tail_fn.call
-      unless temp.is_a?(ConsList) || temp.is_a?(Proc)
-        raise LyraError.new("Tail must be a list but is #{temp}.", :"illegal-argument")
-      end
-      @cdr_or_tail_fn = temp
-      @tail_evaluated = true
-      @cdr_or_tail_fn
-    end
-  end
-
-  def size
-    cdr.size + 1
-  end
-
-  def evaluate
-    each do |x|
-      x
-    end
-    self
-  end
-
-  def self.create(head, tail_fn)
-    LazyList.send :new, head, tail_fn
-  end
-
-  private_class_method :new
-
-  def empty?
-    false
-  end
-end
-
 def cons(e, l)
   if l.is_a?(ConsList) || l.is_a?(LyraFn)
     List.create(e, l)
@@ -505,7 +461,7 @@ def cdr_list(args)
 end
 
 def car(e)
-  if e.respond_to?(:car) 
+  if e.respond_to?(:car)
     e.car
   else
     EmptyList.instance
@@ -513,7 +469,7 @@ def car(e)
 end
 
 def cdr(e)
-  if e.respond_to?(:cdr) 
+  if e.respond_to?(:cdr)
     e.cdr
   else
     EmptyList.instance
@@ -609,7 +565,7 @@ class CompoundFunc < LyraFn
     raise LyraError.new("#{@name}: Too many arguments. (Given #{args_given}, expected #{@arg_counts})", :arity) if arg_counts.last >= 0 && args_given > arg_counts.last
 
     begin
-      env1 = Env.new(nil, @definition_env, env).set!(:"*current-function*", @name).set!(@name, self)
+      env1 = Env.new(gensym("env"), @definition_env, env).set!(:"*current-function*", @name).set!(@name, self)
       if @is_hash_lambda
         env1.set_multi_anonymous! args
       else
@@ -617,7 +573,7 @@ class CompoundFunc < LyraFn
       end
 
       # Execute the body and return
-      #body.call(args, env1)
+      # body.call(args, env1)
       eval_keep_last(@body_expr, env1)
     rescue TailCall => tail_call
       unless native?
@@ -712,7 +668,7 @@ class PartialLyraFn < LyraFn
   end
 
   def name
-    to_s
+    to_s.to_sym
   end
 
   def native?
@@ -773,7 +729,7 @@ class GenericFn < LyraFn
   def initialize(name, _, anchor_idx, fallback)
     @implementations = Hash.new
     @fallback = fallback
-    @name = name.to_s.freeze
+    @name = name
     @anchor_idx = anchor_idx # Index of the generic argument in the argument list.
   end
 
@@ -852,22 +808,22 @@ def atom?(x)
 end
 
 class LyraDelay
-    include Lazy, Unwrapable
-  
+  include Lazy, Unwrapable
+
   def initialize(thread)
     @thread = thread
   end
-  
+
   # if the thread is alive, return nil
   # otherwise, return its value
   def unbox
     @thread.alive? ? nil : @thread.value
   end
-  
+
   def value
     unbox
   end
-  
+
   # Eagerly run the thread with no timeout
   # if the thread fails (with an error), return the error
   # otherwise, return the value
@@ -879,7 +835,7 @@ class LyraDelay
       v
     end
   end
-  
+
   # Wait `seconds` seconds before killing the thread
   # (if necessary) and getting its value
   def with_timeout(seconds)

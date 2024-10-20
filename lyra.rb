@@ -68,7 +68,7 @@ if ARGV[0] == "--show_expand_macros"
 end
 
 if ARGV.include? "-args"
-  src_files, lyra_args = ARGV.slice_after { |e| e == "-args" }.to_a
+  src_files, lyra_args = ARGV.slice_after { |separator| separator == "-args" }.to_a
   Env.global_env.set!(:"*ARGS*", lyra_args ? lyra_args.map(&:freeze).to_cons_list.freeze : EmptyList.instance)
   src_files.shift
 else
@@ -77,7 +77,6 @@ else
 end
 
 Env.global_env.set!(:"*lyra-version*", LYRA_VERSION)
-
 
 # Treat the first console argument as a filename,
 # read from the file and evaluate the result.
@@ -102,7 +101,8 @@ begin
         puts elem_to_pretty(eval_str(s)) # Write the result
       rescue LyraError => e
         $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_s(x) }}"
-        $stderr.puts "Error: " + e.message
+        raise unless e.is_a?(LyraError) # e is obviously always a LyraError, but the type checker does not believe me.
+        $stderr.puts "Error: #{e.message}"
       rescue Interrupt
         # Ignore
       end
@@ -114,7 +114,8 @@ rescue SystemStackError
   raise
 rescue LyraError => e
   $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_s(x) }}"
-  $stderr.puts "Error: " + e.message
+  raise unless e.is_a?(LyraError) # e is obviously always a LyraError, but the type checker does not believe me.
+  $stderr.puts "Error: #{e.message}"
   raise
 rescue
   $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_s(x) }}"

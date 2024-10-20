@@ -1,0 +1,40 @@
+# [\s,]*                ignore whitespace and comma
+# \\u\d{4}              utf-8 literals
+# \\p\(                 Partial function shortcut
+# \\.                   Other char literals
+# [()\[\]\{\}]          Special opening and closing brackets.
+# "(?:\\.|[^\\"])*"?    String literals
+# ;.*                   Ignore rest of line after semicolon
+# ~@                    unquote-splicing shortcut
+# @                     unbox shortcut
+# #\{                   Special symbol '#{'
+# `                     quasiquote shortcut
+# #\(                   Hash-function shortcut
+# [^\s\[\]{}('"`,;)]*'? Other symbols and numbers, allowing an optional "'" at the end. This excludes spaces, [, ], (, ), {, }, ', ", `, comma and semicolon
+LYRA_REGEX: Regexp
+
+class Object
+  # Scan the text using RE, remove empty tokens and remove comments.
+  def tokenize: (String s) -> Enumerable[String]
+
+  # Un-escapes a string and removed the '"' from beginning and end.
+  def parse_str: (String token) -> String
+
+  def parse_char: (String token) -> String
+
+  def prefixed_ast: (Symbol sym, Enumerable[String] tokens, Integer level) -> untyped
+
+  def raise_if_unexpected: (String expected, String t, Integer level) -> untyped
+
+  def read_number: (String t) -> Numeric
+
+  def read_symbol: (String t) -> (Symbol?|ConsList[untyped])
+
+  # Builds the abstract syntax tree and converts all expressions into their
+  # types.
+  # For example, if a token is recognized as a bool, it is parsed into
+  # a bool, a string becomes a string, etc.
+  # If an `(` is found, a cons is opened. It is closed when a `)` is 
+  # encountered.
+  def make_ast: (Enumerable[String] tokens, ?::Integer level, ?::String expected, ?bool stop_after_1) -> untyped
+end

@@ -93,18 +93,19 @@ def read_symbol(t)
   while t.end_with?(".?") || t.end_with?(".!")
     applications << (t.end_with?(".?") ? :unwrap : :eager)
     t = t[0..-3]
+    raise LyraError.new("Internal parser error.", :"parse-error") unless t.is_a? String
   end
   if t == "Nothing"
-    t = nil
+    res = nil
   elsif t.empty?
     raise LyraError.new("Empty symbols are not allowed.", :"parse-error")
   else
-    t = t.to_sym
+    res = t.to_sym
   end
   applications.reverse_each do |elem|
-    t = list(elem, t)
+    res = list(elem, t)
   end
-  t
+  res
 end
 
 # Builds the abstract syntax tree and converts all expressions into their
@@ -138,7 +139,9 @@ def make_ast(tokens, level = 0, expected = "", stop_after_1 = false)
     when "("
       root << make_ast(tokens, level + 1, ")")
     when "\\p("
-      root << cons(:partial, make_ast(tokens, level + 1, ")"))
+      temp = make_ast(tokens, level + 1, ")")
+      raise LyraError.new("Internal parser error.", :"parse-error") unless temp.is_a?(ConsList)
+      root << cons(:partial, temp)
     when ")"
       raise_if_unexpected(expected, t, level)
       return list(*root)

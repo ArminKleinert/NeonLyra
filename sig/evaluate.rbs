@@ -1,0 +1,68 @@
+IMPORTED_MODULES: Array[LyraModule]
+
+LYRA_ENV: Env
+
+LYRA_CALL_STACK: Array[LyraFn]
+
+RECUR_FUNC: LyraFn
+
+DO_NOTHING_AND_RETURN: Symbol
+
+class Object
+  # Parses and evaluates a string as Lyra-source code.
+  def eval_str: (String s, ?Env env) -> untyped
+
+  def top_env: (Env env) -> untyped
+
+  def ev_module: (untyped expr) -> untyped
+
+  # Takes a List (list of expressions), calls eval_ly on each element
+  # and return a new list.
+  def eval_list: (ConsList expr_list, Env env) -> untyped
+
+  # Completely removes atoms and nil from the ast if they are not needed.
+  def optimize_cdr: (ConsList expr_list, Env env) -> bool
+
+  # Similar to eval_list, but only returns the last evaluated value.
+  def eval_keep_last: (untyped expr_list, untyped env) -> untyped
+
+  def ev_define_fn: (untyped expr, untyped env, untyped is_macro) -> untyped
+
+  # Generic functions in Lyra have their implementation chosen at runtime by the so called "anchor argument".
+  # See the following implementation:
+  #   (def-generic xs (on-each f xs) (lambda (f xs) (error! "Invalid call to on-each." 'argument)))
+  # This function is called "on-each", its arguments are "f" and "xs".
+  # "xs" is the so called "anchor". When Lyra calls a generic function, it looks at the type of xs to find
+  # the correct implementation. If none is found, it uses the fallback-function (the lambda).
+  # To add implementations:
+  #   (def-impl ::list on-each (lambda (f xs) (foldl (lambda (_ x) (f x)) 0 xs) xs))
+  # This adds an implementation for "on-each" to the "list" type.
+  def ev_define_generic: (untyped expr, Env env) -> untyped
+
+  def ev_define_with_type: (untyped expr, Env env, bool is_macro) -> untyped
+
+  # Defines a new function or variable and puts it into the global LYRA_ENV.
+  # If `is_macro` is true, the function will not evaluate its arguments right away.
+  def ev_define: (ConsList expr, Env env, bool is_macro) -> untyped
+
+  # args_expr has the format `(args...)`
+  # body_expr has the format `expr...`
+  def ev_lambda: (Symbol name, untyped args_expr, untyped body_expr, Env definition_env, ?bool is_macro) -> untyped
+
+  # Form: (try* <expr> (catch <ex-name> <validator> <body>)
+  #       (try* <expr> (catch <ex-name> <body>)
+  def eval_try_star: (untyped expr, Env env) -> untyped
+
+  # The expression is a cons and probably starts with a symbol.
+  # The evaluate function will try to treat the symbol as a function
+  # and execute it.
+  # If the first expression in the cons is another cons, that one
+  # will be evaluated first and then run as a function too.
+  #   Example: ((lambda (n) (+ n 1)) 15)
+  # If the cons is empty or does not start with a symbol or another
+  # cons, an error is thrown.
+  def eval_list_expr: (ConsList expr, Env env, ?bool is_in_call_params) -> untyped
+
+  # Evaluation function
+  def eval_ly: (untyped expr, Env env, ?bool is_in_call_params) -> untyped
+end

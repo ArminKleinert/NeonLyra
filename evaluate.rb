@@ -11,11 +11,12 @@ $enable_aggressive_optimizations = false
 
 IMPORTED_MODULES = []
 
+LYRA_CALL_STACK = [] # Call stack starts as empty list.
+
 # nil is not a valid pair but will be used as a separator between
 # local LYRA_ENV and global LYRA_ENV.
 unless Object.const_defined?(:LYRA_ENV)
   LYRA_ENV = Env.global_env
-  LYRA_CALL_STACK = [] # Call stack starts as empty list.
   setup_core_functions
 end
 
@@ -79,7 +80,7 @@ def ev_module(expr)
 
   module_env = Env.create_module_env name
   expr = expr.cdr
-  meta = expr.car # Currently unused.
+  #meta = expr.car # Currently unused.
   forms = expr.cdr
   
   abstract_name = gensym(:module)
@@ -92,14 +93,14 @@ def ev_module(expr)
   end
 
   global = Env.global_env
-  
-  binding_out = nil
-  binding_from = nil
+
+  #binding_out = nil
+  #binding_from = nil
   out_bindings = []
   bindings = module_env.public_module_vars
   bindings.each do |key, val|
     binding_out = key
-    binding_from = key
+    #binding_from = key
 
     # Turn binding name "function" into "module/function".
     # E.g. list->vector from module core.vector becomes core.vector/list->vector.
@@ -185,13 +186,19 @@ def eval_keep_last(expr_list, env)
 end
 
 def ev_define_fn(expr, env, is_macro)
-  unless first(first(expr)).is_a?(Symbol)
+  first_of_expr = first(expr)
+
+  unless first_of_expr.is_a?(ConsList) && first(first_of_expr).is_a?(Symbol)
     raise LyraError.new("Syntax error: Name of function in define must be a symbol.", :syntax)
   end
 
-  name = first(first(expr))
-  args_expr = rest(first(expr))
+  name = first(first_of_expr)
+  args_expr = rest(first_of_expr)
   body = rest(expr)
+
+  unless name.is_a?(Symbol)
+    raise # Make the type checker shut up. This condition has already been checked. But you do you, rbs.
+  end
 
   # Create the function
   res = ev_lambda(name, args_expr, body, env, is_macro)
@@ -252,6 +259,7 @@ def ev_define_with_type(expr, env, is_macro)
   if is_macro || !second(expr).is_a?(Symbol) || expr.size < 3
     raise LyraError.new("Syntax error: Generic function implementation must have the format (define ::type global_name impl) and must not be a macro.", :syntax)
   end
+
   global_name = second(expr)
   impl_name = third(expr)
   impl = eval_ly(impl_name, env)
@@ -262,10 +270,15 @@ def ev_define_with_type(expr, env, is_macro)
   end
 
   unless impl.is_a? LyraFn
-    raise LyraError.new("Syntax error: Implementation of function #{global_name} must be a function.", :syntax)
+    raise LyraError.new("Syntax error: Implementation of generic function #{global_name} must be a function.", :syntax)
   end
 
-  fn.add_implementation! eval_ly(first(expr), env), impl
+  name = eval_ly(first(expr), env)
+  unless name.is_a? TypeName
+    raise LyraError.new("Syntax error: Implementation type name for generic function #{global_name} must be a typename.", :syntax)
+  end
+
+  fn.add_implementation! name, impl
 
   third(expr)
 end
@@ -277,7 +290,7 @@ def ev_define(expr, env, is_macro)
     raise LyraError.new("Syntax error: No name and no body for define or defmacro.", :syntax)
   end
   first_expr = first(expr)
-  unless first_expr.is_a?(ConsList) || first_expr.is_a?(Symbol) || first_expr.is_a?(TypeName)
+  unless first_expr.is_a?(ConsList) || first_expr.is_a?(Symbol) #|| first_expr.is_a?(TypeName)
     raise LyraError.new("Syntax error: First element in define or defmacro must be a list or symbol, but is #{first_expr.class}.", :syntax)
   end
 
@@ -293,6 +306,10 @@ def ev_define(expr, env, is_macro)
     val = second(expr)
     res = eval_ly(val, env) # Get and evaluate the value.
 
+    unless first_expr.is_a?(Symbol) #|| first_expr.is_a?(TypeName)
+      raise LyraError.new("Trying to add a list to environment. This does not work.", :syntax)
+    end
+
     # Add the entry to the global environment.
     top_env(env).set!(name, res)
     name
@@ -302,7 +319,7 @@ end
 # args_expr has the format `(args...)`
 # body_expr has the format `expr...`
 def ev_lambda(name, args_expr, body_expr, definition_env, is_macro = false)
-  arg_arr = args_expr.to_a # This function will call the array indexing mothods a lot, so converting to an array first helps out. TODO might first checking whether the list is already a random_access type be faster? (e.g. for CdrCodedLists)
+  arg_arr = args_expr.to_a # This function will call the array indexing methods a lot, so converting to an array first helps out. TODO might first checking whether the list is already a random_access type be faster? (e.g. for CdrCodedLists)
   
   arg_count = arg_arr.size
   max_args = arg_count
@@ -373,7 +390,7 @@ def eval_try_star(expr, env)
     rescue LyraError => error
       # Error caught
       # Register error in new env
-      env1 = Env.new(nil, env)
+      env1 = Env.new(gensym(:"ERROR_ENV"), env)
       error1 = WrappedLyraError.new(error.message, error.info, error.internal_trace)
       env1.set!(exception_name, error1)
 
@@ -439,7 +456,9 @@ def eval_list_expr(expr, env, is_in_call_params = false)
     name = second(expr)
     args_expr = second(rest(expr))
     body_expr = rest(rest(rest(expr)))
-    ev_lambda(name.to_sym, args_expr, body_expr, env)
+
+    raise LyraError.new("Syntax error: lambda* name must be a symbol.", :syntax) unless name.is_a?(Symbol)
+    ev_lambda(name, args_expr, body_expr, env)
   when :define
     # Creates a new function and adds it to the global environment.
     # Form: `(define name value)` (For variables)
@@ -458,7 +477,7 @@ def eval_list_expr(expr, env, is_in_call_params = false)
     body = rest(rest(expr))
     env1 = env
     unless bindings.empty?
-      env1 = Env.new(nil, env)
+      env1 = Env.new(gensym(:"ANONYMOUS_ENV"), env)
       bindings.each do |b|
         raise LyraError.new("Syntax error: Binding in let* must have 2 parts.", :syntax) unless b.is_a?(ConsList) && b.size == 2
         raise LyraError.new("Syntax error: Name of binding in let* must be a symbol.", :syntax) unless b.car.is_a?(Symbol)
@@ -485,11 +504,11 @@ def eval_list_expr(expr, env, is_in_call_params = false)
     ev_define(rest(expr), env, true)
   when :module
     ev_module expr
-  when :lazy
-    if expr.cdr.size != 1
-      raise LyraError.new("Wrong number of arguments for lazy. (Expected 1, got #{expr.cdr.size})")
-    end
-    LazyObj.new expr.cdr.car, env
+  #when :lazy
+  #  if expr.cdr.size != 1
+  #    raise LyraError.new("Wrong number of arguments for lazy. (Expected 1, got #{expr.cdr.size})")
+  #  end
+  #  LazyObj.new expr.cdr.car, env
   when :"try*"
     eval_try_star(expr, env)
   when :"expand-macro"
@@ -566,16 +585,17 @@ def eval_list_expr(expr, env, is_in_call_params = false)
         # Tail call
         raise TailCall.new(args)
       else
-        LYRA_CALL_STACK.push func
+        LYRA_CALL_STACK << func
 
         # Evaluate arguments that will be passed to the call.
         args = eval_list(args, env)
 
         # Call the function with the new arguments
         r = func.call(args, env)
-
+        
         # Remove from the callstack.
-        LYRA_CALL_STACK.pop
+        raise unless LYRA_CALL_STACK.is_a? Array # Make the type checker shut up
+        LYRA_CALL_STACK.pop(1)
 
         r
       end

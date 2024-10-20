@@ -23,16 +23,6 @@ def find_fn(func_name, type_name)
   end
 end
 
-def add_fn(func_name, type_name, implementation)
-  entry = FUNC_MAP[func_name]
-  unless entry
-    entry = FuncMapEntry.new nil, {}
-    FUNC_MAP[func_name] = entry
-  end
-
-  entry.inner[type_name] = implementation
-end
-
 def def_generic_fn(func_name, fallback)
   entry = FuncMapEntry.new fallback, {}
   raise LyraError.new("Function #{func_name} is already defined.") if FUNC_MAP.include? func_name
@@ -56,7 +46,7 @@ RATIO_TYPE = TypeName.new "::rational", 13
 ERROR_TYPE = TypeName.new "::error", 14
 CHAR_TYPE = TypeName.new "::char", 15
 KEYWORD_TYPE = TypeName.new "::keyword", 16
-#ALIAS_TYPE = TypeName.new "::alias", 17
+# ALIAS_TYPE = TypeName.new "::alias", 17
 DELAY_TYPE = TypeName.new "::delay", 18
 
 def type_of(x)
@@ -239,27 +229,28 @@ def apply_op_to_list(xs, &op)
   true
 end
 
+def setup_add_fn(name, min_args, max_args = min_args, &body)
+  fn = NativeLyraFn.new(name, min_args, max_args) do |args, _|
+    body.call(*args.to_a)
+  end
+  Env.global_env.set!(name, fn)
+end
+
+def setup_add_fn_with_env(name, min_args, max_args = min_args, &body)
+  fn = NativeLyraFn.new(name, min_args, max_args, &body)
+  Env.global_env.set!(name, fn)
+end
+
+def setup_add_var(name, value)
+  Env.global_env.set!(name, value)
+end
+
+
 # Sets up the core functions and variables. The functions defined here are
 # of the type NativeLyraFn instead of LyraFn. They can not make use of tail-
 # recursion and are supposed to be very simple.
 def setup_core_functions
-  def add_fn(name, min_args, max_args = min_args, &body)
-    fn = NativeLyraFn.new(name, min_args, max_args) do |args, _|
-      body.call(*args.to_a)
-    end
-    Env.global_env.set!(name, fn)
-  end
-
-  def add_fn_with_env(name, min_args, max_args = min_args, &body)
-    fn = NativeLyraFn.new(name, min_args, max_args, &body)
-    Env.global_env.set!(name, fn)
-  end
-
-  def add_var(name, value)
-    Env.global_env.set!(name, value)
-  end
-
-  add_fn_with_env(:delay, 1, 1) do |f, env|
+  setup_add_fn_with_env(:delay, 1, 1) do |f, env|
     if f.car.is_a? LyraFn
       #puts f.nil?
       #puts env.nil?
@@ -270,117 +261,117 @@ def setup_core_functions
     end
   end
 
-  add_fn(:"delay-timeout", 2) do |timeout, d|
+  setup_add_fn(:"delay-timeout", 2) do |timeout, d|
     d.with_timeout timeout
   end
       
-  #add_fn(:"GENERATED", 0) { GENERATED }
-  #add_fn(:"CCL_METHOD_CALLS", 0){CCL_METHOD_CALLS}
+  #setup_add_fn(:"GENERATED", 0) { GENERATED }
+  #setup_add_fn(:"CCL_METHOD_CALLS", 0){CCL_METHOD_CALLS}
 
-  add_fn(:"list-size", 1) { |x| cons?(x) ? x.size : (raise LyraError.new("Invalid call to list-size.", :"invalid-call")) }
-  add_fn(:cons, 2) { |x, xs| cons(x, xs) }
-  add_fn(:car, 1) { |x| cons?(x) ? x.car : (raise LyraError.new("Invalid call to car. Got #{x}.", :"invalid-call")) }
-  add_fn(:cdr, 1) { |x| cons?(x) ? x.cdr : (raise LyraError.new("Invalid call to cdr. Got #{x}.", :"invalid-call")) }
+  setup_add_fn(:"list-size", 1) { |x| cons?(x) ? x.size : (raise LyraError.new("Invalid call to list-size.", :"invalid-call")) }
+  setup_add_fn(:cons, 2) { |x, xs| cons(x, xs) }
+  setup_add_fn(:car, 1) { |x| cons?(x) ? x.car : (raise LyraError.new("Invalid call to car. Got #{x}.", :"invalid-call")) }
+  setup_add_fn(:cdr, 1) { |x| cons?(x) ? x.cdr : (raise LyraError.new("Invalid call to cdr. Got #{x}.", :"invalid-call")) }
 
-  add_fn(:"list-concat", 0, -1) { |*xs| list_append1 xs }
+  setup_add_fn(:"list-concat", 0, -1) { |*xs| list_append1 xs }
 
-  add_fn(:"not", 1) { |x| !(truthy? x) }
+  setup_add_fn(:"not", 1) { |x| !(truthy? x) }
 
   # "Primitive" operators. They are overridden in the core library of
   # Lyra as `=`, `<`, `>`, ... and can be extended there later on for
   # different types.
-  add_fn(:"=", 1, -1) { |*xs| apply_op_to_list(xs, &method(:lyra_buildin_eq?)) }
-  add_fn(:"/=", 1, -1) { |*xs| !apply_op_to_list(xs, &method(:lyra_buildin_eq?)) }
-  add_fn(:"ref=", 2) { |x, y| x.object_id == y.object_id }
-  add_fn(:"<", 1, -1) { |*xs| apply_op_to_list(xs, &:<) }
-  add_fn(:">", 1, -1) { |*xs| apply_op_to_list(xs, &:>) }
-  add_fn(:"<=", 1, -1) { |*xs| apply_op_to_list(xs, &:<=) }
-  add_fn(:">=", 1, -1) { |*xs| apply_op_to_list(xs, &:>=) }
-  add_fn(:"+", 1, -1) { |*xs| xs.inject(&:+) }
-  add_fn(:"-", 1, -1) { |*xs| xs.size == 1 ? -xs[0] : xs.inject(&:-) }
-  add_fn(:"*", 1, -1) { |*xs| xs.inject(&:*) }
-  add_fn(:"/", 1, -1) { |*xs| xs.inject{|x,y| div(x,y)} }
-  add_fn(:"rem", 1, -1) { |*xs| xs.inject{|x,y| rem(x,y)} }
-  add_fn(:"bit-and", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x & y : nil }
-  add_fn(:"bit-or", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x | y : nil }
-  add_fn(:"bit-xor", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x ^ y : nil }
-  add_fn(:"bit-shl", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x << y : nil }
-  add_fn(:"bit-shr", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x >> y : nil }
-  add_fn(:abs, 1) { |x| x.is_a?(Numeric) ? x.abs : x }
+  setup_add_fn(:"=", 1, -1) { |*xs| apply_op_to_list(xs, &method(:lyra_buildin_eq?)) }
+  setup_add_fn(:"/=", 1, -1) { |*xs| !apply_op_to_list(xs, &method(:lyra_buildin_eq?)) }
+  setup_add_fn(:"ref=", 2) { |x, y| x.object_id == y.object_id }
+  setup_add_fn(:"<", 1, -1) { |*xs| apply_op_to_list(xs, &:<) }
+  setup_add_fn(:">", 1, -1) { |*xs| apply_op_to_list(xs, &:>) }
+  setup_add_fn(:"<=", 1, -1) { |*xs| apply_op_to_list(xs, &:<=) }
+  setup_add_fn(:">=", 1, -1) { |*xs| apply_op_to_list(xs, &:>=) }
+  setup_add_fn(:"+", 1, -1) { |*xs| xs.inject(&:+) }
+  setup_add_fn(:"-", 1, -1) { |*xs| xs.size == 1 ? -xs[0] : xs.inject(&:-) }
+  setup_add_fn(:"*", 1, -1) { |*xs| xs.inject(&:*) }
+  setup_add_fn(:"/", 1, -1) { |*xs| xs.inject{|x,y| div(x,y)} }
+  setup_add_fn(:"rem", 1, -1) { |*xs| xs.inject{|x,y| rem(x,y)} }
+  setup_add_fn(:"bit-and", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x & y : nil }
+  setup_add_fn(:"bit-or", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x | y : nil }
+  setup_add_fn(:"bit-xor", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x ^ y : nil }
+  setup_add_fn(:"bit-shl", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x << y : nil }
+  setup_add_fn(:"bit-shr", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x >> y : nil }
+  setup_add_fn(:abs, 1) { |x| x.is_a?(Numeric) ? x.abs : x }
 
-  add_fn(:numerator, 1) { |x| x.is_a?(Rational) ? x.numerator : x }
-  add_fn(:denominator, 1) { |x| x.is_a?(Rational) ? x.denominator : 1 }
+  setup_add_fn(:numerator, 1) { |x| x.is_a?(Rational) ? x.numerator : x }
+  setup_add_fn(:denominator, 1) { |x| x.is_a?(Rational) ? x.denominator : 1 }
 
-  add_fn(:gensym, 1) { |x| gensym(x) }
-  add_fn(:seq, 1) { |x| (!x.is_a?(Enumerable) || x.empty?) ? nil : x.to_cons_list }
+  setup_add_fn(:gensym, 1) { |x| gensym(x) }
+  setup_add_fn(:seq, 1) { |x| (!x.is_a?(Enumerable) || x.empty?) ? nil : x.to_cons_list }
 
-  add_fn(:"always-true", 0, -1) { |*_| true }
-  add_fn(:"always-false", 0, -1) { |*_| false }
+  setup_add_fn(:"always-true", 0, -1) { |*_| true }
+  setup_add_fn(:"always-false", 0, -1) { |*_| false }
 
-  add_fn(:box, 1) { |x| Box.new(x) }
-  add_fn(:unbox, 1) { |b| b.is_a?(Unwrapable) ? b.value : nil }
-  add_fn(:"buildin-unwrap", 1) { |b|
+  setup_add_fn(:box, 1) { |x| Box.new(x) }
+  setup_add_fn(:unbox, 1) { |b| b.is_a?(Unwrapable) ? b.value : nil }
+  setup_add_fn(:"buildin-unwrap", 1) { |b|
     b.is_a?(Unwrapable) ? b.unwrap : b } # Intended for use with any boxing type
-  add_fn(:"box-set!", 2) { |b, x| b.value = x; b }
+  setup_add_fn(:"box-set!", 2) { |b, x| b.value = x; b }
 
-  add_fn(:eager, 1) { |x| eager x }
-  add_fn(:evaluated?, 1) { |x| x.executed }
-  #add_fn_with_env(:lazy, 1) { |xs, env| LazyObj.new xs.car, env }
-  add_fn(:partial, 1, -1) { |x, *params| params.empty? ? x : PartialLyraFn.new(x, params.to_cons_list) }
+  setup_add_fn(:eager, 1) { |x| eager x }
+  setup_add_fn(:evaluated?, 1) { |x| x.executed }
+  #setup_add_fn_with_env(:lazy, 1) { |xs, env| LazyObj.new xs.car, env }
+  setup_add_fn(:partial, 1, -1) { |x, *params| params.empty? ? x : PartialLyraFn.new(x, params.to_cons_list) }
 
-  add_fn(:nothing, 0, -1) { |*_| nil }
+  setup_add_fn(:nothing, 0, -1) { |*_| nil }
 
-  add_fn(:"atom?", 1) { |x| atom?(x) }
+  setup_add_fn(:"atom?", 1) { |x| atom?(x) }
 
-  add_fn_with_env(:"defined?", 1) { |x, env| env.safe_find(x.car) != NOT_FOUND_IN_LYRA_ENV }
-  add_fn(:"box?", 1) { |m| m.is_a? Box }
-  add_fn(:"nothing?", 1) { |m| m.nil? }
-  add_fn(:"nil?", 1) { |x| x.nil? }
-  add_fn(:"null?", 1) { |x| x.nil? || x.is_a?(EmptyList) }
-  add_fn(:"list?", 1) { |x| x.is_a? ConsList }
-  add_fn(:"buildin-vector?", 1) { |x| x.is_a? Array }
-  add_fn(:"int?", 1) { |x| x.is_a? Integer }
-  add_fn(:"float?", 1) { |x| x.is_a? Float }
-  add_fn(:"rational?", 1) { |x| x.is_a? Rational }
-  add_fn(:"buildin-string?", 1) { |x| x.is_a? String }
-  add_fn(:"symbol?", 1) { |x| x.is_a? Symbol }
-  add_fn(:"char?", 1) { |x| x.is_a?(LyraChar) }
-  add_fn(:"boolean?", 1) { |x| (!!x) == x }
-  add_fn(:"map?", 1) { |x| x.is_a? Hash }
-  add_fn(:"buildin-set?", 1) { |x| x.is_a? Set }
-  add_fn(:"function?", 1) { |x| x.is_a?(LyraFn) }
-  add_fn(:"macro?", 1) { |x| x.is_a?(LyraFn) && x.is_macro }
-  add_fn(:"lazy?", 1) { |x| x.is_a?(Lazy) }
-  #add_fn(:"lazy-obj?", 1) { |x| x.is_a?(LazyObj) }
-  add_fn(:"keyword?", 1) { |x| x.is_a?(Keyword) }
+  setup_add_fn_with_env(:"defined?", 1) { |x, env| env.safe_find(x.car) != NOT_FOUND_IN_LYRA_ENV }
+  setup_add_fn(:"box?", 1) { |m| m.is_a? Box }
+  setup_add_fn(:"nothing?", 1) { |m| m.nil? }
+  setup_add_fn(:"nil?", 1) { |x| x.nil? }
+  setup_add_fn(:"null?", 1) { |x| x.nil? || x.is_a?(EmptyList) }
+  setup_add_fn(:"list?", 1) { |x| x.is_a? ConsList }
+  setup_add_fn(:"buildin-vector?", 1) { |x| x.is_a? Array }
+  setup_add_fn(:"int?", 1) { |x| x.is_a? Integer }
+  setup_add_fn(:"float?", 1) { |x| x.is_a? Float }
+  setup_add_fn(:"rational?", 1) { |x| x.is_a? Rational }
+  setup_add_fn(:"buildin-string?", 1) { |x| x.is_a? String }
+  setup_add_fn(:"symbol?", 1) { |x| x.is_a? Symbol }
+  setup_add_fn(:"char?", 1) { |x| x.is_a?(LyraChar) }
+  setup_add_fn(:"boolean?", 1) { |x| (!!x) == x }
+  setup_add_fn(:"map?", 1) { |x| x.is_a? Hash }
+  setup_add_fn(:"buildin-set?", 1) { |x| x.is_a? Set }
+  setup_add_fn(:"function?", 1) { |x| x.is_a?(LyraFn) }
+  setup_add_fn(:"macro?", 1) { |x| x.is_a?(LyraFn) && x.is_macro }
+  setup_add_fn(:"lazy?", 1) { |x| x.is_a?(Lazy) }
+  #setup_add_fn(:"lazy-obj?", 1) { |x| x.is_a?(LazyObj) }
+  setup_add_fn(:"keyword?", 1) { |x| x.is_a?(Keyword) }
 
-  add_fn(:"keyword-name", 1) { |x| x.is_a?(Keyword) ? x.to_sym : nil }
+  setup_add_fn(:"keyword-name", 1) { |x| x.is_a?(Keyword) ? x.to_sym : nil }
 
-  add_fn(:id, 1) { |x| x }
-  add_fn(:hash, 1) { |x| x.hash }
-  #add_fn(:"eq?", 2) { |x, y| lyra_eq?(x, y) }
+  setup_add_fn(:id, 1) { |x| x }
+  setup_add_fn(:hash, 1) { |x| x.hash }
+  #setup_add_fn(:"eq?", 2) { |x, y| lyra_eq?(x, y) }
 
   # Can be bootstrapped.
-  #add_fn_with_env(:"all?", 2) { |x, env| x.cdr.car.to_a.all?{|e|truthy?(eval_ly(x.car,env,true)) } }
-  #add_fn_with_env(:"none?", 2) { |x, env| !x.cdr.car.to_a.any?{|e|!truthy?(eval_ly(x.car,env,true)) } }
-  #add_fn_with_env(:"any?", 2) { |x, env| x.cdr.car.to_a.any?{|e|truthy?(eval_ly(x.car,env,true)) } }
+  #setup_add_fn_with_env(:"all?", 2) { |x, env| x.cdr.car.to_a.all?{|e|truthy?(eval_ly(x.car,env,true)) } }
+  #setup_add_fn_with_env(:"none?", 2) { |x, env| !x.cdr.car.to_a.any?{|e|!truthy?(eval_ly(x.car,env,true)) } }
+  #setup_add_fn_with_env(:"any?", 2) { |x, env| x.cdr.car.to_a.any?{|e|truthy?(eval_ly(x.car,env,true)) } }
 
-  add_fn(:"cdr-list", 1) { |xs| cdr_list(xs.to_a) }
+  setup_add_fn(:"cdr-list", 1) { |xs| cdr_list(xs.to_a) }
 
-  add_fn(:"buildin->symbol", 1) { |x| x.respond_to?(:to_sym) ? x.to_sym : nil }
-  add_fn(:"buildin->int", 1) { |x|
+  setup_add_fn(:"buildin->symbol", 1) { |x| x.respond_to?(:to_sym) ? x.to_sym : nil }
+  setup_add_fn(:"buildin->int", 1) { |x|
     begin
       Integer(x || "");
     rescue ArgumentError, TypeError
       nil
     end }
-  add_fn(:"buildin->float", 1) { |x|
+  setup_add_fn(:"buildin->float", 1) { |x|
     begin
       Float(x || "");
     rescue ArgumentError, TypeError
       nil
     end }
-  add_fn(:"buildin->rational", 1) do |x|
+  setup_add_fn(:"buildin->rational", 1) do |x|
     if x.is_a?(String) && x.size == 0
       nil
     else
@@ -391,43 +382,43 @@ def setup_core_functions
       end
     end
   end
-  add_fn(:"buildin->string", 1) { |x| elem_to_s x }
-  add_fn(:"buildin->pretty-string", 1) { |x| elem_to_pretty x }
-  add_fn(:"buildin->keyword", 1) { |x| x.respond_to?(:to_sym) ? Keyword.create(x) : nil }
-  add_fn(:"buildin->bool", 1) { |x| !(x.nil? || x == false || (x.is_a?(EmptyList))) }
-  add_fn(:"buildin->list", 1) { |x| x.is_a?(Enumerable) ? x.to_cons_list : nil }
-  add_fn(:"buildin->vector", 1) { |x| x.is_a?(Enumerable) ? x.to_a : nil }
-  add_fn(:"buildin->char", 1) { |x| LyraChar.conv(x) }
-  add_fn(:"buildin->map", 1) { |x| x.is_a?(Enumerable) ? Hash[*x] : nil }
-  add_fn(:"buildin->set", 1) { |x| x.is_a?(Enumerable) ? Set[*x] : nil }
+  setup_add_fn(:"buildin->string", 1) { |x| elem_to_s x }
+  setup_add_fn(:"buildin->pretty-string", 1) { |x| elem_to_pretty x }
+  setup_add_fn(:"buildin->keyword", 1) { |x| x.respond_to?(:to_sym) ? Keyword.create(x) : nil }
+  setup_add_fn(:"buildin->bool", 1) { |x| !(x.nil? || x == false || (x.is_a?(EmptyList))) }
+  setup_add_fn(:"buildin->list", 1) { |x| x.is_a?(Enumerable) ? x.to_cons_list : nil }
+  setup_add_fn(:"buildin->vector", 1) { |x| x.is_a?(Enumerable) ? x.to_a : nil }
+  setup_add_fn(:"buildin->char", 1) { |x| LyraChar.conv(x) }
+  setup_add_fn(:"buildin->map", 1) { |x| x.is_a?(Enumerable) ? Hash[*x] : nil }
+  setup_add_fn(:"buildin->set", 1) { |x| x.is_a?(Enumerable) ? Set[*x] : nil }
   
-  add_fn(:"buildin-vector", 0, -1) { |*xs| xs }
-  add_fn(:"buildin-vector-size", 1) { |xs| xs.size }
-  add_fn(:"buildin-vector-range", 3) { |s, e, xs| r = xs[s...e]; r.nil? ? [] : r }
-  add_fn(:"buildin-vector-nth", 2) { |xs, i| xs[i] }
-  add_fn(:"buildin-vector-add", 2) { |xs, y| xs + [y] }
-  add_fn(:"buildin-vector-append", 2) { |xs, ys| (xs.nil? || ys.nil?) ? nil : xs + ys }
-  add_fn(:"buildin-vector-includes?", 2) { |xs, ys| xs.include? ys }
-  add_fn(:"buildin-vector-eq?", 2) { |v, v1| v == v1 }
+  setup_add_fn(:"buildin-vector", 0, -1) { |*xs| xs }
+  setup_add_fn(:"buildin-vector-size", 1) { |xs| xs.size }
+  setup_add_fn(:"buildin-vector-range", 3) { |s, e, xs| r = xs[s...e]; r.nil? ? [] : r }
+  setup_add_fn(:"buildin-vector-nth", 2) { |xs, i| xs[i] }
+  setup_add_fn(:"buildin-vector-add", 2) { |xs, y| xs + [y] }
+  setup_add_fn(:"buildin-vector-append", 2) { |xs, ys| (xs.nil? || ys.nil?) ? nil : xs + ys }
+  setup_add_fn(:"buildin-vector-includes?", 2) { |xs, ys| xs.include? ys }
+  setup_add_fn(:"buildin-vector-eq?", 2) { |v, v1| v == v1 }
 
-  add_fn(:"buildin-string-size", 1) { |xs| xs.size }
-  add_fn(:"buildin-string-range", 3) { |s, e, xs| r = xs[s...e]; r.nil? ? [] : r }
-  add_fn(:"buildin-string-nth", 2) { |xs, i| xs[i] }
-  add_fn(:"buildin-string-add", 2) { |xs, y| xs + y.to_s }
-  add_fn(:"buildin-string-append", 2) { |xs, ys| (xs.nil? || ys.nil?) ? nil : xs + ys.to_s }
-  add_fn(:"buildin-string-includes?", 2) { |xs, ys| xs.include? ys }
-  add_fn(:"buildin-string-eq?", 2) { |v, v1| v == v1 }
-  add_fn(:"buildin-string-split-at", 2) { |s, pat| s.split(pat) }
-  add_fn(:"buildin-string-chars", 1) { |s| string_to_chars(s) }
+  setup_add_fn(:"buildin-string-size", 1) { |xs| xs.size }
+  setup_add_fn(:"buildin-string-range", 3) { |s, e, xs| r = xs[s...e]; r.nil? ? [] : r }
+  setup_add_fn(:"buildin-string-nth", 2) { |xs, i| xs[i] }
+  setup_add_fn(:"buildin-string-add", 2) { |xs, y| xs + y.to_s }
+  setup_add_fn(:"buildin-string-append", 2) { |xs, ys| (xs.nil? || ys.nil?) ? nil : xs + ys.to_s }
+  setup_add_fn(:"buildin-string-includes?", 2) { |xs, ys| xs.include? ys }
+  setup_add_fn(:"buildin-string-eq?", 2) { |v, v1| v == v1 }
+  setup_add_fn(:"buildin-string-split-at", 2) { |s, pat| s.split(pat) }
+  setup_add_fn(:"buildin-string-chars", 1) { |s| string_to_chars(s) }
 
-  add_fn_with_env(:"iterate-seq", 3) do |xs, env|
+  setup_add_fn_with_env(:"iterate-seq", 3) do |xs, env|
     func, acc, vec = xs.to_a
     vec.each_with_index do |x, i|
       acc = func.call(list(acc, x, i), env)
     end
     acc
   end
-  add_fn_with_env(:"iterate-seq-p", 4) do |xs, env|
+  setup_add_fn_with_env(:"iterate-seq-p", 4) do |xs, env|
     pred, func, acc, vec = xs.to_a
     vec.each_with_index do |x, i|
       temp = list(acc, x, i)
@@ -437,32 +428,32 @@ def setup_core_functions
     acc
   end
 
-  add_fn(:"map-of", 0, -1) { |*xs| xs.each_slice(2).to_a.to_h }
-  add_fn(:"map-size", 1) { |m| m.size }
-  add_fn(:"map-get", 2) { |m, k| m.is_a?(Hash) ? m[k] : raise("#{m} is not a map.") }
-  add_fn(:"map-set", 3) { |m, k, v| m2 = Hash[m]; m2[k] = v; m2 }
-  add_fn(:"map-remove", 2) { |m, k| m.select { |k1, _| k != k1 } }
-  add_fn(:"map-keys", 1) { |m| m.keys }
-  add_fn(:"map-merge", 2) { |m, m2| Hash[m].merge!(m2) }
-  add_fn(:"map-has-key?", 2) { |m, k| m.has_key? k }
-  add_fn(:"map-has-value?", 2) { |m, v| m.has_value? v }
-  add_fn(:"map-entries", 1) { |m| m.to_a }
-  add_fn(:"map->vector", 1) { |m| m.to_a }
-  add_fn(:"map-eq?", 2) { |m, m1| m == m1 }
+  setup_add_fn(:"map-of", 0, -1) { |*xs| xs.each_slice(2).to_a.to_h }
+  setup_add_fn(:"map-size", 1) { |m| m.size }
+  setup_add_fn(:"map-get", 2) { |m, k| m.is_a?(Hash) ? m[k] : raise("#{m} is not a map.") }
+  setup_add_fn(:"map-set", 3) { |m, k, v| m2 = Hash[m]; m2[k] = v; m2 }
+  setup_add_fn(:"map-remove", 2) { |m, k| m.select { |k1, _| k != k1 } }
+  setup_add_fn(:"map-keys", 1) { |m| m.keys }
+  setup_add_fn(:"map-merge", 2) { |m, m2| Hash[m].merge!(m2) }
+  setup_add_fn(:"map-has-key?", 2) { |m, k| m.has_key? k }
+  setup_add_fn(:"map-has-value?", 2) { |m, v| m.has_value? v }
+  setup_add_fn(:"map-entries", 1) { |m| m.to_a }
+  setup_add_fn(:"map->vector", 1) { |m| m.to_a }
+  setup_add_fn(:"map-eq?", 2) { |m, m1| m == m1 }
 
-  add_fn(:"buildin-set-of", 0, -1) { |*xs| xs.to_set }
-  add_fn(:"buildin-set-size", 1) { |s| s.size }
-  add_fn(:"buildin-set-add", 2) { |s, e| s.add e }
-  add_fn(:"buildin-set-union", 2) { |s0, s1| s0 | s1 }
-  add_fn(:"buildin-set-difference", 2) { |s0, s1| s0 - s1 }
-  add_fn(:"buildin-set-intersection", 2) { |s0, s1| s0 & s1 }
-  add_fn(:"buildin-set-includes?", 2) { |s, e| s.include? e }
-  add_fn(:"buildin-set-subset?", 2) { |s0, s1| s0 <= s1 }
-  add_fn(:"buildin-set-true-subset?", 2) { |s0, s1| s0 < s1 }
-  add_fn(:"buildin-set-superset?", 2) { |s0, s1| s0 >= s1 }
-  add_fn(:"buildin-set-true-superset?", 2) { |s0, s1| s0 > s1 }
-  add_fn(:"buildin-set->vector", 1) { |s| s.to_a }
-  add_fn(:"buildin-set-eq?", 2) { |s, s1| s == s1 }
+  setup_add_fn(:"buildin-set-of", 0, -1) { |*xs| xs.to_set }
+  setup_add_fn(:"buildin-set-size", 1) { |s| s.size }
+  setup_add_fn(:"buildin-set-add", 2) { |s, e| s.add e }
+  setup_add_fn(:"buildin-set-union", 2) { |s0, s1| s0 | s1 }
+  setup_add_fn(:"buildin-set-difference", 2) { |s0, s1| s0 - s1 }
+  setup_add_fn(:"buildin-set-intersection", 2) { |s0, s1| s0 & s1 }
+  setup_add_fn(:"buildin-set-includes?", 2) { |s, e| s.include? e }
+  setup_add_fn(:"buildin-set-subset?", 2) { |s0, s1| s0 <= s1 }
+  setup_add_fn(:"buildin-set-true-subset?", 2) { |s0, s1| s0 < s1 }
+  setup_add_fn(:"buildin-set-superset?", 2) { |s0, s1| s0 >= s1 }
+  setup_add_fn(:"buildin-set-true-superset?", 2) { |s0, s1| s0 > s1 }
+  setup_add_fn(:"buildin-set->vector", 1) { |s| s.to_a }
+  setup_add_fn(:"buildin-set-eq?", 2) { |s, s1| s == s1 }
 
   def foldr(f, v, xs, env)
     xs.to_a.reverse_each do |e|
@@ -471,14 +462,14 @@ def setup_core_functions
     v
   end
 
-  add_fn_with_env(:"buildin-foldr", 3) do |args, env|
+  setup_add_fn_with_env(:"buildin-foldr", 3) do |args, env|
     f = args.car
     v = args.cdr.car
     xs = args.cdr.cdr.car
     foldr(f, v, xs, env)
   end
 
-  add_fn_with_env(:"buildin-foldl", 3) do |args, env|
+  setup_add_fn_with_env(:"buildin-foldl", 3) do |args, env|
     f = args.car
     v = args.cdr.car
     xs = args.cdr.cdr.car
@@ -488,13 +479,13 @@ def setup_core_functions
     v
   end
 
-  add_fn(:"buildin-contains?", 2) { |c, e| c.include? e }
+  setup_add_fn(:"buildin-contains?", 2) { |c, e| c.include? e }
 
-  add_fn(:"buildin-nth", 2) { |c, i| c.is_a?(Enumerable) ? c[i] : nil }
+  setup_add_fn(:"buildin-nth", 2) { |c, i| c.is_a?(Enumerable) ? c[i] : nil }
 
-  add_fn(:"buildin-strcat", 2) { |s, e| s.to_s + elem_to_s(e) }
+  setup_add_fn(:"buildin-strcat", 2) { |s, e| s.to_s + elem_to_s(e) }
 
-  add_fn(:"buildin-append", 2) do |x, y|
+  setup_add_fn(:"buildin-append", 2) do |x, y|
     if x.is_a? String
       x + elem_to_s(y)
     elsif !x.is_a?(Enumerable) || !y.is_a?(Enumerable)
@@ -508,25 +499,25 @@ def setup_core_functions
     end
   end
 
-  add_fn(:"buildin-print!", 1) { |x| print elem_to_s(x) }
-  add_fn(:"readln!", 0) { gets }
-  add_fn(:"file-read!", 1) { |name| IO.read name }
-  add_fn(:"file-write!", 2) { |name, text| IO.write name, text }
-  add_fn(:"file-append!", 2) { |name, text| File.open(name, 'a') { |f| f.write(text) } }
+  setup_add_fn(:"buildin-print!", 1) { |x| print elem_to_s(x) }
+  setup_add_fn(:"readln!", 0) { gets }
+  setup_add_fn(:"file-read!", 1) { |name| IO.read name }
+  setup_add_fn(:"file-write!", 2) { |name, text| IO.write name, text }
+  setup_add_fn(:"file-append!", 2) { |name, text| File.open(name, 'a') { |f| f.write(text) } }
 
-  add_fn(:copy, 1) { |x| x.is_a?(Box) ? x.clone : x }
+  setup_add_fn(:copy, 1) { |x| x.is_a?(Box) ? x.clone : x }
 
-  add_fn(:memoize, 1) { |fn| MemoizedLyraFn.new fn }
+  setup_add_fn(:memoize, 1) { |fn| MemoizedLyraFn.new fn }
 
-  add_var(:Nothing, nil)
+  setup_add_var(:Nothing, nil)
 
-  add_fn_with_env(:"load!", 1) do |xs, env|
+  setup_add_fn_with_env(:"load!", 1) do |xs, env|
     file = xs.car
     prefix = xs.cdr.car
     eval_str(IO.read(file), Env.global_env)
   end
 
-  add_fn_with_env(:"import!", 2) do |xs, env|
+  setup_add_fn_with_env(:"import!", 2) do |xs, env|
     mod_name = xs.car.to_sym
     alias_name = xs.cdr.car
 
@@ -559,7 +550,7 @@ def setup_core_functions
     end
   end
 
-  add_fn(:"read-string", 1) do |s|
+  setup_add_fn(:"read-string", 1) do |s|
     tokens = tokenize(s)
     ast = make_ast(tokens)
     if tokens[0] == "(" && ast.size > 1
@@ -569,9 +560,9 @@ def setup_core_functions
     end
   end
 
-  add_fn_with_env(:"eval!", 1) { |x, env| eval_ly first(x), env }
+  setup_add_fn_with_env(:"eval!", 1) { |x, env| eval_ly first(x), env }
 
-  add_fn_with_env(:"measure!", 2) { |args, env|
+  setup_add_fn_with_env(:"measure!", 2) { |args, env|
     median = lambda do |arr|
       arr.sort!
       len = arr.size
@@ -589,29 +580,30 @@ def setup_core_functions
     end
     median.call(res) }
 
-  add_fn(:sqrt, 1) { |n| Math.sqrt(n) }
+  setup_add_fn(:sqrt, 1) { |n| Math.sqrt(n) }
 
-  add_fn(:ljust, 2) { |x, n| elem_to_s(x).ljust(n) }
+  setup_add_fn(:ljust, 2) { |x, n| elem_to_s(x).ljust(n) }
 
-  add_fn_with_env(:"apply-to", 2) { |xs, env| first(xs).call(second(xs).force, env) }
+  setup_add_fn_with_env(:"apply-to", 2) { |xs, env| first(xs).call(second(xs).force, env) }
 
   [NOTHING_TYPE, BOOL_TYPE, VECTOR_TYPE, MAP_TYPE, LIST_TYPE, FUNCTION_TYPE,
    INTEGER_TYPE, FLOAT_TYPE, RATIO_TYPE, SET_TYPE, TYPE_NAME_TYPE, STRING_TYPE,
    SYMBOL_TYPE, BOX_TYPE, ERROR_TYPE, CHAR_TYPE, KEYWORD_TYPE,
    DELAY_TYPE].each do |t|
-    add_var t.to_sym, t
+    setup_add_var t.to_sym, t
   end
 
-  add_fn_with_env(:"class", 1) { |x, _| type_of(x.car) }
+  setup_add_fn_with_env(:"class", 1) { |x, _| type_of(x.car) }
 
-  add_fn(:"error!", 1, 3) { |msg, info, trace| raise LyraError.new(msg, info, trace) }
+  setup_add_fn(:"error!", 1, 3) { |msg, info, trace| raise LyraError.new(msg, info, trace) }
 
-  add_fn(:"error-msg", 1) { |e| e.msg }
-  add_fn(:"error-info", 1) { |e| e.info }
-  add_fn(:"error-trace", 1) { |e| e.trace }
+  setup_add_fn(:"error-msg", 1) { |e| e.msg }
+  setup_add_fn(:"error-info", 1) { |e| e.info }
+  setup_add_fn(:"error-trace", 1) { |e| e.trace }
 
-  add_fn(:"exit!", 1) { |s| exit(s) }
+  setup_add_fn(:"exit!", 1) { |s| exit(s) }
 
-  add_fn(:"callstack", 0) { LYRA_CALL_STACK }
+  setup_add_fn(:"callstack", 0) { LYRA_CALL_STACK }
+
   true
 end
