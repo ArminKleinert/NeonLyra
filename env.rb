@@ -113,9 +113,9 @@ class Env
 
   def set_multi_anonymous!(values)
     anon_count = 0
-    
+
     set! ANONYMOUS_ARG_ALL, values
-    
+
     until values.empty? || anon_count >= 15
       set! ANONYMOUS_ARG_NAMES[anon_count], values.car
       anon_count += 1
@@ -136,7 +136,7 @@ class Env
   def is_the_global_env?
     object_id == Env.global_env.object_id
   end
-  
+
   def public_module_vars
 =begin
     e = @next_module_env

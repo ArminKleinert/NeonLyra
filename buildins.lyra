@@ -1,4 +1,10 @@
 
+;## Constant: *ARGS*
+;# A cons-list of arguments that is passed to the program.
+
+;## Constant: *lyra-version*
+;# A string that specifies the current version of lyra.
+
 ;## Function: delay
 ;# delay : function -> delay
 

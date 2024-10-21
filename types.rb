@@ -271,9 +271,8 @@ class CdrCodedList < List
     @content_arr[0]
   end
 
-  # TODO If there is a way to make this faster, please find it.
   def cdr
-    CdrCodedList.create(@content_arr[1..-1])
+    CdrCodedList.create(@content_arr.drop(1))
   end
 
   def set_car!(new_car)
@@ -281,9 +280,15 @@ class CdrCodedList < List
     self
   end
 
-  # TODO Find a way to improve this.
   def set_cdr!(new_cdr)
-    @content_arr[1..] = new_cdr.to_a
+    number_transferred = 0
+    new_cdr.each do |element|
+      number_transferred += 1
+      @content_arr[number_transferred] = element
+    end
+    until @content_arr.size <= number_transferred+1
+      @content_arr.pop
+    end
     self
   end
 
@@ -325,7 +330,7 @@ class CdrCodedList < List
     if content_arr.nil?
       EmptyList.instance
     elsif !(content_arr.is_a? Array)
-      raise LyraError.new("Illegal input. Expected vector/array, got #{content_arr}.", :"illegal-argument")
+      raise LyraError.new("Illegal input. Expected vector/array, got #{content_arr.class}.", :"illegal-argument")
     elsif content_arr.empty?
       EmptyList.instance
     else
@@ -340,22 +345,8 @@ end
 
 # As list_append, but take an array without spreading.
 def list_append1(lists)
-  lists.delete_if(&:empty?)
-  lists.map!(&:to_cons_list)
-  if lists.empty?
-    EmptyList.instance
-  elsif lists.size == 1
-    lists[0]
-  else
-    res = lists.pop
-    lists.reverse_each do |l|
-      if l.is_a?(ListPair)
-        res = ListPair.new(l.list0, ListPair.new(l.list1, res))
-      else
-        res = ListPair.new(l, res)
-      end
-    end
-    res
+  lists.reduce(EmptyList.instance) do |res, l|
+    ListPair.create(res, l.to_cons_list)
   end
 end
 
@@ -367,6 +358,28 @@ class ListPair
   def initialize(list0, list1)
     @list0 = list0
     @list1 = list1
+  end
+
+=begin
+Pseudocode:
+  listPair [] ys               = ys
+  listPair xs []               = xs
+  listPair (ListPair xs ys) zs = (ListPair xs (ListPair ys zs))
+  listPair xs ys               = ListPair xs ys
+
+A simpler ListPair.new(xs, ys) could create a very deep list0 part. This would make
+accessing the car very slow over time.
+=end
+  def self.create(first_list, second_list)
+    if first_list.empty?
+      second_list
+    elsif second_list.empty?
+      first_list
+    elsif first_list.is_a? ListPair
+      ListPair.new(first_list.list0, ListPair.new(first_list.list1, second_list))
+    else
+      ListPair.new(first_list, second_list)
+    end
   end
 
   def car
@@ -385,7 +398,16 @@ class ListPair
   # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
   def set_cdr!(tail)
     @list1 = EmptyList.instance
-    @list0.set_cdr! tail # FIXME This might give the wrong behaviour if list0 is empty. Fix it when needed.
+    @list0.set_cdr! tail
+    if @list0.empty?
+      @list0 = @list1
+      @list1 = EmptyList.instance
+      @list0.set_cdr! tail
+    else
+      @list1 = EmptyList.instance
+      @list0.set_cdr! tail
+    end
+    self
   end
 
   def size
@@ -435,16 +457,6 @@ def random_access?(e)
   end
 end
 
-=begin
-def list(*args)
-  res = EmptyList.instance
-  args.reverse_each do |e|
-    res = cons(e, res)
-  end
-  res
-end
-=end
-
 def list(*args)
   if args.empty?
     EmptyList.instance
@@ -458,22 +470,6 @@ def cdr_list(args)
     EmptyList.instance
   else
     CdrCodedList.create(args)
-  end
-end
-
-def car(e)
-  if e.respond_to?(:car)
-    e.car
-  else
-    EmptyList.instance
-  end
-end
-
-def cdr(e)
-  if e.respond_to?(:cdr)
-    e.cdr
-  else
-    EmptyList.instance
   end
 end
 
@@ -496,23 +492,53 @@ end
 
 # Convenience functions.
 def first(c)
-  c.car
+  if c.is_a?(ConsList)
+    c.car
+  elsif c.is_a?(Array)
+    c[0]
+  else
+    raise
+  end
 end
 
 def second(c)
-  c[1]
+  if c.is_a?(ConsList)
+    c.cdr.car
+  elsif c.is_a?(Array)
+    c[1]
+  else
+    raise
+  end
 end
 
 def third(c)
-  c[2]
+  if c.is_a?(ConsList)
+    c.cdr.cdr.car
+  elsif c.is_a?(Array)
+    c[2]
+  else
+    raise
+  end
 end
 
 def fourth(c)
-  c[3]
+  if c.is_a?(ConsList)
+    c.cdr.cdr.cdr.car
+  elsif c.is_a?(Array)
+    c[3]
+  else
+    raise
+  end
 end
 
 def rest(c)
+  if c.is_a?(ConsList)
   c.cdr
+  elsif c.is_a?(Array)
+    c[1..] || []
+  else
+    raise
+  end
 end
 
 # Thrown when a tail-call should be done.
@@ -874,7 +900,7 @@ class LyraChar
 
   def initialize(s)
     if s.is_a?(String)
-      @chr = s.size == 0 ? 0.chr : s[0] # The type checker keeps complaining that s[0] could be nil. Make it stop.
+      @chr = s.size < 1 ? 0.chr : s[0] # The type checker keeps complaining that s[0] could be nil. Make it stop.
     elsif s.is_a?(Integer)
       @chr = s.chr
     else
@@ -974,7 +1000,7 @@ class Keyword < LyraFn
     if args.size != 1
       raise LyraError.new("#{@name}: Keyword can only be called on 1 argument.", :arity)
     end
-    env.safe_find(:get).call(list(args[0], self), env)
+    env.safe_find(:get)&.call(list(args[0], self), env)
   end
 
   def native?

@@ -146,6 +146,8 @@ class ListPair[T]
 
   include ConsList[T]
 
+  def self.create: [T] (ConsList[T] firstList, ConsList[T] secondList) -> ConsList[T]
+
   attr_reader list0: ConsList[T]
 
   attr_reader list1: ConsList[T]
@@ -435,7 +437,7 @@ class Object
   def list_append: [T] (*(Enumerable[T]) lists) -> ConsList[T]
 
   # As list_append, but take an array without spreading.
-  def list_append1: [T] (Enumerable[Enumerable[T]] lists) -> ListPair[T]
+  def list_append1: [T] (Array[Enumerable[T]] lists) -> ConsList[T]
 
   def cons: [T] (T e, ConsList[T] | LyraFn l) -> ConsList[T]
 
@@ -462,6 +464,7 @@ class Object
   def fourth: [T] (ConsList[T] c) -> T?
 
   def rest: [T] (ConsList[T] c) -> ConsList[T]
+          | [T] (Array[T] c) -> Array[T]
 
   def atom?: (lyra_expr x) -> bool
 

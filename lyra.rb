@@ -9,11 +9,11 @@ require_relative 'core.rb'
 # Repl stuff
 if RUBY_PLATFORM != "java"
   begin
-    require "reline"
-    HISTORY_LOADED = Box.new(false)
+    require 'reline'
     HISTORY_FILE = "#{ENV['HOME']}/.lyra-history"
     HISTORY = []
-  rescue LoadError => e
+    HISTORY_LOADED = Box.new(HISTORY.is_a?(Array)) # The simpler "Box.new(false)" makes the type checker complain.
+  rescue LoadError => _
     # reline could not be loaded => ignore
   end
 end
@@ -27,6 +27,7 @@ def _readline(prompt)
     unless File.exists?(HISTORY_FILE)
       IO.write(HISTORY_FILE, "\n")
     end
+
     # Load history file
     if !HISTORY_LOADED.value && File.exist?(HISTORY_FILE)
       HISTORY_LOADED.value = true
@@ -54,13 +55,14 @@ def _readline(prompt)
       line
     end
   else
+    # Reline is not available => use a quick and dirty version without input-history.
     print(prompt)
     res = gets
     res ? res.rstrip : res
   end
 end
 
-LYRA_VERSION = "0_2_1"
+LYRA_VERSION = "0_2_2"
 
 if ARGV[0] == "--show_expand_macros"
   $show_expand_macros = true
@@ -104,9 +106,10 @@ begin
         raise unless e.is_a?(LyraError) # e is obviously always a LyraError, but the type checker does not believe me.
         $stderr.puts "Error: #{e.message}"
       rescue Interrupt
-        # Ignore
+        # Ignore after terminating the current function.
       end
     end
+
     puts "Bye!"
   end
 rescue SystemStackError

@@ -77,7 +77,7 @@ end
 out_file = "core_functions.md"
 IO.write out_file, "" # Clear file
 
-src_files = ["core.lyra", "buildins.lyra", "set.lyra", "string.lyra", "vector.lyra"]
+src_files = %w[core.lyra buildins.lyra set.lyra string.lyra vector.lyra]
 
 open(out_file, "a") do |target|
   src_files.each do |f|
@@ -88,7 +88,7 @@ end
 out_file = "stdlib_functions.md"
 IO.write out_file, "" # Clear file
 
-src_files = ["aliases.lyra", "clj.lyra", "infix.lyra", "queue.lyra", "random.lyra", "sort.lyra"]
+src_files = %w[aliases.lyra clj.lyra infix.lyra queue.lyra random.lyra sort.lyra]
 
 open(out_file, "a") do |target|
   src_files.each do |f|

@@ -1,4 +1,4 @@
-type lyra_expr = untyped
+type lyra_expr = (Numeric | String | Symbol | ConsList[lyra_expr] | Array[lyra_expr] | Set[lyra_expr] | Hash[lyra_expr,lyra_expr] | LyraFn | bool | Box[lyra_expr] | nil)
 
 NOTHING_TYPE: TypeName
 
@@ -34,7 +34,6 @@ CHAR_TYPE: TypeName
 
 KEYWORD_TYPE: TypeName
 
-# ALIAS_TYPE = TypeName.new "::alias", 17
 DELAY_TYPE: TypeName
 
 GENSYM_CNT: ::Array[Integer]

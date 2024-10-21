@@ -10,5 +10,5 @@ class Object
   # Read a line using Reline::readline
   # If the history file doesn't exist yet, create it.
   # Otherwise, load it lazily.
-  def _readline: (String prompt) -> String
+  def _readline: (String prompt) -> String?
 end
