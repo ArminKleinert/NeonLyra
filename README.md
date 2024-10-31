@@ -367,6 +367,8 @@ The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`.
 - 0.2.1
   - Removed `LazyObj` because it was not used anymore.
   - `cdr coded list`s (lists backed by arrays). (WIP)
+- 0.2.2
+  - Added typechecking for the ruby source with rbs.
 
 ## Next goals
 
