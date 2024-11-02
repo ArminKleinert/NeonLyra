@@ -242,8 +242,8 @@ def setup_core_functions
   setup_add_fn(:"<=", 1, -1) { |*xs| apply_op_to_list(xs, &:<=) }
   setup_add_fn(:">=", 1, -1) { |*xs| apply_op_to_list(xs, &:>=) }
   setup_add_fn(:"+", 1, -1) { |*xs| xs.inject(&:+) }
-  setup_add_fn(:"-", 1, -1) { |*xs| xs.size == 1 ? -xs[0] : xs.inject(&:-) }
-  setup_add_fn(:"*", 1, -1) { |*xs| xs.inject(&:*) }
+  setup_add_fn(:"-", 1, -1) { |*xs| xs.size == 1 ? -xs[0] : xs.inject(&:-) } # Smile :-)
+  setup_add_fn(:"*", 1, -1) { |*xs| xs.inject(&:*) } # Kiss :*
   setup_add_fn(:"/", 1, -1) { |*xs| xs.inject{|x,y| div(x,y)} }
   setup_add_fn(:"rem", 1, -1) { |*xs| xs.inject{|x,y| rem(x,y)} }
   setup_add_fn(:"bit-and", 2) { |x, y| (x.is_a?(Integer) && y.is_a?(Integer)) ? x & y : nil }

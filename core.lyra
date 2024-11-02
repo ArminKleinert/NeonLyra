@@ -1426,8 +1426,8 @@
 
 ;## Function: fact-seq
 ;# fact-seq : () -> list
-;# Sequence of the factorial numbers, starting at 0.
-;# (yes, it says 1, but starts at 0)
+;# Sequence of the factorial numbers, starting at 0!.
+;# (yes, it says 1, but starts at 0!)
 (define (fact-seq)
   (map cadr
     (iterate
@@ -2251,6 +2251,23 @@
 
 (define (to-pair xs)
   (list (car xs) (cdr xs)))
+
+;## Function: derangements
+;# derangements : -> sequence
+;# Creates a lazy sequence of the "subfactorials".
+;#
+;# (enumerate (derangements)) ;=> ((0 1) (1 0) (2 1) (3 2) (4 9) (5 44) ...)
+(define (derangements)
+  (->>
+    '(1 0 1)
+    (iterate
+      (lambda' ((n-1 n-1-d n-2-d))
+        (list
+          (inc n-1)
+          (* n-1 (+ n-1-d n-2-d))
+          n-1-d)))
+    (map cadr)
+    (cons 1)))
 )
 
 (load! "string.lyra")

@@ -181,6 +181,7 @@ class List
     @car = head
     @cdr = tail
     @size = size
+    raise "HERE" unless @size.is_a?(Numeric)
   end
 
   def car
@@ -212,6 +213,10 @@ class List
     end
     @size
   end
+  
+  def islazy?
+    @size < 0
+  end
 
   # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
   def set_car!(c)
@@ -228,7 +233,9 @@ class List
   end
 
   def self.create(head, tail)
-    if tail.is_a? ConsList
+    if tail.is_a? List
+      List.send :new, head, tail, tail.islazy? ? -1 : tail.size+1
+    elsif tail.is_a? ConsList
       List.send :new, head, tail, tail.size + 1
     elsif tail.is_a? LyraFn
       List.send :new, head, tail, -1
@@ -260,7 +267,7 @@ end
 # be overridden (sadly),
 # A CdrCodedList is never empty. CdrCodedList.create ensures that it becomes an 
 # instance of EmptyList.
-class CdrCodedList < List
+class CdrCodedList #< List
   include Enumerable, ConsList
 
   def initialize(content_arr)
