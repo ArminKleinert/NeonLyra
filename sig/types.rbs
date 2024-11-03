@@ -82,6 +82,8 @@ class List[T]
 
   def cdr: () -> (ConsList[T] | LyraFn)
 
+  def is_lazy?: -> bool
+
   def size: () -> Integer
 
   # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
@@ -171,6 +173,27 @@ class ListPair[T]
   def each: () { (T) -> untyped } -> ConsList[T]
 
   def compact: () -> ConsList[T]
+end
+
+class LazyList[T]
+  @fn: LyraFn?
+  @size: Integer
+  @sv: ConsList[T]?
+
+  def self.create: [T] (Enumerable[T]) -> ConsList[T]
+                 | [T] (LyraFn) -> LazyList[T]
+
+  def empty?: -> bool
+
+  def evaluate_step: -> ConsList[T]
+
+  def is_lazy?: -> bool
+
+  def set_car!: -> void
+
+  def set_cdr!: -> void
+
+  def size: -> Integer
 end
 
 class Box[T]

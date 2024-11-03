@@ -35,7 +35,7 @@ end
 module Enumerable
   # @return [ConsList[Elem]]
   def to_cons_list # TODO: Figure out how to extend Enumerable with rbs.
-    if is_a?(ConsList)
+    if self.is_a?(ConsList)
       self
     else
       list(*to_a)
@@ -127,6 +127,10 @@ module ConsList
       c
     end
   end
+  
+  def is_lazy?
+    false
+  end
 
   def +(c)
     list_append self, c
@@ -191,9 +195,9 @@ class List
   def cdr
     temp = @cdr
     if temp.is_a?(LyraFn)
-      temp = temp.call(list, nil)
+      temp = temp.call(EmptyList.instance, nil)
       unless temp.is_a?(ConsList)
-        raise LyraError.new("Tail must be a list but is #{temp}.", :"illegal-argument")
+        raise LyraError.new("Tail must be a list but is #{temp}.", :"invalid-call")
       end
     end
     if temp.nil?
@@ -214,7 +218,7 @@ class List
     @size
   end
   
-  def islazy?
+  def is_lazy?
     @size < 0
   end
 
@@ -232,15 +236,15 @@ class List
     self
   end
 
-  def self.create(head, tail)
-    if tail.is_a? List
-      List.send :new, head, tail, tail.islazy? ? -1 : tail.size+1
+  def self.create(head, tail)  
+    if tail.is_a?(List) || tail.is_a?(LazyList)
+      List.send :new, head, tail, tail.is_lazy? ? -1 : tail.size+1
     elsif tail.is_a? ConsList
       List.send :new, head, tail, tail.size + 1
     elsif tail.is_a? LyraFn
       List.send :new, head, tail, -1
     else
-      raise LyraError.new("Illegal cdr.", :"illegal-argument")
+      raise LyraError.new("Illegal cdr.", :"invalid-call")
     end
   end
 
@@ -337,7 +341,7 @@ class CdrCodedList #< List
     if content_arr.nil?
       EmptyList.instance
     elsif !(content_arr.is_a? Array)
-      raise LyraError.new("Illegal input. Expected vector/array, got #{content_arr.class}.", :"illegal-argument")
+      raise LyraError.new("Illegal input. Expected vector/array, got #{content_arr.class}.", :"invalid-call")
     elsif content_arr.empty?
       EmptyList.instance
     else
@@ -354,6 +358,83 @@ end
 def list_append1(lists)
   lists.reduce(EmptyList.instance) do |res, l|
     ListPair.create(res, l.to_cons_list)
+  end
+end
+
+class LazyList
+  include Enumerable, ConsList, Lazy
+
+  def initialize(fn)
+    @fn = fn
+    @sv = nil
+    @size = -1
+  end
+
+  def self.create(fn)
+    if fn.is_a?(ConsList)
+      fn
+    elsif fn.is_a?(Enumerable)
+      fn.to_cons_list
+    elsif fn.is_a? LyraFn
+      LazyList.new fn
+    else
+      raise LyraError.new("Illegal Argument for creation of lazy sequence. Argument is #{fn} of type #{fn.class}.", :"invalid-call")
+    end
+  end
+
+  def evaluate_step
+    unless @fn.nil?
+      tfn = @fn
+      @fn = nil
+      temp = tfn.call(EmptyList.instance, nil)
+      @sv = temp
+    end
+    temp = @sv
+    unless temp.is_a?(ConsList)
+      raise LyraError.new("Lazy sequence must evaluate to a list, but evaluated to #{@sv.class}.", :"invalid-call")
+    end
+    temp
+  end
+
+  def car
+    evaluate_step
+    @sv.car
+  end
+
+  def cdr
+    evaluate_step
+    @sv.cdr
+  end
+
+  # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
+  def set_car!(_)
+      raise LyraError.new("Can not set car of lazy list.", :"invalid-call")
+  end
+
+  # ONLY PROVIDED FOR THE EVALUATION FUNCTION!!!
+  def set_cdr!(_)
+      raise LyraError.new("Can not set cdr of lazy list.", :"invalid-call")
+  end
+
+  def size
+    if @size < 0
+      c = 0
+      s1 = evaluate_step
+      until s1.empty?
+        s1 = s1.cdr
+        c += 1
+      end
+      @size = c
+    end
+    @size
+  end
+
+  def empty?
+    evaluate_step.empty?
+  end
+  
+  def islazy?
+    @size < 0
   end
 end
 
@@ -446,7 +527,7 @@ def cons(e, l)
   if l.is_a?(ConsList) || l.is_a?(LyraFn)
     List.create(e, l)
   else
-    raise LyraError.new("Tail must be a list but is #{l}.", :"illegal-argument")
+    raise LyraError.new("Tail must be a list but is #{l}.", :"invalid-call")
   end
 end
 

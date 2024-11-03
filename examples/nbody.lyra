@@ -59,7 +59,7 @@
                 (pmap #(calc-acc %1 bodies))
                 (zip bodies)
                 (pmap part))))
-      (lazy-seq
+      (lazy-seq'
         bodies-after-iteration
         (nbody (dec times) bodies-after-iteration)))))
   )

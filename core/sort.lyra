@@ -43,8 +43,8 @@
 (define (%merge-w-c c xs ys)
   (cond (empty? xs) ys
         (empty? ys) xs
-        (< (c (car xs) (car ys)) 1) (lazy-seq (car xs) (%merge-w-c c (cdr xs) ys))
-        else (lazy-seq (car ys) (%merge-w-c c xs (cdr ys)))))
+        (< (c (car xs) (car ys)) 1) (lazy-seq' (car xs) (%merge-w-c c (cdr xs) ys))
+        else (lazy-seq' (car ys) (%merge-w-c c xs (cdr ys)))))
 
 ; Merge with comparator.
 ; Helper for mergesort-with-comparator.

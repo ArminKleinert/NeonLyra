@@ -228,6 +228,7 @@ def setup_core_functions
   setup_add_fn(:cdr, 1) { |x| cons?(x) ? x.cdr : (raise LyraError.new("Invalid call to cdr. Got #{x}.", :"invalid-call")) }
 
   setup_add_fn(:"list-concat", 0, -1) { |*xs| list_append1 xs }
+  setup_add_fn(:"buildin-lazy-seq", 1) { |x| LazyList.create(x) }
 
   setup_add_fn(:"not", 1) { |x| !(truthy? x) }
 

@@ -44,7 +44,6 @@ begin
   f.call :"def-impl"
   f.call :"def-generic"
   f.call :"defmacro"
-  #f.call :"lazy-seq"
   f.call :"module"
   f.call :"quote"
   #f.call :"quasiquote"

@@ -1156,14 +1156,23 @@
     (eq? (list (list 1 2 3)) (cons (list 1 2 3) (list)))
     )
 
-(let* ((f0 (lambda* f0 (n m) (if (= n m) '() (lazy-seq n (f0 (+ n 1) m))))))
+(let* ((f0 (lambda* f0 (n m) (if (= n m) '() (lazy-seq' n (f0 (+ n 1) m))))))
+(deftest test-lazy-seq'
+    (eq? (list 1 2 3 4) (f0 1 5))
+    (eq? 4 (size (f0 1 5)))
+    (eq? 1 (car (f0 1 -1)))
+    (eq? 2 (car (cdr (f0 1 -1))))
+    (eq? (list 2 3 4) (cdr (f0 1 5)))
+    ))
+
+(let* ((f0 (lambda* f0 (n m) (if (= n m) '() (lazy-seq (cons n (f0 (+ n 1) m)))))))
 (deftest test-lazy-seq
-      (eq? (list 1 2 3 4) (f0 1 5))
-      (eq? 4 (size (f0 1 5)))
-      (eq? 1 (car (f0 1 -1)))
-      (eq? 2 (car (cdr (f0 1 -1))))
-      (eq? (list 2 3 4) (cdr (f0 1 5)))
-      ))
+    (eq? (list 1 2 3 4) (f0 1 5))
+    (eq? 4 (size (f0 1 5)))
+    (eq? 1 (car (f0 1 -1)))
+    (eq? 2 (car (cdr (f0 1 -1))))
+    (eq? (list 2 3 4) (cdr (f0 1 5)))
+    ))
 
 (deftest test-vector
     (empty? (vector))

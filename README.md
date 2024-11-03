@@ -13,70 +13,70 @@ Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 
 ## Features:
 
-- Different numeric types: Integer and Float  
-- Macros  
-- Tail recursion  
-- Lazy evaluation  
-- Ease of use for Clojurians.  
+- Different numeric types: Integer and Float
+- Macros
+- Tail recursion
+- Lazy evaluation
+- Ease of use for Clojurians.
 
 ## Usage:
 
-- Install Ruby (Tested with Ruby 3.0.2 and Truffleruby 21.2.0.1)  
-- Clone the repo or download it as a zip  
-- Run `ruby lyra.rb` to load `core.lyra` and start the repl.  
-- Run `ruby lyra.rb tests.lyra` to ensure that everything works as intended.  
-- Run `ruby lyra.rb <your source files>` to run your own source files.  
+- Install Ruby (Tested with Ruby 3.0.2 and Truffleruby 21.2.0.1)
+- Clone the repo or download it as a zip
+- Run `ruby lyra.rb` to load `core.lyra` and start the repl.
+- Run `ruby lyra.rb tests.lyra` to ensure that everything works as intended.
+- Run `ruby lyra.rb <your source files>` to run your own source files.
 
 ## Differences to original Lyra:
 
-- No `set-car!` or `set-cdr!` and no mutating functions for vectors.  
-- No shying away from using more native functions.  
-- Lists (except lazy lists) have a size. To count the elements, they do not have to be iterated.  
-- User-defined types use native functions.  
-- A module system.  
+- No `set-car!` or `set-cdr!` and no mutating functions for vectors.
+- No shying away from using more native functions.
+- Lists (except lazy lists) have a size. To count the elements, they do not have to be iterated.
+- User-defined types use native functions.
+- A module system.
 
 ## Types:
 
-- Symbol  
-- Basic numbers: Integer, Float, Rational  
-- String  
-- List (car, cdr, size)  
-- Boolean (#t, #f)  
+- Symbol
+- Basic numbers: Integer, Float, Rational
+- String
+- List (`car`, `cdr`, `size`)
+- Boolean (`#t`, `#f`)
 - Char
-- Nothing (Returned on failed type conversions or similar situations)  
-- Function  
-- Vector  
-- Map  
-- Lazy  
-- Box (The only mutable type)  
-- Set  
-- Error  
-- Keyword  
-- Delay (responds to `unwrap`, `eager` and `unbox`)  
+- Nothing (Returned on failed type conversions or similar situations)
+- Function
+- Vector
+- Map
+- Lazy
+- Box (The only mutable type)
+- Set
+- Error
+- Keyword
+- Delay (responds to `unwrap`, `eager` and `unbox`)
 
 ## Some friendly infos about the syntax 
 
-- `(...)` is used for function calls.  
-- `'expr` quotes an expression and is equivalent to `(quote expr)`  
-- \``expr` quotes an expression and is equivalent to `(quasiquote expr)`  
-- `~expr` is equivalent to `(unquote expr)`  
-- `~@expr` is equivalent to `(unquote-splicing expr)`  
-- `[...]` creates a vector. It is not fully the same as `(vector ...)`, but gives the same value.  
-- `'()` is the empty list. (`()` is also valid, but discouraged)  
-- `let` is the sequential let expression.  
-- `plet` is the parallel let expression.  
-- `<expr>.?` becomes `(unwrap <expr>)`  
-- `<expr>.!` becomes `(eager <expr>)`  
-- `@<expr>` becomes `(unbox <expr>)`  
-- `#t` is literal true  
-- `#f` is literal false  
-- `#(...)` shortened form for lambda. Arguments are called `%1`, `%2`, ..., `%15` and are initialized as `Nothing` unless specified. Arguments beyond 15 are in `%&`. The total argument list is `%&&`.  
-- `\p(...)` is a shortcut for partial functions.  
-- `#{...}` is a literal set.  
-- `{...}` is a literal map.  
-- `:<word>` is a keyword literal. (eg. `:a`)  
+- `(...)` is used for function calls.
+- `'expr` quotes an expression and is equivalent to `(quote expr)`
+- <code>\`expr</code> quotes an expression and is equivalent to `(quasiquote expr)`
+- `~expr` is equivalent to `(unquote expr)`
+- `~@expr` is equivalent to `(unquote-splicing expr)`
+- `[...]` creates a vector.
+- `'()` is the empty list. (`()` is also valid, but discouraged)
+- `let` is the sequential let expression.
+- `plet` is the parallel let expression.
+- `<expr>.?` becomes `(unwrap <expr>)`
+- `<expr>.!` becomes `(eager <expr>)`
+- `@<expr>` becomes `(unbox <expr>)`
+- `#t` is literal true
+- `#f` is literal false
+- `#(...)` shortened form for lambda. Arguments are called `%1`, `%2`, ..., `%15` and are initialized as `Nothing` unless specified. Arguments beyond 15 are in `%&`. The total argument list is `%&&`.
+- `\p(...)` is a shortcut for partial functions.
+- `#{...}` is a literal set.
+- `{...}` is a literal map.
+- `:<word>` is a keyword literal. (eg. `:a`)
 - Numbers can start with the prefixes `0x` or `0b` for hexadecimal or binary literals.
-- Function with names that end in `!` are considered impure. Impure calls eagerly evaluate their parameters. They will also not be optimized away. You can mark any function as pure by not putting a `!` at the end of the name.  
+- Function with names that end in `!` are considered impure. Impure calls eagerly evaluate their parameters. They will also not be optimized away. You can mark any function as pure by not putting a `!` at the end of the name.
 
 ## Differences to Clojure:
 
@@ -85,40 +85,40 @@ Lyra is by design much less powerful than Clojure because it tries to be as func
 Please keep in mind that most of this might change in the future, since Lyra is partially still in planning. Most of these differences are build into the design of the language though.  
 Here are some differences to Clojure I could think of:  
 
-- Lyra is a hobby project and not a serious attempt at making something great.  
-- Bad performance. :(  
+- Lyra is a hobby project and not a serious attempt at making something great.
+- Bad performance. :(
 - The boolean literals are `#t` and `#f` (but are aliased as `true` and `false`)
-- `Box` instead of `Atom`.  
-- Boxes are not synchronized.  
-- Creators for user-defined types should start with `make-` instead of `->`.  
-- Disallows overriding old defs.  
-- Functions and variables are created using scheme-style `define`. (though `def` and `defn` are available as aliases but discouraged)  
-- `nil` is called `Nothing` as a reference to Haskell. (`nil` is provided as an alias though)  
-- No meta-data.  
-- No method-access using `.` and `..`.  
-- No access to the host language.  
-- No mutable arrays.  
-- No build-in loops.  
-- Keyword access only works for maps. (Not for user-defined types)  
-- No primitive (value) types.  
-- No streams to files or sockets.  
-- No transients.  
-- Only Boxes can be copied.  
-- Still going through a lot of changes.  
-- Tail recursion. (`recur` is available too)  
-- The empty list is a singleton and false.  
-- Type-conversion functions are always marked with `->`. (`->int`, `->string`, etc.)  
-- Type-conversion functions return `Nothing` if conversion failed.  
-- There are no type hints.  
-- User-defined types are not maps.  
-- `(lambda' (...) ...)` instead of `(fn [...] ...)`. (`fn` is available as an alias)  
-- `#f`, `Nothing` and `'()` are all false.  
-- `module` surrounds a list of expressions instead of being used at the top of a file only.  
-- `seq` returns `Nothing` for all types that aren't collections.  
-- modules (`module`) instead of namespaces (`ns`).  
-- All impure functions must end with the postfix `!` (like `load!`, `readln!`, ...).  
-- Nested `#(...)` is allowed.  
-- For `map` with more than 1 collection, you need to use `mapcar`.  
+- `Box` instead of `Atom`.
+- Boxes are not synchronized.
+- Creators for user-defined types should start with `make-` instead of `->`.
+- Disallows overriding old defs.
+- Functions and variables are created using scheme-style `define`. (though `def` and `defn` are available as aliases but discouraged)
+- `nil` is called `Nothing` as a reference to Haskell. (`nil` is provided as an alias though)
+- No meta-data.
+- No method-access using `.` and `..`.
+- No access to the host language.
+- No mutable arrays.
+- No build-in loops.
+- Keyword access only works for maps. (Not for user-defined types)
+- No primitive (value) types.
+- No streams to files or sockets.
+- No transients.
+- Only Boxes can be copied.
+- Still going through a lot of changes.
+- Tail recursion. (`recur` is available too and useful for anonymous funnctions)
+- The empty list is a singleton and false.
+- Type-conversion functions are always marked with `->`. (`->int`, `->string`, etc.)
+- Type-conversion functions return `Nothing` if conversion failed.
+- There are no type hints.
+- User-defined types are not maps.
+- `(lambda' (...) ...)` instead of `(fn [...] ...)`. (`fn` is available as an alias, including `fn` with different argument numbers)
+- `#f`, `Nothing` and `'()` are all false.
+- `module` surrounds a list of expressions instead of being used at the top of a file only.
+- `seq` returns `Nothing` for all types that aren't collections.
+- modules (`module`) instead of namespaces (`ns`).
+- All impure functions must end with the postfix `!` (like `load!`, `readln!`, ...).
+- Nested `#(...)` is allowed.
+- For `map` with more than 1 collection, you need to use `mapcar`.
 
 The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`. 
 
@@ -315,7 +315,7 @@ The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`.
   - Ignore `_` arguments
   - rational type
 - 0.1.3
-  - Error handling via. try*-catch (Usage is heavily discouraged!)
+  - Error handling via. `try*-catch` (Usage is heavily discouraged!)
   - char type and char literals (including utf-8 characters)
   - Keyword type
   - Literals for keywords, sets and maps.
@@ -373,23 +373,35 @@ The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`.
 - 0.2.3
   - Fixed a bug where the `reline` history would not load.
   - Fixed a bug where `#f` and `Nothing` were interpreted as the empty list in `quasiquote`.
+  - Old `lazyseq` with 2 arguments war renamed to `lazy-seq'`. `lazy-seq` is now very similar to `lazy-seq` from clojure.
 
 ## Next goals
 
+- Better `macroexpand`.
 - Support `:as` in destructuring.
 - Support keyword-arguments in `define*` (if that is easy to do).
 - Find and fix the worst performance bottlenecks.
+- Better error messages.
 - Get NeonLyra working on Truffleruby again.
 
 ## Known bugs
 
 - Sets and maps only work for atomic types.
+- The current tail-call mechanism uses exceptions. Those sometimes escape into the repl and crash it.
 
 ## Dancing
+
+I discovered that the shortcuts for some functions can be used in destructuring functions. It can be abused in joke-code, but otherwise has no practical use.
 
 ```
 ((lambda' \p(@~a `and)
   (unbox and unquote a partial quasiquote))
  "■)" '(println! ("(⌐" "■ ")) '("ノ♪" "ヾ"))
 ; ヾ(⌐■ ■)ノ♪
+```
+After parsing, the code looks the same as this: 
+```
+((lambda' ((partial (unbox (unquote a)) (quasiquote and)))
+  (unbox and unquote a partial quasiquote))
+ "■)" '(println! ("(⌐" "■ ")) '("ノ♪" "ヾ"))
 ```
