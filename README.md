@@ -3,7 +3,7 @@
 Lyra is a lisp I made for fun and learning. NeonLyra is an improved version.
 
 Current stable version: 0.2.2  
-Current version: 0.2.2
+Current version: 0.2.3
 
 Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 
@@ -267,90 +267,90 @@ The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`.
 
 ## Changelog
 
-- 0.0.1  
-  - The thing works but lacks functionality.  
-- 0.0.2  
-  - Macros, types, more functions, modules, @ prefix  
-- 0.0.3  
-  - measure, memoize, def-memo, fixed lookup bug in lambdas  
-- 0.0.4  
-  - Loading of other source-files, more functions, aggressive optimizer (currently turned off)  
-- 0.0.5  
-  - and, or, complement, composition, take and drop (and their variants)  
-  - fixed a bug with nil  
-  - renamed List to ConsList and NonEmptyList to List  
-- 0.0.6  
-  - User-defined types  
-  - Generic functions  
-  - Some other bug fixes.  
-- 0.0.7  
-  - Many new functions.  
-  - Various bug fixes.  
-  - All important functions have tests.  
-- 0.0.8  
-  - All important functions are generic now.  
-- 0.0.9  
-  - Massive performance improvement (very welcome after 0.0.8).  
-  - Some useless but fun macros:  
-    - Fun lambdas like `(any? (λ x . x) '(#f #f #t))`  
-  - More tests  
-  - Better implementation for some functions  
-  - Fixed foldr1  
-- 0.1.0  
-  - Performance improvement  
-  - Lazy and infinite sequences  
-  - Safer macro inlining  
-  - Optimized list concatenation  
-- 0.1.1  
-  - Support for random numbers  
-  - Added `->`, `->>` and `as->` from Clojure  
-  - Infix operations in `infix.lyra`  
-  - Simpler export from modules.  
-- 0.1.2  
-  - Simple Repl  
-  - Fixed bugs with lazy evaluation.  
-  - Generic implementation definition is now done via. `def-impl`  
-  - Simplified cond and load! format  
-  - lambda*, case, condp, case-lambda expressions  
-  - Ignore `_` arguments  
-  - rational type  
-- 0.1.3  
-  - Error handling via. try*-catch (Usage is heavily discouraged!)  
-  - char type and char literals (including utf-8 characters)  
-  - Keyword type  
-  - Literals for keywords, sets and maps.  
-  - `loop` macro  
-  - Better `case-lambda`  
-  - Alias type  
-  - queue type (in `core/queue.lyra`)  
-  - Removed `#()` and `%`  
-- 0.1.4  
-  - To define a collection type, only `->list` has to be defined.  
-  - Names can now end with `'`  
-  - `true` and `false` are now boolean literals too.  
-  - `for` macro for list comprehension.  
-- 0.1.5  
-  - `#()` and `%n` are back  
-  - Bugfix in `->rational` for truffleruby  
+- 0.0.1
+  - The thing works but lacks functionality.
+- 0.0.2
+  - Macros, types, more functions, modules, `@` prefix
+- 0.0.3
+  - measure, memoize, def-memo, fixed lookup bug in lambdas
+- 0.0.4
+  - Loading of other source-files, more functions, aggressive optimizer (currently turned off)
+- 0.0.5
+  - and, or, complement, composition, take and drop (and their variants)
+  - fixed a bug with nil
+  - renamed List to ConsList and NonEmptyList to List
+- 0.0.6
+  - User-defined types
+  - Generic functions
+  - Some other bug fixes.
+- 0.0.7
+  - Many new functions.
+  - Various bug fixes.
+  - All important functions have tests.
+- 0.0.8
+  - All important functions are generic now.
+- 0.0.9
+  - Massive performance improvement (very welcome after 0.0.8).
+  - Some useless but fun macros:
+    - Fun lambdas like `(any? (λ x . x) '(#f #f #t))`
+  - More tests
+  - Better implementation for some functions
+  - Fixed `foldr1`
+- 0.1.0
+  - Performance improvement
+  - Lazy and infinite sequences
+  - Safer macro inlining
+  - Optimized list concatenation
+- 0.1.1
+  - Support for random numbers
+  - Added `->`, `->>` and `as->` from Clojure
+  - Infix operations in `infix.lyra`
+  - Simpler export from modules.
+- 0.1.2
+  - Simple Repl
+  - Fixed bugs with lazy evaluation.
+  - Generic implementation definition is now done via. `def-impl`
+  - Simplified cond and load! format
+  - lambda*, case, condp, case-lambda expressions
+  - Ignore `_` arguments
+  - rational type
+- 0.1.3
+  - Error handling via. try*-catch (Usage is heavily discouraged!)
+  - char type and char literals (including utf-8 characters)
+  - Keyword type
+  - Literals for keywords, sets and maps.
+  - `loop` macro
+  - Better `case-lambda`
+  - Alias type
+  - queue type (in `core/queue.lyra`)
+  - Removed `#()` and `%`
+- 0.1.4
+  - To define a collection type, only `->list` has to be defined.
+  - Names can now end with `'`
+  - `true` and `false` are now boolean literals too.
+  - `for` macro for list comprehension.
+- 0.1.5
+  - `#()` and `%n` are back
+  - Bugfix in `->rational` for truffleruby
   - Various bugfixes  
-  - Reduced set of core functions  
+  - Reduced set of core functions
   - `\p(...)` as shortcut for partial functions
-- 0.1.6  
-  - Removed "lazy AST spreading"  
-  - Performance boost  
-  - Added `quasiquote` and `unquote-splicing`  
-  - Fixed bug in lazy sequences  
-  - Removed alias type.  
-- 0.1.7  
-  - Added destructuring for function parameters  
-  - `let` is now a destructuring let and `plet` is the new parallel let  
-  - `let`, `plet`, `for` and `loop` now all have forms for using Clojure-like vector bindings.  
-  - Variadic arithmetic  
-  - Some bugfixes  
-  - Better module system (though much more work is needed)  
-  - Simple multithreading + delay type  
-  - Better documentation  
-- 0.1.8  
+- 0.1.6
+  - Removed "lazy AST spreading"
+  - Performance boost
+  - Added `quasiquote` and `unquote-splicing`
+  - Fixed bug in lazy sequences
+  - Removed alias type.
+- 0.1.7
+  - Added destructuring for function parameters
+  - `let` is now a destructuring let and `plet` is the new parallel let
+  - `let`, `plet`, `for` and `loop` now all have forms for using Clojure-like vector bindings.
+  - Variadic arithmetic
+  - Some bugfixes
+  - Better module system (though much more work is needed)
+  - Simple multithreading + `delay` type
+  - Better documentation
+- 0.1.8
   - Simpler module system.
   - Any function or variable with a name which does not start with a '%' is public automatically.
   - More functions and macros.
@@ -369,6 +369,10 @@ The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`.
   - `cdr coded list`s (lists backed by arrays). (WIP)
 - 0.2.2
   - Added typechecking for the ruby source with rbs.
+  - Fixed a bug where `cons` locked if the tail was an inifinite sequence.
+- 0.2.3
+  - Fixed a bug where the `reline` history would not load.
+  - Fixed a bug where `#f` and `Nothing` were interpreted as the empty list in `quasiquote`.
 
 ## Next goals
 

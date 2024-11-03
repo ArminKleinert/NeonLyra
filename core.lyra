@@ -141,7 +141,7 @@
 ;## Function: rget
 ;# rget : any -> collection -> any
 ;# Reverse of get. Takes the collection first and the key second.
-(define (rget k xs)(get xs k))
+(define (rget k xs) (get xs k))
 
 ;## Function: index-of
 ;# index-of : any -> collection -> int
@@ -321,6 +321,62 @@
           (< i 0) xs
           else (lazy-seq (car xs) (delete-at (dec i) (cdr xs)))))
       Nothing)))
+
+;;; SECTION: caar, cadr, ...
+
+(define (caar x) (car (car x)))
+(define (cadr x) (car (cdr x)))
+(define (cdar x) (cdr (car x)))
+(define (cddr x) (cdr (cdr x)))
+(define (caaar x) (car (car (car x))))
+(define (caadr x) (car (car (cdr x))))
+(define (cadar x) (car (cdr (car x))))
+(define (caddr x) (car (cdr (cdr x))))
+(define (cdaar x) (cdr (car (car x))))
+(define (cdadr x) (cdr (car (cdr x))))
+(define (cddar x) (cdr (cdr (car x))))
+(define (cdddr x) (cdr (cdr (cdr x))))
+(define (caaaar x) (car (car (car (car x)))))
+(define (caaadr x) (car (car (car (cdr x)))))
+(define (caadar x) (car (car (cdr (car x)))))
+(define (caaddr x) (car (car (cdr (cdr x)))))
+(define (cadaar x) (car (cdr (car (car x)))))
+(define (cadadr x) (car (cdr (car (cdr x)))))
+(define (caddar x) (car (cdr (cdr (car x)))))
+(define (cadddr x) (car (cdr (cdr (cdr x)))))
+(define (cdaaar x) (cdr (car (car (car x)))))
+(define (cdaadr x) (cdr (car (car (cdr x)))))
+(define (cdadar x) (cdr (car (cdr (car x)))))
+(define (cdaddr x) (cdr (car (cdr (cdr x)))))
+(define (cddaar x) (cdr (cdr (car (car x)))))
+(define (cddadr x) (cdr (cdr (car (cdr x)))))
+(define (cdddar x) (cdr (cdr (cdr (car x)))))
+(define (cddddr x) (cdr (cdr (cdr (cdr x)))))
+
+;;; SECTION: quasiquote
+
+;## Macro: quasiquote
+;# quasiquote : expr -> expr
+;# Quotes an expression. Sub-expressions can be unquoted using unquote and unquote-splicing.
+;# The interpreter uses backtick ('`') as a short prefix for this macro.
+;# unquote has the short prefix '~' (tilde) and unquote-splicing is '~@'.
+;# `(1 ~@(list 2 3) 4) ;-> (1 2 3 4)
+;# (let ((a 1) (b '(3 4)) (c 'a)) `(~a 2 (unquote (quasiquote (unquote c))))) ;-> (1 2 3 4)
+;# 
+;# Be careful: Double unquoting does not work.
+;#  (let ((a 1) (c 'a)) `(unquote (quasiquote (unquote c)))) ;-> a
+;#  (let ((a 1) (c 'a)) `(unquote (unquote c))) ;-> Error
+(defmacro (quasiquote expr)
+  (if (not expr)
+    (if (list? expr) '() expr)
+    (if (not (list? expr))
+      (list 'quote expr)
+      (let* ((fst (car expr)))
+        (if (= fst 'unquote)
+          (cadr expr)
+          (if (and (list? fst) (= (car fst) 'unquote-splicing)) 
+            (list 'concat (second fst) (list 'quasiquote (cdr expr)))
+            (list 'cons (list 'quasiquote (car expr)) (list 'quasiquote (cdr expr)))))))))
 
 ;;; SECTION: Printing
 
@@ -1308,16 +1364,16 @@
       (empty? cases) Nothing
       (= 1 (size cases)) (first cases)
       (and (not (symbol? (first cases))) (atom? (first cases)))
-        (list 'if (list 'eq? fc e) (second cases) (%case e n (rest (rest cases))))
+        `(if (eq? ~fc ~e) ~(second cases) ~(%case e n (rest (rest cases))))
       (and (not (list? (first cases))) (collection? (first cases)))
-        (list 'if (list 'contains? fc e) (second cases) (%case e n (rest (rest cases))))
+        `(if (contains? ~fc ~e) ~(second cases) ~(%case e n (rest (rest cases))))
       else
-        (list 'let* (list (list n (first cases)))
-          (list 'cond
-            (list 'and (list 'collection? n) (list 'contains? n e)) (second cases)
-            (list 'and (list 'function? n) (list n e)) (second cases)
-            (list 'eq? n e) (second cases)
-            'else (%case e n (rest (rest cases))))))))
+        `(let* ((~n ~(first cases)))
+          (cond
+            (and (collection? ~n) (contains? ~n ~e)) ~(second cases)
+            (and (function? ~n) (~n ~e)) ~(second cases)
+            (eq? ~n ~e) ~(second cases)
+            else ~(%case e n (rest (rest cases))))))))
 
 ;## Macro: case
 ;# case : expr -> [any, expr]* -> expr
@@ -1338,38 +1394,9 @@
 (defmacro (case e & cases)
   (let* ((n (gensym 'case))
          (e-name (gensym 'case-elem)))
-    (list 'let* (list (list e-name e)) (%case e-name n cases))))
+    `(let* ((~e-name ~e)) ~(%case e-name n cases))))
 
 ;;; SECTION: List and Vector stuff
-
-(define (caar x) (car (car x)))
-(define (cadr x) (car (cdr x)))
-(define (cdar x) (cdr (car x)))
-(define (cddr x) (cdr (cdr x)))
-(define (caaar x) (car (car (car x))))
-(define (caadr x) (car (car (cdr x))))
-(define (cadar x) (car (cdr (car x))))
-(define (caddr x) (car (cdr (cdr x))))
-(define (cdaar x) (cdr (car (car x))))
-(define (cdadr x) (cdr (car (cdr x))))
-(define (cddar x) (cdr (cdr (car x))))
-(define (cdddr x) (cdr (cdr (cdr x))))
-(define (caaaar x) (car (car (car (car x)))))
-(define (caaadr x) (car (car (car (cdr x)))))
-(define (caadar x) (car (car (cdr (car x)))))
-(define (caaddr x) (car (car (cdr (cdr x)))))
-(define (cadaar x) (car (cdr (car (car x)))))
-(define (cadadr x) (car (cdr (car (cdr x)))))
-(define (caddar x) (car (cdr (cdr (car x)))))
-(define (cadddr x) (car (cdr (cdr (cdr x)))))
-(define (cdaaar x) (cdr (car (car (car x)))))
-(define (cdaadr x) (cdr (car (car (cdr x)))))
-(define (cdadar x) (cdr (car (cdr (car x)))))
-(define (cdaddr x) (cdr (car (cdr (cdr x)))))
-(define (cddaar x) (cdr (cdr (car (car x)))))
-(define (cddadr x) (cdr (cdr (car (cdr x)))))
-(define (cdddar x) (cdr (cdr (cdr (car x)))))
-(define (cddddr x) (cdr (cdr (cdr (cdr x)))))
 
 ;## Function: list*
 ;# list* : [any]* -> list
@@ -1588,9 +1615,9 @@
     (cond 
       (empty? cases) Nothing
       (= 1 (size cases)) c
-      else (list 'if
-            (list p c e) (second cases)
-            (%condp p e (rest (rest cases)))))))
+      else `(if
+            (~p ~c ~e) ~(second cases)
+            ~(%condp p e (rest (rest cases)))))))
 ;## Macro: condp
 ;# condp : (any -> any -> bool) -> expr -> [(expr, expr)]* -> expr´
 ;# (let* ((f0 (lambda (e) (condp <= e  1 0  5 9  11))))
@@ -1600,7 +1627,7 @@
 ;#   (f0 6)) ; 11 ; default
 (defmacro (condp p e & cases)
   (let* ((n (gensym 'condp)))
-    (list 'let* (list (list n e)) (%condp p n cases))))
+    `(let* ((~n ~e)) ~(%condp p n cases))))
 
 ;;; SECTION: Flow control macros
 
@@ -1629,7 +1656,7 @@
 (define (%as-> name x exprs)
   (if (empty? exprs)
     x
-    (list 'let* (list (list name x)) (%as-> name (car exprs) (cdr exprs)))))
+    `(let* ((~name ~x)) ~(%as-> name (car exprs) (cdr exprs)))))
 ;## Macro: as->
 ;# as-> : symbol -> expr -> [expr]* -> expr
 ;# As in Clojure.
@@ -1673,35 +1700,6 @@
 ;#   (compute-> "r")            ; => "r"
 (defmacro (compute-> m & funcs)
   `(compute*-> Nothing Nothing ~m ~@funcs))
-
-;;; SECTION: quasiquote
-
-;## Macro: quasiquote
-;# quasiquote : expr -> expr
-;# Quotes an expression. Sub-expressions can be unquoted using unquote and unquote-splicing.
-;# The interpreter uses backtick ('`') as a short prefix for this macro.
-;# unquote has the short prefix '~' (tilde) and unquote-splicing is '~@'.
-;# `(1 ~@(list 2 3) 4) ;-> (1 2 3 4)
-;# (let ((a 1) (b '(3 4)) (c 'a)) `(~a 2 (unquote (quasiquote (unquote c))))) ;-> (1 2 3 4)
-;# 
-;# Be careful: Double unquoting does not work.
-;#  (let ((a 1) (c 'a)) `(unquote (quasiquote (unquote c)))) ;-> a
-;#  (let ((a 1) (c 'a)) `(unquote (unquote c))) ;-> Error
-(defmacro (quasiquote expr)
-  (cond
-    (not expr)
-      '()
-    (not (list? expr))
-      (list 'quote expr)
-    else
-      (let* ((fst (car expr)))
-        (cond
-          (= fst 'unquote)
-            (cadr expr)
-          (and (list? fst) (= (car fst) 'unquote-splicing)) 
-            (list 'concat (second fst) (list 'quasiquote (cdr expr)))
-          else
-            (list 'cons (list 'quasiquote (car expr)) (list 'quasiquote (cdr expr)))))))
 
 ;;; SECTION: case-lambda
 
@@ -2023,15 +2021,13 @@
             ~@(concat
               (if (empty? whiles)
                 '()
-                (list
-                  (list any? not (cons 'list whiles))
-                  (list list #t Nothing Nothing)))
+                `((any? not (list ~@whiles))
+                  (list #t Nothing Nothing)))
               (if (empty? whens)
                 '()
-                (list
-                  (list any? not (cons 'list whens))
-                  (list list #f #t Nothing)))
-              (list else (cons 'list (list #f #f body)))))))
+                `((any? not (list ~@whens))
+                  (list #f #t Nothing)))
+              `(else (list #f #f ~body))))))
       (combinations ~@(map cadr defs))
       ))))
 
@@ -2257,17 +2253,21 @@
 ;# Creates a lazy sequence of the "subfactorials".
 ;#
 ;# (enumerate (derangements)) ;=> ((0 1) (1 0) (2 1) (3 2) (4 9) (5 44) ...)
-(define (derangements)
-  (->>
-    '(1 0 1)
-    (iterate
-      (lambda' ((n-1 n-1-d n-2-d))
-        (list
-          (inc n-1)
-          (* n-1 (+ n-1-d n-2-d))
-          n-1-d)))
-    (map cadr)
-    (cons 1)))
+(define derangements
+  (case-lambda* derangements
+    (() (->>
+          '(1 0 1)
+          (iterate
+            (lambda' ((n-1 n-1-d n-2-d))
+              (list
+                (inc n-1)
+                (* n-1 (+ n-1-d n-2-d))
+                n-1-d)))
+          (map cadr)
+          (cons 1)))
+    ((n) (if (>= n 0)
+           (nth (derangements) n)
+           Nothing))))
 )
 
 (load! "string.lyra")

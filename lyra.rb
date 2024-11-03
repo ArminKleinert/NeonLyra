@@ -12,7 +12,7 @@ if RUBY_PLATFORM != "java"
     require 'reline'
     HISTORY_FILE = "#{ENV['HOME']}/.lyra-history"
     HISTORY = []
-    HISTORY_LOADED = Box.new(HISTORY.is_a?(Array)) # The simpler "Box.new(false)" makes the type checker complain.
+    HISTORY_LOADED = Box.new(!HISTORY.is_a?(Array)) # The simpler "Box.new(false)" makes the type checker complain.
   rescue LoadError => _
     # reline could not be loaded => ignore
   end
@@ -62,7 +62,7 @@ def _readline(prompt)
   end
 end
 
-LYRA_VERSION = "0_2_2"
+LYRA_VERSION = "0_2_3"
 
 if ARGV[0] == "--show_expand_macros"
   $show_expand_macros = true
