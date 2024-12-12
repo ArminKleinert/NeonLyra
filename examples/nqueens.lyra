@@ -32,7 +32,7 @@
                      (/= x (- c n))))))))
     (map first (queens-loop init-board 0))))
 
-(nqueens 4) 
+(queens 4) 
 
 
 

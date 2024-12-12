@@ -124,7 +124,7 @@ The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`.
 
 ## Example
 
-```
+```scm
 ; sum using normal recursion
 (define (sum xs) (if (empty? xs) 0 (+ (first xs) (sum (rest xs)))))
 
@@ -211,7 +211,7 @@ The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`.
 
 ## Example of a user-defined type
 
-```
+```scm
 ; Registers a new type 'pair'.
 ; This automatically generates the functions in the current module
 ;   make-pair x y
@@ -248,21 +248,21 @@ The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`.
 ```
 
 ## Info about the files:
-`core.rb` Contains the buildin functions.  
-`docs.rb` Utility file which generates the documentation for all `.lyra` files.  
-`env.rb` Contains the Environment class, which holds all variables for the current and global scope.  
-`evaluate.rb` The actual Lisp interpreter.  
-`lyra.rb` The main file that needs to be fed to the ruby interpreter.  
-`reader.rb` Reads text and turns it into lisp datastructures. (EDN style)  
-`types.rb` Contains the basic types for Lyra. (Lists, Vectors, ...)  
-`core.lyra` The standard library included in every Lyra file.  
-`benchmark.lyra` Benchmarking functions for testing the performance of the newest version.  
-`buildins.lyra` Documentation for the buildin functions from `core.rb`.  
-`set.lyra`, `string.lyra`, `vector.lyra` contain overrides for the generic functions provided in `core.lyra`  
-`tests.lyra` Test cases for most functions, implemented in Lyra.  
-`core/aliases.lyra` and `core/clj.lyra` contain aliases for other functions.  
-`core/random.lyra` contains implementations for some RNG algorithms.  
-`core/sort.lyra` Sorting algorithms.  
+- `core.rb` Contains the buildin functions.  
+- `docs.rb` Utility file which generates the documentation for all `.lyra` files.  
+- `env.rb` Contains the Environment class, which holds all variables for the current and global scope.  
+- `evaluate.rb` The actual Lisp interpreter.  
+- `lyra.rb` The main file that needs to be fed to the ruby interpreter.  
+- `reader.rb` Reads text and turns it into lisp datastructures. (EDN style)  
+- `types.rb` Contains the basic types for Lyra. (Lists, Vectors, ...)  
+- `core.lyra` The standard library included in every Lyra file.  
+- `benchmark.lyra` Benchmarking functions for testing the performance of the newest version.  
+- `buildins.lyra` Documentation for the buildin functions from `core.rb`.  
+- `set.lyra`, `string.lyra`, `vector.lyra` contain overrides for the generic functions provided in `core.lyra`  
+- `tests.lyra` Test cases for most functions, implemented in Lyra.  
+- `core/aliases.lyra` and `core/clj.lyra` contain aliases for other functions.  
+- `core/random.lyra` contains implementations for some RNG algorithms.  
+- `core/sort.lyra` Sorting algorithms.  
 
 
 ## Changelog
@@ -366,14 +366,14 @@ The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`.
   - Now using `splitmix64` as the default RNG algorithm.
 - 0.2.1
   - Removed `LazyObj` because it was not used anymore.
-  - `cdr coded list`s (lists backed by arrays). (WIP)
+  - `cdr coded list`s (lists backed by arrays).
 - 0.2.2
   - Added typechecking for the ruby source with rbs.
   - Fixed a bug where `cons` locked if the tail was an inifinite sequence.
 - 0.2.3
   - Fixed a bug where the `reline` history would not load.
   - Fixed a bug where `#f` and `Nothing` were interpreted as the empty list in `quasiquote`.
-  - Old `lazyseq` with 2 arguments war renamed to `lazy-seq'`. `lazy-seq` is now very similar to `lazy-seq` from clojure.
+  - Old `lazyseq` with 2 arguments was renamed to `lazy-seq'`. `lazy-seq` is now very similar to `lazy-seq` from clojure.
 
 ## Next goals
 
@@ -388,19 +388,31 @@ The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`.
 
 - Sets and maps only work for atomic types.
 - The current tail-call mechanism uses exceptions. Those sometimes escape into the repl and crash it.
+- If `error!` is used, the stacktrace kees growing.
+```
+>> (error! "abc" 'syntax)
+Internal callstack: ["<function error!>"]
+Error: abc
+>> (error! "abc" 'syntax)
+Internal callstack: ["<function error!>", "<function error!>"]
+Error: abc
+>> (error! "abc" 'syntax)
+Internal callstack: ["<function error!>", "<function error!>", "<function error!>"]
+Error: abc
+```
 
 ## Dancing
 
 I discovered that the shortcuts for some functions can be used in destructuring functions. It can be abused in joke-code, but otherwise has no practical use.
 
-```
+```scm
 ((lambda' \p(@~a `and)
   (unbox and unquote a partial quasiquote))
  "■)" '(println! ("(⌐" "■ ")) '("ノ♪" "ヾ"))
 ; ヾ(⌐■ ■)ノ♪
 ```
 After parsing, the code looks the same as this: 
-```
+```scm
 ((lambda' ((partial (unbox (unquote a)) (quasiquote and)))
   (unbox and unquote a partial quasiquote))
  "■)" '(println! ("(⌐" "■ ")) '("ノ♪" "ヾ"))

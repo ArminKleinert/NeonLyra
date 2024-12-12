@@ -43,14 +43,6 @@
 (defmacro (lazy-seq & body)
    (list 'buildin-lazy-seq
          (list* 'lambda '() body)))
-(define (tmap f xs)
-  (lazy-seq
-    (if (empty? xs)
-      '()
-      (cons (f (first xs)) (tmap f (rest xs))))))
-(define (iter f x) ; FIXME
-  (lazy-seq
-    (cons x (iter f (f x)))))
 
 ;## Macro: comment
 ;# comment : [expr]* -> Nothing
@@ -199,8 +191,8 @@
 
 ;## Function: ->string
 ;# ->string : any -> string
-;# Tries to make an element into a string. Returns an unreadable string on error.
-(def-generic x (->string x) buildin->string) ; TODO
+;# Tries to make an element into a string. If a type can not be directly converted, falls back on the standard behaviour of the host language.
+(def-generic x (->string x) buildin->string)
 
 ;## Function: ->list
 ;# ->list : any -> list
@@ -1857,8 +1849,7 @@
       (if ~bind-name
         (let ((~(first binding) ~bind-name))
           ~branch-then)
-        ~branch-else)
-)))
+        ~branch-else))))
 
 (define (%partition-no-pad n step xs)
   (let ((front (take n xs))

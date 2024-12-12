@@ -363,7 +363,7 @@ end
 
 class LazyList
   include Enumerable, ConsList, Lazy
-
+  
   def initialize(fn)
     @fn = fn
     @sv = nil
@@ -433,7 +433,7 @@ class LazyList
     evaluate_step.empty?
   end
   
-  def islazy?
+  def is_lazy?
     @size < 0
   end
 end
