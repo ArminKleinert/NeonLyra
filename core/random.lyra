@@ -122,17 +122,6 @@
 ;# Limits every number in a sequence to be in between two numbers.
 (define (with-bounds seq min-n max-n)
   (map (lambda (x) (+ (rem x (- (inc max-n) min-n)) min-n)) seq))
-
-(load! "core/sort.lyra")
-(import! "lyra.core.sort" "sort")
-
-;## Function: shuffle
-;# shuffle : sequence -> int -> sequence
-;# Shuffles a sequence using the sort/sort-compare and random-nums algorithms.
-(define (shuffle seq seed)
-  (map cadr
-    (sort/sort-compare (lambda (x y) (compare (car x) (car y)))
-      (zip (random-nums seed) seq))))
 )
 )
 

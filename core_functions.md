@@ -42,15 +42,23 @@
   `(cond a b c d else e)` is equivalent to `(if a b (if c d (if else e Nothing)))`.
   `(cond a b c d e)` if equivalent to `(if a b (if c d e))`.
 ```
-### Macro: `lazy-seq` 
+### Macro: `lazy-seq'` 
 ```
-  lazy-seq : expr -> [expr]* -> expr
+  lazy-seq' : expr -> [expr]* -> expr
   
   Pure? Yes
   
   Generates a lazy list.
   This allows for infinite sequences. Lyra does not understand the simpler syntax that languages like Clojure and Scheme have.
-  Example: `(define (iterate f start) (lazy-seq start (iterate f (f start))))`
+  Example: `(define (iterate f start) (lazy-seq' start (iterate f (f start))))`
+```
+### Macro: `lazy-seq` 
+```
+  lazy-seq :  [expr]* -> expr
+  
+  Pure? Yes
+  
+  Generates a lazy list.
 ```
 ### Macro: `comment` 
 ```
@@ -59,6 +67,22 @@
   Pure? Yes
   
   Take any number arguments and return Nothing.
+```
+### Macro: `quasiquote` 
+```
+  quasiquote : expr -> expr
+  
+  Pure? Yes
+  
+  Quotes an expression. Sub-expressions can be unquoted using unquote and unquote-splicing.
+  The interpreter uses backtick ('`') as a short prefix for this macro.
+  unquote has the short prefix '~' (tilde) and unquote-splicing is '~@'.
+  `(1 ~@(list 2 3) 4) ;-> (1 2 3 4)
+  (let ((a 1) (b '(3 4)) (c 'a)) `(~a 2 (unquote (quasiquote (unquote c))))) ;-> (1 2 3 4)
+  
+  Be careful: Double unquoting does not work.
+   (let ((a 1) (c 'a)) `(unquote (quasiquote (unquote c)))) ;-> a
+   (let ((a 1) (c 'a)) `(unquote (unquote c))) ;-> Error
 ```
 ### Macro: `let1` 
 ```
@@ -130,11 +154,11 @@
   
   Pure? Yes
   
-  (let* ((f0 (lambda (e) (condp <= e  1 0  5 9  11))))
-    (f0 0) ; 0
-    (f0 1) ; 0
-    (f0 3) ; 9
-    (f0 6)) ; 11 ; default
+  (let* ((f0 (lambda (e) (condp < e  5 9  1 0  11))))
+    (f0 0) ; Check (< 5 0) and (< 1 0). Both are false. Use default: 11
+    (f0 1) ; Check (< 5 1). False. Check (< 1 1). False. Use default: 11
+    (f0 3) ; Check (< 5 3). False. Check (< 1 3). True. Use 0.
+    (f0 6)) ; Check (< 5 3). True. Return 9.
 ```
 ### Macro: `->` 
 ```
@@ -188,22 +212,6 @@
     (compute-> 1 ->list first) ; => Nothing
     (compute-> 0 throw! inc)   ; => Nothing
     (compute-> "r")            ; => "r"
-```
-### Macro: `quasiquote` 
-```
-  quasiquote : expr -> expr
-  
-  Pure? Yes
-  
-  Quotes an expression. Sub-expressions can be unquoted using unquote and unquote-splicing.
-  The interpreter uses backtick ('`') as a short prefix for this macro.
-  unquote has the short prefix '~' (tilde) and unquote-splicing is '~@'.
-  `(1 ~@(list 2 3) 4) ;-> (1 2 3 4)
-  (let ((a 1) (b '(3 4)) (c 'a)) `(~a 2 (unquote (quasiquote (unquote c))))) ;-> (1 2 3 4)
-  
-  Be careful: Double unquoting does not work.
-   (let ((a 1) (c 'a)) `(unquote (quasiquote (unquote c)))) ;-> a
-   (let ((a 1) (c 'a)) `(unquote (unquote c))) ;-> Error
 ```
 ### Macro: `case-lambda` 
 ```
@@ -502,7 +510,7 @@
   
   Pure? Yes
   
-  Tries to make an element into a string. Returns an unreadable string on error.
+  Tries to make an element into a string. If a type can not be directly converted, falls back on the standard behaviour of the host language.
 ```
 ### Function: `->list` 
 ```
@@ -1356,16 +1364,25 @@
     Like (list (size '(1 2 3)) (size '(2 3)) (size '(3)))
   Requires: empty?, rest
 ```
+### Function: `map*` 
+```
+  map* : ([any]+ -> any) -> [collection]* -> list
+  
+  Pure? Yes
+  
+  Take any number of collections and map their first elements until all are empty.
+    (map* list '(1 2 3) '(4 5 6) '(7 8 9)) ;=> ((1 4 7) (2 5 8) (3 6 9))
+    (map* + '(1 2 3) '(4 5 6) '(7 8 9)) ;=> (12 15 18)
+    (map* + '(1 2 3) '(4 5) '(7 8 9)) ;=> (12 15 12)
+  Required: any?, empty?, first, rest to work correctly with all inputs.
+```
 ### Function: `mapcar` 
 ```
   mapcar : ([any]+ -> any) -> [collection]* -> list
   
   Pure? Yes
   
-  Take any number of collections and map their first elements until all are empty.
-    (mapcar list '(1 2 3) '(4 5 6) '(7 8 9)) ;=> ((1 4 7) (2 5 8) (3 6 9))
-    (mapcar + '(1 2 3) '(4 5 6) '(7 8 9)) ;=> (12 15 18)
-    (mapcar + '(1 2 3) '(4 5) '(7 8 9)) ;=> (12 15 12)
+  Alias for map*.
   Required: any?, empty?, first, rest to work correctly with all inputs.
 ```
 ### Function: `mapcon` 
@@ -1383,6 +1400,7 @@
   Pure? Yes
   
   map and then append (lazy).
+  (mapcat (lambda (n) (list n n)) '(1 2 3)) ;=> (1 1 2 2 3 3)
 ```
 ### Function: `juxt` 
 ```
@@ -1883,8 +1901,8 @@
   
   Pure? Yes
   
-  Sequence of the factorial numbers, starting at 0.
-  (yes, it says 1, but starts at 0)
+  Sequence of the factorial numbers, starting at 0!.
+  (yes, it says 1, but starts at 0!)
 ```
 ### Function: `scanr` 
 ```
@@ -2212,9 +2230,38 @@
   (eq? '((0 4) (1 5) (2 6)) (enumerate '(4 5 6)))
   (eq? '((0 4) (1 5) (2 6)) (enumerate [4 5 6]))
 ```
+### Function: `derangements` 
+```
+  derangements : -> sequence
+  
+  Pure? Yes
+  
+  Creates a lazy sequence of the "subfactorials".
+  
+  (enumerate (derangements)) ;=> ((0 1) (1 0) (2 1) (3 2) (4 9) (5 44) ...)
+```
 # File: buildins.lyra
 
 Attention! It is not adviced to use any function with the prefix "buildin" directly! They may not always act as intended and may be removed at any time in any version.`
+## Constants
+
+### Constant: `*ARGS*` 
+```
+  
+  
+  Pure? Yes
+  
+  A cons-list of arguments that is passed to the program.
+```
+### Constant: `*lyra-version*` 
+```
+  
+  
+  Pure? Yes
+  
+  A string that specifies the current version of lyra.
+```
+
 ## Functions
 
 ### Function: `delay` 

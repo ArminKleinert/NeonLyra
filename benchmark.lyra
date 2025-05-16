@@ -120,9 +120,6 @@
             (= x 11) (map-merge m m))))
       0 r)))
 
-(let ((xs (xrange 0 100))) (measure! 1000 (lambda () (eager (map odd? xs)))))
-(let ((xs (xrange 0 100))) (measure! 1000 (lambda () (eager (pmap odd? xs)))))
-
 (define (multiplicative-persistance-recur n)
   (let* ((mult-digits
             (lambda (n res)
@@ -178,7 +175,7 @@
 (defmacro (test-performance text expr)
   (list 'println! (list 'string-concat (list 'ljust text 50) (list '->string (list 'measure! 'runs (list 'lambda () expr))))))
 
-(let ((runs 250))
+(let ((runs 1000))
 
 (test-performance "Generic utility (Do not change):" (sum-of-divisors 500))
 
@@ -215,7 +212,7 @@
 (load! "core/random.lyra")
 (import! "lyra.core.random" "")
 (let ((sequence (range 0 5000)))
-  (test-performance "Shuffle 5000 elements:" (shuffle sequence 0xC0FFEE)))
+  (test-performance "Shuffle 5000 elements:" (shuffle! sequence)))
 
 (test-performance "9-billion-names (25):" (9-billion-names 25))
 
@@ -694,6 +691,31 @@ ruby
   Lots of recur:                                    426.752249
   Lots of tail recursion:                           424.127627
   queens 6:                                         1180.508983
+jruby
+  ; Did not work due to low internal stack-capacity
+truffleruby
+  ; TODO
+  
+0.2.5
+ruby
+  Generic utility (Do not change):                  75.225534
+  Many math ops:                                    0.1532775
+  Without -> :                                      0.162602
+  Many math ops (lambda):                           0.180283
+  Many math ops (hash-lambda):                      0.1880265
+  Same as partials with composition:                0.869797
+  set operations                                    1106.8308425
+  map operations                                    185.5013305
+  (ack 3 4)                                         1876.3382905
+  (ack-destructure-lambda 3 4)                      1601.257964
+  (ack-destructure-let 3 4)                         1602.6706415
+  lazy sequences                                    80.736125
+  Sort 5000 elements:                               3729.5187785
+  Shuffle 5000 elements:                            0.9922755
+  9-billion-names (25):                             2804.7529325
+  Lots of recur:                                    488.2552175
+  Lots of tail recursion:                           485.2668575
+  queens 6:                                         1359.5543305
 jruby
   ; Did not work due to low internal stack-capacity
 truffleruby

@@ -1831,9 +1831,66 @@
     (eq? '(1 2 3 4) (mapcar id '(1 2 3 4)))
     (eq? '(3 5 7 9) (mapcar + '(1 2 3 4) '(2 3 4 5)))
     (eq? '((1 2) (4 3)) (mapcar list '(1 4) '(2 3)))
+    (eq? '((1 2 1 2 1 2) (4 3 4 3 4 3))
+         (mapcar list '(1 4) '(2 3) '(1 4) '(2 3) '(1 4) '(2 3)))
     (eq? '((1 2)) (mapcar list '(1 4) '(2)))
     (eq? '((1 2)) (mapcar list '(1) '(2 3)))
     (eq? '() (mapcar id '()))
+    
+    (empty? (mapcar list '() '()))
+    (empty? (mapcar list '() '(1 2 3)))
+    (empty? (mapcar list '(1 2 3) '()))
+    (empty? (mapcar list [] []))
+    (empty? (mapcar list [] [1 2 3]))
+    (empty? (mapcar list [1 2 3] []))
+
+    (eq? '((1 4) (2 5)) (mapcar list '(1 2) '(4 5 6)))
+    (eq? '((1 4) (2 5)) (mapcar list '(1 2 3) '(4 5)))
+    (eq? '((1 4 7) (2 5 8) (3 6 9)) (mapcar list '(1 2 3) '(4 5 6) '(7 8 9)))
+    (eq? '((1 4) (2 5)) (mapcar list [1 2] [4 5 6]))
+    (eq? '((1 4) (2 5)) (mapcar list [1 2 3] [4 5]))
+    (eq? '((1 4) (2 5) (3 6)) (mapcar list [1 2 3] [4 5 6]))
+    (eq? '((1 4 7) (2 5 8) (3 6 9)) (mapcar list [1 2 3] [4 5 6] [7 8 9]))
+
+    (eq? '(5 7) (mapcar + '(1 2) '(4 5 6)))
+    (eq? '(5 7) (mapcar + '(1 2 3) '(4 5)))
+    (eq? '(5 7 9) (mapcar + '(1 2 3) '(4 5 6)))
+    (eq? '(5 7) (mapcar + [1 2] [4 5 6]))
+    (eq? '(5 7) (mapcar + [1 2 3] [4 5]))
+    (eq? '(5 7 9) (mapcar + [1 2 3] [4 5 6]))
+    )
+
+(deftest test-map*
+    (eq? '(1 2 3 4) (map* id '(1 2 3 4)))
+    (eq? '(3 5 7 9) (map* + '(1 2 3 4) '(2 3 4 5)))
+    (eq? '((1 2) (4 3)) (map* list '(1 4) '(2 3)))
+    (eq? '((1 2 1 2 1 2) (4 3 4 3 4 3))
+         (map* list '(1 4) '(2 3) '(1 4) '(2 3) '(1 4) '(2 3)))
+    (eq? '((1 2)) (map* list '(1 4) '(2)))
+    (eq? '((1 2)) (map* list '(1) '(2 3)))
+    (eq? '() (map* id '()))
+    
+    (empty? (map* list '() '()))
+    (empty? (map* list '() '(1 2 3)))
+    (empty? (map* list '(1 2 3) '()))
+    (empty? (map* list [] []))
+    (empty? (map* list [] [1 2 3]))
+    (empty? (map* list [1 2 3] []))
+
+    (eq? '((1 4) (2 5)) (map* list '(1 2) '(4 5 6)))
+    (eq? '((1 4) (2 5)) (map* list '(1 2 3) '(4 5)))
+    (eq? '((1 4 7) (2 5 8) (3 6 9)) (map* list '(1 2 3) '(4 5 6) '(7 8 9)))
+    (eq? '((1 4) (2 5)) (map* list [1 2] [4 5 6]))
+    (eq? '((1 4) (2 5)) (map* list [1 2 3] [4 5]))
+    (eq? '((1 4) (2 5) (3 6)) (map* list [1 2 3] [4 5 6]))
+    (eq? '((1 4 7) (2 5 8) (3 6 9)) (map* list [1 2 3] [4 5 6] [7 8 9]))
+
+    (eq? '(5 7) (map* + '(1 2) '(4 5 6)))
+    (eq? '(5 7) (map* + '(1 2 3) '(4 5)))
+    (eq? '(5 7 9) (map* + '(1 2 3) '(4 5 6)))
+    (eq? '(5 7) (map* + [1 2] [4 5 6]))
+    (eq? '(5 7) (map* + [1 2 3] [4 5]))
+    (eq? '(5 7 9) (map* + [1 2 3] [4 5 6]))
     )
 
 (deftest test-mapcon
@@ -2441,13 +2498,6 @@
       (all? (lambda (x) (>= x -100)) first-100)
       (all? (lambda (x) (<= x 100)) first-100)
       ))
-
-(deftest test-shuffle
-    (empty? (shuffle '() 3405691582))
-    (= 1 (size (shuffle '(5) 3405691582)))
-    (eq? (shuffle (take 20 (random-nums 3405691582)) 3405691582) (shuffle (take 20 (random-nums 3405691582)) 3405691582))
-    (= 20 (size (shuffle (take 20 (random-nums 3405691582)) 3405691582)))
-    )
 
 (deftest test-infix
     (infix->lyra 1 + 2 = 3)
@@ -3914,6 +3964,34 @@
     (eq? [1 2 3] (conj [] 1 2 3))
     (eq? [4 5 6 1 2 3] (conj [4 5 6] 1 2 3))
     )
+
+(deftest test-list-mid
+    (eq? Nothing (list-mid '()))
+    (eq? 1 (list-mid '(1)))
+    (eq? 1 (list-mid '(1 2)))
+    (eq? 2 (list-mid '(1 2 3)))
+    (eq? 3 (list-mid '(1 2 3 4 5)))
+    
+    (eq? Nothing (list-mid []))
+    (eq? 1 (list-mid [1]))
+    (eq? 1 (list-mid [1 2]))
+    (eq? 2 (list-mid [1 2 3]))
+    (eq? 3 (list-mid [1 2 3 4 5]))
+    )
+
+(deftest test-shuffle!
+    (eq? '() (shuffle! '()))
+    (eq? '(1) (shuffle! '(1)))
+    (let ((l (shuffle! '(1 2)))) (or (eq? '(1 2) l) (eq? '(2 1) l)))
+    (list? (shuffle! '(1 2)))
+    
+    (eq? [] (shuffle! []))
+    (eq? [1] (shuffle! [1]))
+    (let ((l (shuffle! '(1 2)))) (or (eq? [1 2] l) (eq? [2 1] l)))
+    (vector? (shuffle! [1 2 3]))
+    )
+    
+    
 
 (define (%run-tests & fns)
   (let* ((results

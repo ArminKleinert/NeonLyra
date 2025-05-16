@@ -124,5 +124,11 @@
 ;## Function: append#vector
 ;# append#vector : vector -> collection -> vector
 (def-impl ::vector append buildin-append)
+
+
+;## Function: shuffle#vector
+;# shuffle#vector : [any] -> [any]
+(def-impl ::vector shuffle!
+  buildin-vector-shuffle!)
 )
 

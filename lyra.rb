@@ -62,7 +62,7 @@ def _readline(prompt)
   end
 end
 
-LYRA_VERSION = "0_2_3"
+LYRA_VERSION = "0_2_5"
 
 if ARGV[0] == "--show_expand_macros"
   $show_expand_macros = true
@@ -105,6 +105,7 @@ begin
         $stderr.puts "Internal callstack: #{LYRA_CALL_STACK.map { |x| elem_to_s(x) }}"
         raise unless e.is_a?(LyraError) # e is obviously always a LyraError, but the type checker does not believe me.
         $stderr.puts "Error: #{e.message}"
+        LYRA_CALL_STACK.clear
       rescue Interrupt
         # Ignore after terminating the current function.
       end

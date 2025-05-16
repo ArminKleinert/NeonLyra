@@ -351,6 +351,7 @@ def setup_core_functions
   setup_add_fn(:"buildin-vector-append", 2) { |xs, ys| (xs.nil? || ys.nil?) ? nil : xs + ys }
   setup_add_fn(:"buildin-vector-includes?", 2) { |xs, ys| xs.include? ys }
   setup_add_fn(:"buildin-vector-eq?", 2) { |v, v1| v == v1 }
+  setup_add_fn(:"buildin-vector-shuffle!", 1) { |v| v.shuffle }
 
   setup_add_fn(:"buildin-string-size", 1) { |xs| xs.size }
   setup_add_fn(:"buildin-string-range", 3) { |s, e, xs| r = xs[s...e]; r.nil? ? [] : r }

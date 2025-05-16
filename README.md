@@ -2,8 +2,8 @@
 
 Lyra is a lisp I made for fun and learning. NeonLyra is an improved version.
 
-Current stable version: 0.2.2  
-Current version: 0.2.3
+Current stable version: 0.2.5  
+Current version: 0.2.5
 
 Inspired by Scheme, Clojure, Haskell, Ruby and the text on my coffee cup.
 
@@ -387,19 +387,6 @@ The aliases can be imported using `(load! "core/clj.lyra") (import! "clj" "")`.
 ## Known bugs
 
 - Sets and maps only work for atomic types.
-- The current tail-call mechanism uses exceptions. Those sometimes escape into the repl and crash it.
-- If `error!` is used, the stacktrace kees growing.
-```
->> (error! "abc" 'syntax)
-Internal callstack: ["<function error!>"]
-Error: abc
->> (error! "abc" 'syntax)
-Internal callstack: ["<function error!>", "<function error!>"]
-Error: abc
->> (error! "abc" 'syntax)
-Internal callstack: ["<function error!>", "<function error!>", "<function error!>"]
-Error: abc
-```
 
 ## Dancing
 
@@ -411,7 +398,7 @@ I discovered that the shortcuts for some functions can be used in destructuring 
  "■)" '(println! ("(⌐" "■ ")) '("ノ♪" "ヾ"))
 ; ヾ(⌐■ ■)ノ♪
 ```
-After parsing, the code looks the same as this: 
+After parsing, the code becomes this:
 ```scm
 ((lambda' ((partial (unbox (unquote a)) (quasiquote and)))
   (unbox and unquote a partial quasiquote))
