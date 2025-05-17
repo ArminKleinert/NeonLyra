@@ -1828,8 +1828,8 @@
 ;# Arity | Output
 ;# 0     | Infinite sequence starting at 0 and counting up.
 ;# 1     | Infinite sequence starting at 'from'.
-;# 2     | Lazy sequence counting from 'from' to 'to'.
-;# 3     | Lazy sequence counting from 'from' to 'to' while skipping ahead 'step' numbers each time.
+;# 2     | Lazy sequence counting from 'from' (inclusive) to 'to' (exclusive).
+;# 3     | Lazy sequence counting from 'from' (inclusive) to 'to' (exclusive) while skipping ahead 'step' numbers each time.
 ;#       | If step is a function, it is repeatedly applied to the current value of from until (>= from to).
 ;#       | Otherwise, step is repeatedly added to from using +.
 (define xrange

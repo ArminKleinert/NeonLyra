@@ -144,10 +144,10 @@
 (deftest test-char-literal
     ; Test special characters
     (eq? "[+ - * / & % ! | ( ) { } [ ]]"
-    (->string [\+ \- \* \/ \& \% \! \| \( \) \{ \} \[ \]]))
+         (->string [\+ \- \* \/ \& \% \! \| \( \) \{ \} \[ \]]))
     ; Test numbers
     (eq? "[0 1 2 3 4 5 6 7 8 9]"
-    (->string [\0 \1 \2 \3 \4 \5 \6 \7 \8 \9]))
+         (->string [\0 \1 \2 \3 \4 \5 \6 \7 \8 \9]))
     (= \a \a)
     )
 
@@ -2564,9 +2564,9 @@
     )
 
 (let* ((l (case-lambda
-          ((a b c d & xs) (cons (+ a b c d) xs))
-          ((x & xs) (cons (+ x 1) xs))
-          (z '())))
+            ((a b c d & xs) (cons (+ a b c d) xs))
+            ((x & xs) (cons (+ x 1) xs))
+            (z '())))
       (l1 (case-lambda
             (() 0)
             ((x) x)
@@ -3990,8 +3990,17 @@
     (let ((l (shuffle! '(1 2)))) (or (eq? [1 2] l) (eq? [2 1] l)))
     (vector? (shuffle! [1 2 3]))
     )
-    
-    
+
+(deftest test-xrange
+    (eq? '(1 3 5) (xrange 1 6 2))
+    (eq? '(1 4) (xrange 1 6 3))
+    (eq? '(0 1 2 3 4 5) (xrange 0 6))
+    (eq? '(1 2 3 4 5) (xrange 1 6))
+    (eq? '(1 2 3 4 5) (take 5 (xrange 1)))
+    (eq? '(0 1 2 3 4) (take 5 (xrange)))
+    )
+
+
 
 (define (%run-tests & fns)
   (let* ((results
